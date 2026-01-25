@@ -5,5 +5,5 @@ export { LoadingScreen } from './loading-screen';
 export { ParallaxScrollView } from './parallax-scroll-view';
 export { ThemedText } from './themed-text';
 export { ThemedView } from './themed-view';
+export { PermissionCard } from './permission-card';
 export * from './ui';
-

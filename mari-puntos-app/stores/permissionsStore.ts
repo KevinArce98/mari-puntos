@@ -12,12 +12,16 @@ interface PermissionsState {
   partnerPermissions: Permission[];
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   fetchMyPermissions: (params?: GetPermissionsParams) => Promise<void>;
   fetchPartnerPermissions: (params?: GetPermissionsParams) => Promise<void>;
   createPermission: (data: CreatePermissionRequest) => Promise<void>;
-  respondToPermission: (permissionId: string, approved: boolean, responseMessage?: string) => Promise<void>;
+  respondToPermission: (
+    permissionId: string,
+    approved: boolean,
+    responseMessage?: string
+  ) => Promise<void>;
   cancelPermission: (permissionId: string) => Promise<void>;
   clearPermissions: () => void;
 }
@@ -45,7 +49,10 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
       const response = await permissionsService.getPartnerPermissions(params);
       set({ partnerPermissions: response.data, isLoading: false });
     } catch (error: any) {
-      set({ error: error.error || 'Failed to fetch partner permissions', isLoading: false });
+      set({
+        error: error.error || 'Failed to fetch partner permissions',
+        isLoading: false,
+      });
       throw error;
     }
   },
@@ -66,7 +73,10 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
   respondToPermission: async (permissionId, approved, responseMessage) => {
     set({ isLoading: true, error: null });
     try {
-      await permissionsService.respondToPermission(permissionId, { approved, responseMessage });
+      await permissionsService.respondToPermission(permissionId, {
+        approved,
+        responseMessage,
+      });
       // Refetch partner permissions
       await get().fetchPartnerPermissions({ status: PermissionStatus.PENDING });
       set({ isLoading: false });
@@ -79,7 +89,7 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
   cancelPermission: async (permissionId: string) => {
     set({ isLoading: true, error: null });
     try {
-      await permissionsService.deletePermission(permissionId);
+      await permissionsService.cancelPermission(permissionId);
       // Refetch my permissions
       await get().fetchMyPermissions({ status: PermissionStatus.PENDING });
       set({ isLoading: false });

@@ -50,7 +50,7 @@ export const errorMiddleware = (
       message: issue.message,
     }));
     
-    sendError(res, 'Validation error', 400, details);
+    sendError(res, 'Error de validación', 400, details);
     return;
   }
 
@@ -63,28 +63,28 @@ export const errorMiddleware = (
   // Database errors
   if (err.name === 'QueryFailedError') {
     const message = config.isDevelopment 
-      ? `Database error: ${err.message}` 
-      : 'Database error';
+      ? `Error de base de datos: ${err.message}` 
+      : 'Error de base de datos';
     sendError(res, message, 500);
     return;
   }
 
   // TypeORM EntityNotFoundError
   if (err.name === 'EntityNotFoundError') {
-    sendNotFound(res, 'Resource not found');
+    sendNotFound(res, 'Recurso no encontrado');
     return;
   }
 
   // JWT errors
   if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-    sendError(res, 'Authentication failed', 401);
+    sendError(res, 'Autenticación fallida', 401);
     return;
   }
 
   // Default error - don't leak internal details in production
   const message = config.isDevelopment 
     ? err.message 
-    : 'Internal server error';
+    : 'Error interno del servidor';
   sendInternalError(res, message);
 };
 
@@ -96,7 +96,7 @@ export const notFoundMiddleware = (
   res: Response,
   _next: NextFunction
 ): void => {
-  sendNotFound(res, `Route not found: ${req.method} ${req.path}`);
+  sendNotFound(res, `Ruta no encontrada: ${req.method} ${req.path}`);
 };
 
 /**
@@ -115,14 +115,14 @@ export const asyncHandler = (
 // ============================================================================
 
 export const createError = {
-  unauthorized: (message = 'Unauthorized') => 
+  unauthorized: (message = 'No autorizado') => 
     new AppError(ErrorCode.UNAUTHORIZED, message),
   
-  forbidden: (message = 'Forbidden') => 
+  forbidden: (message = 'Prohibido') => 
     new AppError(ErrorCode.FORBIDDEN, message),
   
-  notFound: (resource = 'Resource') => 
-    new AppError(ErrorCode.NOT_FOUND, `${resource} not found`),
+  notFound: (resource = 'Recurso') => 
+    new AppError(ErrorCode.NOT_FOUND, `${resource} no encontrado`),
   
   conflict: (message: string) => 
     new AppError(ErrorCode.CONFLICT, message),
@@ -131,38 +131,38 @@ export const createError = {
     new AppError(ErrorCode.VALIDATION_ERROR, message),
   
   insufficientPoints: () => 
-    new AppError(ErrorCode.INSUFFICIENT_POINTS, 'Insufficient points'),
+    new AppError(ErrorCode.INSUFFICIENT_POINTS, 'Puntos insuficientes'),
   
   partnerNotLinked: () => 
-    new AppError(ErrorCode.PARTNER_NOT_LINKED, 'No partner linked'),
+    new AppError(ErrorCode.PARTNER_NOT_LINKED, 'No tienes pareja vinculada'),
   
   partnerAlreadyLinked: () => 
-    new AppError(ErrorCode.PARTNER_ALREADY_LINKED, 'Partner already linked'),
+    new AppError(ErrorCode.PARTNER_ALREADY_LINKED, 'Ya tienes una pareja vinculada'),
   
   invalidLinkCode: () => 
-    new AppError(ErrorCode.INVALID_LINK_CODE, 'Invalid link code'),
+    new AppError(ErrorCode.INVALID_LINK_CODE, 'Código de enlace inválido'),
   
   linkCodeExpired: () => 
-    new AppError(ErrorCode.LINK_CODE_EXPIRED, 'Link code has expired'),
+    new AppError(ErrorCode.LINK_CODE_EXPIRED, 'El código de enlace ha expirado'),
   
   actionAlreadyEvaluated: () => 
-    new AppError(ErrorCode.ACTION_ALREADY_EVALUATED, 'Action has already been evaluated'),
+    new AppError(ErrorCode.ACTION_ALREADY_EVALUATED, 'La acción ya ha sido evaluada'),
   
   permissionAlreadyResponded: () => 
-    new AppError(ErrorCode.PERMISSION_ALREADY_RESPONDED, 'Permission has already been responded to'),
+    new AppError(ErrorCode.PERMISSION_ALREADY_RESPONDED, 'El permiso ya ha sido respondido'),
   
   cannotEvaluateOwnAction: () => 
-    new AppError(ErrorCode.CANNOT_EVALUATE_OWN_ACTION, 'Cannot evaluate your own action'),
+    new AppError(ErrorCode.CANNOT_EVALUATE_OWN_ACTION, 'No puedes evaluar tu propia acción'),
   
   cannotRespondOwnPermission: () => 
-    new AppError(ErrorCode.CANNOT_RESPOND_OWN_PERMISSION, 'Cannot respond to your own permission request'),
+    new AppError(ErrorCode.CANNOT_RESPOND_OWN_PERMISSION, 'No puedes responder a tu propia solicitud de permiso'),
   
   rewardNotAvailable: () => 
-    new AppError(ErrorCode.REWARD_NOT_AVAILABLE, 'Reward is not available'),
+    new AppError(ErrorCode.REWARD_NOT_AVAILABLE, 'La recompensa no está disponible'),
   
   levelRequirementNotMet: (required: number) => 
-    new AppError(ErrorCode.LEVEL_REQUIREMENT_NOT_MET, `Level ${required} required`),
+    new AppError(ErrorCode.LEVEL_REQUIREMENT_NOT_MET, `Se requiere nivel ${required}`),
   
   roleRequired: (role: string) => 
-    new AppError(ErrorCode.ROLE_REQUIRED, `This action requires ${role} role`),
+    new AppError(ErrorCode.ROLE_REQUIRED, `Esta acción requiere el rol ${role}`),
 };

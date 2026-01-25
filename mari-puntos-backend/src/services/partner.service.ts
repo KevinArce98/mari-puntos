@@ -14,7 +14,7 @@ export class PartnerService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
-      throw new AppError(404, 'User not found');
+      throw new AppError(404, 'Usuario no encontrado');
     }
 
     // Check if user already has a partner link
@@ -26,7 +26,7 @@ export class PartnerService {
     });
 
     if (existingLink) {
-      throw new AppError(400, 'User already has a partner link');
+      throw new AppError(400, 'El usuario ya tiene un enlace de pareja');
     }
 
     // Update user role
@@ -59,7 +59,7 @@ export class PartnerService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
-      throw new AppError(404, 'User not found');
+      throw new AppError(404, 'Usuario no encontrado');
     }
 
     // Check if user already has a partner link
@@ -71,7 +71,7 @@ export class PartnerService {
     });
 
     if (existingLink) {
-      throw new AppError(400, 'User already has a partner link');
+      throw new AppError(400, 'El usuario ya tiene un enlace de pareja');
     }
 
     // Find partner link by code
@@ -81,11 +81,11 @@ export class PartnerService {
     });
 
     if (!partnerLink) {
-      throw new AppError(404, 'Partner link not found');
+      throw new AppError(404, 'Enlace de pareja no encontrado');
     }
 
     if (partnerLink.status !== PartnerLinkStatus.PENDING) {
-      throw new AppError(400, 'Partner link is not available');
+      throw new AppError(400, 'El enlace de pareja no está disponible');
     }
 
     // Determine role and update link
@@ -103,7 +103,7 @@ export class PartnerService {
       husbandId = userId;
       wifeId = partnerLink.wifeId;
     } else {
-      throw new AppError(400, 'Invalid partner link state');
+      throw new AppError(400, 'Estado de enlace de pareja inválido');
     }
 
     // Generate partner code if not exists
@@ -122,14 +122,14 @@ export class PartnerService {
       this.logRepository.create({
         userId: husbandId,
         type: LogType.PARTNER_LINKED,
-        message: 'Successfully linked with partner',
+        message: 'Vinculado exitosamente con pareja',
         relatedEntityId: savedPartnerLink.id,
         relatedEntityType: 'PartnerLink',
       }),
       this.logRepository.create({
         userId: wifeId,
         type: LogType.PARTNER_LINKED,
-        message: 'Successfully linked with partner',
+        message: 'Vinculado exitosamente con pareja',
         relatedEntityId: savedPartnerLink.id,
         relatedEntityType: 'PartnerLink',
       }),
@@ -152,14 +152,14 @@ export class PartnerService {
     });
 
     if (!partnerLink) {
-      throw new AppError(404, 'Partner link not found');
+      throw new AppError(404, 'Enlace de pareja no encontrado');
     }
 
     const partner =
       partnerLink.husbandId === userId ? partnerLink.wife : partnerLink.husband;
 
     if (!partner) {
-      throw new AppError(404, 'Partner not found');
+      throw new AppError(404, 'Pareja no encontrada');
     }
 
     return { partnerLink, partner };
@@ -191,7 +191,7 @@ export class PartnerService {
     });
 
     if (!partnerLink) {
-      throw new AppError(404, 'Partner link not found');
+      throw new AppError(404, 'Enlace de pareja no encontrado');
     }
 
     partnerLink.status = PartnerLinkStatus.INACTIVE;

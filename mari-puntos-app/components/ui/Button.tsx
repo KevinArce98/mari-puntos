@@ -21,7 +21,7 @@ interface ButtonProps {
   fullWidth?: boolean;
   icon?: keyof typeof Ionicons.glyphMap;
   iconPosition?: 'left' | 'right';
-  style?: ViewStyle;
+  style?: ViewStyle | ViewStyle[];
   textStyle?: TextStyle;
 }
 
@@ -54,11 +54,12 @@ export const Button: React.FC<ButtonProps> = ({
     textStyle,
   ];
 
-  const iconColor = variant === 'primary' || variant === 'danger' 
-    ? colors.white 
-    : variant === 'secondary' 
-    ? colors.text.primary 
-    : colors.primary;
+  const iconColor =
+    variant === 'primary' || variant === 'danger'
+      ? colors.white
+      : variant === 'secondary'
+        ? colors.text.primary
+        : colors.primary;
 
   const iconSize = size === 'sm' ? 16 : size === 'lg' ? 24 : 20;
 
@@ -71,16 +72,28 @@ export const Button: React.FC<ButtonProps> = ({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' || variant === 'danger' ? colors.white : colors.primary}
+          color={
+            variant === 'primary' || variant === 'danger' ? colors.white : colors.primary
+          }
         />
       ) : (
         <View style={styles.content}>
           {icon && iconPosition === 'left' && (
-            <Ionicons name={icon} size={iconSize} color={iconColor} style={styles.iconLeft} />
+            <Ionicons
+              name={icon}
+              size={iconSize}
+              color={iconColor}
+              style={styles.iconLeft}
+            />
           )}
           <Text style={textStyles}>{title}</Text>
           {icon && iconPosition === 'right' && (
-            <Ionicons name={icon} size={iconSize} color={iconColor} style={styles.iconRight} />
+            <Ionicons
+              name={icon}
+              size={iconSize}
+              color={iconColor}
+              style={styles.iconRight}
+            />
           )}
         </View>
       )}
@@ -106,7 +119,7 @@ const styles = StyleSheet.create({
   iconRight: {
     marginLeft: spacing.sm,
   },
-  
+
   // Variants
   primary: {
     backgroundColor: colors.primary,
@@ -125,7 +138,7 @@ const styles = StyleSheet.create({
   danger: {
     backgroundColor: colors.error,
   },
-  
+
   // Sizes
   size_sm: {
     paddingVertical: spacing.sm,
@@ -142,7 +155,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     minHeight: 56,
   },
-  
+
   // States
   disabled: {
     opacity: 0.5,
@@ -150,7 +163,7 @@ const styles = StyleSheet.create({
   fullWidth: {
     width: '100%',
   },
-  
+
   // Text styles
   text: {
     ...typography.styles.button,
@@ -170,7 +183,7 @@ const styles = StyleSheet.create({
   text_danger: {
     color: colors.white,
   },
-  
+
   // Text sizes
   textSize_sm: {
     ...typography.styles.buttonSmall,

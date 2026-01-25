@@ -3,12 +3,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -22,14 +22,14 @@ export default function ReviewActivityScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const { respondToPermission } = usePermissions();
-  
+
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Mock activity data - would come from params/API
   const activity = {
-    id: params.id as string || '1',
+    id: (params.id as string) || '1',
     title: 'Cooked Dinner',
     category: 'Chores',
     timestamp: '2 hours ago',
@@ -45,13 +45,13 @@ export default function ReviewActivityScreen() {
       await respondToPermission(activity.id, {
         approved: true,
       });
-      
+
       Toast.show({
         type: 'success',
         text1: 'Activity Approved!',
         text2: `${activity.requestedBy} earned ${activity.pointsValue} points`,
       });
-      
+
       router.back();
     } catch {
       Toast.show({
@@ -70,13 +70,13 @@ export default function ReviewActivityScreen() {
       await respondToPermission(activity.id, {
         approved: false,
       });
-      
+
       Toast.show({
         type: 'info',
         text1: 'Activity Rejected',
         text2: 'Your partner has been notified',
       });
-      
+
       router.back();
     } catch {
       Toast.show({
@@ -100,18 +100,15 @@ export default function ReviewActivityScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Activity Card */}
         <Card style={styles.activityCard} padding="none">
           {/* Image */}
-          <Image
-            source={{ uri: activity.image }}
-            style={styles.activityImage}
-          />
-          
+          <Image source={{ uri: activity.image }} style={styles.activityImage} />
+
           {/* Content */}
           <View style={styles.activityContent}>
             <View style={styles.activityHeader}>
@@ -120,10 +117,10 @@ export default function ReviewActivityScreen() {
               </View>
               <Text style={styles.timestamp}>{activity.timestamp}</Text>
             </View>
-            
+
             <Text style={styles.activityTitle}>{activity.title}</Text>
             <Text style={styles.activityDescription}>{activity.description}</Text>
-            
+
             <View style={styles.activityFooter}>
               <Text style={styles.requestedBy}>Submitted by {activity.requestedBy}</Text>
               <Text style={styles.pointsValue}>+{activity.pointsValue} pts</Text>
@@ -138,25 +135,17 @@ export default function ReviewActivityScreen() {
             <Text style={styles.ratingValue}>{rating}</Text>
             <View style={styles.ratingSlider}>
               <View style={styles.ratingTrack}>
-                <View 
-                  style={[
-                    styles.ratingFill, 
-                    { width: `${(rating / 10) * 100}%` }
-                  ]} 
-                />
+                <View style={[styles.ratingFill, { width: `${(rating / 10) * 100}%` }]} />
               </View>
               <View style={styles.ratingLabels}>
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                  <TouchableOpacity 
-                    key={num} 
+                  <TouchableOpacity
+                    key={num}
                     onPress={() => setRating(num)}
                     style={styles.ratingTouchArea}
                   >
-                    <View 
-                      style={[
-                        styles.ratingDot,
-                        rating >= num && styles.ratingDotActive,
-                      ]} 
+                    <View
+                      style={[styles.ratingDot, rating >= num && styles.ratingDotActive]}
                     />
                   </TouchableOpacity>
                 ))}
@@ -184,7 +173,9 @@ export default function ReviewActivityScreen() {
       </ScrollView>
 
       {/* Bottom Actions */}
-      <View style={[styles.bottomContainer, { paddingBottom: insets.bottom + spacing.md }]}>
+      <View
+        style={[styles.bottomContainer, { paddingBottom: insets.bottom + spacing.md }]}
+      >
         <View style={styles.actionButtons}>
           <Button
             title="Reject"

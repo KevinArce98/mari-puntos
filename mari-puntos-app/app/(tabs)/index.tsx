@@ -5,12 +5,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -29,9 +29,27 @@ export default function HomeScreen() {
 
   // Mock recent history data matching design
   const recentHistory = [
-    { id: 1, title: 'Washed the dishes', points: 15, type: 'earned', icon: 'water-outline' as const },
-    { id: 2, title: 'Game night approved', points: -30, type: 'spent', icon: 'game-controller-outline' as const },
-    { id: 3, title: 'Made breakfast', points: 20, type: 'earned', icon: 'restaurant-outline' as const },
+    {
+      id: 1,
+      title: 'Washed the dishes',
+      points: 15,
+      type: 'earned',
+      icon: 'water-outline' as const,
+    },
+    {
+      id: 2,
+      title: 'Game night approved',
+      points: -30,
+      type: 'spent',
+      icon: 'game-controller-outline' as const,
+    },
+    {
+      id: 3,
+      title: 'Made breakfast',
+      points: 20,
+      type: 'earned',
+      icon: 'restaurant-outline' as const,
+    },
   ];
 
   if (!hasPartner) {
@@ -39,7 +57,9 @@ export default function HomeScreen() {
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         >
           <Card style={styles.noPartnerCard}>
             <View style={styles.noPartnerIcon}>
@@ -81,30 +101,30 @@ export default function HomeScreen() {
             />
             <View style={styles.greetingContainer}>
               <Text style={styles.greeting}>
-                Hi, {user?.firstName?.split(' ')[0] || 'there'}! 👋
+                Hola, {user?.firstName?.split(' ')[0] || 'there'}! 👋
               </Text>
-              <Text style={styles.subtitle}>{"Let's earn some points today"}</Text>
+              <Text style={styles.subtitle}>Vamos a ganar algunos puntos hoy!</Text>
             </View>
           </View>
           <TouchableOpacity style={styles.notificationButton}>
-            <Ionicons name="notifications-outline" size={24} color={colors.text.primary} />
+            <Ionicons
+              name="notifications-outline"
+              size={24}
+              color={colors.text.primary}
+            />
           </TouchableOpacity>
         </View>
 
         {/* Points Card */}
-        <PointsCard
-          points={myPoints}
-          label="Current Balance"
-          style={styles.pointsCard}
-        />
+        <PointsCard points={myPoints} label="Saldo Actual" style={styles.pointsCard} />
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
           <View style={styles.actionsContainer}>
             <ActionCard
               title="Solicitar Permiso"
-              subtitle="Request permission for an activity"
+              subtitle="Solicitar permiso para una actividad"
               icon="hand-right-outline"
               iconBackgroundColor={colors.accent}
               onPress={() => router.push('/permissions/request')}
@@ -112,7 +132,7 @@ export default function HomeScreen() {
             />
             <ActionCard
               title="Registrar Acción"
-              subtitle="Log an activity to earn points"
+              subtitle="Registrar una actividad para ganar puntos"
               icon="add-circle-outline"
               iconBackgroundColor={colors.primary}
               onPress={() => router.push('/actions')}
@@ -124,40 +144,50 @@ export default function HomeScreen() {
         {/* Recent History */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent History</Text>
+            <Text style={styles.sectionTitle}>Historial Reciente</Text>
             <TouchableOpacity>
-              <Text style={styles.seeAllText}>See All</Text>
+              <Text style={styles.seeAllText}>Ver Todo</Text>
             </TouchableOpacity>
           </View>
-          
+
           <Card style={styles.historyCard} padding="none">
             {recentHistory.map((item, index) => (
-              <View 
-                key={item.id} 
+              <View
+                key={item.id}
                 style={[
                   styles.historyItem,
                   index !== recentHistory.length - 1 && styles.historyItemBorder,
                 ]}
               >
-                <View style={[
-                  styles.historyIconContainer,
-                  { backgroundColor: item.type === 'earned' ? `${colors.primary}15` : `${colors.accent}15` }
-                ]}>
-                  <Ionicons 
-                    name={item.icon} 
-                    size={20} 
-                    color={item.type === 'earned' ? colors.primary : colors.accent} 
+                <View
+                  style={[
+                    styles.historyIconContainer,
+                    {
+                      backgroundColor:
+                        item.type === 'earned'
+                          ? `${colors.primary}15`
+                          : `${colors.accent}15`,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={item.icon}
+                    size={20}
+                    color={item.type === 'earned' ? colors.primary : colors.accent}
                   />
                 </View>
                 <View style={styles.historyContent}>
                   <Text style={styles.historyTitle}>{item.title}</Text>
                   <Text style={styles.historyTime}>2 hours ago</Text>
                 </View>
-                <Text style={[
-                  styles.historyPoints,
-                  { color: item.type === 'earned' ? colors.primary : colors.error }
-                ]}>
-                  {item.type === 'earned' ? '+' : ''}{item.points} pts
+                <Text
+                  style={[
+                    styles.historyPoints,
+                    { color: item.type === 'earned' ? colors.primary : colors.error },
+                  ]}
+                >
+                  {item.type === 'earned' ? '+' : ''}
+                  {item.points} pts
                 </Text>
               </View>
             ))}

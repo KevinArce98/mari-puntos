@@ -2,18 +2,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Button, Card, Input } from '@/components/ui';
 import { usePermissions } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
+import { PermissionType } from '@/types';
 
 const QUICK_ACTIVITIES = [
   { id: 'gaming', label: 'Gaming', icon: 'game-controller-outline' },
@@ -33,7 +35,7 @@ export default function RequestPermissionScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { requestPermission } = usePermissions();
-  
+
   const [selectedQuick, setSelectedQuick] = useState<string | null>(null);
   const [activityType, setActivityType] = useState<string | null>(null);
   const [showActivityPicker, setShowActivityPicker] = useState(false);
@@ -41,7 +43,12 @@ export default function RequestPermissionScreen() {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const selectedActivity = ACTIVITY_TYPES.find(a => a.id === activityType);
+  // Date & Time pickers state
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState(new Date());
+  const [showPicker, setShowPicker] = useState<'date' | 'time' | null>(null);
+
+  const selectedActivity = ACTIVITY_TYPES.find((a) => a.id === activityType);
   const estimatedCost = selectedActivity ? selectedActivity.cost * duration : 0;
 
   const handleQuickSelect = (id: string) => {
@@ -61,28 +68,33 @@ export default function RequestPermissionScreen() {
 
     setLoading(true);
     try {
-      const activity = ACTIVITY_TYPES.find(a => a.id === activityType);
+      const activity = ACTIVITY_TYPES.find((a) => a.id === activityType);
+      const requestedDateTime = getCombinedDateTime();
+
+      console.log({ activityType });
       await requestPermission({
         title: activity?.label || 'Activity Request',
-        type: activityType as any, // Maps to PermissionType enum
-        requestedDate: new Date().toISOString(),
+        // type: activityType as any, // Maps to PermissionType enum
+        type: PermissionType.GAMING_SESSION,
+        requestedDate: requestedDateTime.toISOString(),
         durationHours: duration,
         pointsCost: estimatedCost,
         description: note.trim() || undefined,
       });
-      
+
       Toast.show({
         type: 'success',
-        text1: 'Request Sent!',
-        text2: 'Your partner will receive a notification',
+        text1: '¡Solicitud Enviada!',
+        text2: 'Tu pareja recibirá una notificación',
       });
-      
+
       router.back();
-    } catch {
+    } catch (e) {
+      console.log((e as any).details);
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Could not send request',
+        text2: 'No se pudo enviar la solicitud',
       });
     } finally {
       setLoading(false);
@@ -94,6 +106,57 @@ export default function RequestPermissionScreen() {
     setDuration(newDuration);
   };
 
+  const handleDateChange = (event: any, date?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowPicker(null);
+    }
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
+
+  const handleTimeChange = (event: any, time?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowPicker(null);
+    }
+    if (time) {
+      setSelectedTime(time);
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return 'Hoy';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return 'Mañana';
+    } else {
+      return date.toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    }
+  };
+
+  const formatTime = (time: Date) => {
+    return time.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  const getCombinedDateTime = () => {
+    const combined = new Date(selectedDate);
+    combined.setHours(selectedTime.getHours());
+    combined.setMinutes(selectedTime.getMinutes());
+    return combined;
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
@@ -101,18 +164,18 @@ export default function RequestPermissionScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>New Request</Text>
+        <Text style={styles.headerTitle}>Nuevo Permiso</Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         {/* Quick Select */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Select</Text>
+          <Text style={styles.sectionTitle}>Selección Rápida</Text>
           <View style={styles.quickSelectRow}>
             {QUICK_ACTIVITIES.map((activity) => (
               <TouchableOpacity
@@ -123,15 +186,19 @@ export default function RequestPermissionScreen() {
                 ]}
                 onPress={() => handleQuickSelect(activity.id)}
               >
-                <Ionicons 
-                  name={activity.icon as keyof typeof Ionicons.glyphMap} 
-                  size={24} 
-                  color={selectedQuick === activity.id ? colors.white : colors.text.primary} 
+                <Ionicons
+                  name={activity.icon as keyof typeof Ionicons.glyphMap}
+                  size={24}
+                  color={
+                    selectedQuick === activity.id ? colors.white : colors.text.primary
+                  }
                 />
-                <Text style={[
-                  styles.quickSelectLabel,
-                  selectedQuick === activity.id && styles.quickSelectLabelSelected,
-                ]}>
+                <Text
+                  style={[
+                    styles.quickSelectLabel,
+                    selectedQuick === activity.id && styles.quickSelectLabelSelected,
+                  ]}
+                >
                   {activity.label}
                 </Text>
               </TouchableOpacity>
@@ -141,24 +208,23 @@ export default function RequestPermissionScreen() {
 
         {/* Activity Type */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Activity Type</Text>
-          <TouchableOpacity 
+          <Text style={styles.sectionTitle}>Tipo de Actividad</Text>
+          <TouchableOpacity
             style={styles.dropdown}
             onPress={() => setShowActivityPicker(!showActivityPicker)}
           >
-            <Text style={[
-              styles.dropdownText,
-              !activityType && styles.dropdownPlaceholder,
-            ]}>
-              {selectedActivity?.label || 'Select activity type'}
+            <Text
+              style={[styles.dropdownText, !activityType && styles.dropdownPlaceholder]}
+            >
+              {selectedActivity?.label || 'Selecciona una actividad'}
             </Text>
-            <Ionicons 
-              name={showActivityPicker ? 'chevron-up' : 'chevron-down'} 
-              size={20} 
-              color={colors.gray[400]} 
+            <Ionicons
+              name={showActivityPicker ? 'chevron-up' : 'chevron-down'}
+              size={20}
+              color={colors.gray[400]}
             />
           </TouchableOpacity>
-          
+
           {showActivityPicker && (
             <Card style={styles.dropdownMenu} padding="none">
               {ACTIVITY_TYPES.map((activity) => (
@@ -183,63 +249,99 @@ export default function RequestPermissionScreen() {
 
         {/* Date & Time */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>When</Text>
+          <Text style={styles.sectionTitle}>Cuándo</Text>
           <View style={styles.dateTimeRow}>
-            <TouchableOpacity style={styles.dateTimeButton}>
+            <TouchableOpacity
+              style={styles.dateTimeButton}
+              onPress={() =>
+                setShowPicker((show) => {
+                  return show === 'date' ? null : 'date';
+                })
+              }
+            >
               <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-              <Text style={styles.dateTimeText}>Today</Text>
+              <Text style={styles.dateTimeText}>{formatDate(selectedDate)}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.dateTimeButton}>
+            <TouchableOpacity
+              style={styles.dateTimeButton}
+              onPress={() =>
+                setShowPicker((show) => {
+                  return show === 'time' ? null : 'time';
+                })
+              }
+            >
               <Ionicons name="time-outline" size={20} color={colors.primary} />
-              <Text style={styles.dateTimeText}>7:00 PM</Text>
+              <Text style={styles.dateTimeText}>{formatTime(selectedTime)}</Text>
             </TouchableOpacity>
           </View>
+
+          {showPicker && (
+            <View style={styles.calendarContainer}>
+              <DateTimePicker
+                value={showPicker === 'time' ? selectedTime : selectedDate}
+                mode={showPicker}
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={showPicker === 'time' ? handleTimeChange : handleDateChange}
+                minimumDate={showPicker === 'date' ? new Date() : undefined}
+                locale="es-CR"
+              />
+            </View>
+          )}
+
+          {/* iOS Confirm Button */}
+          {Platform.OS === 'ios' && showPicker && (
+            <Button
+              title="Confirmar"
+              onPress={() => {
+                setShowPicker(null);
+              }}
+              variant="secondary"
+              style={{ marginTop: spacing.md }}
+            />
+          )}
         </View>
 
         {/* Duration Control */}
         <View style={styles.section}>
           <View style={styles.durationHeader}>
-            <Text style={styles.sectionTitle}>Duration</Text>
-            <Text style={styles.durationValue}>{duration} hours</Text>
+            <Text style={styles.sectionTitle}>Duración</Text>
+            <Text style={styles.durationValue}>{duration} horas</Text>
           </View>
-          
+
           <View style={styles.durationControl}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.durationButton}
               onPress={() => handleDurationChange(-0.5)}
             >
               <Ionicons name="remove" size={24} color={colors.primary} />
             </TouchableOpacity>
-            
+
             <View style={styles.durationTrack}>
-              <View 
-                style={[
-                  styles.durationFill, 
-                  { width: `${(duration / 8) * 100}%` }
-                ]} 
+              <View
+                style={[styles.durationFill, { width: `${(duration / 8) * 100}%` }]}
               />
             </View>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.durationButton}
               onPress={() => handleDurationChange(0.5)}
             >
               <Ionicons name="add" size={24} color={colors.primary} />
             </TouchableOpacity>
           </View>
-          
+
           {/* Estimated Cost */}
           <View style={styles.costCard}>
-            <Text style={styles.costLabel}>Estimated Cost</Text>
+            <Text style={styles.costLabel}>Costo Estimado</Text>
             <Text style={styles.costValue}>{estimatedCost} MariPuntos</Text>
           </View>
         </View>
 
         {/* Optional Note */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Note (Optional)</Text>
+          <Text style={styles.sectionTitle}>Nota (Opcional)</Text>
           <Input
-            placeholder="Add a message for your partner..."
+            placeholder="Agrega un mensaje para tu pareja..."
             value={note}
             onChangeText={setNote}
             multiline
@@ -250,9 +352,11 @@ export default function RequestPermissionScreen() {
       </ScrollView>
 
       {/* Bottom Button */}
-      <View style={[styles.bottomContainer, { paddingBottom: insets.bottom + spacing.md }]}>
+      <View
+        style={[styles.bottomContainer, { paddingBottom: insets.bottom + spacing.md }]}
+      >
         <Button
-          title="Send Request"
+          title="Enviar Solicitud"
           onPress={handleRequest}
           loading={loading}
           disabled={!activityType}
@@ -298,6 +402,9 @@ const styles = StyleSheet.create({
     ...typography.styles.h4,
     color: colors.text.primary,
     marginBottom: spacing.md,
+  },
+  calendarContainer: {
+    alignItems: 'center',
   },
   quickSelectRow: {
     flexDirection: 'row',

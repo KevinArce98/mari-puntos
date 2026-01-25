@@ -1,6 +1,6 @@
 import { AppDataSource } from '../config/db';
 import { Permission, PermissionStatus, PermissionType } from '../entities/Permission';
-import { User, UserRole } from '../entities/User';
+import { User } from '../entities/User';
 import { Log, LogType } from '../entities/Log';
 import { AppError } from '../middlewares/errorMiddleware';
 import { PartnerService } from './partner.service';
@@ -22,21 +22,20 @@ export class PermissionsService {
   private partnerService = new PartnerService();
   private pointsService = new PointsService();
 
-  async createPermission(userId: string, data: CreatePermissionData): Promise<Permission> {
+  async createPermission(
+    userId: string,
+    data: CreatePermissionData
+  ): Promise<Permission> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
-      throw new AppError(404, 'User not found');
-    }
-
-    if (user.role !== UserRole.HUSBAND) {
-      throw new AppError(403, 'Only husbands can request permissions');
+      throw new AppError(404, 'Usuario no encontrado');
     }
 
     // Verify user has partner
     const partnerId = await this.partnerService.getPartnerId(userId);
     if (!partnerId) {
-      throw new AppError(400, 'You must have a partner to request permissions');
+      throw new AppError(400, 'Debes tener una pareja para solicitar permisos');
     }
 
     const permission = this.permissionRepository.create({
@@ -57,7 +56,7 @@ export class PermissionsService {
       this.logRepository.create({
         userId,
         type: LogType.PERMISSION_REQUESTED,
-        message: `Requested permission: ${permission.title}`,
+        message: `Permiso solicitado: ${permission.title}`,
         relatedEntityId: permission.id,
         relatedEntityType: 'Permission',
       })
@@ -73,7 +72,7 @@ export class PermissionsService {
     });
 
     if (!permission) {
-      throw new AppError(404, 'Permission not found');
+      throw new AppError(404, 'Permiso no encontrado');
     }
 
     return permission;
@@ -93,6 +92,8 @@ export class PermissionsService {
 
     const queryBuilder = this.permissionRepository
       .createQueryBuilder('permission')
+      .leftJoinAndSelect('permission.requester', 'requester')
+      .leftJoinAndSelect('permission.approver', 'approver')
       .where('permission.requesterId = :userId', { userId })
       .orderBy('permission.createdAt', 'DESC')
       .skip(skip)
@@ -118,7 +119,7 @@ export class PermissionsService {
     const partnerId = await this.partnerService.getPartnerId(userId);
 
     if (!partnerId) {
-      throw new AppError(404, 'Partner not found');
+      throw new AppError(404, 'Pareja no encontrada');
     }
 
     return this.getUserPermissions(partnerId, filters);
@@ -134,21 +135,17 @@ export class PermissionsService {
     const approver = await this.userRepository.findOne({ where: { id: approverId } });
 
     if (!approver) {
-      throw new AppError(404, 'Approver not found');
-    }
-
-    if (approver.role !== UserRole.WIFE) {
-      throw new AppError(403, 'Only wives can respond to permissions');
+      throw new AppError(404, 'Aprobador no encontrado');
     }
 
     // Verify approver is partner
     const partnerId = await this.partnerService.getPartnerId(approverId);
     if (partnerId !== permission.requesterId) {
-      throw new AppError(403, 'You can only respond to your partner\'s permissions');
+      throw new AppError(403, "Solo puedes responder a los permisos de tu pareja");
     }
 
     if (permission.status !== PermissionStatus.PENDING) {
-      throw new AppError(400, 'Permission is not pending');
+      throw new AppError(400, 'El permiso no está pendiente');
     }
 
     permission.status = approved ? PermissionStatus.APPROVED : PermissionStatus.REJECTED;
@@ -163,15 +160,15 @@ export class PermissionsService {
       await this.pointsService.deductPoints(
         permission.requesterId,
         permission.pointsCost,
-        `Permission approved: ${permission.title}`
+        `Permiso aprobado: ${permission.title}`
       );
     }
 
     // Create logs
     const logType = approved ? LogType.PERMISSION_APPROVED : LogType.PERMISSION_REJECTED;
     const message = approved
-      ? `Permission approved: ${permission.title}`
-      : `Permission rejected: ${permission.title}`;
+      ? `Permiso aprobado: ${permission.title}`
+      : `Permiso rechazado: ${permission.title}`;
 
     await this.logRepository.save([
       this.logRepository.create({
@@ -186,8 +183,8 @@ export class PermissionsService {
         userId: approverId,
         type: logType,
         message: approved
-          ? `Approved permission: ${permission.title}`
-          : `Rejected permission: ${permission.title}`,
+          ? `Permiso aprobado: ${permission.title}`
+          : `Permiso rechazado: ${permission.title}`,
         relatedEntityId: permission.id,
         relatedEntityType: 'Permission',
       }),
@@ -204,11 +201,11 @@ export class PermissionsService {
     const permission = await this.getPermissionById(permissionId);
 
     if (permission.requesterId !== userId) {
-      throw new AppError(403, 'You can only update your own permissions');
+      throw new AppError(403, 'Solo puedes actualizar tus propios permisos');
     }
 
     if (permission.status !== PermissionStatus.PENDING) {
-      throw new AppError(400, 'Can only update pending permissions');
+      throw new AppError(400, 'Solo puedes actualizar permisos pendientes');
     }
 
     Object.assign(permission, data);
@@ -221,11 +218,11 @@ export class PermissionsService {
     const permission = await this.getPermissionById(permissionId);
 
     if (permission.requesterId !== userId) {
-      throw new AppError(403, 'You can only delete your own permissions');
+      throw new AppError(403, 'Solo puedes eliminar tus propios permisos');
     }
 
     if (permission.status !== PermissionStatus.PENDING) {
-      throw new AppError(400, 'Can only delete pending permissions');
+      throw new AppError(400, 'Solo puedes eliminar permisos pendientes');
     }
 
     await this.permissionRepository.remove(permission);

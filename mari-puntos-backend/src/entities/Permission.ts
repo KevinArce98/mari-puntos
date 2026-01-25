@@ -59,8 +59,8 @@ export class Permission {
   @Column({ type: 'timestamp' })
   requestedDate: Date;
 
-  @Column({ type: 'int', nullable: true })
-  durationHours: number | null;
+  @Column({ type: 'int' })
+  durationHours: number;
 
   @Column({ type: 'int', default: 0 })
   pointsCost: number;

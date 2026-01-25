@@ -35,7 +35,7 @@ export class RewardsService {
     });
 
     if (!reward) {
-      throw new AppError(404, 'Reward not found');
+      throw new AppError(404, 'Recompensa no encontrada');
     }
 
     return reward;
@@ -78,7 +78,7 @@ export class RewardsService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
-      throw new AppError(404, 'User not found');
+      throw new AppError(404, 'Usuario no encontrado');
     }
 
     // Get all active rewards that user can afford and has required level
@@ -100,28 +100,28 @@ export class RewardsService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
-      throw new AppError(404, 'User not found');
+      throw new AppError(404, 'Usuario no encontrado');
     }
 
     const reward = await this.getRewardById(rewardId);
 
     if (!reward.isActive) {
-      throw new AppError(400, 'Reward is not active');
+      throw new AppError(400, 'La recompensa no está activa');
     }
 
     if (user.totalPoints < reward.pointsCost) {
-      throw new AppError(400, 'Insufficient points');
+      throw new AppError(400, 'Puntos insuficientes');
     }
 
     if (reward.requiredLevel && user.currentLevel < reward.requiredLevel) {
-      throw new AppError(400, 'Required level not met');
+      throw new AppError(400, 'No cumples con el nivel requerido');
     }
 
     // Deduct points
     await this.pointsService.deductPoints(
       userId,
       reward.pointsCost,
-      `Redeemed reward: ${reward.title}`
+      `Recompensa canjeada: ${reward.title}`
     );
 
     // Update reward stats
@@ -133,7 +133,7 @@ export class RewardsService {
       this.logRepository.create({
         userId,
         type: LogType.REWARD_REDEEMED,
-        message: `Redeemed reward: ${reward.title}`,
+        message: `Recompensa canjeada: ${reward.title}`,
         pointsChange: -reward.pointsCost,
         relatedEntityId: reward.id,
         relatedEntityType: 'Reward',

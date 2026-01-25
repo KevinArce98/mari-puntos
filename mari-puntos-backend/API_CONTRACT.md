@@ -218,6 +218,8 @@ Create a new action.
   category: ActionCategory;
   status: 'pending' | 'approved' | 'rejected';
   pointsAwarded: number;
+  approvedBy?: string;
+  approvedAt?: string;
   rejectionReason?: string;
   metadata?: Record<string, unknown>;
   createdAt: string;
@@ -290,6 +292,7 @@ Request a new permission.
 {
   id: string;
   requesterId: string;
+  approverId?: string;
   title: string;
   description?: string;
   type: PermissionType;
@@ -372,6 +375,9 @@ Create a custom reward.
   requiredLevel: number;
   imageUrl?: string;
   isActive: boolean;
+  isCustom: boolean;
+  createdBy?: string;
+  timesRedeemed: number;
   createdAt: string;
   updatedAt: string;
 }

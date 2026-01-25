@@ -17,7 +17,7 @@ export class PointsService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
-      throw new AppError(404, 'User not found');
+      throw new AppError(404, 'Usuario no encontrado');
     }
 
     const previousLevel = user.currentLevel;
@@ -54,11 +54,11 @@ export class PointsService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
-      throw new AppError(404, 'User not found');
+      throw new AppError(404, 'Usuario no encontrado');
     }
 
     if (user.totalPoints < points) {
-      throw new AppError(400, 'Insufficient points');
+      throw new AppError(400, 'Puntos insuficientes');
     }
 
     // Update points
@@ -125,7 +125,7 @@ export class PointsService {
       this.logRepository.create({
         userId: user.id,
         type: LogType.LEVEL_UP,
-        message: `Level up! Reached level ${user.currentLevel}`,
+        message: `¡Subiste de nivel! Nivel ${user.currentLevel} alcanzado`,
         metadata: {
           previousLevel,
           newLevel: user.currentLevel,
@@ -152,8 +152,8 @@ export class PointsService {
       if (user.totalPoints >= milestone && !unlockedTypes.has(achievementKey)) {
         await this.unlockAchievement(
           user.id,
-          `${milestone} Points Master`,
-          `Earned ${milestone} total points`,
+          `Maestro de ${milestone} Puntos`,
+          `Ganaste ${milestone} puntos totales`,
           AchievementType.POINTS_MILESTONE,
           milestone
         );
@@ -177,8 +177,8 @@ export class PointsService {
         if (!existingAchievement || !existingAchievement.isUnlocked) {
           await this.unlockAchievement(
             user.id,
-            `Level ${milestone} Champion`,
-            `Reached level ${milestone}`,
+            `Campeón Nivel ${milestone}`,
+            `Alcanzaste el nivel ${milestone}`,
             AchievementType.LEVEL_MILESTONE,
             milestone
           );
@@ -209,14 +209,14 @@ export class PointsService {
     await this.achievementRepository.save(achievement);
 
     // Add bonus points
-    await this.addPoints(userId, 50, `Achievement unlocked: ${title}`);
+    await this.addPoints(userId, 50, `Logro desbloqueado: ${title}`);
 
     // Create log
     await this.logRepository.save(
       this.logRepository.create({
         userId,
         type: LogType.ACHIEVEMENT_UNLOCKED,
-        message: `Achievement unlocked: ${title}`,
+        message: `Logro desbloqueado: ${title}`,
         pointsChange: 50,
         relatedEntityId: achievement.id,
         relatedEntityType: 'Achievement',

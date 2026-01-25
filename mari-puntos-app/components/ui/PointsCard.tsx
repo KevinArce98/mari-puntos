@@ -14,7 +14,7 @@ interface PointsCardProps {
 
 export const PointsCard: React.FC<PointsCardProps> = ({
   points,
-  label = 'Current Balance',
+  label = 'Total Puntos',
   style,
   variant = 'default',
 }) => {

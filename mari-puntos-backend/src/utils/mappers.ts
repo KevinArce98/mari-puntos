@@ -135,6 +135,7 @@ export function toPermissionDTO(permission: Permission): PermissionDTO {
   return {
     id: permission.id,
     requesterId: permission.requesterId,
+    approverId: permission.approverId || undefined,
     title: permission.title,
     description: permission.description || undefined,
     type: permission.type,
@@ -146,6 +147,22 @@ export function toPermissionDTO(permission: Permission): PermissionDTO {
     respondedAt: permission.respondedAt?.toISOString() || undefined,
     createdAt: permission.createdAt.toISOString(),
     updatedAt: permission.updatedAt.toISOString(),
+    requester: permission.requester ? {
+      id: permission.requester.id,
+      firstName: permission.requester.firstName,
+      lastName: permission.requester.lastName,
+      email: permission.requester.email,
+      avatarUrl: permission.requester.avatarUrl || undefined,
+      role: permission.requester.role,
+    } : undefined,
+    approver: permission.approver ? {
+      id: permission.approver.id,
+      firstName: permission.approver.firstName,
+      lastName: permission.approver.lastName,
+      email: permission.approver.email,
+      avatarUrl: permission.approver.avatarUrl || undefined,
+      role: permission.approver.role,
+    } : undefined,
   };
 }
 

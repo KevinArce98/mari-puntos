@@ -25,7 +25,7 @@ export const authMiddleware = async (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      sendError(res, 'Authentication required', 401);
+      sendError(res, 'Autenticación requerida', 401);
       return;
     }
 
@@ -36,23 +36,23 @@ export const authMiddleware = async (
     try {
       decoded = jwt.verify(token, config.clerk.publicKey, options) as jwt.JwtPayload;
     } catch (jwtError) {
-      sendError(res, 'Invalid or expired token', 401);
+      sendError(res, 'Token inválido o expirado', 401);
       return;
     }
 
     if (!decoded.exp || !decoded.nbf) {
-      sendError(res, 'Invalid token claims', 401);
+      sendError(res, 'Claims de token inválidos', 401);
       return;
     }
 
     // Validate token expiration and not-before claims
     const currentTime = Math.floor(Date.now() / 1000);
     if (decoded.exp < currentTime) {
-      sendError(res, 'Token has expired', 401);
+      sendError(res, 'El token ha expirado', 401);
       return;
     }
     if (decoded.nbf > currentTime) {
-      sendError(res, 'Token is not yet valid', 401);
+      sendError(res, 'El token aún no es válido', 401);
       return;
     }
 
@@ -63,12 +63,12 @@ export const authMiddleware = async (
     const user = await userRepository.findOne({ where: { clerkId } });
 
     if (!user) {
-      sendError(res, 'User not found. Please create a profile first.', 404);
+      sendError(res, 'Usuario no encontrado. Por favor crea un perfil primero.', 404);
       return;
     }
 
     if (!user.isActive) {
-      sendError(res, 'Account is deactivated', 403);
+      sendError(res, 'La cuenta está desactivada', 403);
       return;
     }
 
@@ -80,7 +80,7 @@ export const authMiddleware = async (
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);
-    sendError(res, 'Authentication failed', 401);
+    sendError(res, 'Autenticación fallida', 401);
   }
 };
 

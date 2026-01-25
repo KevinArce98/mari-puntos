@@ -22,7 +22,9 @@ class PermissionsService {
    * Get my permission requests
    * GET /permissions/my
    */
-  async getMyPermissions(params?: GetPermissionsParams): Promise<PaginatedResponse<Permission>> {
+  async getMyPermissions(
+    params?: GetPermissionsParams
+  ): Promise<PaginatedResponse<Permission>> {
     return apiService.get<PaginatedResponse<Permission>>('/permissions/my', params);
   }
 
@@ -30,7 +32,9 @@ class PermissionsService {
    * Get partner's permission requests (Wife only)
    * GET /permissions/partner
    */
-  async getPartnerPermissions(params?: GetPermissionsParams): Promise<PaginatedResponse<Permission>> {
+  async getPartnerPermissions(
+    params?: GetPermissionsParams
+  ): Promise<PaginatedResponse<Permission>> {
     return apiService.get<PaginatedResponse<Permission>>('/permissions/partner', params);
   }
 
@@ -38,8 +42,14 @@ class PermissionsService {
    * Respond to permission (Wife only)
    * POST /permissions/:id/respond
    */
-  async respondToPermission(permissionId: string, data: RespondPermissionRequest): Promise<Permission> {
-    const response = await apiService.post<ApiResponse<Permission>>(`/permissions/${permissionId}/respond`, data);
+  async respondToPermission(
+    permissionId: string,
+    data: RespondPermissionRequest
+  ): Promise<Permission> {
+    const response = await apiService.post<ApiResponse<Permission>>(
+      `/permissions/${permissionId}/respond`,
+      data
+    );
     return response.data;
   }
 
@@ -48,7 +58,9 @@ class PermissionsService {
    * GET /permissions/:id
    */
   async getPermissionById(permissionId: string): Promise<Permission> {
-    const response = await apiService.get<ApiResponse<Permission>>(`/permissions/${permissionId}`);
+    const response = await apiService.get<ApiResponse<Permission>>(
+      `/permissions/${permissionId}`
+    );
     return response.data;
   }
 

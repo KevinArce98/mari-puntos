@@ -245,6 +245,7 @@ export interface GetActionsParamsDTO extends PaginationParams {
 export interface PermissionDTO {
   id: string;
   requesterId: string;
+  approverId?: string;
   title: string;
   description?: string;
   type: PermissionType;
@@ -256,6 +257,22 @@ export interface PermissionDTO {
   respondedAt?: string;
   createdAt: string;
   updatedAt: string;
+  requester?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatarUrl?: string;
+    role: UserRole;
+  };
+  approver?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatarUrl?: string;
+    role: UserRole;
+  };
 }
 
 /**

@@ -14,7 +14,7 @@ export class PermissionsController {
 
   /**
    * POST /permissions
-   * Request a new permission (Husband only)
+   * Request a new permission
    */
   createPermission = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -64,7 +64,7 @@ export class PermissionsController {
 
   /**
    * GET /permissions/partner
-   * Get partner's permission requests (Wife only - for responding)
+   * Get partner's permission requests (for responding)
    */
   getPartnerPermissions = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -109,7 +109,7 @@ export class PermissionsController {
 
   /**
    * POST /permissions/:id/respond
-   * Respond to a permission request (Wife only)
+   * Respond to a permission request
    */
   respondToPermission = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -136,7 +136,7 @@ export class PermissionsController {
 
   /**
    * DELETE /permissions/:id
-   * Cancel/delete a permission request (Husband only, pending only)
+   * Cancel/delete a permission request (pending only)
    */
   deletePermission = async (req: AuthRequest, res: Response): Promise<void> => {
     try {

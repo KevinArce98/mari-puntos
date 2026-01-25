@@ -120,14 +120,14 @@ export function sendUnauthorized(res: Response, error: string = 'Unauthorized'):
 /**
  * Send a 403 Forbidden error
  */
-export function sendForbidden(res: Response, error: string = 'Forbidden'): void {
+export function sendForbidden(res: Response, error: string = 'Prohibido'): void {
   sendError(res, error, 403);
 }
 
 /**
  * Send a 404 Not Found error
  */
-export function sendNotFound(res: Response, error: string = 'Resource not found'): void {
+export function sendNotFound(res: Response, error: string = 'Recurso no encontrado'): void {
   sendError(res, error, 404);
 }
 
@@ -143,7 +143,7 @@ export function sendConflict(res: Response, error: string): void {
  */
 export function sendInternalError(
   res: Response,
-  error: string = 'Internal server error'
+  error: string = 'Error interno del servidor'
 ): void {
   sendError(res, error, 500);
 }

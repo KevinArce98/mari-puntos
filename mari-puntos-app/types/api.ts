@@ -196,6 +196,8 @@ export interface Action {
   category: ActionCategory;
   status: ActionStatus;
   pointsAwarded: number;
+  approvedBy?: string;
+  approvedAt?: string;
   rejectionReason?: string;
   metadata?: Record<string, any>;
   createdAt: string;
@@ -228,6 +230,7 @@ export interface GetActionsParams extends PaginationParams {
 export interface Permission {
   id: string;
   requesterId: string;
+  approverId?: string;
   title: string;
   description?: string;
   type: PermissionType;
@@ -239,6 +242,22 @@ export interface Permission {
   respondedAt?: string;
   createdAt: string;
   updatedAt: string;
+  requester?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatarUrl?: string;
+    role: UserRole;
+  };
+  approver?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatarUrl?: string;
+    role: UserRole;
+  };
 }
 
 export interface CreatePermissionRequest {
@@ -272,6 +291,9 @@ export interface Reward {
   requiredLevel: number;
   imageUrl?: string;
   isActive: boolean;
+  isCustom: boolean;
+  createdBy?: string;
+  timesRedeemed: number;
   createdAt: string;
   updatedAt: string;
 }

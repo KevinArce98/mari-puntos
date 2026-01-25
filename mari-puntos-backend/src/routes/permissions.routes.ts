@@ -11,7 +11,7 @@ const permissionsController = new PermissionsController();
  * /permissions:
  *   post:
  *     summary: Create a new permission request
- *     description: Create a permission request that requires approval (Husband only)
+ *     description: Create a permission request that requires approval from your partner
  *     tags: [Permissions]
  *     security:
  *       - BearerAuth: []
@@ -73,7 +73,7 @@ const permissionsController = new PermissionsController();
  *       401:
  *         description: Unauthorized
  *       403:
- *         description: Forbidden - Only husband can create permission requests
+ *         description: Forbidden - Must have a partner to create permission requests
  */
 router.post('/', authMiddleware, asyncHandler(permissionsController.createPermission));
 
@@ -111,7 +111,7 @@ router.get('/my', authMiddleware, asyncHandler(permissionsController.getMyPermis
  * /permissions/partner:
  *   get:
  *     summary: Get partner's permission requests
- *     description: Retrieve all permission requests from the partner (Wife only)
+ *     description: Retrieve all permission requests from your partner
  *     tags: [Permissions]
  *     security:
  *       - BearerAuth: []
@@ -132,8 +132,6 @@ router.get('/my', authMiddleware, asyncHandler(permissionsController.getMyPermis
  *                     $ref: '#/components/schemas/Permission'
  *       401:
  *         description: Unauthorized
- *       403:
- *         description: Forbidden - Only wife can view partner's permission requests
  *       404:
  *         description: Partner not found
  */
@@ -181,7 +179,7 @@ router.get('/:id', authMiddleware, asyncHandler(permissionsController.getPermiss
  * /permissions/{id}/respond:
  *   post:
  *     summary: Respond to permission request
- *     description: Approve or reject a permission request (Wife only)
+ *     description: Approve or reject a permission request from your partner
  *     tags: [Permissions]
  *     security:
  *       - BearerAuth: []
@@ -235,7 +233,7 @@ router.get('/:id', authMiddleware, asyncHandler(permissionsController.getPermiss
  *       401:
  *         description: Unauthorized
  *       403:
- *         description: Forbidden - Only wife can respond to permissions
+ *         description: Forbidden - Can only respond to your partner's permissions
  *       404:
  *         description: Permission not found
  */

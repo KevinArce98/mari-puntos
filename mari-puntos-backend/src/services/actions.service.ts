@@ -18,11 +18,11 @@ export class ActionsService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
-      throw new AppError(404, 'User not found');
+      throw new AppError(404, 'Usuario no encontrado');
     }
 
     if (user.role !== UserRole.HUSBAND) {
-      throw new AppError(403, 'Only husbands can create actions');
+      throw new AppError(403, 'Solo los esposos pueden crear acciones');
     }
 
     const action = this.actionRepository.create({
@@ -41,7 +41,7 @@ export class ActionsService {
       this.logRepository.create({
         userId,
         type: LogType.ACTION_CREATED,
-        message: `Created action: ${action.title}`,
+        message: `Acción creada: ${action.title}`,
         relatedEntityId: action.id,
         relatedEntityType: 'Action',
       })
@@ -57,7 +57,7 @@ export class ActionsService {
     });
 
     if (!action) {
-      throw new AppError(404, 'Action not found');
+      throw new AppError(404, 'Acción no encontrada');
     }
 
     return action;
@@ -102,7 +102,7 @@ export class ActionsService {
     const partnerId = await this.partnerService.getPartnerId(userId);
 
     if (!partnerId) {
-      throw new AppError(404, 'Partner not found');
+      throw new AppError(404, 'Pareja no encontrada');
     }
 
     return this.getUserActions(partnerId, filters);
@@ -116,11 +116,11 @@ export class ActionsService {
     const action = await this.getActionById(actionId);
 
     if (action.userId !== userId) {
-      throw new AppError(403, 'You can only update your own actions');
+      throw new AppError(403, 'Solo puedes actualizar tus propias acciones');
     }
 
     if (action.status !== ActionStatus.PENDING) {
-      throw new AppError(400, 'Can only update pending actions');
+      throw new AppError(400, 'Solo puedes actualizar acciones pendientes');
     }
 
     if (data.title !== undefined) action.title = data.title;
@@ -142,21 +142,21 @@ export class ActionsService {
     const approver = await this.userRepository.findOne({ where: { id: approverId } });
 
     if (!approver) {
-      throw new AppError(404, 'Approver not found');
+      throw new AppError(404, 'Aprobador no encontrado');
     }
 
     if (approver.role !== UserRole.WIFE) {
-      throw new AppError(403, 'Only wives can approve actions');
+      throw new AppError(403, 'Solo las esposas pueden aprobar acciones');
     }
 
     // Verify approver is partner
     const partnerId = await this.partnerService.getPartnerId(approverId);
     if (partnerId !== action.userId) {
-      throw new AppError(403, 'You can only approve your partner\'s actions');
+      throw new AppError(403, 'Solo puedes aprobar las acciones de tu pareja');
     }
 
     if (action.status !== ActionStatus.PENDING) {
-      throw new AppError(400, 'Action is not pending');
+      throw new AppError(400, 'La acción no está pendiente');
     }
 
     action.status = ActionStatus.APPROVED;
@@ -170,7 +170,7 @@ export class ActionsService {
     await this.pointsService.addPoints(
       action.userId,
       pointsAwarded,
-      `Action approved: ${action.title}`
+      `Acción aprobada: ${action.title}`
     );
 
     // Create logs
@@ -178,7 +178,7 @@ export class ActionsService {
       this.logRepository.create({
         userId: action.userId,
         type: LogType.ACTION_APPROVED,
-        message: `Action approved: ${action.title} (+${pointsAwarded} points)`,
+        message: `Acción aprobada: ${action.title} (+${pointsAwarded} puntos)`,
         pointsChange: pointsAwarded,
         relatedEntityId: action.id,
         relatedEntityType: 'Action',
@@ -186,7 +186,7 @@ export class ActionsService {
       this.logRepository.create({
         userId: approverId,
         type: LogType.ACTION_APPROVED,
-        message: `Approved action: ${action.title}`,
+        message: `Acción aprobada: ${action.title}`,
         relatedEntityId: action.id,
         relatedEntityType: 'Action',
       }),
@@ -204,21 +204,21 @@ export class ActionsService {
     const approver = await this.userRepository.findOne({ where: { id: approverId } });
 
     if (!approver) {
-      throw new AppError(404, 'Approver not found');
+      throw new AppError(404, 'Aprobador no encontrado');
     }
 
     if (approver.role !== UserRole.WIFE) {
-      throw new AppError(403, 'Only wives can reject actions');
+      throw new AppError(403, 'Solo las esposas pueden rechazar acciones');
     }
 
     // Verify approver is partner
     const partnerId = await this.partnerService.getPartnerId(approverId);
     if (partnerId !== action.userId) {
-      throw new AppError(403, 'You can only reject your partner\'s actions');
+      throw new AppError(403, 'Solo puedes rechazar las acciones de tu pareja');
     }
 
     if (action.status !== ActionStatus.PENDING) {
-      throw new AppError(400, 'Action is not pending');
+      throw new AppError(400, 'La acción no está pendiente');
     }
 
     action.status = ActionStatus.REJECTED;
@@ -233,14 +233,14 @@ export class ActionsService {
       this.logRepository.create({
         userId: action.userId,
         type: LogType.ACTION_REJECTED,
-        message: `Action rejected: ${action.title}`,
+        message: `Acción rechazada: ${action.title}`,
         relatedEntityId: action.id,
         relatedEntityType: 'Action',
       }),
       this.logRepository.create({
         userId: approverId,
         type: LogType.ACTION_REJECTED,
-        message: `Rejected action: ${action.title}`,
+        message: `Acción rechazada: ${action.title}`,
         relatedEntityId: action.id,
         relatedEntityType: 'Action',
       }),
@@ -253,11 +253,11 @@ export class ActionsService {
     const action = await this.getActionById(actionId);
 
     if (action.userId !== userId) {
-      throw new AppError(403, 'You can only delete your own actions');
+      throw new AppError(403, 'Solo puedes eliminar tus propias acciones');
     }
 
     if (action.status !== ActionStatus.PENDING) {
-      throw new AppError(400, 'Can only delete pending actions');
+      throw new AppError(400, 'Solo puedes eliminar acciones pendientes');
     }
 
     await this.actionRepository.remove(action);

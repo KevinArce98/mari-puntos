@@ -9,6 +9,6 @@ export { Input } from './Input';
 export { ListItem } from './ListItem';
 export { PointsCard } from './PointsCard';
 export { ProgressBar } from './ProgressBar';
+export { ResponseModal } from './ResponseModal';
 export { Select } from './Select';
 export type { SelectOption } from './Select';
-

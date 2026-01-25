@@ -51,7 +51,8 @@ export default function LoginScreen() {
         await setActive({ session: result.createdSessionId });
         router.replace('/(tabs)');
       }
-    } catch {
+    } catch (e){
+      console.log(e)
       Toast.show({
         type: 'error',
         text1: 'Login failed',

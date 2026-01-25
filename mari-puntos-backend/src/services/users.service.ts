@@ -15,7 +15,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new AppError(404, 'User not found');
+      throw new AppError(404, 'Usuario no encontrado');
     }
 
     return user;

@@ -2,19 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { Card, Chip } from '@/components/ui';
-import { usePoints } from '@/hooks';
+import { useActions, usePoints } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
+import { ActionCategory } from '@/types';
 
 const CATEGORIES = ['All', 'Chores', 'Romance', 'Gifts'];
 
@@ -22,74 +22,34 @@ export default function ActionsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { myPoints } = usePoints();
-  
+  const { myActions, createAction } = useActions();
+  console.log(myActions);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [customAction, setCustomAction] = useState('');
   const [loading, setLoading] = useState<string | null>(null);
 
-  // Mock suggested actions matching design
-  const suggestedActions = [
-    {
-      id: '1',
-      name: 'Wash the Dishes',
-      description: 'Clean all dishes and dry them',
-      points: 15,
-      category: 'Chores',
-      icon: 'water-outline',
-    },
-    {
-      id: '2',
-      name: 'Cook Dinner',
-      description: 'Prepare a home-cooked meal',
-      points: 25,
-      category: 'Chores',
-      icon: 'restaurant-outline',
-    },
-    {
-      id: '3',
-      name: 'Surprise Love Note',
-      description: 'Write a heartfelt message',
-      points: 20,
-      category: 'Romance',
-      icon: 'heart-outline',
-    },
-    {
-      id: '4',
-      name: 'Buy Flowers',
-      description: 'Get a beautiful bouquet',
-      points: 30,
-      category: 'Gifts',
-      icon: 'flower-outline',
-    },
-    {
-      id: '5',
-      name: 'Morning Coffee',
-      description: 'Make their favorite coffee',
-      points: 10,
-      category: 'Romance',
-      icon: 'cafe-outline',
-    },
-  ];
-
-  const filteredActions = suggestedActions.filter(action => {
-    const matchesCategory = selectedCategory === 'All' || action.category === selectedCategory;
-    const matchesSearch = action.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         action.description.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredActions = myActions.filter((action) => {
+    const matchesCategory =
+      selectedCategory === 'All' || action.category === selectedCategory;
+    const matchesSearch =
+      action.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      action.description?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
   const handleLogAction = async (actionId: string) => {
     setLoading(actionId);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const action = suggestedActions.find(a => a.id === actionId);
-      Toast.show({
-        type: 'success',
-        text1: 'Action Logged!',
-        text2: `You earned ${action?.points} MariPuntos`,
-      });
+      // TODO: Call API to log action
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
+      // const action = suggestedActions.find((a) => a.id === actionId);
+      // Toast.show({
+      //   type: 'success',
+      //   text1: 'Action Logged!',
+      //   text2: `You earned ${action?.points} MariPuntos`,
+      // });
     } catch {
       Toast.show({
         type: 'error',
@@ -101,12 +61,19 @@ export default function ActionsScreen() {
     }
   };
 
-  const handleCustomAction = () => {
+  const handleCustomAction = async () => {
     if (!customAction.trim()) return;
+
+    await createAction({
+      title: customAction.trim(),
+      category: ActionCategory.CHILDCARE, // TODO: Allow user to select category
+      description: 'Acción personalizada', // TODO: Allow user to add description
+    });
+
     Toast.show({
       type: 'info',
-      text1: 'Custom Action',
-      text2: 'Submitted for partner approval',
+      text1: 'Acción Personalizada Creada',
+      text2: '',
     });
     setCustomAction('');
   };
@@ -118,14 +85,13 @@ export default function ActionsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Log Activity</Text>
+        <Text style={styles.headerTitle}>Acciones</Text>
         <View style={styles.pointsBadge}>
           <Ionicons name="trophy" size={16} color={colors.accent} />
           <Text style={styles.pointsBadgeText}>{myPoints.toLocaleString()} pts</Text>
         </View>
       </View>
-
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -135,7 +101,7 @@ export default function ActionsScreen() {
           <Ionicons name="search-outline" size={20} color={colors.gray[400]} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search activities..."
+            placeholder="Buscar acciones..."
             placeholderTextColor={colors.gray[400]}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -148,8 +114,8 @@ export default function ActionsScreen() {
         </View>
 
         {/* Category Filter */}
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.categoriesContainer}
           contentContainerStyle={styles.categoriesContent}
@@ -166,35 +132,42 @@ export default function ActionsScreen() {
 
         {/* Suggested Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Suggested Actions</Text>
-          
+          <Text style={styles.sectionTitle}>Acciones Sugeridas</Text>
+
           {filteredActions.map((action) => (
             <Card key={action.id} style={styles.actionCard}>
               <View style={styles.actionRow}>
-                <View style={[styles.actionIconContainer, { backgroundColor: `${colors.primary}15` }]}>
-                  <Ionicons 
-                    name={action.icon as keyof typeof Ionicons.glyphMap} 
-                    size={24} 
-                    color={colors.primary} 
-                  />
+                <View
+                  style={[
+                    styles.actionIconContainer,
+                    { backgroundColor: `${colors.primary}15` },
+                  ]}
+                >
+                  {/* <Ionicons
+                    name={action.icon as keyof typeof Ionicons.glyphMap}
+                    size={24}
+                    color={colors.primary}
+                  /> */}
                 </View>
-                
+
                 <View style={styles.actionContent}>
-                  <Text style={styles.actionName}>{action.name}</Text>
-                  <Text style={styles.actionDescription}>{action.description}</Text>
+                  <Text style={styles.actionName}>{action.title}</Text>
+                  {action.description && (
+                    <Text style={styles.actionDescription}>{action.description}</Text>
+                  )}
                 </View>
-                
+
                 <View style={styles.actionRight}>
-                  <Text style={styles.actionPoints}>+{action.points}</Text>
-                  <TouchableOpacity 
+                  <Text style={styles.actionPoints}>+{action.pointsAwarded}</Text>
+                  <TouchableOpacity
                     style={styles.addButton}
                     onPress={() => handleLogAction(action.id)}
                     disabled={loading === action.id}
                   >
-                    <Ionicons 
-                      name={loading === action.id ? 'hourglass-outline' : 'add'} 
-                      size={20} 
-                      color={colors.white} 
+                    <Ionicons
+                      name={loading === action.id ? 'hourglass-outline' : 'add'}
+                      size={20}
+                      color={colors.white}
                     />
                   </TouchableOpacity>
                 </View>
@@ -205,35 +178,34 @@ export default function ActionsScreen() {
           {filteredActions.length === 0 && (
             <View style={styles.emptyState}>
               <Ionicons name="search-outline" size={48} color={colors.gray[300]} />
-              <Text style={styles.emptyText}>No actions found</Text>
+              <Text style={styles.emptyText}>No se encontraron acciones</Text>
             </View>
           )}
         </View>
-
-        {/* Custom Action Input */}
-        <View style={styles.customActionContainer}>
-          <Text style={styles.customActionLabel}>{"Can't find what you're looking for?"}</Text>
-          <View style={styles.customActionRow}>
-            <TextInput
-              style={styles.customActionInput}
-              placeholder="Describe your custom action..."
-              placeholderTextColor={colors.gray[400]}
-              value={customAction}
-              onChangeText={setCustomAction}
-            />
-            <TouchableOpacity 
-              style={[
-                styles.customActionButton,
-                !customAction.trim() && styles.customActionButtonDisabled
-              ]}
-              onPress={handleCustomAction}
-              disabled={!customAction.trim()}
-            >
-              <Ionicons name="send" size={20} color={colors.white} />
-            </TouchableOpacity>
-          </View>
-        </View>
       </ScrollView>
+      {/* Custom Action Input */}
+      <View style={styles.customActionContainer}>
+        <Text style={styles.customActionLabel}>{'¿No encuentras lo que buscas?'}</Text>
+        <View style={styles.customActionRow}>
+          <TextInput
+            style={styles.customActionInput}
+            placeholder="Describe tu acción personalizada..."
+            placeholderTextColor={colors.gray[400]}
+            value={customAction}
+            onChangeText={setCustomAction}
+          />
+          <TouchableOpacity
+            style={[
+              styles.customActionButton,
+              !customAction.trim() && styles.customActionButtonDisabled,
+            ]}
+            onPress={handleCustomAction}
+            disabled={!customAction.trim()}
+          >
+            <Ionicons name="send" size={20} color={colors.white} />
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }
@@ -298,7 +270,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   categoriesContainer: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
     marginHorizontal: -spacing.lg,
   },
   categoriesContent: {
@@ -368,6 +340,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderRadius: borderRadius.xl,
     padding: spacing.md,
+    paddingBottom: spacing.lg,
     ...shadows.sm,
   },
   customActionLabel: {
