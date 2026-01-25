@@ -1,0 +1,358 @@
+import { useSignUp } from '@clerk/clerk-expo';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { Button, Input } from '@/components/ui';
+import { borderRadius, colors, spacing, typography } from '@/theme';
+import Toast from 'react-native-toast-message';
+
+export default function RegisterScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { signUp, isLoaded } = useSignUp();
+  
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async () => {
+    if (!isLoaded) return;
+
+    // Validations
+    if (!firstName.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Missing field',
+        text2: 'Please enter your first name',
+      });
+      return;
+    }
+
+    if (!email.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Missing field',
+        text2: 'Please enter your email',
+      });
+      return;
+    }
+
+    if (password.length < 8) {
+      Toast.show({
+        type: 'error',
+        text1: 'Weak password',
+        text2: 'Password must be at least 8 characters',
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Toast.show({
+        type: 'error',
+        text1: 'Password mismatch',
+        text2: 'Passwords do not match',
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await signUp.create({
+        emailAddress: email.toLowerCase().trim(),
+        password,
+        firstName: firstName.trim(),
+        lastName: lastName.trim() || undefined,
+      });
+
+      // Send verification code
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+
+      Toast.show({
+        type: 'success',
+        text1: 'Account created!',
+        text2: 'Check your email for verification code',
+      });
+
+      router.push({
+        pathname: '/(auth)/verify-email',
+        params: { email: email.toLowerCase().trim() },
+      });
+    } catch (error: any) {
+      const errorMessage =
+        error.errors?.[0]?.message ||
+        error.errors?.[0]?.longMessage ||
+        'Could not create account. Please try again.';
+
+      Toast.show({
+        type: 'error',
+        text1: 'Registration failed',
+        text2: errorMessage,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView 
+        contentContainerStyle={[
+          styles.scrollContent, 
+          { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.lg }
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Back Button */}
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
+        </TouchableOpacity>
+
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>
+            Join MariPuntos and start earning points with your partner
+          </Text>
+        </View>
+
+        {/* Form */}
+        <View style={styles.form}>
+          <View style={styles.nameRow}>
+            <Input
+              label="First Name"
+              placeholder="John"
+              value={firstName}
+              onChangeText={setFirstName}
+              containerStyle={styles.nameInput}
+              leftIcon="person-outline"
+            />
+            <Input
+              label="Last Name"
+              placeholder="Doe"
+              value={lastName}
+              onChangeText={setLastName}
+              containerStyle={styles.nameInput}
+            />
+          </View>
+          
+          <Input
+            label="Email"
+            placeholder="your@email.com"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            leftIcon="mail-outline"
+          />
+          
+          <Input
+            label="Password"
+            placeholder="Min. 8 characters"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            leftIcon="lock-closed-outline"
+            rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
+            onRightIconPress={() => setShowPassword(!showPassword)}
+          />
+
+          <Input
+            label="Confirm Password"
+            placeholder="Repeat your password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry={!showPassword}
+            leftIcon="lock-closed-outline"
+          />
+
+          {/* Password Requirements */}
+          <View style={styles.requirements}>
+            <View style={styles.requirementItem}>
+              <Ionicons 
+                name={password.length >= 8 ? 'checkmark-circle' : 'ellipse-outline'} 
+                size={16} 
+                color={password.length >= 8 ? colors.success : colors.gray[400]} 
+              />
+              <Text style={[
+                styles.requirementText,
+                password.length >= 8 && styles.requirementMet,
+              ]}>
+                At least 8 characters
+              </Text>
+            </View>
+            <View style={styles.requirementItem}>
+              <Ionicons 
+                name={password === confirmPassword && password.length > 0 ? 'checkmark-circle' : 'ellipse-outline'} 
+                size={16} 
+                color={password === confirmPassword && password.length > 0 ? colors.success : colors.gray[400]} 
+              />
+              <Text style={[
+                styles.requirementText,
+                password === confirmPassword && password.length > 0 && styles.requirementMet,
+              ]}>
+                Passwords match
+              </Text>
+            </View>
+          </View>
+
+          <Button
+            title="Create Account"
+            onPress={handleRegister}
+            loading={loading}
+            fullWidth
+            size="lg"
+            icon="person-add-outline"
+          />
+        </View>
+
+        {/* Divider */}
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or sign up with</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        {/* Social Buttons */}
+        <View style={styles.socialButtons}>
+          <TouchableOpacity style={styles.socialButton}>
+            <Ionicons name="logo-google" size={24} color={colors.text.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.socialButton}>
+            <Ionicons name="logo-apple" size={24} color={colors.text.primary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Login Link */}
+        <View style={styles.loginContainer}>
+          <Text style={styles.loginText}>Already have an account? </Text>
+          <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+            <Text style={styles.loginLink}>Sign In</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    padding: spacing.lg,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: -spacing.sm,
+    marginBottom: spacing.md,
+  },
+  header: {
+    marginBottom: spacing.xl,
+  },
+  title: {
+    ...typography.styles.h1,
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
+  },
+  subtitle: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+  },
+  form: {
+    marginBottom: spacing.lg,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  nameInput: {
+    flex: 1,
+  },
+  requirements: {
+    marginBottom: spacing.lg,
+    gap: spacing.xs,
+  },
+  requirementItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  requirementText: {
+    ...typography.styles.caption,
+    color: colors.gray[400],
+  },
+  requirementMet: {
+    color: colors.success,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing.lg,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.gray[300],
+  },
+  dividerText: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    marginHorizontal: spacing.md,
+  },
+  socialButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.xl,
+  },
+  socialButton: {
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.xl,
+    backgroundColor: colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.gray[200],
+  },
+  loginContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loginText: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+  },
+  loginLink: {
+    ...typography.styles.bodyMedium,
+    color: colors.primary,
+  },
+});
