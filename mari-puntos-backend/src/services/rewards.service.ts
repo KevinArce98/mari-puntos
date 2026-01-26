@@ -16,16 +16,16 @@ export class RewardsService {
     // Get user's partner link
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['partnerLinkAsHusband', 'partnerLinkAsWife'],
+      relations: ['partnerLinkAsUser1', 'partnerLinkAsUser2'],
     });
 
     if (!user) {
       throw new AppError(404, 'Usuario no encontrado');
     }
 
-    // Get the partner link ID (either as husband or wife)
-    const partnerLink = user.partnerLinkAsHusband || user.partnerLinkAsWife;
-    const partnerLinkId = partnerLink?.id || null;
+    // Get the partner link ID (either as user1 or user2)
+    const partnerLink = user.partnerLinkAsUser1 || user.partnerLinkAsUser2;
+    const partnerLinkId = partnerLink?.id || undefined;
 
     const reward = this.rewardRepository.create({
       title: data.title,
@@ -77,11 +77,11 @@ export class RewardsService {
     if (filters?.userId) {
       const user = await this.userRepository.findOne({
         where: { id: filters.userId },
-        relations: ['partnerLinkAsHusband', 'partnerLinkAsWife'],
+        relations: ['partnerLinkAsUser1', 'partnerLinkAsUser2'],
       });
 
       if (user) {
-        const partnerLink = user.partnerLinkAsHusband || user.partnerLinkAsWife;
+        const partnerLink = user.partnerLinkAsUser1 || user.partnerLinkAsUser2;
         const partnerLinkId = partnerLink?.id;
 
         // Show global rewards (partnerLinkId IS NULL) OR rewards from user's couple
@@ -112,14 +112,14 @@ export class RewardsService {
   async getAvailableRewards(userId: string): Promise<Reward[]> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['partnerLinkAsHusband', 'partnerLinkAsWife'],
+      relations: ['partnerLinkAsUser1', 'partnerLinkAsUser2'],
     });
 
     if (!user) {
       throw new AppError(404, 'Usuario no encontrado');
     }
 
-    const partnerLink = user.partnerLinkAsHusband || user.partnerLinkAsWife;
+    const partnerLink = user.partnerLinkAsUser1 || user.partnerLinkAsUser2;
     const partnerLinkId = partnerLink?.id;
 
     // Get all active rewards that user can afford, has required level, and belong to their couple or are global

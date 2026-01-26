@@ -1,7 +1,6 @@
 import { Button, Input } from '@/components/ui';
 import { userService } from '@/services';
 import { colors, spacing, typography } from '@/theme';
-import { UserRole } from '@/types';
 import { useSignUp } from '@clerk/clerk-expo';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -26,14 +25,11 @@ export default function VerifyEmailScreen() {
       });
 
       if (result.status === 'complete') {
-        const role = result.unsafeMetadata.role as UserRole;
-
         await userService.createProfile({
           email,
           firstName: result.firstName || '',
           lastName: result.lastName || '',
           clerkId: signUp.createdUserId || '',
-          role,
         });
         await setActive({ session: result.createdSessionId });
         router.replace('/link-partner');
