@@ -28,7 +28,7 @@ export const usePermissions = () => {
     permissionId: string,
     data: RespondPermissionRequest
   ) => {
-    await respondToPermission(permissionId, data.approved);
+    await respondToPermission(permissionId, data.approved, data.responseMessage);
   };
 
   const handleCancelPermission = async (permissionId: string) => {

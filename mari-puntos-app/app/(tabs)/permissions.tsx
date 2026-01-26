@@ -15,7 +15,7 @@ import { usePermissions } from '@/hooks';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PermissionCard } from '@/components';
-import { getStatusColor, getStatusText } from '@/utils/general';
+import { formatDateOnly, getStatusColor, getStatusText } from '@/utils/general';
 
 export default function PermissionsScreen() {
   const router = useRouter();
@@ -30,8 +30,6 @@ export default function PermissionsScreen() {
   } = usePermissions();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
-
-  console.log(partnerPermissions);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -53,7 +51,6 @@ export default function PermissionsScreen() {
         text2: approved ? '¡Tu pareja está feliz!' : '',
       });
     } catch (error) {
-      console.log(error);
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -82,7 +79,7 @@ export default function PermissionsScreen() {
               <Ionicons name="add-circle" size={32} color={colors.white} />
             </View>
             <View style={styles.quickActionText}>
-              <Text style={styles.quickActionTitle}>Solicitar Permiso</Text>
+              <Text style={styles.quickActionTitle}>Solicitar permiso</Text>
               <Text style={styles.quickActionSubtitle}>Pide permiso a tu pareja</Text>
             </View>
             <Ionicons name="chevron-forward" size={24} color={colors.white} />
@@ -111,7 +108,7 @@ export default function PermissionsScreen() {
         {partnerPermissions.filter((p) => p.status !== 'pending').length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Respuestas a Permisos</Text>
+              <Text style={styles.sectionTitle}>Respuestas a permisos</Text>
               <Badge
                 label={partnerPermissions
                   .filter((p) => p.status !== 'pending')
@@ -160,18 +157,12 @@ export default function PermissionsScreen() {
                     style={{ backgroundColor: getStatusColor(permission.status) }}
                   />
                 </View>
-                {/* <Text style={styles.permissionFrom}>
-                  Para:{' '}
-                  {permission.requesterName === 'Tú'
-                    ? permission.requesterName
-                    : permission.approverId}
-                </Text> */}
                 {permission.description && (
                   <Text style={styles.permissionMessage}>{permission.description}</Text>
                 )}
                 <View style={styles.permissionFooter}>
                   <Text style={styles.permissionDate}>
-                    {new Date(permission.createdAt).toLocaleDateString()}
+                    {formatDateOnly(permission.createdAt)}
                   </Text>
                   <Text style={styles.permissionPoints}>{permission.pointsCost} pts</Text>
                 </View>

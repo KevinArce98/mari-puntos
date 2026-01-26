@@ -132,13 +132,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     width: '100%',
     maxWidth: 500,
-    shadowColor: colors.gray[500],
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.25)',
     elevation: 5,
   },
   header: {

@@ -3,13 +3,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-	KeyboardAvoidingView,
-	Platform,
-	ScrollView,
-	StyleSheet,
-	Text,
-	TouchableOpacity,
-	View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -22,7 +22,7 @@ export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const { signIn, setActive, isLoaded } = useSignIn();
   const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +30,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!isLoaded) return;
-    
+
     if (!email.trim() || !password.trim()) {
       Toast.show({
         type: 'error',
@@ -51,12 +51,11 @@ export default function LoginScreen() {
         await setActive({ session: result.createdSessionId });
         router.replace('/(tabs)');
       }
-    } catch (e){
-      console.log(e)
+    } catch (e) {
       Toast.show({
         type: 'error',
-        text1: 'Login failed',
-        text2: 'Invalid email or password',
+        text1: 'Inicio de sesión fallido',
+        text2: (e as any)?.error ? (e as any).error : 'Invalid email or password',
       });
     } finally {
       setLoading(false);
@@ -80,14 +79,17 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={[
-          styles.scrollContent, 
-          { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }
+          styles.scrollContent,
+          {
+            paddingTop: insets.top + spacing.xl,
+            paddingBottom: insets.bottom + spacing.lg,
+          },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -118,7 +120,7 @@ export default function LoginScreen() {
             autoCapitalize="none"
             leftIcon="mail-outline"
           />
-          
+
           <Input
             label="Password"
             placeholder="Enter your password"

@@ -33,7 +33,6 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
     setModalVisible(false);
   };
 
-  console.log(permission);
   return (
     <>
       <Card key={permission.id} style={styles.permissionCard}>

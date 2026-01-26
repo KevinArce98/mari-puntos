@@ -23,7 +23,6 @@ export default function ActionsScreen() {
   const insets = useSafeAreaInsets();
   const { myPoints } = usePoints();
   const { myActions, createAction } = useActions();
-  console.log(myActions);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');

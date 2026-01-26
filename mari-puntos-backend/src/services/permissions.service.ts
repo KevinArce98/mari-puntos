@@ -141,11 +141,26 @@ export class PermissionsService {
     // Verify approver is partner
     const partnerId = await this.partnerService.getPartnerId(approverId);
     if (partnerId !== permission.requesterId) {
-      throw new AppError(403, "Solo puedes responder a los permisos de tu pareja");
+      throw new AppError(403, 'Solo puedes responder a los permisos de tu pareja');
     }
 
     if (permission.status !== PermissionStatus.PENDING) {
       throw new AppError(400, 'El permiso no está pendiente');
+    }
+
+    // If approving, validate requester has enough points
+    if (approved && permission.pointsCost > 0) {
+      const requester = await this.userRepository.findOne({
+        where: { id: permission.requesterId },
+      });
+
+      if (!requester) {
+        throw new AppError(404, 'Solicitante no encontrado');
+      }
+
+      if (requester.totalPoints < permission.pointsCost) {
+        throw new AppError(400, `El solicitante no tiene suficientes puntos.`);
+      }
     }
 
     permission.status = approved ? PermissionStatus.APPROVED : PermissionStatus.REJECTED;

@@ -71,7 +71,6 @@ export default function RequestPermissionScreen() {
       const activity = ACTIVITY_TYPES.find((a) => a.id === activityType);
       const requestedDateTime = getCombinedDateTime();
 
-      console.log({ activityType });
       await requestPermission({
         title: activity?.label || 'Activity Request',
         // type: activityType as any, // Maps to PermissionType enum
@@ -90,11 +89,10 @@ export default function RequestPermissionScreen() {
 
       router.back();
     } catch (e) {
-      console.log((e as any).details);
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'No se pudo enviar la solicitud',
+        text2: (e as any)?.error ? (e as any).error : 'No se pudo enviar la solicitud',
       });
     } finally {
       setLoading(false);
