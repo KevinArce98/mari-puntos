@@ -54,14 +54,14 @@ class ApiService {
           // Token expired or invalid - Clerk will handle re-authentication
           console.error('Unauthorized request - token may be expired');
         }
-        
+
         // Format error for better handling
         const apiError: ApiError = {
           success: false,
           error: error.response?.data?.error || error.message || 'An error occurred',
           details: error.response?.data?.details,
         };
-        
+
         return Promise.reject(apiError);
       }
     );

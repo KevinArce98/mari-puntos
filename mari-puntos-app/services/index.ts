@@ -6,4 +6,4 @@ export { rewardsService } from './rewardsService';
 export { pointsService } from './pointsService';
 
 // Re-export types for convenience
-export type { User, UserStats, PartnerInfo } from '@/types';
+export type { User, UserStats, PartnerInfo, GetPartnerLinkCodeResponse } from '@/types';

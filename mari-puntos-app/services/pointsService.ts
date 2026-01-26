@@ -13,7 +13,9 @@ class PointsService {
    * Get points history
    * GET /points/history
    */
-  async getPointsHistory(params?: GetPointsHistoryParams): Promise<PaginatedResponse<PointsLog>> {
+  async getPointsHistory(
+    params?: GetPointsHistoryParams
+  ): Promise<PaginatedResponse<PointsLog>> {
     return apiService.get<PaginatedResponse<PointsLog>>('/points/history', params);
   }
 
@@ -22,7 +24,10 @@ class PointsService {
    * GET /points/leaderboard
    */
   async getLeaderboard(params?: GetLeaderboardParams): Promise<LeaderboardEntry[]> {
-    const response = await apiService.get<ApiResponse<LeaderboardEntry[]>>('/points/leaderboard', params);
+    const response = await apiService.get<ApiResponse<LeaderboardEntry[]>>(
+      '/points/leaderboard',
+      params
+    );
     return response.data;
   }
 }

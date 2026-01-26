@@ -1,6 +1,6 @@
 import { AppDataSource } from '../config/db';
 import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
-import { User, UserRole } from '../entities/User';
+import { User } from '../entities/User';
 import { Log, LogType } from '../entities/Log';
 import { AppError } from '../middlewares/errorMiddleware';
 import { generatePartnerCode } from '../utils/helpers';
@@ -10,7 +10,7 @@ export class PartnerService {
   private userRepository = AppDataSource.getRepository(User);
   private logRepository = AppDataSource.getRepository(Log);
 
-  async createPartnerLink(userId: string, role: string): Promise<PartnerLink> {
+  async createPartnerLink(userId: string): Promise<PartnerLink> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
@@ -19,18 +19,12 @@ export class PartnerService {
 
     // Check if user already has a partner link
     const existingLink = await this.partnerLinkRepository.findOne({
-      where: [
-        { husbandId: userId },
-        { wifeId: userId },
-      ],
+      where: [{ user1Id: userId }, { user2Id: userId }],
     });
 
     if (existingLink) {
       throw new AppError(400, 'El usuario ya tiene un enlace de pareja');
     }
-
-    // Update user role
-    user.role = role as UserRole;
 
     // Generate unique link code
     const linkCode = await this.generateUniqueLinkCode();
@@ -45,8 +39,7 @@ export class PartnerService {
     // Create partner link
     const partnerLink = this.partnerLinkRepository.create({
       linkCode,
-      husbandId: role === UserRole.HUSBAND ? userId : undefined,
-      wifeId: role === UserRole.WIFE ? userId : undefined,
+      user1Id: userId,
       status: PartnerLinkStatus.PENDING,
     });
 
@@ -64,10 +57,7 @@ export class PartnerService {
 
     // Check if user already has a partner link
     const existingLink = await this.partnerLinkRepository.findOne({
-      where: [
-        { husbandId: userId },
-        { wifeId: userId },
-      ],
+      where: [{ user1Id: userId }, { user2Id: userId }],
     });
 
     if (existingLink) {
@@ -77,31 +67,25 @@ export class PartnerService {
     // Find partner link by code
     const partnerLink = await this.partnerLinkRepository.findOne({
       where: { linkCode },
-      relations: ['husband', 'wife'],
+      relations: ['user1', 'user2'],
     });
 
     if (!partnerLink) {
       throw new AppError(404, 'Enlace de pareja no encontrado');
     }
 
+    // Validate that user is not trying to join their own link
+    if (partnerLink.user1Id === userId) {
+      throw new AppError(400, 'No puedes unirte a tu propio enlace de pareja');
+    }
+
     if (partnerLink.status !== PartnerLinkStatus.PENDING) {
       throw new AppError(400, 'El enlace de pareja no está disponible');
     }
 
-    // Determine role and update link
-    let husbandId: string;
-    let wifeId: string;
-
-    if (partnerLink.husbandId && !partnerLink.wifeId) {
-      user.role = UserRole.WIFE;
-      partnerLink.wifeId = userId;
-      husbandId = partnerLink.husbandId;
-      wifeId = userId;
-    } else if (partnerLink.wifeId && !partnerLink.husbandId) {
-      user.role = UserRole.HUSBAND;
-      partnerLink.husbandId = userId;
-      husbandId = userId;
-      wifeId = partnerLink.wifeId;
+    // Add user as second partner
+    if (partnerLink.user1Id && !partnerLink.user2Id) {
+      partnerLink.user2Id = userId;
     } else {
       throw new AppError(400, 'Estado de enlace de pareja inválido');
     }
@@ -116,18 +100,19 @@ export class PartnerService {
 
     await this.userRepository.save(user);
     const savedPartnerLink = await this.partnerLinkRepository.save(partnerLink);
+    console.log({ user1Id: savedPartnerLink.user1Id, user2Id: partnerLink.user2Id });
 
     // Create logs for both users
     await this.logRepository.save([
       this.logRepository.create({
-        userId: husbandId,
+        userId: savedPartnerLink.user1Id,
         type: LogType.PARTNER_LINKED,
         message: 'Vinculado exitosamente con pareja',
         relatedEntityId: savedPartnerLink.id,
         relatedEntityType: 'PartnerLink',
       }),
       this.logRepository.create({
-        userId: wifeId,
+        userId,
         type: LogType.PARTNER_LINKED,
         message: 'Vinculado exitosamente con pareja',
         relatedEntityId: savedPartnerLink.id,
@@ -138,28 +123,40 @@ export class PartnerService {
     return savedPartnerLink;
   }
 
+  async getPartnerLinkCode(userId: string): Promise<PartnerLink | null> {
+    let partnerLink = await this.partnerLinkRepository.findOne({
+      where: [{ user1Id: userId }],
+    });
+    return partnerLink;
+  }
+
   /**
    * Get partner link with partner details
    * Returns structure matching controller expectations
+   * Returns null if no active partner link exists
    */
-  async getPartnerLink(userId: string): Promise<{ partnerLink: PartnerLink; partner: User }> {
+  async getPartnerLink(
+    userId: string
+  ): Promise<{ partnerLink: PartnerLink; partner: User } | null> {
     const partnerLink = await this.partnerLinkRepository.findOne({
-      where: [
-        { husbandId: userId },
-        { wifeId: userId },
-      ],
-      relations: ['husband', 'wife'],
+      where: [{ user1Id: userId }, { user2Id: userId }],
+      relations: ['user1', 'user2'],
     });
 
     if (!partnerLink) {
-      throw new AppError(404, 'Enlace de pareja no encontrado');
+      return null;
+    }
+
+    // Only return partner info if link is active
+    if (partnerLink.status !== PartnerLinkStatus.ACTIVE) {
+      return null;
     }
 
     const partner =
-      partnerLink.husbandId === userId ? partnerLink.wife : partnerLink.husband;
+      partnerLink.user1Id === userId ? partnerLink.user2 : partnerLink.user1;
 
     if (!partner) {
-      throw new AppError(404, 'Pareja no encontrada');
+      return null;
     }
 
     return { partnerLink, partner };
@@ -167,27 +164,19 @@ export class PartnerService {
 
   async getPartnerId(userId: string): Promise<string | null> {
     const partnerLink = await this.partnerLinkRepository.findOne({
-      where: [
-        { husbandId: userId },
-        { wifeId: userId },
-      ],
+      where: [{ user1Id: userId }, { user2Id: userId }],
     });
 
     if (!partnerLink || partnerLink.status !== PartnerLinkStatus.ACTIVE) {
       return null;
     }
 
-    return partnerLink.husbandId === userId
-      ? partnerLink.wifeId
-      : partnerLink.husbandId;
+    return partnerLink.user1Id === userId ? partnerLink.user2Id : partnerLink.user1Id;
   }
 
   async unlinkPartner(userId: string): Promise<void> {
     const partnerLink = await this.partnerLinkRepository.findOne({
-      where: [
-        { husbandId: userId },
-        { wifeId: userId },
-      ],
+      where: [{ user1Id: userId }, { user2Id: userId }],
     });
 
     if (!partnerLink) {

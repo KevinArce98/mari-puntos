@@ -12,7 +12,7 @@ interface PointsState {
   leaderboard: LeaderboardEntry[];
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   fetchPointsHistory: (params?: GetPointsHistoryParams) => Promise<void>;
   fetchLeaderboard: (params?: GetLeaderboardParams) => Promise<void>;

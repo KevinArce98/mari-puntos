@@ -7,7 +7,6 @@
  */
 
 import {
-  UserRole,
   ActionStatus,
   ActionCategory,
   PermissionStatus,
@@ -83,7 +82,6 @@ export interface UserDTO {
   firstName: string;
   lastName: string;
   avatarUrl?: string;
-  role: UserRole;
   totalPoints: number;
   currentLevel: number;
   pointsInCurrentLevel: number;
@@ -115,7 +113,6 @@ export interface CreateUserDTO {
   firstName: string;
   lastName: string;
   clerkId: string;
-  role?: UserRole;
   avatarUrl?: string;
 }
 
@@ -125,19 +122,11 @@ export interface CreateUserDTO {
 export interface UpdateUserDTO {
   firstName?: string;
   lastName?: string;
-  role?: UserRole;
 }
 
 // ============================================================================
 // PARTNER DTOs (Matches frontend Partner interfaces exactly)
 // ============================================================================
-
-/**
- * Create partner link request - matches frontend CreatePartnerLinkRequest
- */
-export interface CreatePartnerLinkDTO {
-  role: UserRole;
-}
 
 /**
  * Create partner link response - matches frontend CreatePartnerLinkResponse
@@ -177,7 +166,6 @@ export interface PartnerInfoDTO {
     lastName: string;
     email: string;
     avatarUrl?: string;
-    role: UserRole;
     totalPoints: number;
     currentLevel: number;
   };
@@ -263,7 +251,6 @@ export interface PermissionDTO {
     lastName: string;
     email: string;
     avatarUrl?: string;
-    role: UserRole;
   };
   approver?: {
     id: string;
@@ -271,7 +258,6 @@ export interface PermissionDTO {
     lastName: string;
     email: string;
     avatarUrl?: string;
-    role: UserRole;
   };
 }
 
@@ -379,7 +365,6 @@ export interface LeaderboardEntryDTO {
   avatarUrl?: string;
   totalPoints: number;
   currentLevel: number;
-  role: UserRole;
 }
 
 /**

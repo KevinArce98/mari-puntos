@@ -1,3 +1,4 @@
+export { AuthGuard } from './auth-guard';
 export { ExternalLink } from './external-link';
 export { HapticTab } from './haptic-tab';
 export { HelloWave } from './hello-wave';

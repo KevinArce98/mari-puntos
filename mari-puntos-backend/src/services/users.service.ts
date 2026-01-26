@@ -2,7 +2,6 @@ import { AppDataSource } from '../config/db';
 import { User } from '../entities/User';
 import { AppError } from '../middlewares/errorMiddleware';
 import { generatePartnerCode } from '../utils/helpers';
-import { UserRole } from '../shared/constants';
 import { CreateUserInput, UpdateUserInput } from '../validators/schemas';
 
 export class UsersService {
@@ -11,7 +10,7 @@ export class UsersService {
   async getUserById(userId: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['partnerLinkAsHusband', 'partnerLinkAsWife'],
+      relations: ['partnerLinkAsUser1', 'partnerLinkAsUser2'],
     });
 
     if (!user) {
@@ -24,21 +23,20 @@ export class UsersService {
   async getUserByClerkId(clerkId: string): Promise<User | null> {
     return await this.userRepository.findOne({
       where: { clerkId },
-      relations: ['partnerLinkAsHusband', 'partnerLinkAsWife'],
+      relations: ['partnerLinkAsUser1', 'partnerLinkAsUser2'],
     });
   }
 
   /**
    * Create a new user
    */
-  async createUser(clerkId: string, data: CreateUserInput): Promise<User> {
+  async createUser(data: CreateUserInput): Promise<User> {
     const user = this.userRepository.create({
-      clerkId,
+      clerkId: data.clerkId,
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
       avatarUrl: data.avatarUrl,
-      role: data.role as User['role'],
     });
 
     return this.userRepository.save(user);
@@ -52,28 +50,12 @@ export class UsersService {
 
     if (data.firstName !== undefined) user.firstName = data.firstName;
     if (data.lastName !== undefined) user.lastName = data.lastName;
-    if (data.role !== undefined) user.role = data.role as User['role'];
 
     await this.userRepository.save(user);
 
     const hasPartner = this.checkHasPartner(user);
 
     return { user, hasPartner };
-  }
-
-  async setUserRole(userId: string, role: UserRole): Promise<User> {
-    const user = await this.getUserById(userId);
-
-    user.role = role as User['role'];
-
-    // Generate partner code if not exists
-    if (!user.partnerCode) {
-      user.partnerCode = await this.generateUniquePartnerCode();
-    }
-
-    await this.userRepository.save(user);
-
-    return user;
   }
 
   /**
@@ -90,7 +72,7 @@ export class UsersService {
    * Check if user has an active partner link
    */
   private checkHasPartner(user: User): boolean {
-    const partnerLink = user.partnerLinkAsHusband || user.partnerLinkAsWife;
+    const partnerLink = user.partnerLinkAsUser1 || user.partnerLinkAsUser2;
     return !!partnerLink && partnerLink.status === 'active';
   }
 

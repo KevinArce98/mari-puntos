@@ -36,6 +36,7 @@ export class RewardsController {
    */
   getAllRewards = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      const userId = req.userId!;
       const page = parseInt(req.query.page as string) || PAGINATION_DEFAULTS.PAGE;
       const limit = Math.min(
         parseInt(req.query.limit as string) || PAGINATION_DEFAULTS.LIMIT,
@@ -49,6 +50,7 @@ export class RewardsController {
         isActive,
         page,
         limit,
+        userId,
       });
 
       sendPaginated(

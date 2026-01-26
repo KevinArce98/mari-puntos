@@ -31,10 +31,10 @@ export class PartnerLink {
   status: PartnerLinkStatus;
 
   @Column({ type: 'uuid', nullable: true })
-  husbandId: string;
+  user1Id: string;
 
   @Column({ type: 'uuid', nullable: true })
-  wifeId: string;
+  user2Id: string;
 
   @Column({ type: 'timestamp', nullable: true })
   linkedAt: Date;
@@ -46,11 +46,11 @@ export class PartnerLink {
   updatedAt: Date;
 
   // Relations
-  @OneToOne(() => User, (user) => user.partnerLinkAsHusband)
-  @JoinColumn({ name: 'husbandId' })
-  husband: User;
+  @OneToOne(() => User, (user) => user.partnerLinkAsUser1)
+  @JoinColumn({ name: 'user1Id' })
+  user1: User;
 
-  @OneToOne(() => User, (user) => user.partnerLinkAsWife)
-  @JoinColumn({ name: 'wifeId' })
-  wife: User;
+  @OneToOne(() => User, (user) => user.partnerLinkAsUser2)
+  @JoinColumn({ name: 'user2Id' })
+  user2: User;
 }

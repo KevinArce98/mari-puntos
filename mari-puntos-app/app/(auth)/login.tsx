@@ -1,4 +1,4 @@
-import { useOAuth, useSignIn } from '@clerk/clerk-expo';
+import { useSignIn } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -21,7 +21,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signIn, setActive, isLoaded } = useSignIn();
-  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
+  // const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,8 +34,8 @@ export default function LoginScreen() {
     if (!email.trim() || !password.trim()) {
       Toast.show({
         type: 'error',
-        text1: 'Missing fields',
-        text2: 'Please enter your email and password',
+        text1: 'Campos faltantes',
+        text2: 'Por favor ingresa tu correo y contraseña',
       });
       return;
     }
@@ -55,28 +55,28 @@ export default function LoginScreen() {
       Toast.show({
         type: 'error',
         text1: 'Inicio de sesión fallido',
-        text2: (e as any)?.error ? (e as any).error : 'Invalid email or password',
+        text2: (e as any)?.error ? (e as any).error : 'Correo o contraseña inválidos',
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const { createdSessionId, setActive: setOAuthActive } = await startOAuthFlow();
-      if (createdSessionId && setOAuthActive) {
-        await setOAuthActive({ session: createdSessionId });
-        router.replace('/(tabs)');
-      }
-    } catch {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Could not sign in with Google',
-      });
-    }
-  };
+  // const handleGoogleLogin = async () => {
+  //   try {
+  //     const { createdSessionId, setActive: setOAuthActive } = await startOAuthFlow();
+  //     if (createdSessionId && setOAuthActive) {
+  //       await setOAuthActive({ session: createdSessionId });
+  //       router.replace('/(tabs)');
+  //     }
+  //   } catch {
+  //     Toast.show({
+  //       type: 'error',
+  //       text1: 'Error',
+  //       text2: 'Could not sign in with Google',
+  //     });
+  //   }
+  // };
 
   return (
     <KeyboardAvoidingView
@@ -103,17 +103,17 @@ export default function LoginScreen() {
 
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back!</Text>
+          <Text style={styles.title}>¡Bienvenido de nuevo!</Text>
           <Text style={styles.subtitle}>
-            Sign in to continue earning points with your partner
+            Inicia sesión para continuar ganando puntos con tu pareja
           </Text>
         </View>
 
         {/* Form */}
         <View style={styles.form}>
           <Input
-            label="Email"
-            placeholder="your@email.com"
+            label="Correo electrónico"
+            placeholder="tucorreo@ejemplo.com"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -122,8 +122,8 @@ export default function LoginScreen() {
           />
 
           <Input
-            label="Password"
-            placeholder="Enter your password"
+            label="Contraseña"
+            placeholder="Ingresa tu contraseña"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -132,12 +132,12 @@ export default function LoginScreen() {
             onRightIconPress={() => setShowPassword(!showPassword)}
           />
 
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
+          {/* <TouchableOpacity style={styles.forgotPassword}>
+            <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+          </TouchableOpacity> */}
 
           <Button
-            title="Sign In"
+            title="Iniciar sesión"
             onPress={handleLogin}
             loading={loading}
             fullWidth
@@ -146,27 +146,27 @@ export default function LoginScreen() {
         </View>
 
         {/* Divider */}
-        <View style={styles.divider}>
+        {/* <View style={styles.divider}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>or continue with</Text>
           <View style={styles.dividerLine} />
-        </View>
+        </View> */}
 
         {/* Social Login */}
-        <View style={styles.socialButtons}>
+        {/* <View style={styles.socialButtons}>
           <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin}>
             <Ionicons name="logo-google" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialButton}>
             <Ionicons name="logo-apple" size={24} color={colors.text.primary} />
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         {/* Register Link */}
         <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>{"Don't have an account? "}</Text>
+          <Text style={styles.registerText}>{'¿No tienes una cuenta? '}</Text>
           <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-            <Text style={styles.registerLink}>Sign Up</Text>
+            <Text style={styles.registerLink}>Regístrate</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

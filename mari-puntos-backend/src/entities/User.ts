@@ -13,11 +13,6 @@ import { Permission } from './Permission';
 import { Log } from './Log';
 import { Achievement } from './Achievement';
 
-export enum UserRole {
-  HUSBAND = 'husband',
-  WIFE = 'wife',
-}
-
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -37,13 +32,6 @@ export class User {
 
   @Column({ nullable: true })
   avatarUrl: string;
-
-  @Column({
-    type: 'enum',
-    enum: UserRole,
-    nullable: true,
-  })
-  role: UserRole;
 
   @Column({ type: 'int', default: 0 })
   totalPoints: number;
@@ -67,11 +55,11 @@ export class User {
   updatedAt: Date;
 
   // Relations
-  @OneToOne(() => PartnerLink, (partnerLink) => partnerLink.husband)
-  partnerLinkAsHusband: PartnerLink;
+  @OneToOne(() => PartnerLink, (partnerLink) => partnerLink.user1)
+  partnerLinkAsUser1: PartnerLink;
 
-  @OneToOne(() => PartnerLink, (partnerLink) => partnerLink.wife)
-  partnerLinkAsWife: PartnerLink;
+  @OneToOne(() => PartnerLink, (partnerLink) => partnerLink.user2)
+  partnerLinkAsUser2: PartnerLink;
 
   @OneToMany(() => Action, (action) => action.user)
   actions: Action[];

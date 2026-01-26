@@ -13,6 +13,20 @@ export class RewardsService {
   private pointsService = new PointsService();
 
   async createReward(userId: string, data: CreateRewardInput): Promise<Reward> {
+    // Get user's partner link
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['partnerLinkAsHusband', 'partnerLinkAsWife'],
+    });
+
+    if (!user) {
+      throw new AppError(404, 'Usuario no encontrado');
+    }
+
+    // Get the partner link ID (either as husband or wife)
+    const partnerLink = user.partnerLinkAsHusband || user.partnerLinkAsWife;
+    const partnerLinkId = partnerLink?.id || null;
+
     const reward = this.rewardRepository.create({
       title: data.title,
       description: data.description,
@@ -21,6 +35,7 @@ export class RewardsService {
       requiredLevel: data.requiredLevel,
       imageUrl: data.imageUrl,
       createdBy: userId,
+      partnerLinkId,
       isCustom: true,
     });
 
@@ -46,6 +61,7 @@ export class RewardsService {
     isActive?: boolean;
     page?: number;
     limit?: number;
+    userId?: string; // Used to filter by user's partner link
   }): Promise<{ rewards: Reward[]; total: number }> {
     const page = filters?.page || 1;
     const limit = filters?.limit || 20;
@@ -56,6 +72,25 @@ export class RewardsService {
       .orderBy('reward.pointsCost', 'ASC')
       .skip(skip)
       .take(limit);
+
+    // If userId is provided, filter by partner link
+    if (filters?.userId) {
+      const user = await this.userRepository.findOne({
+        where: { id: filters.userId },
+        relations: ['partnerLinkAsHusband', 'partnerLinkAsWife'],
+      });
+
+      if (user) {
+        const partnerLink = user.partnerLinkAsHusband || user.partnerLinkAsWife;
+        const partnerLinkId = partnerLink?.id;
+
+        // Show global rewards (partnerLinkId IS NULL) OR rewards from user's couple
+        queryBuilder.andWhere(
+          '(reward.partnerLinkId IS NULL OR reward.partnerLinkId = :partnerLinkId)',
+          { partnerLinkId: partnerLinkId || 'no-partner' }
+        );
+      }
+    }
 
     if (filters?.category) {
       queryBuilder.andWhere('reward.category = :category', {
@@ -75,23 +110,33 @@ export class RewardsService {
   }
 
   async getAvailableRewards(userId: string): Promise<Reward[]> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['partnerLinkAsHusband', 'partnerLinkAsWife'],
+    });
 
     if (!user) {
       throw new AppError(404, 'Usuario no encontrado');
     }
 
-    // Get all active rewards that user can afford and has required level
-    const rewards = await this.rewardRepository
+    const partnerLink = user.partnerLinkAsHusband || user.partnerLinkAsWife;
+    const partnerLinkId = partnerLink?.id;
+
+    // Get all active rewards that user can afford, has required level, and belong to their couple or are global
+    const queryBuilder = this.rewardRepository
       .createQueryBuilder('reward')
       .where('reward.isActive = :isActive', { isActive: true })
       .andWhere('reward.pointsCost <= :points', { points: user.totalPoints })
+      .andWhere('(reward.requiredLevel IS NULL OR reward.requiredLevel <= :level)', {
+        level: user.currentLevel,
+      })
       .andWhere(
-        '(reward.requiredLevel IS NULL OR reward.requiredLevel <= :level)',
-        { level: user.currentLevel }
+        '(reward.partnerLinkId IS NULL OR reward.partnerLinkId = :partnerLinkId)',
+        { partnerLinkId: partnerLinkId || 'no-partner' }
       )
-      .orderBy('reward.pointsCost', 'ASC')
-      .getMany();
+      .orderBy('reward.pointsCost', 'ASC');
+
+    const rewards = await queryBuilder.getMany();
 
     return rewards;
   }

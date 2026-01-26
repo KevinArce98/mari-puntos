@@ -16,7 +16,7 @@ export class UsersController {
     try {
       const userId = req.userId!;
       const { user, hasPartner } = await this.usersService.getUserProfile(userId);
-      
+
       sendSuccess(res, toUserDTO(user, hasPartner));
     } catch (error) {
       throw error;
@@ -29,10 +29,9 @@ export class UsersController {
    */
   createProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const clerkId = req.clerkId!;
       const data = createUserSchema.parse(req.body);
 
-      const user = await this.usersService.createUser(clerkId, data);
+      const user = await this.usersService.createUser(data);
 
       sendCreated(res, toUserDTO(user, false), 'Profile created successfully');
     } catch (error) {

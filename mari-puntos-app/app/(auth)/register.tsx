@@ -3,13 +3,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -21,7 +21,7 @@ export default function RegisterScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signUp, isLoaded } = useSignUp();
-  
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -37,8 +37,8 @@ export default function RegisterScreen() {
     if (!firstName.trim()) {
       Toast.show({
         type: 'error',
-        text1: 'Missing field',
-        text2: 'Please enter your first name',
+        text1: 'Campo faltante',
+        text2: 'Por favor ingresa tu nombre',
       });
       return;
     }
@@ -46,8 +46,8 @@ export default function RegisterScreen() {
     if (!email.trim()) {
       Toast.show({
         type: 'error',
-        text1: 'Missing field',
-        text2: 'Please enter your email',
+        text1: 'Campo faltante',
+        text2: 'Por favor ingresa tu correo electrónico',
       });
       return;
     }
@@ -55,8 +55,8 @@ export default function RegisterScreen() {
     if (password.length < 8) {
       Toast.show({
         type: 'error',
-        text1: 'Weak password',
-        text2: 'Password must be at least 8 characters',
+        text1: 'Contraseña débil',
+        text2: 'La contraseña debe tener al menos 8 caracteres',
       });
       return;
     }
@@ -64,8 +64,8 @@ export default function RegisterScreen() {
     if (password !== confirmPassword) {
       Toast.show({
         type: 'error',
-        text1: 'Password mismatch',
-        text2: 'Passwords do not match',
+        text1: 'Las contraseñas no coinciden',
+        text2: 'Las contraseñas no son iguales',
       });
       return;
     }
@@ -84,8 +84,8 @@ export default function RegisterScreen() {
 
       Toast.show({
         type: 'success',
-        text1: 'Account created!',
-        text2: 'Check your email for verification code',
+        text1: '¡Cuenta creada!',
+        text2: 'Revisa tu correo para el código de verificación',
       });
 
       router.push({
@@ -96,11 +96,11 @@ export default function RegisterScreen() {
       const errorMessage =
         error.errors?.[0]?.message ||
         error.errors?.[0]?.longMessage ||
-        'Could not create account. Please try again.';
+        'No se pudo crear la cuenta. Por favor intenta de nuevo.';
 
       Toast.show({
         type: 'error',
-        text1: 'Registration failed',
+        text1: 'Registro fallido',
         text2: errorMessage,
       });
     } finally {
@@ -109,31 +109,31 @@ export default function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={[
-          styles.scrollContent, 
-          { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.lg }
+          styles.scrollContent,
+          {
+            paddingTop: insets.top + spacing.lg,
+            paddingBottom: insets.bottom + spacing.lg,
+          },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         {/* Back Button */}
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
 
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.title}>Crear cuenta</Text>
           <Text style={styles.subtitle}>
-            Join MariPuntos and start earning points with your partner
+            Únete a MariPuntos y comienza a ganar puntos con tu pareja
           </Text>
         </View>
 
@@ -141,36 +141,37 @@ export default function RegisterScreen() {
         <View style={styles.form}>
           <View style={styles.nameRow}>
             <Input
-              label="First Name"
-              placeholder="John"
+              label="Nombre"
+              placeholder="Juan"
               value={firstName}
               onChangeText={setFirstName}
               containerStyle={styles.nameInput}
               leftIcon="person-outline"
             />
             <Input
-              label="Last Name"
-              placeholder="Doe"
+              label="Apellido"
+              placeholder="Pérez"
               value={lastName}
               onChangeText={setLastName}
               containerStyle={styles.nameInput}
             />
           </View>
-          
+
           <Input
-            label="Email"
-            placeholder="your@email.com"
+            label="Correo electrónico"
+            placeholder="tucorreo@ejemplo.com"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             leftIcon="mail-outline"
           />
-          
+
           <Input
-            label="Password"
-            placeholder="Min. 8 characters"
+            label="Contraseña"
+            placeholder="Mín. 8 caracteres"
             value={password}
+            autoComplete="off"
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
             leftIcon="lock-closed-outline"
@@ -179,8 +180,9 @@ export default function RegisterScreen() {
           />
 
           <Input
-            label="Confirm Password"
-            placeholder="Repeat your password"
+            label="Confirmar contraseña"
+            autoComplete="off"
+            placeholder="Repite tu contraseña"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry={!showPassword}
@@ -190,35 +192,49 @@ export default function RegisterScreen() {
           {/* Password Requirements */}
           <View style={styles.requirements}>
             <View style={styles.requirementItem}>
-              <Ionicons 
-                name={password.length >= 8 ? 'checkmark-circle' : 'ellipse-outline'} 
-                size={16} 
-                color={password.length >= 8 ? colors.success : colors.gray[400]} 
+              <Ionicons
+                name={password.length >= 8 ? 'checkmark-circle' : 'ellipse-outline'}
+                size={16}
+                color={password.length >= 8 ? colors.success : colors.gray[400]}
               />
-              <Text style={[
-                styles.requirementText,
-                password.length >= 8 && styles.requirementMet,
-              ]}>
-                At least 8 characters
+              <Text
+                style={[
+                  styles.requirementText,
+                  password.length >= 8 && styles.requirementMet,
+                ]}
+              >
+                Al menos 8 caracteres
               </Text>
             </View>
             <View style={styles.requirementItem}>
-              <Ionicons 
-                name={password === confirmPassword && password.length > 0 ? 'checkmark-circle' : 'ellipse-outline'} 
-                size={16} 
-                color={password === confirmPassword && password.length > 0 ? colors.success : colors.gray[400]} 
+              <Ionicons
+                name={
+                  password === confirmPassword && password.length > 0
+                    ? 'checkmark-circle'
+                    : 'ellipse-outline'
+                }
+                size={16}
+                color={
+                  password === confirmPassword && password.length > 0
+                    ? colors.success
+                    : colors.gray[400]
+                }
               />
-              <Text style={[
-                styles.requirementText,
-                password === confirmPassword && password.length > 0 && styles.requirementMet,
-              ]}>
-                Passwords match
+              <Text
+                style={[
+                  styles.requirementText,
+                  password === confirmPassword &&
+                    password.length > 0 &&
+                    styles.requirementMet,
+                ]}
+              >
+                Las contraseñas coinciden
               </Text>
             </View>
           </View>
 
           <Button
-            title="Create Account"
+            title="Crear cuenta"
             onPress={handleRegister}
             loading={loading}
             fullWidth
@@ -228,27 +244,27 @@ export default function RegisterScreen() {
         </View>
 
         {/* Divider */}
-        <View style={styles.divider}>
+        {/* <View style={styles.divider}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or sign up with</Text>
+          <Text style={styles.dividerText}>o regístrate con</Text>
           <View style={styles.dividerLine} />
-        </View>
+        </View> */}
 
         {/* Social Buttons */}
-        <View style={styles.socialButtons}>
+        {/* <View style={styles.socialButtons}>
           <TouchableOpacity style={styles.socialButton}>
             <Ionicons name="logo-google" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialButton}>
             <Ionicons name="logo-apple" size={24} color={colors.text.primary} />
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         {/* Login Link */}
         <View style={styles.loginContainer}>
-          <Text style={styles.loginText}>Already have an account? </Text>
+          <Text style={styles.loginText}>¿Ya tienes una cuenta? </Text>
           <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-            <Text style={styles.loginLink}>Sign In</Text>
+            <Text style={styles.loginLink}>Inicia sesión</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

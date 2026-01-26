@@ -48,6 +48,52 @@ router.post('/create', authMiddleware, asyncHandler(partnerController.createLink
 
 /**
  * @swagger
+ * /partner/link-code:
+ *   get:
+ *     summary: Get partner link code
+ *     description: Retrieve the partner link code for the current user (if they created one)
+ *     tags: [Partner]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Partner link code retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     linkCode:
+ *                       type: string
+ *                       example: ABC123XYZ
+ *                       description: The partner link code
+ *                     status:
+ *                       type: string
+ *                       enum: [pending, active, inactive]
+ *                       example: pending
+ *                       description: The status of the partner link
+ *                 message:
+ *                   type: string
+ *                   example: Partner link retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: No partner link found for user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get('/link-code', authMiddleware, asyncHandler(partnerController.getLinkCode));
+
+/**
+ * @swagger
  * /partner/join:
  *   post:
  *     summary: Join an existing partner link

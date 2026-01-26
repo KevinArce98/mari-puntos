@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { PartnerLink } from './PartnerLink';
 
 export enum RewardCategory {
   PERSONAL_TIME = 'personal_time',
@@ -51,6 +54,9 @@ export class Reward {
   @Column({ type: 'uuid', nullable: true })
   createdBy: string;
 
+  @Column({ type: 'uuid', nullable: true })
+  partnerLinkId: string;
+
   @Column({ type: 'int', default: 0 })
   timesRedeemed: number;
 
@@ -62,4 +68,9 @@ export class Reward {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  // Relations
+  @ManyToOne(() => PartnerLink, { nullable: true })
+  @JoinColumn({ name: 'partnerLinkId' })
+  partnerLink: PartnerLink;
 }

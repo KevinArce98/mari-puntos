@@ -4,7 +4,6 @@ import { User } from '../entities/User';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env';
 import { sendError } from '../utils/response';
-import { UserRole } from '../shared/constants';
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -103,32 +102,6 @@ export const optionalAuthMiddleware = async (
 
   // Token provided - validate it
   return authMiddleware(req, res, next);
-};
-
-/**
- * Role-based access control middleware
- * Must be used after authMiddleware
- */
-export const requireRole = (...roles: UserRole[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction): void => {
-    if (!req.user) {
-      sendError(res, 'Authentication required', 401);
-      return;
-    }
-
-    if (!req.user.role) {
-      sendError(res, 'Please select a role first', 403);
-      return;
-    }
-
-    if (!roles.includes(req.user.role)) {
-      const rolesStr = roles.join(' or ');
-      sendError(res, `This action requires ${rolesStr} role`, 403);
-      return;
-    }
-
-    next();
-  };
 };
 
 /**

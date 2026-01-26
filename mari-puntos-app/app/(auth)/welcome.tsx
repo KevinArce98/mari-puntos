@@ -1,23 +1,28 @@
 // filepath: /Users/kevinarias/Projects/mari-puntos-app/app/(auth)/welcome.tsx
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import {
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui';
+import { useFirstTimeUser } from '@/hooks';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 
 export default function WelcomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { markAsNotFirstTime } = useFirstTimeUser();
+
+  // Mark as not first time when component mounts
+  useEffect(() => {
+    markAsNotFirstTime();
+  }, [markAsNotFirstTime]);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+    <View
+      style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
+    >
       {/* Logo */}
       <View style={styles.logoContainer}>
         <View style={styles.logoIcon}>
@@ -35,23 +40,24 @@ export default function WelcomeScreen() {
 
       {/* Content */}
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome to MariPuntos!</Text>
+        <Text style={styles.title}>¡Bienvenido a MariPuntos!</Text>
         <Text style={styles.subtitle}>
-          Turn your daily routines into a fun game with your partner. Earn points, unlock rewards, and strengthen your bond!
+          Convierte tus rutinas diarias en un juego divertido con tu pareja. ¡Gana puntos,
+          desbloquea recompensas y fortalece tu vínculo!
         </Text>
       </View>
 
       {/* Actions */}
       <View style={styles.actions}>
         <Button
-          title="Get Started"
+          title="Comenzar"
           onPress={() => router.push('/(auth)/register')}
           fullWidth
           size="lg"
         />
-        
+
         <Button
-          title="Already have an account? Log in"
+          title="¿Ya tienes una cuenta? Inicia sesión"
           onPress={() => router.push('/(auth)/login')}
           variant="ghost"
           fullWidth

@@ -8,34 +8,34 @@ import { useEffect } from 'react';
  * This hook sets up the token getter for the API service and manages user state
  */
 export function useClerkAuth() {
-	const { getToken, isSignedIn, isLoaded } = useAuth();
-	const { fetchProfile, clearUser } = useUserStore();
+  const { getToken, isSignedIn, isLoaded } = useAuth();
+  const { fetchProfile, clearUser } = useUserStore();
 
-	useEffect(() => {
-		if (isLoaded) {
-			if (isSignedIn) {
-				apiService.setTokenGetter(async () => {
-					try {
-						return await getToken();
-					} catch (error) {
-						console.error('Error getting Clerk token:', error);
-						return null;
-					}
-				});
+  useEffect(() => {
+    if (isLoaded) {
+      if (isSignedIn) {
+        apiService.setTokenGetter(async () => {
+          try {
+            return await getToken();
+          } catch (error) {
+            console.error('Error getting Clerk token:', error);
+            return null;
+          }
+        });
 
-				fetchProfile().catch((error) => {
-					console.error('Error fetching user profile:', error);
-				});
-			} else {
-				apiService.clearTokenGetter();
-				clearUser();
-			}
-		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isSignedIn, isLoaded]);
+        fetchProfile().catch((error) => {
+          console.error('Error fetching user profile:', error);
+        });
+      } else {
+        apiService.clearTokenGetter();
+        clearUser();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSignedIn, isLoaded]);
 
-	return {
-		isSignedIn,
-		isLoaded,
-	};
+  return {
+    isSignedIn,
+    isLoaded,
+  };
 }

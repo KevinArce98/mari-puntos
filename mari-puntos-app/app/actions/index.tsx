@@ -5,77 +5,66 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Card, Chip } from '@/components/ui';
+import { ActionItemCard, CreateActionModal, Chip } from '@/components/ui';
 import { useActions, usePoints } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
-import { ActionCategory } from '@/types';
+import { ActionStatus } from '@/types';
 
-const CATEGORIES = ['All', 'Chores', 'Romance', 'Gifts'];
+const STATUS_FILTERS = [
+  { label: 'Todas', value: null },
+  { label: 'Pendientes', value: ActionStatus.PENDING },
+  { label: 'Aprobadas', value: ActionStatus.APPROVED },
+  { label: 'Rechazadas', value: ActionStatus.REJECTED },
+];
 
 export default function ActionsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { myPoints } = usePoints();
-  const { myActions, createAction } = useActions();
+  const { myActions, createAction, refetchMyActions } = useActions();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [customAction, setCustomAction] = useState('');
-  const [loading, setLoading] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<ActionStatus | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const filteredActions = myActions.filter((action) => {
-    const matchesCategory =
-      selectedCategory === 'All' || action.category === selectedCategory;
-    const matchesSearch =
-      action.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      action.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    if (!selectedStatus) return true;
+    return action.status === selectedStatus;
   });
 
-  const handleLogAction = async (actionId: string) => {
-    setLoading(actionId);
+  const handleCreateAction = async (data: any) => {
     try {
-      // TODO: Call API to log action
-      // await new Promise((resolve) => setTimeout(resolve, 1000));
-      // const action = suggestedActions.find((a) => a.id === actionId);
-      // Toast.show({
-      //   type: 'success',
-      //   text1: 'Action Logged!',
-      //   text2: `You earned ${action?.points} MariPuntos`,
-      // });
+      await createAction(data);
+      Toast.show({
+        type: 'success',
+        text1: 'Acción Creada',
+        text2: 'Tu acción ha sido enviada para revisión',
+      });
     } catch {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Could not log action',
+        text2: 'No se pudo crear la acción',
       });
-    } finally {
-      setLoading(null);
     }
   };
 
-  const handleCustomAction = async () => {
-    if (!customAction.trim()) return;
-
-    await createAction({
-      title: customAction.trim(),
-      category: ActionCategory.CHILDCARE, // TODO: Allow user to select category
-      description: 'Acción personalizada', // TODO: Allow user to add description
-    });
-
-    Toast.show({
-      type: 'info',
-      text1: 'Acción Personalizada Creada',
-      text2: '',
-    });
-    setCustomAction('');
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetchMyActions();
+    } finally {
+      setRefreshing(false);
+    }
   };
+
+  const pendingCount = myActions.filter((a) => a.status === ActionStatus.PENDING).length;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -84,127 +73,108 @@ export default function ActionsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Acciones</Text>
-        <View style={styles.pointsBadge}>
-          <Ionicons name="trophy" size={16} color={colors.accent} />
-          <Text style={styles.pointsBadgeText}>{myPoints.toLocaleString()} pts</Text>
+        <Text style={styles.headerTitle}>Mis Acciones</Text>
+        <TouchableOpacity
+          onPress={() => router.push('/actions/review')}
+          style={styles.reviewButton}
+        >
+          <Ionicons name="checkmark-circle-outline" size={24} color={colors.primary} />
+          {pendingCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{pendingCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {/* Stats Card */}
+      <View style={styles.statsCard}>
+        <View style={styles.statItem}>
+          <Ionicons name="trophy" size={24} color={colors.accent} />
+          <View style={styles.statContent}>
+            <Text style={styles.statValue}>{myPoints.toLocaleString()}</Text>
+            <Text style={styles.statLabel}>Puntos Totales</Text>
+          </View>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.statItem}>
+          <Ionicons name="time-outline" size={24} color={colors.warning} />
+          <View style={styles.statContent}>
+            <Text style={styles.statValue}>
+              {myActions.filter((a) => a.status === ActionStatus.PENDING).length}
+            </Text>
+            <Text style={styles.statLabel}>Pendientes</Text>
+          </View>
         </View>
       </View>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Ionicons name="search-outline" size={20} color={colors.gray[400]} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar acciones..."
-            placeholderTextColor={colors.gray[400]}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color={colors.gray[400]} />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Category Filter */}
+        {/* Status Filter */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={styles.categoriesContainer}
-          contentContainerStyle={styles.categoriesContent}
+          style={styles.filtersContainer}
+          contentContainerStyle={styles.filtersContent}
         >
-          {CATEGORIES.map((category) => (
+          {STATUS_FILTERS.map((filter) => (
             <Chip
-              key={category}
-              label={category}
-              selected={selectedCategory === category}
-              onPress={() => setSelectedCategory(category)}
+              key={filter.label}
+              label={filter.label}
+              selected={selectedStatus === filter.value}
+              onPress={() => setSelectedStatus(filter.value)}
             />
           ))}
         </ScrollView>
 
-        {/* Suggested Actions */}
+        {/* Actions List */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Acciones Sugeridas</Text>
-
-          {filteredActions.map((action) => (
-            <Card key={action.id} style={styles.actionCard}>
-              <View style={styles.actionRow}>
-                <View
-                  style={[
-                    styles.actionIconContainer,
-                    { backgroundColor: `${colors.primary}15` },
-                  ]}
-                >
-                  {/* <Ionicons
-                    name={action.icon as keyof typeof Ionicons.glyphMap}
-                    size={24}
-                    color={colors.primary}
-                  /> */}
-                </View>
-
-                <View style={styles.actionContent}>
-                  <Text style={styles.actionName}>{action.title}</Text>
-                  {action.description && (
-                    <Text style={styles.actionDescription}>{action.description}</Text>
-                  )}
-                </View>
-
-                <View style={styles.actionRight}>
-                  <Text style={styles.actionPoints}>+{action.pointsAwarded}</Text>
-                  <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => handleLogAction(action.id)}
-                    disabled={loading === action.id}
-                  >
-                    <Ionicons
-                      name={loading === action.id ? 'hourglass-outline' : 'add'}
-                      size={20}
-                      color={colors.white}
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Card>
-          ))}
-
-          {filteredActions.length === 0 && (
+          {filteredActions.length > 0 ? (
+            filteredActions.map((action) => (
+              <ActionItemCard key={action.id} action={action} showStatus />
+            ))
+          ) : (
             <View style={styles.emptyState}>
-              <Ionicons name="search-outline" size={48} color={colors.gray[300]} />
-              <Text style={styles.emptyText}>No se encontraron acciones</Text>
+              <Ionicons
+                name={selectedStatus ? 'filter-outline' : 'calendar-outline'}
+                size={48}
+                color={colors.gray[300]}
+              />
+              <Text style={styles.emptyText}>
+                {selectedStatus
+                  ? 'No hay acciones con este estado'
+                  : 'No has creado acciones aún'}
+              </Text>
+              {!selectedStatus && (
+                <Text style={styles.emptySubtext}>
+                  Crea tu primera acción para empezar a ganar puntos
+                </Text>
+              )}
             </View>
           )}
         </View>
       </ScrollView>
-      {/* Custom Action Input */}
-      <View style={styles.customActionContainer}>
-        <Text style={styles.customActionLabel}>{'¿No encuentras lo que buscas?'}</Text>
-        <View style={styles.customActionRow}>
-          <TextInput
-            style={styles.customActionInput}
-            placeholder="Describe tu acción personalizada..."
-            placeholderTextColor={colors.gray[400]}
-            value={customAction}
-            onChangeText={setCustomAction}
-          />
-          <TouchableOpacity
-            style={[
-              styles.customActionButton,
-              !customAction.trim() && styles.customActionButtonDisabled,
-            ]}
-            onPress={handleCustomAction}
-            disabled={!customAction.trim()}
-          >
-            <Ionicons name="send" size={20} color={colors.white} />
-          </TouchableOpacity>
-        </View>
-      </View>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setShowCreateModal(true)}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add" size={28} color={colors.white} />
+      </TouchableOpacity>
+
+      {/* Create Action Modal */}
+      <CreateActionModal
+        visible={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreateAction}
+      />
     </View>
   );
 }
@@ -232,99 +202,76 @@ const styles = StyleSheet.create({
     ...typography.styles.h3,
     color: colors.text.primary,
   },
-  pointsBadge: {
-    flexDirection: 'row',
+  reviewButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.white,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: colors.error,
     borderRadius: borderRadius.full,
-    gap: spacing.xs,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    ...typography.styles.caption,
+    color: colors.white,
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  statsCard: {
+    flexDirection: 'row',
+    backgroundColor: colors.white,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    padding: spacing.md,
+    borderRadius: borderRadius.xl,
     ...shadows.sm,
   },
-  pointsBadgeText: {
-    ...typography.styles.bodyMedium,
+  statItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  statContent: {
+    flex: 1,
+  },
+  statValue: {
+    ...typography.styles.h3,
     color: colors.text.primary,
+  },
+  statLabel: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+  },
+  divider: {
+    width: 1,
+    backgroundColor: colors.gray[200],
+    marginHorizontal: spacing.md,
   },
   scrollContent: {
     padding: spacing.lg,
     paddingTop: 0,
     paddingBottom: spacing['3xl'],
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.xl,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.md,
-    ...shadows.sm,
-  },
-  searchInput: {
-    flex: 1,
-    ...typography.styles.body,
-    color: colors.text.primary,
-    marginLeft: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  categoriesContainer: {
+  filtersContainer: {
     marginBottom: spacing.md,
     marginHorizontal: -spacing.lg,
   },
-  categoriesContent: {
+  filtersContent: {
     paddingHorizontal: spacing.lg,
   },
   section: {
     marginBottom: spacing.lg,
-  },
-  sectionTitle: {
-    ...typography.styles.h4,
-    color: colors.text.primary,
-    marginBottom: spacing.md,
-  },
-  actionCard: {
-    marginBottom: spacing.sm,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
-  },
-  actionContent: {
-    flex: 1,
-  },
-  actionName: {
-    ...typography.styles.bodyMedium,
-    color: colors.text.primary,
-    marginBottom: 2,
-  },
-  actionDescription: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-  },
-  actionRight: {
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  actionPoints: {
-    ...typography.styles.h4,
-    color: colors.primary,
-  },
-  addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   emptyState: {
     alignItems: 'center',
@@ -334,42 +281,24 @@ const styles = StyleSheet.create({
     ...typography.styles.body,
     color: colors.text.secondary,
     marginTop: spacing.md,
+    textAlign: 'center',
   },
-  customActionContainer: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.xl,
-    padding: spacing.md,
-    paddingBottom: spacing.lg,
-    ...shadows.sm,
+  emptySubtext: {
+    ...typography.styles.caption,
+    color: colors.gray[400],
+    marginTop: spacing.xs,
+    textAlign: 'center',
   },
-  customActionLabel: {
-    ...typography.styles.bodyMedium,
-    color: colors.text.secondary,
-    marginBottom: spacing.sm,
-  },
-  customActionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  customActionInput: {
-    flex: 1,
-    ...typography.styles.body,
-    color: colors.text.primary,
-    backgroundColor: colors.gray[100],
-    borderRadius: borderRadius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  customActionButton: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.lg,
+  fab: {
+    position: 'absolute',
+    right: spacing.lg,
+    bottom: spacing.lg,
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.full,
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  customActionButtonDisabled: {
-    backgroundColor: colors.gray[300],
+    ...shadows.md,
   },
 });

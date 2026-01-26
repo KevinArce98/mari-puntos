@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middlewares/authMiddleware';
 import { PartnerService } from '../services/partner.service';
-import { createPartnerLinkSchema, joinPartnerLinkSchema } from '../validators/schemas';
+import { joinPartnerLinkSchema } from '../validators/schemas';
 import { sendSuccess, sendCreated } from '../utils/response';
 import { toPartnerInfoDTO } from '../utils/mappers';
 import { PartnerLinkStatus } from '../shared/constants';
@@ -16,9 +16,8 @@ export class PartnerController {
   createLink = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const { role } = createPartnerLinkSchema.parse(req.body);
 
-      const partnerLink = await this.partnerService.createPartnerLink(userId, role);
+      const partnerLink = await this.partnerService.createPartnerLink(userId);
 
       // Response matches frontend CreatePartnerLinkResponse
       sendCreated(
@@ -61,14 +60,46 @@ export class PartnerController {
   };
 
   /**
+   * GET /partner/create
+   * Get a partner link code
+   */
+  getLinkCode = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const userId = req.userId!;
+      const partnerLink = await this.partnerService.getPartnerLinkCode(userId);
+
+      if (!partnerLink) {
+        throw new Error('No partner link found for user');
+      }
+
+      sendSuccess(
+        res,
+        {
+          linkCode: partnerLink.linkCode,
+          status: partnerLink.status,
+        },
+        'Partner link retrieved successfully'
+      );
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  /**
    * GET /partner
    * Get partner information
    */
   getPartner = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const { partnerLink, partner } = await this.partnerService.getPartnerLink(userId);
+      const result = await this.partnerService.getPartnerLink(userId);
 
+      if (!result) {
+        sendSuccess(res, null, 'No active partner link found');
+        return;
+      }
+
+      const { partnerLink, partner } = result;
       // Response matches frontend PartnerInfo
       sendSuccess(res, toPartnerInfoDTO(partnerLink, partner, userId));
     } catch (error) {

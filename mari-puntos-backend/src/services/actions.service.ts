@@ -1,6 +1,6 @@
 import { AppDataSource } from '../config/db';
 import { Action, ActionStatus, ActionCategory } from '../entities/Action';
-import { User, UserRole } from '../entities/User';
+import { User } from '../entities/User';
 import { Log, LogType } from '../entities/Log';
 import { AppError } from '../middlewares/errorMiddleware';
 import { PartnerService } from './partner.service';
@@ -19,10 +19,6 @@ export class ActionsService {
 
     if (!user) {
       throw new AppError(404, 'Usuario no encontrado');
-    }
-
-    if (user.role !== UserRole.HUSBAND) {
-      throw new AppError(403, 'Solo los esposos pueden crear acciones');
     }
 
     const action = this.actionRepository.create({
@@ -145,10 +141,6 @@ export class ActionsService {
       throw new AppError(404, 'Aprobador no encontrado');
     }
 
-    if (approver.role !== UserRole.WIFE) {
-      throw new AppError(403, 'Solo las esposas pueden aprobar acciones');
-    }
-
     // Verify approver is partner
     const partnerId = await this.partnerService.getPartnerId(approverId);
     if (partnerId !== action.userId) {
@@ -205,10 +197,6 @@ export class ActionsService {
 
     if (!approver) {
       throw new AppError(404, 'Aprobador no encontrado');
-    }
-
-    if (approver.role !== UserRole.WIFE) {
-      throw new AppError(403, 'Solo las esposas pueden rechazar acciones');
     }
 
     // Verify approver is partner

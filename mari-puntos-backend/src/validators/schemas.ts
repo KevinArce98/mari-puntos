@@ -5,7 +5,6 @@
 
 import { z } from 'zod';
 import {
-  UserRole,
   ActionCategory,
   ActionStatus,
   PermissionType,
@@ -19,27 +18,21 @@ import {
 // ============================================================================
 
 export const createUserSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.email('Invalid email address'),
   firstName: z.string().min(1, 'First name is required').max(100),
   lastName: z.string().min(1, 'Last name is required').max(100),
   clerkId: z.string().min(1, 'Clerk ID is required'),
-  role: z.enum([UserRole.HUSBAND, UserRole.WIFE]).optional(),
-  avatarUrl: z.string().url('Invalid URL').optional(),
+  avatarUrl: z.url('Invalid URL').optional(),
 });
 
 export const updateUserSchema = z.object({
   firstName: z.string().min(1).max(100).optional(),
   lastName: z.string().min(1).max(100).optional(),
-  role: z.enum([UserRole.HUSBAND, UserRole.WIFE]).optional(),
 });
 
 // ============================================================================
 // PARTNER SCHEMAS (Matches frontend CreatePartnerLinkRequest, JoinPartnerRequest)
 // ============================================================================
-
-export const createPartnerLinkSchema = z.object({
-  role: z.enum([UserRole.HUSBAND, UserRole.WIFE]),
-});
 
 export const joinPartnerLinkSchema = z.object({
   linkCode: z.string().length(6, 'Link code must be 6 characters'),
@@ -100,7 +93,7 @@ export const createPermissionSchema = z.object({
     PermissionType.HOBBY_TIME,
     PermissionType.OTHER,
   ]).default(PermissionType.OTHER),
-  requestedDate: z.string().datetime({ message: 'Invalid date format' }),
+  requestedDate: z.iso.datetime({ message: 'Invalid date format' }),
   durationHours: z.number().int().min(1).max(168), // Max 1 week
   pointsCost: z.number().int().min(0),
 });
@@ -127,7 +120,7 @@ export const createRewardSchema = z.object({
   ]).default(RewardCategory.OTHER),
   pointsCost: z.number().int().min(0),
   requiredLevel: z.number().int().min(1).default(1),
-  imageUrl: z.string().url('Invalid URL').optional(),
+  imageUrl: z.url('Invalid URL').optional(),
 });
 
 export const updateRewardSchema = z.object({
@@ -143,12 +136,12 @@ export const updateRewardSchema = z.object({
   ]).optional(),
   pointsCost: z.number().int().min(0).optional(),
   requiredLevel: z.number().int().min(1).optional(),
-  imageUrl: z.string().url('Invalid URL').optional(),
+  imageUrl: z.url('Invalid URL').optional(),
   isActive: z.boolean().optional(),
 });
 
 export const redeemRewardSchema = z.object({
-  rewardId: z.string().uuid('Invalid reward ID'),
+  rewardId: z.uuid('Invalid reward ID'),
 });
 
 // ============================================================================
@@ -205,7 +198,6 @@ export const leaderboardQuerySchema = z.object({
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
-export type CreatePartnerLinkInput = z.infer<typeof createPartnerLinkSchema>;
 export type JoinPartnerLinkInput = z.infer<typeof joinPartnerLinkSchema>;
 export type CreateActionInput = z.infer<typeof createActionSchema>;
 export type UpdateActionInput = z.infer<typeof updateActionSchema>;

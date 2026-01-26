@@ -350,7 +350,7 @@ Cancel/delete a permission request (pending only).
 ### Rewards
 
 #### POST /rewards
-Create a custom reward.
+Create a custom reward for your couple.
 
 **Request:**
 ```typescript
@@ -377,14 +377,19 @@ Create a custom reward.
   isActive: boolean;
   isCustom: boolean;
   createdBy?: string;
+  partnerLinkId?: string; // Null for global rewards, set for couple-specific rewards
   timesRedeemed: number;
   createdAt: string;
   updatedAt: string;
 }
 ```
 
+**Notes:**
+- Custom rewards are automatically linked to the creator's couple
+- Only visible to members of that couple
+
 #### GET /rewards
-Get all rewards.
+Get all rewards available to your couple.
 
 **Query params:**
 - `page?: number`
@@ -394,10 +399,19 @@ Get all rewards.
 
 **Response:** Paginated `RewardDTO[]`
 
+**Notes:**
+- Returns global rewards (partnerLinkId = null) AND couple-specific rewards
+- Automatically filtered by authenticated user's couple
+
 #### GET /rewards/available
-Get rewards available for current user.
+Get rewards available for current user based on points, level, and couple.
 
 **Response:** `RewardDTO[]`
+
+**Notes:**
+- Only returns active rewards
+- Filtered by user's current points and level
+- Includes global rewards and couple-specific rewards
 
 #### POST /rewards/redeem
 Redeem a reward.

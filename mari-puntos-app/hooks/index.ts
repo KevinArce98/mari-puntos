@@ -5,3 +5,6 @@ export * from './useActions';
 export * from './useRewards';
 export * from './use-color-scheme';
 export * from './use-theme-color';
+export * from './useClerkAuth';
+export * from './useAuthGuard';
+export * from './useFirstTimeUser';

@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useUser } from './useUser';
 import { usePointsStore } from '@/stores';
 import { GetPointsHistoryParams, GetLeaderboardParams } from '@/types';
@@ -17,7 +16,7 @@ export const usePoints = () => {
   const myPoints = user?.totalPoints || 0;
   const myLevel = user?.currentLevel || 1;
   const myPointsInCurrentLevel = user?.pointsInCurrentLevel || 0;
-  
+
   const partnerPoints = partnerInfo?.partner?.totalPoints || 0;
   const partnerLevel = partnerInfo?.partner?.currentLevel || 1;
 
@@ -27,7 +26,8 @@ export const usePoints = () => {
   };
 
   const pointsToNextLevel = getPointsForNextLevel(myLevel) - myPointsInCurrentLevel;
-  const progressToNextLevel = (myPointsInCurrentLevel / getPointsForNextLevel(myLevel)) * 100;
+  const progressToNextLevel =
+    (myPointsInCurrentLevel / getPointsForNextLevel(myLevel)) * 100;
 
   const loadHistory = async (params?: GetPointsHistoryParams) => {
     await fetchPointsHistory(params);

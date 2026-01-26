@@ -40,7 +40,7 @@ export const Input: React.FC<InputProps> = ({
   return (
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
-      
+
       <View style={[styles.inputContainer, error && styles.inputError]}>
         {leftIcon && (
           <Ionicons
@@ -50,7 +50,7 @@ export const Input: React.FC<InputProps> = ({
             style={styles.leftIcon}
           />
         )}
-        
+
         <TextInput
           style={[
             styles.input,
@@ -61,7 +61,7 @@ export const Input: React.FC<InputProps> = ({
           secureTextEntry={isSecure}
           {...props}
         />
-        
+
         {secureTextEntry && (
           <TouchableOpacity onPress={toggleSecure} style={styles.rightIcon}>
             <Ionicons
@@ -71,14 +71,14 @@ export const Input: React.FC<InputProps> = ({
             />
           </TouchableOpacity>
         )}
-        
+
         {rightIcon && !secureTextEntry && (
           <TouchableOpacity onPress={onRightIconPress} style={styles.rightIcon}>
             <Ionicons name={rightIcon} size={20} color={colors.gray[500]} />
           </TouchableOpacity>
         )}
       </View>
-      
+
       {error && <Text style={styles.error}>{error}</Text>}
     </View>
   );

@@ -37,11 +37,6 @@ export interface PaginatedResponse<T> {
 // Enums
 // ============================================
 
-export enum UserRole {
-  HUSBAND = 'husband',
-  WIFE = 'wife',
-}
-
 export enum ActionCategory {
   HOUSEHOLD = 'household',
   CHILDCARE = 'childcare',
@@ -108,7 +103,6 @@ export interface User {
   firstName: string;
   lastName: string;
   avatarUrl?: string;
-  role: UserRole;
   totalPoints: number;
   currentLevel: number;
   pointsInCurrentLevel: number;
@@ -132,7 +126,6 @@ export interface UserStats {
 export interface UpdateProfileRequest {
   firstName?: string;
   lastName?: string;
-  role?: UserRole;
 }
 
 export interface CreateUserRequest {
@@ -140,7 +133,6 @@ export interface CreateUserRequest {
   firstName: string;
   lastName: string;
   clerkId: string;
-  role?: UserRole;
   avatarUrl?: string;
 }
 
@@ -148,13 +140,14 @@ export interface CreateUserRequest {
 // Partner Types
 // ============================================
 
-export interface CreatePartnerLinkRequest {
-  role: UserRole;
-}
-
 export interface CreatePartnerLinkResponse {
   linkCode: string;
   status: 'pending' | 'active';
+}
+
+export interface GetPartnerLinkCodeResponse {
+  linkCode: string;
+  status: 'pending' | 'active' | 'inactive';
 }
 
 export interface JoinPartnerRequest {
@@ -178,7 +171,6 @@ export interface PartnerInfo {
     lastName: string;
     email: string;
     avatarUrl?: string;
-    role: UserRole;
     totalPoints: number;
     currentLevel: number;
   };
@@ -248,7 +240,6 @@ export interface Permission {
     lastName: string;
     email: string;
     avatarUrl?: string;
-    role: UserRole;
   };
   approver?: {
     id: string;
@@ -256,7 +247,6 @@ export interface Permission {
     lastName: string;
     email: string;
     avatarUrl?: string;
-    role: UserRole;
   };
 }
 
@@ -293,6 +283,7 @@ export interface Reward {
   isActive: boolean;
   isCustom: boolean;
   createdBy?: string;
+  partnerLinkId?: string;
   timesRedeemed: number;
   createdAt: string;
   updatedAt: string;
@@ -337,7 +328,6 @@ export interface LeaderboardEntry {
   avatarUrl?: string;
   totalPoints: number;
   currentLevel: number;
-  role: UserRole;
 }
 
 export interface GetLeaderboardParams {
