@@ -93,7 +93,7 @@ export class PartnerController {
   getPartner = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const result = await this.partnerService.getPartnerLink(userId);
+      const result = await this.partnerService.getPartnerLinkWithDetails(userId);
 
       if (!result) {
         sendSuccess(res, null, 'No active partner link found');
