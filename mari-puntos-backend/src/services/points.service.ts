@@ -200,7 +200,8 @@ export class PointsService {
     await this.achievementRepository.save(achievement);
 
     // Add bonus points
-    await this.addPoints(userId, 50, `Logro desbloqueado: ${title}`);
+    // TODO: Temporarily disabled - uncomment to re-enable bonus points for achievements
+    // await this.addPoints(userId, 50, `Logro desbloqueado: ${title}`);
 
     // Create log
     await this.logRepository.save(
@@ -208,7 +209,7 @@ export class PointsService {
         userId,
         type: LogType.ACHIEVEMENT_UNLOCKED,
         message: `Logro desbloqueado: ${title}`,
-        pointsChange: 50,
+        pointsChange: 0, // TODO: Changed from 50 to 0 while bonus points are disabled
         relatedEntityId: achievement.id,
         relatedEntityType: 'Achievement',
       })
