@@ -1,12 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge, Card, Chip, ProgressBar } from '@/components/ui';
@@ -21,9 +15,10 @@ export default function AchievementsTabScreen() {
   const [selectedFilter, setSelectedFilter] = useState('All');
 
   const totalAchievements = unlockedAchievements.length + lockedAchievements.length;
-  const completionPercentage = totalAchievements > 0
-    ? Math.round((unlockedAchievements.length / totalAchievements) * 100)
-    : 0;
+  const completionPercentage =
+    totalAchievements > 0
+      ? Math.round((unlockedAchievements.length / totalAchievements) * 100)
+      : 0;
 
   const filteredAchievements = () => {
     switch (selectedFilter) {
@@ -39,25 +34,29 @@ export default function AchievementsTabScreen() {
   const { unlocked, locked } = filteredAchievements();
 
   const renderAchievement = (achievement: any, isLocked: boolean) => {
-    const cardStyle = isLocked 
+    const cardStyle = isLocked
       ? { ...styles.achievementCard, ...styles.lockedCard }
       : styles.achievementCard;
-    
+
     return (
       <Card key={achievement.id} style={cardStyle}>
         <View style={styles.achievementContent}>
-          <View style={[
-            styles.achievementIconContainer,
-            isLocked ? styles.lockedIconContainer : undefined,
-          ]}>
+          <View
+            style={[
+              styles.achievementIconContainer,
+              isLocked ? styles.lockedIconContainer : undefined,
+            ]}
+          >
             <Text style={styles.achievementIcon}>
               {isLocked ? '🔒' : achievement.icon || '🏆'}
             </Text>
           </View>
-          
+
           <View style={styles.achievementInfo}>
             <View style={styles.achievementHeader}>
-              <Text style={[styles.achievementName, isLocked ? styles.lockedText : undefined]}>
+              <Text
+                style={[styles.achievementName, isLocked ? styles.lockedText : undefined]}
+              >
                 {achievement.name}
               </Text>
               {!isLocked && (
@@ -66,15 +65,18 @@ export default function AchievementsTabScreen() {
                 </View>
               )}
             </View>
-            
+
             <Text style={styles.achievementDescription} numberOfLines={2}>
               {achievement.description}
             </Text>
-            
+
             {isLocked ? (
               <View style={styles.progressSection}>
-                <ProgressBar 
-                  progress={Math.min((achievement.progress / achievement.requirement) * 100, 100)} 
+                <ProgressBar
+                  progress={Math.min(
+                    (achievement.progress / achievement.requirement) * 100,
+                    100
+                  )}
                   color={colors.primary}
                   height={6}
                 />
@@ -89,7 +91,7 @@ export default function AchievementsTabScreen() {
             )}
           </View>
         </View>
-        
+
         <Badge
           label={achievement.type || 'achievement'}
           variant={isLocked ? 'secondary' : 'primary'}
@@ -105,11 +107,15 @@ export default function AchievementsTabScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Achievements</Text>
         <TouchableOpacity style={styles.infoButton}>
-          <Ionicons name="information-circle-outline" size={24} color={colors.text.primary} />
+          <Ionicons
+            name="information-circle-outline"
+            size={24}
+            color={colors.text.primary}
+          />
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -126,13 +132,13 @@ export default function AchievementsTabScreen() {
               <Text style={styles.percentageText}>{completionPercentage}%</Text>
             </View>
           </View>
-          
-          <ProgressBar 
-            progress={completionPercentage} 
+
+          <ProgressBar
+            progress={completionPercentage}
             color={colors.accent}
             height={10}
           />
-          
+
           <View style={styles.statsRow}>
             <View style={styles.miniStat}>
               <Ionicons name="trophy" size={18} color={colors.accent} />
@@ -155,8 +161,8 @@ export default function AchievementsTabScreen() {
         </Card>
 
         {/* Filter Chips */}
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.filterContainer}
           contentContainerStyle={styles.filterContent}

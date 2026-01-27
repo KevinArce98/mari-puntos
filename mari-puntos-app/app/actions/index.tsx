@@ -27,7 +27,7 @@ export default function ActionsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { myPoints } = usePoints();
-  const { myActions, createAction, refetchMyActions } = useActions();
+  const { myActions, partnerActions, createAction, refetchMyActions } = useActions();
 
   const [selectedStatus, setSelectedStatus] = useState<ActionStatus | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -64,7 +64,9 @@ export default function ActionsScreen() {
     }
   };
 
-  const pendingCount = myActions.filter((a) => a.status === ActionStatus.PENDING).length;
+  const pendingPartnerCount = partnerActions.filter(
+    (a) => a.status === ActionStatus.PENDING
+  ).length;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -79,9 +81,9 @@ export default function ActionsScreen() {
           style={styles.reviewButton}
         >
           <Ionicons name="checkmark-circle-outline" size={24} color={colors.primary} />
-          {pendingCount > 0 && (
+          {pendingPartnerCount > 0 && (
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>{pendingCount}</Text>
+              <Text style={styles.badgeText}>{pendingPartnerCount}</Text>
             </View>
           )}
         </TouchableOpacity>

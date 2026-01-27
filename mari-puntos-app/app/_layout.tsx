@@ -37,6 +37,13 @@ function RootLayoutNav() {
             }}
           />
           <Stack.Screen
+            name="actions/review"
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
             name="rewards/index"
             options={{
               presentation: 'modal',

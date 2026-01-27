@@ -13,6 +13,7 @@ import Slider from '@react-native-community/slider';
 import { Action, ActionCategory } from '@/types';
 import { colors, spacing, typography, borderRadius } from '@/theme';
 import { Button } from './Button';
+import { formatDate } from '@/utils/general';
 
 interface ReviewActionModalProps {
   visible: boolean;
@@ -78,15 +79,11 @@ export function ReviewActionModal({
     onClose();
   };
 
-  if (!action) return null;
+  if (!visible || !action) {
+    return null;
+  }
 
-  const formattedDate = new Date(action.createdAt).toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const formattedDate = formatDate(action.createdAt);
 
   return (
     <Modal
@@ -265,7 +262,7 @@ const styles = StyleSheet.create({
     padding: spacing.xs,
   },
   content: {
-    flex: 1,
+    maxHeight: 500,
   },
   actionDetails: {
     padding: spacing.lg,

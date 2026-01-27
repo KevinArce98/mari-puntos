@@ -35,7 +35,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'Inicio',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
           ),
@@ -44,6 +44,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
+          href: null, // TODO: Add functionality later, this option hides the tab
           title: 'Ranking',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
@@ -68,7 +69,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="achievements"
         options={{
-          title: 'Rewards',
+          href: null, // TODO: Add functionality later, this option hides the tab
+          title: 'Logros',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'gift' : 'gift-outline'} size={24} color={color} />
           ),
@@ -77,7 +79,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'Perfil',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'person' : 'person-outline'}

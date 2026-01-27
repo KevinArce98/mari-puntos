@@ -1,91 +1,108 @@
-// filepath: /Users/kevinarias/Projects/mari-puntos-app/app/permissions/review.tsx
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Image,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Card, Input } from '@/components/ui';
-import { usePermissions } from '@/hooks';
+import { ActionItemCard, ReviewActionModal, Chip } from '@/components/ui';
+import { useActions } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
+import { ActionStatus, Action } from '@/types';
 
-export default function ReviewActivityScreen() {
+const STATUS_FILTERS = [
+  { label: 'Pendientes', value: ActionStatus.PENDING },
+  { label: 'Todas', value: null },
+  { label: 'Aprobadas', value: ActionStatus.APPROVED },
+  { label: 'Rechazadas', value: ActionStatus.REJECTED },
+];
+
+export default function ReviewActionsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams();
-  const { respondToPermission } = usePermissions();
+  const { partnerActions, approveAction, rejectAction, refetchPartnerActions } =
+    useActions();
 
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<ActionStatus | null>(
+    ActionStatus.PENDING
+  );
+  const [selectedAction, setSelectedAction] = useState<Action | null>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Mock activity data - would come from params/API
-  const activity = {
-    id: (params.id as string) || '1',
-    title: 'Cooked Dinner',
-    category: 'Chores',
-    timestamp: '2 hours ago',
-    description: 'Made a delicious pasta dinner with homemade sauce',
-    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400',
-    requestedBy: 'Kevin',
-    pointsValue: 25,
-  };
+  const filteredActions = partnerActions.filter((action) => {
+    if (!selectedStatus) return true;
+    return action.status === selectedStatus;
+  });
 
-  const handleApprove = async () => {
-    setLoading(true);
+  const pendingCount = partnerActions.filter(
+    (a) => a.status === ActionStatus.PENDING
+  ).length;
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
     try {
-      await respondToPermission(activity.id, {
-        approved: true,
-      });
-
-      Toast.show({
-        type: 'success',
-        text1: 'Activity Approved!',
-        text2: `${activity.requestedBy} earned ${activity.pointsValue} points`,
-      });
-
-      router.back();
-    } catch {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Could not approve activity',
-      });
+      await refetchPartnerActions();
     } finally {
-      setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const handleReject = async () => {
-    setLoading(true);
+  const handleActionPress = (action: Action) => {
+    if (action.status === ActionStatus.PENDING) {
+      setSelectedAction(action);
+      setShowReviewModal(true);
+    }
+  };
+
+  const handleApproveAction = async (actionId: string, points: number) => {
     try {
-      await respondToPermission(activity.id, {
-        approved: false,
-      });
-
+      await approveAction(actionId, points);
+      await refetchPartnerActions();
       Toast.show({
-        type: 'info',
-        text1: 'Activity Rejected',
-        text2: 'Your partner has been notified',
+        type: 'success',
+        text1: 'Acción Aprobada',
+        text2: 'Los puntos han sido otorgados',
       });
 
-      router.back();
+      // Close modal and clear selection
+      setShowReviewModal(false);
+      setSelectedAction(null);
     } catch {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Could not reject activity',
+        text2: 'No se pudo aprobar la acción',
       });
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const handleRejectAction = async (actionId: string, reason: string) => {
+    try {
+      await rejectAction(actionId, reason);
+      await refetchPartnerActions();
+      Toast.show({
+        type: 'success',
+        text1: 'Acción Rechazada',
+        text2: 'Se ha notificado a tu pareja',
+      });
+
+      // Close modal and clear selection
+      setShowReviewModal(false);
+      setSelectedAction(null);
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'No se pudo rechazar la acción',
+      });
     }
   };
 
@@ -96,104 +113,99 @@ export default function ReviewActivityScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Review Activity</Text>
-        <View style={{ width: 40 }} />
+        <Text style={styles.headerTitle}>Revisar Acciones</Text>
+      </View>
+
+      {/* Stats Card */}
+      <View style={styles.statsCard}>
+        <View style={styles.statItem}>
+          <Ionicons name="time-outline" size={24} color={colors.warning} />
+          <View style={styles.statContent}>
+            <Text style={styles.statValue}>{pendingCount}</Text>
+            <Text style={styles.statLabel}>Pendientes</Text>
+          </View>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.statItem}>
+          <Ionicons name="list-outline" size={24} color={colors.primary} />
+          <View style={styles.statContent}>
+            <Text style={styles.statValue}>{partnerActions.length}</Text>
+            <Text style={styles.statLabel}>Total</Text>
+          </View>
+        </View>
       </View>
 
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
-        {/* Activity Card */}
-        <Card style={styles.activityCard} padding="none">
-          {/* Image */}
-          <Image source={{ uri: activity.image }} style={styles.activityImage} />
+        {/* Status Filter */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filtersContainer}
+          contentContainerStyle={styles.filtersContent}
+        >
+          {STATUS_FILTERS.map((filter) => (
+            <Chip
+              key={filter.label}
+              label={filter.label}
+              selected={selectedStatus === filter.value}
+              onPress={() => setSelectedStatus(filter.value)}
+            />
+          ))}
+        </ScrollView>
 
-          {/* Content */}
-          <View style={styles.activityContent}>
-            <View style={styles.activityHeader}>
-              <View style={styles.categoryBadge}>
-                <Text style={styles.categoryText}>{activity.category}</Text>
-              </View>
-              <Text style={styles.timestamp}>{activity.timestamp}</Text>
-            </View>
-
-            <Text style={styles.activityTitle}>{activity.title}</Text>
-            <Text style={styles.activityDescription}>{activity.description}</Text>
-
-            <View style={styles.activityFooter}>
-              <Text style={styles.requestedBy}>Submitted by {activity.requestedBy}</Text>
-              <Text style={styles.pointsValue}>+{activity.pointsValue} pts</Text>
-            </View>
-          </View>
-        </Card>
-
-        {/* Rating Section */}
+        {/* Actions List */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Rate this activity</Text>
-          <View style={styles.ratingContainer}>
-            <Text style={styles.ratingValue}>{rating}</Text>
-            <View style={styles.ratingSlider}>
-              <View style={styles.ratingTrack}>
-                <View style={[styles.ratingFill, { width: `${(rating / 10) * 100}%` }]} />
-              </View>
-              <View style={styles.ratingLabels}>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                  <TouchableOpacity
-                    key={num}
-                    onPress={() => setRating(num)}
-                    style={styles.ratingTouchArea}
-                  >
-                    <View
-                      style={[styles.ratingDot, rating >= num && styles.ratingDotActive]}
-                    />
-                  </TouchableOpacity>
-                ))}
-              </View>
+          {filteredActions.length > 0 ? (
+            filteredActions.map((action) => (
+              <TouchableOpacity
+                key={action.id}
+                onPress={() => handleActionPress(action)}
+                disabled={action.status !== ActionStatus.PENDING}
+              >
+                <ActionItemCard action={action} showStatus />
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons
+                name={selectedStatus ? 'filter-outline' : 'checkmark-done-outline'}
+                size={48}
+                color={colors.gray[300]}
+              />
+              <Text style={styles.emptyText}>
+                {selectedStatus === ActionStatus.PENDING
+                  ? 'No hay acciones pendientes'
+                  : selectedStatus
+                    ? 'No hay acciones con este estado'
+                    : 'No hay acciones para revisar'}
+              </Text>
+              {selectedStatus === ActionStatus.PENDING && (
+                <Text style={styles.emptySubtext}>
+                  Las acciones de tu pareja aparecerán aquí
+                </Text>
+              )}
             </View>
-            <View style={styles.ratingMinMax}>
-              <Text style={styles.ratingLabel}>1</Text>
-              <Text style={styles.ratingLabel}>10</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Comment Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Add a comment (optional)</Text>
-          <Input
-            placeholder="Great job! Keep it up..."
-            value={comment}
-            onChangeText={setComment}
-            multiline
-            numberOfLines={3}
-            containerStyle={styles.commentInput}
-          />
+          )}
         </View>
       </ScrollView>
 
-      {/* Bottom Actions */}
-      <View
-        style={[styles.bottomContainer, { paddingBottom: insets.bottom + spacing.md }]}
-      >
-        <View style={styles.actionButtons}>
-          <Button
-            title="Reject"
-            onPress={handleReject}
-            variant="outline"
-            loading={loading}
-            style={styles.rejectButton}
-            icon="close"
-          />
-          <Button
-            title="Approve"
-            onPress={handleApprove}
-            loading={loading}
-            style={styles.approveButton}
-            icon="checkmark"
-          />
-        </View>
-      </View>
+      {/* Review Action Modal */}
+      <ReviewActionModal
+        visible={showReviewModal}
+        action={selectedAction}
+        onClose={() => {
+          setShowReviewModal(false);
+          setSelectedAction(null);
+        }}
+        onApprove={handleApproveAction}
+        onReject={handleRejectAction}
+      />
     </View>
   );
 }
@@ -219,150 +231,91 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.styles.h3,
+    flex: 1,
+    textAlign: 'center',
     color: colors.text.primary,
+  },
+  badgeContainer: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerBadge: {
+    backgroundColor: colors.error,
+    borderRadius: borderRadius.full,
+    minWidth: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  headerBadgeText: {
+    ...typography.styles.caption,
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  statsCard: {
+    flexDirection: 'row',
+    backgroundColor: colors.white,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    padding: spacing.md,
+    borderRadius: borderRadius.xl,
+    ...shadows.sm,
+  },
+  statItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  statContent: {
+    flex: 1,
+  },
+  statValue: {
+    ...typography.styles.h3,
+    color: colors.text.primary,
+  },
+  statLabel: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+  },
+  divider: {
+    width: 1,
+    backgroundColor: colors.gray[200],
+    marginHorizontal: spacing.md,
   },
   scrollContent: {
     padding: spacing.lg,
-    paddingBottom: 140,
+    paddingTop: 0,
+    paddingBottom: spacing['3xl'],
   },
-  activityCard: {
-    overflow: 'hidden',
-    marginBottom: spacing.xl,
-  },
-  activityImage: {
-    width: '100%',
-    height: 200,
-    backgroundColor: colors.gray[200],
-  },
-  activityContent: {
-    padding: spacing.md,
-  },
-  activityHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  categoryBadge: {
-    backgroundColor: colors.category.chores,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: borderRadius.full,
-  },
-  categoryText: {
-    ...typography.styles.small,
-    color: colors.white,
-    fontFamily: typography.fontFamily.bold,
-  },
-  timestamp: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-  },
-  activityTitle: {
-    ...typography.styles.h3,
-    color: colors.text.primary,
-    marginBottom: spacing.xs,
-  },
-  activityDescription: {
-    ...typography.styles.body,
-    color: colors.text.secondary,
+  filtersContainer: {
     marginBottom: spacing.md,
+    marginHorizontal: -spacing.lg,
   },
-  activityFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.gray[100],
-  },
-  requestedBy: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-  },
-  pointsValue: {
-    ...typography.styles.h4,
-    color: colors.primary,
+  filtersContent: {
+    paddingHorizontal: spacing.lg,
   },
   section: {
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
-  sectionTitle: {
-    ...typography.styles.h4,
-    color: colors.text.primary,
-    marginBottom: spacing.md,
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: spacing['3xl'],
   },
-  ratingContainer: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.xl,
-    padding: spacing.lg,
-    ...shadows.sm,
-  },
-  ratingValue: {
-    ...typography.styles.pointsMedium,
-    color: colors.accent,
-    textAlign: 'center',
-    marginBottom: spacing.md,
-  },
-  ratingSlider: {
-    marginBottom: spacing.sm,
-  },
-  ratingTrack: {
-    height: 8,
-    backgroundColor: colors.gray[200],
-    borderRadius: borderRadius.full,
-    overflow: 'hidden',
-    marginBottom: spacing.sm,
-  },
-  ratingFill: {
-    height: '100%',
-    backgroundColor: colors.accent,
-    borderRadius: borderRadius.full,
-  },
-  ratingLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  ratingTouchArea: {
-    padding: spacing.xs,
-  },
-  ratingDot: {
-    width: 12,
-    height: 12,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.gray[300],
-  },
-  ratingDotActive: {
-    backgroundColor: colors.accent,
-  },
-  ratingMinMax: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  ratingLabel: {
-    ...typography.styles.caption,
+  emptyText: {
+    ...typography.styles.body,
     color: colors.text.secondary,
+    marginTop: spacing.md,
+    textAlign: 'center',
   },
-  commentInput: {
-    marginBottom: 0,
-  },
-  bottomContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.white,
-    padding: spacing.lg,
-    ...shadows.lg,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  rejectButton: {
-    flex: 1,
-  },
-  approveButton: {
-    flex: 1,
+  emptySubtext: {
+    ...typography.styles.caption,
+    color: colors.gray[400],
+    marginTop: spacing.xs,
+    textAlign: 'center',
   },
 });

@@ -17,6 +17,7 @@ export const useActions = () => {
 
   useEffect(() => {
     fetchMyActions().catch(console.error);
+    fetchPartnerActions().catch(console.error);
   }, []);
 
   const handleCreateAction = async (data: CreateActionRequest) => {

@@ -3,10 +3,7 @@ import { User } from '../entities/User';
 import { Log, LogType } from '../entities/Log';
 import { Achievement, AchievementType } from '../entities/Achievement';
 import { AppError } from '../middlewares/errorMiddleware';
-import {
-  calculateLevel,
-  calculatePointsInCurrentLevel,
-} from '../utils/helpers';
+import { calculateLevel, calculatePointsInCurrentLevel } from '../utils/helpers';
 
 export class PointsService {
   private userRepository = AppDataSource.getRepository(User);
@@ -107,15 +104,7 @@ export class PointsService {
       where: { isActive: true },
       order: { totalPoints: 'DESC' },
       take: limit,
-      select: [
-        'id',
-        'firstName',
-        'lastName',
-        'avatarUrl',
-        'totalPoints',
-        'currentLevel',
-        'role',
-      ],
+      select: ['id', 'firstName', 'lastName', 'avatarUrl', 'totalPoints', 'currentLevel'],
     });
   }
 
@@ -143,7 +132,9 @@ export class PointsService {
       where: { userId: user.id, isUnlocked: true },
     });
 
-    const unlockedTypes = new Set(unlockedAchievements.map((a) => `${a.type}_${a.requiredValue}`));
+    const unlockedTypes = new Set(
+      unlockedAchievements.map((a) => `${a.type}_${a.requiredValue}`)
+    );
 
     // Check points milestones
     const pointsMilestones = [100, 500, 1000, 5000, 10000];
@@ -163,7 +154,7 @@ export class PointsService {
 
   private async checkLevelAchievements(user: User): Promise<void> {
     const levelMilestones = [5, 10, 25, 50, 100];
-    
+
     for (const milestone of levelMilestones) {
       if (user.currentLevel >= milestone) {
         const existingAchievement = await this.achievementRepository.findOne({

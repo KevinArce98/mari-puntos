@@ -1,13 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
-import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar, Card, Chip, ProgressBar } from '@/components/ui';
@@ -44,13 +38,13 @@ export default function RankingScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Time Period Filter */}
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.periodContainer}
           contentContainerStyle={styles.periodContent}
@@ -74,34 +68,32 @@ export default function RankingScreen() {
             style={styles.competitionGradient}
           >
             <Text style={styles.competitionTitle}>
-              {userWinning ? "You're Winning! 🎉" : "Keep Going! 💪"}
+              {userWinning ? "You're Winning! 🎉" : 'Keep Going! 💪'}
             </Text>
-            
+
             {/* VS Display */}
             <View style={styles.vsContainer}>
               <View style={styles.playerColumn}>
-                <Avatar
-                  imageUri={user?.avatarUrl}
-                  name={user?.firstName}
-                  size="lg"
-                />
+                <Avatar imageUri={user?.avatarUrl} name={user?.firstName} size="lg" />
                 <Text style={styles.playerName}>{user?.firstName || 'You'}</Text>
                 <Text style={styles.playerPoints}>{myPoints.toLocaleString()}</Text>
               </View>
-              
+
               <View style={styles.vsCenter}>
                 <View style={styles.vsBadge}>
                   <Text style={styles.vsText}>VS</Text>
                 </View>
               </View>
-              
+
               <View style={styles.playerColumn}>
                 <Avatar
                   imageUri={partnerInfo?.partner?.avatarUrl}
                   name={partnerInfo?.partner?.firstName}
                   size="lg"
                 />
-                <Text style={styles.playerName}>{partnerInfo?.partner?.firstName || 'Partner'}</Text>
+                <Text style={styles.playerName}>
+                  {partnerInfo?.partner?.firstName || 'Partner'}
+                </Text>
                 <Text style={styles.playerPoints}>{partnerPoints.toLocaleString()}</Text>
               </View>
             </View>
@@ -109,16 +101,13 @@ export default function RankingScreen() {
             {/* Progress Bar */}
             <View style={styles.progressContainer}>
               <View style={styles.progressBar}>
-                <View 
-                  style={[
-                    styles.progressFill, 
-                    { width: `${myPercentage}%` }
-                  ]} 
-                />
+                <View style={[styles.progressFill, { width: `${myPercentage}%` }]} />
               </View>
               <View style={styles.progressLabels}>
                 <Text style={styles.progressLabel}>{Math.round(myPercentage)}%</Text>
-                <Text style={styles.progressLabel}>{Math.round(100 - myPercentage)}%</Text>
+                <Text style={styles.progressLabel}>
+                  {Math.round(100 - myPercentage)}%
+                </Text>
               </View>
             </View>
           </LinearGradient>
@@ -135,7 +124,7 @@ export default function RankingScreen() {
               <Text style={styles.statValue}>{weeklyStats.actionsCompleted}</Text>
               <Text style={styles.statLabel}>Actions</Text>
             </Card>
-            
+
             <Card style={styles.statCard}>
               <View style={[styles.statIcon, { backgroundColor: `${colors.accent}15` }]}>
                 <Ionicons name="trophy" size={24} color={colors.accent} />
@@ -143,7 +132,7 @@ export default function RankingScreen() {
               <Text style={styles.statValue}>{weeklyStats.pointsEarned}</Text>
               <Text style={styles.statLabel}>Points</Text>
             </Card>
-            
+
             <Card style={styles.statCard}>
               <View style={[styles.statIcon, { backgroundColor: `${colors.error}15` }]}>
                 <Ionicons name="flame" size={24} color={colors.error} />
@@ -161,11 +150,7 @@ export default function RankingScreen() {
             <Text style={styles.goalProgress}>245 / 500 pts</Text>
           </View>
           <Card style={styles.goalCard}>
-            <ProgressBar 
-              progress={49} 
-              color={colors.accent}
-              height={12}
-            />
+            <ProgressBar progress={49} color={colors.accent} height={12} />
             <Text style={styles.goalText}>
               Earn 255 more points to reach your weekly goal!
             </Text>
@@ -177,18 +162,35 @@ export default function RankingScreen() {
           <Text style={styles.sectionTitle}>Recent Activity</Text>
           <Card padding="none" style={styles.activityCard}>
             {[
-              { action: 'Washed dishes', points: 15, time: '2h ago', icon: 'water-outline' },
-              { action: 'Made breakfast', points: 20, time: '5h ago', icon: 'restaurant-outline' },
-              { action: 'Cleaned room', points: 25, time: '1d ago', icon: 'home-outline' },
+              {
+                action: 'Washed dishes',
+                points: 15,
+                time: '2h ago',
+                icon: 'water-outline',
+              },
+              {
+                action: 'Made breakfast',
+                points: 20,
+                time: '5h ago',
+                icon: 'restaurant-outline',
+              },
+              {
+                action: 'Cleaned room',
+                points: 25,
+                time: '1d ago',
+                icon: 'home-outline',
+              },
             ].map((item, index) => (
-              <View 
-                key={index} 
-                style={[
-                  styles.activityItem,
-                  index < 2 && styles.activityItemBorder,
-                ]}
+              <View
+                key={index}
+                style={[styles.activityItem, index < 2 && styles.activityItemBorder]}
               >
-                <View style={[styles.activityIcon, { backgroundColor: `${colors.primary}15` }]}>
+                <View
+                  style={[
+                    styles.activityIcon,
+                    { backgroundColor: `${colors.primary}15` },
+                  ]}
+                >
                   <Ionicons name={item.icon as any} size={20} color={colors.primary} />
                 </View>
                 <View style={styles.activityContent}>
