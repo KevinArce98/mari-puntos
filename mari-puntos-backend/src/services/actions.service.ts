@@ -162,7 +162,7 @@ export class ActionsService {
     await this.pointsService.addPoints(
       action.userId,
       pointsAwarded,
-      `Acción aprobada: ${action.title}`
+      `Puntos ganados: ${action.title}`
     );
 
     // Create logs
@@ -170,15 +170,14 @@ export class ActionsService {
       this.logRepository.create({
         userId: action.userId,
         type: LogType.ACTION_APPROVED,
-        message: `Acción aprobada: ${action.title} (+${pointsAwarded} puntos)`,
-        pointsChange: pointsAwarded,
+        message: `Acción aprobada: ${action.title}`,
         relatedEntityId: action.id,
         relatedEntityType: 'Action',
       }),
       this.logRepository.create({
         userId: approverId,
         type: LogType.ACTION_APPROVED,
-        message: `Acción aprobada: ${action.title}`,
+        message: `Aprobaste acción: ${action.title}`,
         relatedEntityId: action.id,
         relatedEntityType: 'Action',
       }),
@@ -228,7 +227,7 @@ export class ActionsService {
       this.logRepository.create({
         userId: approverId,
         type: LogType.ACTION_REJECTED,
-        message: `Acción rechazada: ${action.title}`,
+        message: `Rechazaste acción: ${action.title}`,
         relatedEntityId: action.id,
         relatedEntityType: 'Action',
       }),

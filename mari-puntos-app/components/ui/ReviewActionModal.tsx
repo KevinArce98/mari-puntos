@@ -192,12 +192,11 @@ export function ReviewActionModal({
               <>
                 <Button
                   title="Rechazar"
-                  variant="outline"
+                  variant="danger"
                   onPress={() => setMode('reject')}
                   style={styles.actionButton}
                   disabled={loading}
                   icon="close-circle"
-                  textStyle={{ color: colors.error }}
                 />
                 <Button
                   title="Aprobar"

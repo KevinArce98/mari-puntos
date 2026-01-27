@@ -175,7 +175,7 @@ export class PermissionsService {
       await this.pointsService.deductPoints(
         permission.requesterId,
         permission.pointsCost,
-        `Permiso aprobado: ${permission.title}`
+        `Puntos reducidos: ${permission.title}`
       );
     }
 
@@ -198,8 +198,8 @@ export class PermissionsService {
         userId: approverId,
         type: logType,
         message: approved
-          ? `Permiso aprobado: ${permission.title}`
-          : `Permiso rechazado: ${permission.title}`,
+          ? `Aprobaste permiso: ${permission.title}`
+          : `Rechazaste permiso: ${permission.title}`,
         relatedEntityId: permission.id,
         relatedEntityType: 'Permission',
       }),

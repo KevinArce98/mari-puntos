@@ -1,4 +1,5 @@
 import { ActionCard, Avatar, Card, PointsCard } from '@/components/ui';
+import { HistoryItem } from '@/components';
 import { usePoints, useUser } from '@/hooks';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,39 +19,29 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user, hasPartner } = useUser();
-  const { myPoints, myLevel } = usePoints();
+  const { myPoints, myLevel, pointsHistory, fetchHistory } = usePoints();
   const [refreshing, setRefreshing] = React.useState(false);
+
+  // Load history on mount
+  React.useEffect(() => {
+    if (hasPartner) {
+      fetchHistory({ limit: 3 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasPartner]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // Refresh data here
-    setTimeout(() => setRefreshing(false), 1000);
+    try {
+      if (hasPartner) {
+        await fetchHistory({ limit: 3 });
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setRefreshing(false);
+    }
   };
-
-  // Mock recent history data matching design
-  const recentHistory = [
-    {
-      id: 1,
-      title: 'Washed the dishes',
-      points: 15,
-      type: 'earned',
-      icon: 'water-outline' as const,
-    },
-    {
-      id: 2,
-      title: 'Game night approved',
-      points: -30,
-      type: 'spent',
-      icon: 'game-controller-outline' as const,
-    },
-    {
-      id: 3,
-      title: 'Made breakfast',
-      points: 20,
-      type: 'earned',
-      icon: 'restaurant-outline' as const,
-    },
-  ];
 
   if (!hasPartner) {
     return (
@@ -145,52 +136,29 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Historial Reciente</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/history')}>
               <Text style={styles.seeAllText}>Ver Todo</Text>
             </TouchableOpacity>
           </View>
 
           <Card style={styles.historyCard} padding="none">
-            {recentHistory.map((item, index) => (
-              <View
-                key={item.id}
-                style={[
-                  styles.historyItem,
-                  index !== recentHistory.length - 1 && styles.historyItemBorder,
-                ]}
-              >
-                <View
-                  style={[
-                    styles.historyIconContainer,
-                    {
-                      backgroundColor:
-                        item.type === 'earned'
-                          ? `${colors.primary}15`
-                          : `${colors.accent}15`,
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name={item.icon}
-                    size={20}
-                    color={item.type === 'earned' ? colors.primary : colors.accent}
-                  />
-                </View>
-                <View style={styles.historyContent}>
-                  <Text style={styles.historyTitle}>{item.title}</Text>
-                  <Text style={styles.historyTime}>2 hours ago</Text>
-                </View>
-                <Text
-                  style={[
-                    styles.historyPoints,
-                    { color: item.type === 'earned' ? colors.primary : colors.error },
-                  ]}
-                >
-                  {item.type === 'earned' ? '+' : ''}
-                  {item.points} pts
-                </Text>
+            {pointsHistory.length === 0 ? (
+              <View style={styles.emptyHistoryContainer}>
+                <Ionicons name="time-outline" size={48} color={colors.text.secondary} />
+                <Text style={styles.emptyHistoryText}>No hay actividad reciente</Text>
               </View>
-            ))}
+            ) : (
+              pointsHistory
+                .slice(0, 3)
+                .map((item, index) => (
+                  <HistoryItem
+                    key={item.id}
+                    item={item}
+                    showBorder={index !== Math.min(pointsHistory.length, 3) - 1}
+                    compact
+                  />
+                ))
+            )}
           </Card>
         </View>
       </ScrollView>
@@ -267,37 +235,16 @@ const styles = StyleSheet.create({
   historyCard: {
     overflow: 'hidden',
   },
-  historyItem: {
-    flexDirection: 'row',
+  emptyHistoryContainer: {
+    padding: spacing['2xl'],
     alignItems: 'center',
-    padding: spacing.md,
-  },
-  historyItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[100],
-  },
-  historyIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.lg,
     justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: spacing.md,
   },
-  historyContent: {
-    flex: 1,
-  },
-  historyTitle: {
-    ...typography.styles.bodyMedium,
+  emptyHistoryText: {
+    ...typography.styles.bodyLarge,
     color: colors.text.primary,
-  },
-  historyTime: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-    marginTop: 2,
-  },
-  historyPoints: {
-    ...typography.styles.h4,
+    marginTop: spacing.md,
+    textAlign: 'center',
   },
   // No partner state
   noPartnerCard: {

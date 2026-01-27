@@ -1,0 +1,198 @@
+import { Card } from '@/components/ui';
+import { HistoryItem } from '@/components';
+import { usePoints } from '@/hooks';
+import { colors, spacing, typography } from '@/theme';
+import { PointsLog } from '@/types';
+import { Ionicons } from '@expo/vector-icons';
+import { Stack } from 'expo-router';
+import React from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+export default function HistoryScreen() {
+  const insets = useSafeAreaInsets();
+  const { pointsHistory, fetchHistory, isLoading, paginationMeta } = usePoints();
+  const [refreshing, setRefreshing] = React.useState(false);
+  const [page, setPage] = React.useState(1);
+  const [hasMore, setHasMore] = React.useState(true);
+  const [loadingMore, setLoadingMore] = React.useState(false);
+  const [initialized, setInitialized] = React.useState(false);
+
+  // Update hasMore when paginationMeta changes
+  React.useEffect(() => {
+    if (paginationMeta) {
+      setHasMore(paginationMeta.page < paginationMeta.totalPages);
+    }
+  }, [paginationMeta]);
+
+  const loadHistory = async (pageNum: number, isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshing(true);
+      setPage(1);
+      setHasMore(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    try {
+      // If refresh, replace data. If loading more, append data
+      await fetchHistory({ page: pageNum, limit: 20 }, !isRefresh);
+    } catch (error) {
+      console.error('Error loading history:', error);
+    } finally {
+      setRefreshing(false);
+      setLoadingMore(false);
+    }
+  };
+
+  // Load initial data
+  React.useEffect(() => {
+    if (!initialized) {
+      loadHistory(1, true);
+      setInitialized(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleRefresh = () => {
+    loadHistory(1, true);
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore && !isLoading) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      loadHistory(nextPage);
+    }
+  };
+
+  const renderHistoryItem = ({ item }: { item: PointsLog }) => (
+    <Card style={styles.historyCard} padding="none">
+      <HistoryItem item={item} compact={false} />
+    </Card>
+  );
+
+  const renderEmpty = () => (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="time-outline" size={64} color={colors.text.secondary} />
+      <Text style={styles.emptyText}>No hay historial</Text>
+      <Text style={styles.emptySubtext}>
+        Tus actividades y transacciones aparecerán aquí
+      </Text>
+    </View>
+  );
+
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={colors.primary} />
+        <Text style={styles.loadingText}>Cargando más...</Text>
+      </View>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      <Stack.Screen
+        options={{
+          title: 'Historial',
+          headerBackTitle: 'Atrás',
+          headerStyle: {
+            backgroundColor: colors.background,
+          },
+          headerTintColor: colors.text.primary,
+          headerShadowVisible: false,
+        }}
+      />
+
+      <FlatList
+        data={pointsHistory}
+        renderItem={renderHistoryItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: insets.bottom + spacing.xl },
+        ]}
+        ListEmptyComponent={!isLoading ? renderEmpty : null}
+        ListFooterComponent={renderFooter}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+          />
+        }
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+      />
+
+      {isLoading && pointsHistory.length === 0 && (
+        <View style={styles.initialLoader}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  listContent: {
+    padding: spacing.lg,
+  },
+  historyCard: {
+    marginBottom: 0,
+  },
+  separator: {
+    height: spacing.sm,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing['3xl'],
+  },
+  emptyText: {
+    ...typography.styles.h3,
+    color: colors.text.primary,
+    marginTop: spacing.lg,
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
+  footerLoader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.lg,
+    gap: spacing.sm,
+  },
+  loadingText: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+  },
+  initialLoader: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+  },
+});

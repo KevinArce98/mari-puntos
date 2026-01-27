@@ -4,6 +4,7 @@ import { Log, LogType } from '../entities/Log';
 import { Achievement, AchievementType } from '../entities/Achievement';
 import { AppError } from '../middlewares/errorMiddleware';
 import { calculateLevel, calculatePointsInCurrentLevel } from '../utils/helpers';
+import { In } from 'typeorm';
 
 export class PointsService {
   private userRepository = AppDataSource.getRepository(User);
@@ -89,8 +90,23 @@ export class PointsService {
     const limit = filters?.limit || 20;
     const skip = (page - 1) * limit;
 
+    // Only show relevant log types in history
+    const relevantLogTypes = [
+      LogType.POINTS_EARNED,
+      LogType.POINTS_SPENT,
+      LogType.PERMISSION_REQUESTED,
+      LogType.PERMISSION_APPROVED,
+      LogType.PERMISSION_REJECTED,
+      LogType.ACTION_CREATED,
+      LogType.ACTION_APPROVED,
+      LogType.ACTION_REJECTED,
+    ];
+
     const [logs, total] = await this.logRepository.findAndCount({
-      where: { userId },
+      where: {
+        userId,
+        type: In(relevantLogTypes),
+      },
       order: { createdAt: 'DESC' },
       skip,
       take: limit,

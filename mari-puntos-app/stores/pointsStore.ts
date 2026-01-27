@@ -12,9 +12,15 @@ interface PointsState {
   leaderboard: LeaderboardEntry[];
   isLoading: boolean;
   error: string | null;
+  paginationMeta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  } | null;
 
   // Actions
-  fetchPointsHistory: (params?: GetPointsHistoryParams) => Promise<void>;
+  fetchPointsHistory: (params?: GetPointsHistoryParams, append?: boolean) => Promise<void>;
   fetchLeaderboard: (params?: GetLeaderboardParams) => Promise<void>;
   clearPoints: () => void;
 }
@@ -24,12 +30,19 @@ export const usePointsStore = create<PointsState>((set) => ({
   leaderboard: [],
   isLoading: false,
   error: null,
+  paginationMeta: null,
 
-  fetchPointsHistory: async (params) => {
+  fetchPointsHistory: async (params, append = false) => {
     set({ isLoading: true, error: null });
     try {
       const response = await pointsService.getPointsHistory(params);
-      set({ pointsHistory: response.data, isLoading: false });
+      set((state) => ({
+        pointsHistory: append
+          ? [...state.pointsHistory, ...response.data]
+          : response.data,
+        paginationMeta: response.pagination,
+        isLoading: false,
+      }));
     } catch (error: any) {
       set({ error: error.error || 'Failed to fetch points history', isLoading: false });
       throw error;
@@ -47,5 +60,6 @@ export const usePointsStore = create<PointsState>((set) => ({
     }
   },
 
-  clearPoints: () => set({ pointsHistory: [], leaderboard: [], error: null }),
+  clearPoints: () =>
+    set({ pointsHistory: [], leaderboard: [], paginationMeta: null, error: null }),
 }));

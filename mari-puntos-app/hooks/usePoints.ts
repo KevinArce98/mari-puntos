@@ -9,6 +9,7 @@ export const usePoints = () => {
     leaderboard,
     isLoading,
     error,
+    paginationMeta,
     fetchPointsHistory,
     fetchLeaderboard,
   } = usePointsStore();
@@ -29,8 +30,8 @@ export const usePoints = () => {
   const progressToNextLevel =
     (myPointsInCurrentLevel / getPointsForNextLevel(myLevel)) * 100;
 
-  const loadHistory = async (params?: GetPointsHistoryParams) => {
-    await fetchPointsHistory(params);
+  const loadHistory = async (params?: GetPointsHistoryParams, append = false) => {
+    await fetchPointsHistory(params, append);
   };
 
   const loadLeaderboard = async (params?: GetLeaderboardParams) => {
@@ -48,6 +49,7 @@ export const usePoints = () => {
     leaderboard,
     isLoading,
     error,
+    paginationMeta,
     fetchHistory: loadHistory,
     fetchLeaderboard: loadLeaderboard,
   };
