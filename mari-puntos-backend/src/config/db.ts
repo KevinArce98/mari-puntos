@@ -27,7 +27,7 @@ export const AppDataSource = new DataSource({
     Level,
     Achievement,
   ],
-  migrations: ['src/migrations/**/*.ts'],
+  migrations: [config.isProduction ? 'dist/migrations/**/*.js' : 'src/migrations/**/*.ts'],
   subscribers: [],
 });
 
