@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Action, ActionCategory, ActionStatus } from '@/types';
 import { colors, spacing, typography, borderRadius } from '@/theme';
+import { formatDateWithTime } from '@/utils/dateUtils';
 import { Card } from './Card';
 
 interface ActionItemCardProps {
@@ -52,12 +53,7 @@ export function ActionItemCard({
   const categoryConfig = CATEGORY_CONFIG[action.category];
   const statusConfig = STATUS_CONFIG[action.status];
 
-  const formattedDate = new Date(action.createdAt).toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const formattedDate = formatDateWithTime(action.createdAt);
 
   return (
     <Card style={styles.card}>

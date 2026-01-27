@@ -3,7 +3,7 @@ import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
 import { User } from '../entities/User';
 import { Log, LogType } from '../entities/Log';
 import { AppError } from '../middlewares/errorMiddleware';
-import { generatePartnerCode } from '../utils/helpers';
+import { generatePartnerCode, getNowUTC6 } from '../utils/helpers';
 
 export class PartnerService {
   private partnerLinkRepository = AppDataSource.getRepository(PartnerLink);
@@ -96,7 +96,7 @@ export class PartnerService {
     }
 
     partnerLink.status = PartnerLinkStatus.ACTIVE;
-    partnerLink.linkedAt = new Date();
+    partnerLink.linkedAt = getNowUTC6();
 
     await this.userRepository.save(user);
     const savedPartnerLink = await this.partnerLinkRepository.save(partnerLink);

@@ -5,6 +5,7 @@ import actionsRoutes from './actions.routes';
 import permissionsRoutes from './permissions.routes';
 import rewardsRoutes from './rewards.routes';
 import pointsRoutes from './points.routes';
+import { getNowUTC6 } from '../utils/helpers';
 
 const router: Router = Router();
 
@@ -38,7 +39,7 @@ router.get('/health', (_req, res) => {
   res.json({
     success: true,
     message: 'MariPuntos API is running',
-    timestamp: new Date().toISOString(),
+    timestamp: getNowUTC6().toISOString(),
   });
 });
 

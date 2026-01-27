@@ -1,5 +1,6 @@
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import { PointsLog } from '@/types';
+import { formatRelativeTime } from '@/utils/dateUtils';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -38,31 +39,6 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({
     return 'ellipse-outline';
   };
 
-  // Format time ago
-  const getTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const diffInDays = Math.floor(diffInHours / 24);
-
-    if (diffInHours < 1) {
-      const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-      return diffInMinutes < 1 ? 'Ahora mismo' : `Hace ${diffInMinutes} min`;
-    }
-    if (diffInHours < 24) {
-      return `Hace ${diffInHours} ${diffInHours === 1 ? 'hora' : 'horas'}`;
-    }
-    if (diffInDays < 7) {
-      return `Hace ${diffInDays} ${diffInDays === 1 ? 'día' : 'días'}`;
-    }
-    return date.toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'short',
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
-    });
-  };
-
   const iconSize = compact ? 20 : 24;
   const iconContainerSize = compact ? 40 : 48;
 
@@ -96,7 +72,7 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({
       </View>
       <View style={styles.content}>
         <Text style={styles.title}>{item.message}</Text>
-        <Text style={styles.time}>{getTimeAgo(item.createdAt)}</Text>
+        <Text style={styles.time}>{formatRelativeTime(item.createdAt)}</Text>
       </View>
       {item.pointsChange !== 0 ? (
         <View style={styles.pointsContainer}>

@@ -14,6 +14,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Button, Card, Input } from '@/components/ui';
 import { usePermissions } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { createUTC6DateTime } from '@/utils/dateUtils';
 import Toast from 'react-native-toast-message';
 import { PermissionType } from '@/types';
 
@@ -149,10 +150,7 @@ export default function RequestPermissionScreen() {
   };
 
   const getCombinedDateTime = () => {
-    const combined = new Date(selectedDate);
-    combined.setHours(selectedTime.getHours());
-    combined.setMinutes(selectedTime.getMinutes());
-    return combined;
+    return createUTC6DateTime(selectedDate, selectedTime);
   };
 
   return (

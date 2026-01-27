@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { Card, Badge } from '@/components/ui';
 import { colors, typography, spacing, borderRadius } from '@/theme';
+import { formatDateOnly } from '@/utils/dateUtils';
 import { useRewards } from '@/hooks';
 
 export default function AchievementsScreen() {
@@ -27,7 +28,7 @@ export default function AchievementsScreen() {
           </Text>
           {!isLocked && achievement.unlockedAt && (
             <Text style={styles.achievementDate}>
-              Desbloqueado el {new Date(achievement.unlockedAt).toLocaleDateString()}
+              Desbloqueado el {formatDateOnly(achievement.unlockedAt)}
             </Text>
           )}
         </View>

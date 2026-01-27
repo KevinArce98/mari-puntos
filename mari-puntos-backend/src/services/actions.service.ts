@@ -3,6 +3,7 @@ import { Action, ActionStatus, ActionCategory } from '../entities/Action';
 import { User } from '../entities/User';
 import { Log, LogType } from '../entities/Log';
 import { AppError } from '../middlewares/errorMiddleware';
+import { getNowUTC6 } from '../utils/helpers';
 import { PartnerService } from './partner.service';
 import { PointsService } from './points.service';
 import { CreateActionInput, UpdateActionInput } from '../validators/schemas';
@@ -154,7 +155,7 @@ export class ActionsService {
     action.status = ActionStatus.APPROVED;
     action.pointsAwarded = pointsAwarded;
     action.approvedBy = approverId;
-    action.approvedAt = new Date();
+    action.approvedAt = getNowUTC6();
 
     await this.actionRepository.save(action);
 
@@ -211,7 +212,7 @@ export class ActionsService {
     action.status = ActionStatus.REJECTED;
     action.rejectionReason = rejectionReason || null;
     action.approvedBy = approverId;
-    action.approvedAt = new Date();
+    action.approvedAt = getNowUTC6();
 
     await this.actionRepository.save(action);
 

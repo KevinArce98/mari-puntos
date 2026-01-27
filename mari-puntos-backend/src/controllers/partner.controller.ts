@@ -4,6 +4,7 @@ import { PartnerService } from '../services/partner.service';
 import { joinPartnerLinkSchema } from '../validators/schemas';
 import { sendSuccess, sendCreated } from '../utils/response';
 import { toPartnerInfoDTO } from '../utils/mappers';
+import { getNowUTC6 } from '../utils/helpers';
 import { PartnerLinkStatus } from '../shared/constants';
 
 export class PartnerController {
@@ -50,7 +51,7 @@ export class PartnerController {
         {
           linkCode: partnerLink.linkCode,
           status: 'active' as const,
-          linkedAt: partnerLink.linkedAt?.toISOString() || new Date().toISOString(),
+          linkedAt: partnerLink.linkedAt?.toISOString() || getNowUTC6().toISOString(),
         },
         'Successfully linked with partner'
       );

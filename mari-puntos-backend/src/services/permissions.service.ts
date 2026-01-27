@@ -3,6 +3,7 @@ import { Permission, PermissionStatus, PermissionType } from '../entities/Permis
 import { User } from '../entities/User';
 import { Log, LogType } from '../entities/Log';
 import { AppError } from '../middlewares/errorMiddleware';
+import { getNowUTC6 } from '../utils/helpers';
 import { PartnerService } from './partner.service';
 import { PointsService } from './points.service';
 
@@ -165,7 +166,7 @@ export class PermissionsService {
 
     permission.status = approved ? PermissionStatus.APPROVED : PermissionStatus.REJECTED;
     permission.approverId = approverId;
-    permission.respondedAt = new Date();
+    permission.respondedAt = getNowUTC6();
     permission.responseMessage = responseMessage || null;
 
     await this.permissionRepository.save(permission);

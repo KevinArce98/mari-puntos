@@ -1,4 +1,8 @@
 import { colors } from '@/theme';
+import {
+  formatDateWithTime as formatDateWithTimeUTC6,
+  formatDateOnly as formatDateOnlyUTC6,
+} from './dateUtils';
 
 export const getStatusText = (status: string) => {
   switch (status) {
@@ -22,22 +26,6 @@ export const getStatusColor = (status: string) => {
   }
 };
 
-export const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('es-CR', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-};
+export const formatDate = formatDateWithTimeUTC6;
 
-export const formatDateOnly = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('es-CR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: 'numeric',
-  });
-};
+export const formatDateOnly = formatDateOnlyUTC6;

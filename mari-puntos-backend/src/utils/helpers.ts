@@ -1,5 +1,29 @@
 import crypto from 'crypto';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { config } from '../config/env';
+
+// Extend dayjs with plugins
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+// Costa Rica timezone (UTC-6)
+const TIMEZONE = 'America/Costa_Rica';
+
+/**
+ * Get current date/time in UTC-6 timezone
+ */
+export const getNowUTC6 = (): Date => {
+  return dayjs().tz(TIMEZONE).toDate();
+};
+
+/**
+ * Convert any date to UTC-6 timezone
+ */
+export const toUTC6 = (date: Date): Date => {
+  return dayjs(date).tz(TIMEZONE).toDate();
+};
 
 /**
  * Generate a unique partner code
@@ -47,26 +71,24 @@ export const calculateLevelProgress = (totalPoints: number): number => {
 };
 
 /**
- * Format date to ISO string
+ * Format date to ISO string in UTC-6
  */
 export const formatDate = (date: Date): string => {
-  return date.toISOString();
+  return dayjs(date).tz(TIMEZONE).toISOString();
 };
 
 /**
- * Check if date is expired
+ * Check if date is expired (using UTC-6 timezone)
  */
 export const isExpired = (date: Date): boolean => {
-  return new Date() > date;
+  return dayjs().tz(TIMEZONE).isAfter(dayjs(date));
 };
 
 /**
  * Add hours to date
  */
 export const addHours = (date: Date, hours: number): Date => {
-  const result = new Date(date);
-  result.setHours(result.getHours() + hours);
-  return result;
+  return dayjs(date).add(hours, 'hour').toDate();
 };
 
 /**

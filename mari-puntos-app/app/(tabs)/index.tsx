@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { user, hasPartner } = useUser();
+  const { user, hasPartner, refetch: refetchUser } = useUser();
   const { myPoints, myLevel, pointsHistory, fetchHistory } = usePoints();
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -33,9 +33,11 @@ export default function HomeScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      if (hasPartner) {
-        await fetchHistory({ limit: 3 });
-      }
+      // Reload user data (including points) and history in parallel
+      await Promise.all([
+        refetchUser(),
+        hasPartner ? fetchHistory({ limit: 3 }) : Promise.resolve(),
+      ]);
     } catch (error) {
       console.error('Error refreshing data:', error);
     } finally {

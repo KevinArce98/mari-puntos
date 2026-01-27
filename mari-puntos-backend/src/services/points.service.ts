@@ -3,7 +3,7 @@ import { User } from '../entities/User';
 import { Log, LogType } from '../entities/Log';
 import { Achievement, AchievementType } from '../entities/Achievement';
 import { AppError } from '../middlewares/errorMiddleware';
-import { calculateLevel, calculatePointsInCurrentLevel } from '../utils/helpers';
+import { calculateLevel, calculatePointsInCurrentLevel, getNowUTC6 } from '../utils/helpers';
 import { In } from 'typeorm';
 
 export class PointsService {
@@ -207,7 +207,7 @@ export class PointsService {
       description,
       type,
       isUnlocked: true,
-      unlockedAt: new Date(),
+      unlockedAt: getNowUTC6(),
       pointsReward: 50,
       requiredValue,
       currentProgress: requiredValue || 0,

@@ -18,6 +18,7 @@ export const AppDataSource = new DataSource({
   entities: [User, PartnerLink, Permission, Action, Reward, Log, Level, Achievement],
   migrations: ['src/migrations/**/*.ts'],
   subscribers: [],
+  timezone: 'America/Costa_Rica', // UTC-6 timezone
 });
 
 export const initializeDatabase = async (): Promise<void> => {
