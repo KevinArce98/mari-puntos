@@ -37,14 +37,19 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
     <>
       <Card key={permission.id} style={styles.permissionCard}>
         <View style={styles.permissionHeader}>
-          <Text style={styles.permissionName}>{permission.title}</Text>
+          <Text style={styles.permissionName}>
+            {permission.template?.title || 'Permiso sin título'}
+          </Text>
           <Text style={styles.permissionPoints}>{permission.pointsCost} pts</Text>
         </View>
         <Text style={styles.permissionDate}>
-          Fecha a solicitar: {formatDate(permission.requestedDate)}
+          Fecha solicitada: {formatDate(permission.requestedDate)}
         </Text>
-        {permission.description && (
-          <Text style={styles.permissionMessage}>{permission.description}</Text>
+        <Text style={styles.permissionDate}>
+          Duración: {permission.durationHours} horas
+        </Text>
+        {permission.template?.description && (
+          <Text style={styles.permissionMessage}>{permission.template.description}</Text>
         )}
         <Text style={styles.permissionFrom}>
           De: {permission.requester?.firstName} {permission.requester?.lastName}
@@ -78,7 +83,7 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
         onClose={() => setModalVisible(false)}
         onApprove={handleApprove}
         onReject={handleReject}
-        permissionTitle={permission.title}
+        permissionTitle={permission.template?.title || 'Permiso'}
         loading={loading === permission.id}
       />
     </>

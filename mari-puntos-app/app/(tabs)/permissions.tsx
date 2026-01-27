@@ -149,7 +149,9 @@ export default function PermissionsScreen() {
             myPermissions.map((permission) => (
               <Card key={permission.id} style={styles.permissionCard}>
                 <View style={styles.permissionHeader}>
-                  <Text style={styles.permissionName}>{permission.title}</Text>
+                  <Text style={styles.permissionName}>
+                    {permission.template?.title || 'Permiso sin título'}
+                  </Text>
                   <Badge
                     label={getStatusText(permission.status)}
                     variant="primary"
@@ -157,15 +159,30 @@ export default function PermissionsScreen() {
                     style={{ backgroundColor: getStatusColor(permission.status) }}
                   />
                 </View>
-                {permission.description && (
-                  <Text style={styles.permissionMessage}>{permission.description}</Text>
+                {permission.template?.description && (
+                  <Text style={styles.permissionMessage}>
+                    {permission.template.description}
+                  </Text>
                 )}
                 <View style={styles.permissionFooter}>
-                  <Text style={styles.permissionDate}>
-                    {formatDateOnly(permission.createdAt)}
-                  </Text>
+                  <View>
+                    <Text style={styles.permissionDate}>
+                      Solicitado: {formatDateOnly(permission.requestedDate)}
+                    </Text>
+                    <Text style={styles.permissionDate}>
+                      Duración: {permission.durationHours}h
+                    </Text>
+                  </View>
                   <Text style={styles.permissionPoints}>{permission.pointsCost} pts</Text>
                 </View>
+                {permission.responseMessage && (
+                  <View style={styles.responseContainer}>
+                    <Text style={styles.responseLabel}>Respuesta:</Text>
+                    <Text style={styles.responseMessage}>
+                      {permission.responseMessage}
+                    </Text>
+                  </View>
+                )}
               </Card>
             ))
           )}
@@ -283,5 +300,20 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.lg,
+  },
+  responseContainer: {
+    marginTop: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.gray[50],
+    borderRadius: borderRadius.md,
+  },
+  responseLabel: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    marginBottom: spacing.xs,
+  },
+  responseMessage: {
+    ...typography.styles.body,
+    color: colors.text.primary,
   },
 });
