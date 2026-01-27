@@ -14,20 +14,22 @@ export const AppDataSource = new DataSource({
   type: 'postgres',
   url: config.database.url,
   ssl: config.isProduction ? { rejectUnauthorized: false } : false,
-  synchronize: config.isDevelopment, // Only in development
+  synchronize: false, // Never use synchronize in production
   logging: config.isDevelopment,
-  entities: [
-    User,
-    PartnerLink,
-    Permission,
-    PermissionTemplate,
-    Action,
-    Reward,
-    Log,
-    Level,
-    Achievement,
-  ],
-  migrations: [config.isProduction ? 'dist/migrations/**/*.js' : 'src/migrations/**/*.ts'],
+  entities: config.isProduction 
+    ? ['dist/entities/**/*.js']
+    : [
+      User,
+      PartnerLink,
+      Permission,
+      PermissionTemplate,
+      Action,
+      Reward,
+      Log,
+      Level,
+      Achievement,
+    ],
+  migrations: config.isProduction ? ['dist/migrations/**/*.js'] : ['src/migrations/**/*.ts'],
   subscribers: [],
 });
 
