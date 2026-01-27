@@ -24,6 +24,7 @@ interface UserState {
   createPartnerLink: () => Promise<string>;
   getPartnerLinkCode: () => Promise<GetPartnerLinkCodeResponse | null>;
   joinPartnerLink: (linkCode: string) => Promise<void>;
+  unlinkPartner: () => Promise<void>;
   clearUser: () => void;
   setError: (error: string | null) => void;
 }
@@ -113,6 +114,19 @@ export const useUserStore = create<UserState>((set, get) => ({
       set({ isLoading: false });
     } catch (error: any) {
       set({ error: error.error || 'Failed to join partner link', isLoading: false });
+      throw error;
+    }
+  },
+
+  unlinkPartner: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      await userService.unlinkPartner();
+      // Refetch user profile and clear partner info
+      await get().fetchProfile();
+      set({ partnerInfo: null, isLoading: false });
+    } catch (error: any) {
+      set({ error: error.error || 'Failed to unlink partner', isLoading: false });
       throw error;
     }
   },

@@ -89,6 +89,14 @@ class UserService {
     const response = await apiService.get<ApiResponse<PartnerInfo | null>>('/partner');
     return response.data;
   }
+
+  /**
+   * Unlink from partner
+   * POST /partner/unlink
+   */
+  async unlinkPartner(): Promise<void> {
+    await apiService.post<ApiResponse<null>>('/partner/unlink');
+  }
 }
 
 export const userService = new UserService();

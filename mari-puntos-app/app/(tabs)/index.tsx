@@ -90,7 +90,7 @@ export default function HomeScreen() {
               name={user?.firstName}
               size="lg"
               showLevel
-              level={myLevel}
+              // level={myLevel} TODO: enable level when ready
             />
             <View style={styles.greetingContainer}>
               <Text style={styles.greeting}>
@@ -99,13 +99,14 @@ export default function HomeScreen() {
               <Text style={styles.subtitle}>Vamos a ganar algunos puntos hoy!</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.notificationButton}>
+          {/* TODO: enable notifications */}
+          {/* <TouchableOpacity style={styles.notificationButton}>
             <Ionicons
               name="notifications-outline"
               size={24}
               color={colors.text.primary}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Points Card */}

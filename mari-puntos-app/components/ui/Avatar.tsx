@@ -41,7 +41,9 @@ export const Avatar: React.FC<AvatarProps> = ({
         )}
       </View>
       {showLevel && level !== undefined && (
-        <View style={[styles.levelBadge, { width: levelBadgeSize, height: levelBadgeSize }]}>
+        <View
+          style={[styles.levelBadge, { width: levelBadgeSize, height: levelBadgeSize }]}
+        >
           <Text style={styles.levelText}>Lvl {level}</Text>
         </View>
       )}
@@ -84,7 +86,7 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontFamily: typography.fontFamily.bold,
   },
-  
+
   // Sizes
   size_sm: {
     width: 32,
@@ -102,7 +104,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
   },
-  
+
   // Initials sizes
   initials_sm: {
     fontSize: typography.fontSize.xs,

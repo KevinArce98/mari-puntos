@@ -1,4 +1,4 @@
-import { Avatar, Button, Card, ListItem, ProgressBar } from '@/components/ui';
+import { Avatar, Button, Card, ListItem } from '@/components/ui';
 import { usePoints, useUser } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import { useAuth } from '@clerk/clerk-expo';
@@ -6,12 +6,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -20,33 +20,33 @@ export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signOut } = useAuth();
-  const { user, partnerInfo, hasPartner } = useUser();
-  const { myPoints, myLevel, progressToNextLevel } = usePoints();
+  const { user, partnerInfo, hasPartner, unlinkPartner } = useUser();
+  const { myPoints } = usePoints();
   const [loading, setLoading] = useState(false);
 
   const handleUnlinkPartner = () => {
     Alert.alert(
-      'Unlink Partner',
-      'Are you sure you want to unlink your partner? This action cannot be undone.',
+      'Desvincular pareja',
+      '¿Estás seguro de que deseas desvincular a tu pareja? Esta acción no se puede deshacer.',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Unlink',
+          text: 'Desvincular',
           style: 'destructive',
           onPress: async () => {
             setLoading(true);
             try {
-              // TODO: Implement unlinkPartner in useUser hook
+              await unlinkPartner();
               Toast.show({
                 type: 'success',
-                text1: 'Unlinked',
-                text2: 'Your partner has been unlinked',
+                text1: 'Desvinculado',
+                text2: 'Tu pareja ha sido desvinculada',
               });
             } catch {
               Toast.show({
                 type: 'error',
                 text1: 'Error',
-                text2: 'Could not unlink partner',
+                text2: 'No se pudo desvincular a la pareja',
               });
             } finally {
               setLoading(false);
@@ -58,34 +58,32 @@ export default function ProfileScreen() {
   };
 
   const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            await signOut();
-            router.replace('/(auth)/login');
-          },
+    Alert.alert('Cerrar sesión', '¿Estás seguro de que deseas cerrar sesión?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Cerrar sesión',
+        style: 'destructive',
+        onPress: async () => {
+          await signOut();
+          router.replace('/(auth)/login');
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity style={styles.settingsButton}>
+        <Text style={styles.headerTitle}>Perfil</Text>
+
+        {/* TODO: Configuración funcitonality */}
+        {/* <TouchableOpacity style={styles.settingsButton}>
           <Ionicons name="settings-outline" size={24} color={colors.text.primary} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -97,15 +95,18 @@ export default function ProfileScreen() {
               name={user?.firstName}
               size="xl"
               showLevel
-              level={myLevel}
+              // level={myLevel} TODO: Enable levels
             />
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{user?.firstName} {user?.lastName}</Text>
+              <Text style={styles.profileName}>
+                {user?.firstName} {user?.lastName}
+              </Text>
               <Text style={styles.profileEmail}>{user?.email}</Text>
             </View>
-            <TouchableOpacity style={styles.editButton}>
+            {/* TODO: Edit Profile functionality */}
+            {/* <TouchableOpacity style={styles.editButton}>
               <Ionicons name="pencil" size={16} color={colors.primary} />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           {/* Stats Row */}
@@ -114,7 +115,8 @@ export default function ProfileScreen() {
               <Text style={styles.statValue}>{myPoints.toLocaleString()}</Text>
               <Text style={styles.statLabel}>Points</Text>
             </View>
-            <View style={styles.statDivider} />
+            {/* TODO: Enable levels and rewards */}
+            {/* <View style={styles.statDivider} />
             <View style={styles.stat}>
               <Text style={styles.statValue}>{myLevel}</Text>
               <Text style={styles.statLabel}>Level</Text>
@@ -123,31 +125,31 @@ export default function ProfileScreen() {
             <View style={styles.stat}>
               <Text style={styles.statValue}>12</Text>
               <Text style={styles.statLabel}>Rewards</Text>
-            </View>
+            </View> */}
           </View>
 
-          {/* Level Progress */}
-          <View style={styles.levelProgress}>
+          {/* TODO: Level Progress */}
+          {/* <View style={styles.levelProgress}>
             <View style={styles.levelProgressHeader}>
               <Text style={styles.levelLabel}>Level {myLevel}</Text>
               <Text style={styles.levelLabel}>Level {myLevel + 1}</Text>
             </View>
-            <ProgressBar 
-              progress={progressToNextLevel} 
+            <ProgressBar
+              progress={progressToNextLevel}
               color={colors.accent}
               height={10}
             />
             <Text style={styles.levelProgressText}>
               {Math.round(progressToNextLevel)}% to next level
             </Text>
-          </View>
+          </View> */}
         </Card>
 
         {/* Partner Section */}
         {hasPartner && partnerInfo ? (
           <Card style={styles.partnerCard}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Your Partner</Text>
+              <Text style={styles.sectionTitle}>Tu Pareja</Text>
               <TouchableOpacity onPress={handleUnlinkPartner} disabled={loading}>
                 <Ionicons name="unlink" size={18} color={colors.error} />
               </TouchableOpacity>
@@ -160,7 +162,9 @@ export default function ProfileScreen() {
               />
               <View style={styles.partnerDetails}>
                 <Text style={styles.partnerName}>{partnerInfo.partner.firstName}</Text>
-                <Text style={styles.partnerPoints}>{partnerInfo.partner.totalPoints?.toLocaleString() || 0} MariPuntos</Text>
+                <Text style={styles.partnerPoints}>
+                  {partnerInfo.partner.totalPoints?.toLocaleString() || 0} MariPuntos
+                </Text>
               </View>
               <View style={styles.partnerStatus}>
                 <View style={styles.statusDot} />
@@ -173,10 +177,12 @@ export default function ProfileScreen() {
             <View style={styles.noPartnerIcon}>
               <Ionicons name="people-outline" size={32} color={colors.primary} />
             </View>
-            <Text style={styles.noPartnerTitle}>No Partner Linked</Text>
-            <Text style={styles.noPartnerText}>Connect with your partner to start earning points together</Text>
+            <Text style={styles.noPartnerTitle}>No Hay Pareja Vinculada</Text>
+            <Text style={styles.noPartnerText}>
+              Conéctate con tu pareja para comenzar a ganar puntos juntos
+            </Text>
             <Button
-              title="Link Partner"
+              title="Vincular Pareja"
               onPress={() => router.push('/link-partner')}
               size="sm"
               icon="link"
@@ -186,28 +192,28 @@ export default function ProfileScreen() {
 
         {/* Menu Options */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Settings</Text>
+          <Text style={styles.sectionTitle}>Configuración</Text>
           <Card padding="none" style={styles.menuCard}>
-            <ListItem
+            {/* <ListItem
               title="Edit Profile"
               leftIcon="person-outline"
               rightIcon="chevron-forward"
               onPress={() => {}}
-            />
-            <ListItem
+            /> */}
+            {/* <ListItem
               title="Notifications"
               leftIcon="notifications-outline"
               rightIcon="chevron-forward"
               onPress={() => {}}
-            />
+            /> */}
             <ListItem
-              title="Privacy"
+              title="Privacidad"
               leftIcon="shield-outline"
               rightIcon="chevron-forward"
               onPress={() => {}}
             />
             <ListItem
-              title="Help & Support"
+              title="Ayuda y Soporte"
               leftIcon="help-circle-outline"
               rightIcon="chevron-forward"
               onPress={() => {}}
@@ -217,7 +223,7 @@ export default function ProfileScreen() {
 
         {/* Sign Out Button */}
         <Button
-          title="Sign Out"
+          title="Cerrar Sesión"
           onPress={handleSignOut}
           variant="outline"
           fullWidth
@@ -227,7 +233,7 @@ export default function ProfileScreen() {
 
         <Text style={styles.footer}>
           MariPuntos v1.0.0{'\n'}
-          Made with 💑 for couples
+          Hecho con 💑 para parejas
         </Text>
       </ScrollView>
     </View>

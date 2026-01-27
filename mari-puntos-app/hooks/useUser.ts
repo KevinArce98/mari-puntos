@@ -13,6 +13,7 @@ export const useUser = () => {
     createPartnerLink,
     getPartnerLinkCode,
     joinPartnerLink,
+    unlinkPartner,
   } = useUserStore();
 
   useEffect(() => {
@@ -39,5 +40,6 @@ export const useUser = () => {
     createPartnerLink,
     getPartnerLinkCode,
     joinPartnerLink,
+    unlinkPartner,
   };
 };
