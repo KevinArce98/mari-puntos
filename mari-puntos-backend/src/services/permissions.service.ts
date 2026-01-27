@@ -1,5 +1,6 @@
 import { AppDataSource } from '../config/db';
-import { Permission, PermissionStatus, PermissionType } from '../entities/Permission';
+import { Permission, PermissionStatus } from '../entities/Permission';
+import { PermissionTemplate } from '../entities/PermissionTemplate';
 import { User } from '../entities/User';
 import { Log, LogType } from '../entities/Log';
 import { AppError } from '../middlewares/errorMiddleware';
@@ -8,16 +9,16 @@ import { PartnerService } from './partner.service';
 import { PointsService } from './points.service';
 
 interface CreatePermissionData {
-  title: string;
-  description?: string;
-  type: string;
+  templateId: string;
   requestedDate: Date;
   durationHours: number;
   pointsCost: number;
+  metadata?: Record<string, any>;
 }
 
 export class PermissionsService {
   private permissionRepository = AppDataSource.getRepository(Permission);
+  private templateRepository = AppDataSource.getRepository(PermissionTemplate);
   private userRepository = AppDataSource.getRepository(User);
   private logRepository = AppDataSource.getRepository(Log);
   private partnerService = new PartnerService();
@@ -39,14 +40,31 @@ export class PermissionsService {
       throw new AppError(400, 'Debes tener una pareja para solicitar permisos');
     }
 
+    // Verify template exists and user has access
+    const template = await this.templateRepository.findOne({
+      where: { id: data.templateId },
+      relations: ['partnerLink'],
+    });
+
+    if (!template || !template.isActive) {
+      throw new AppError(404, 'Plantilla de permiso no encontrada');
+    }
+
+    // Check access to custom templates
+    if (!template.isSystemTemplate && template.partnerLinkId) {
+      const partnerLink = await this.partnerService.getPartnerLink(userId);
+      if (!partnerLink || partnerLink.id !== template.partnerLinkId) {
+        throw new AppError(403, 'No tienes acceso a esta plantilla');
+      }
+    }
+
     const permission = this.permissionRepository.create({
+      templateId: data.templateId,
       requesterId: userId,
-      title: data.title,
-      description: data.description,
-      type: data.type as PermissionType,
       requestedDate: data.requestedDate,
       durationHours: data.durationHours,
       pointsCost: data.pointsCost,
+      metadata: data.metadata,
       status: PermissionStatus.PENDING,
     });
 
@@ -57,7 +75,7 @@ export class PermissionsService {
       this.logRepository.create({
         userId,
         type: LogType.PERMISSION_REQUESTED,
-        message: `Permiso solicitado: ${permission.title}`,
+        message: `Permiso solicitado: ${template.title}`,
         relatedEntityId: permission.id,
         relatedEntityType: 'Permission',
       })
@@ -69,7 +87,7 @@ export class PermissionsService {
   async getPermissionById(permissionId: string): Promise<Permission> {
     const permission = await this.permissionRepository.findOne({
       where: { id: permissionId },
-      relations: ['requester', 'approver'],
+      relations: ['requester', 'approver', 'template'],
     });
 
     if (!permission) {
@@ -95,6 +113,7 @@ export class PermissionsService {
       .createQueryBuilder('permission')
       .leftJoinAndSelect('permission.requester', 'requester')
       .leftJoinAndSelect('permission.approver', 'approver')
+      .leftJoinAndSelect('permission.template', 'template')
       .where('permission.requesterId = :userId', { userId })
       .orderBy('permission.createdAt', 'DESC')
       .skip(skip)
@@ -176,15 +195,15 @@ export class PermissionsService {
       await this.pointsService.deductPoints(
         permission.requesterId,
         permission.pointsCost,
-        `Puntos reducidos: ${permission.title}`
+        `Puntos reducidos: ${permission.template.title}`
       );
     }
 
     // Create logs
     const logType = approved ? LogType.PERMISSION_APPROVED : LogType.PERMISSION_REJECTED;
     const message = approved
-      ? `Permiso aprobado: ${permission.title}`
-      : `Permiso rechazado: ${permission.title}`;
+      ? `Permiso aprobado: ${permission.template.title}`
+      : `Permiso rechazado: ${permission.template.title}`;
 
     await this.logRepository.save([
       this.logRepository.create({
@@ -199,8 +218,8 @@ export class PermissionsService {
         userId: approverId,
         type: logType,
         message: approved
-          ? `Aprobaste permiso: ${permission.title}`
-          : `Rechazaste permiso: ${permission.title}`,
+          ? `Aprobaste permiso: ${permission.template.title}`
+          : `Rechazaste permiso: ${permission.template.title}`,
         relatedEntityId: permission.id,
         relatedEntityType: 'Permission',
       }),

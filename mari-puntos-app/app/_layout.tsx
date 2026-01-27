@@ -43,6 +43,15 @@ function RootLayoutNav() {
               headerShown: false,
             }}
           />
+
+          <Stack.Screen
+            name="permissions/create-template"
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+            }}
+          />
+
           <Stack.Screen
             name="rewards/index"
             options={{

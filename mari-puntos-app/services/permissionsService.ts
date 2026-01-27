@@ -3,12 +3,84 @@ import {
   ApiResponse,
   PaginatedResponse,
   Permission,
+  PermissionTemplate,
   CreatePermissionRequest,
+  CreatePermissionTemplateRequest,
   RespondPermissionRequest,
   GetPermissionsParams,
+  GetPermissionTemplatesParams,
 } from '@/types';
 
 class PermissionsService {
+  // ============================================
+  // Permission Templates
+  // ============================================
+
+  /**
+   * Get permission templates
+   * GET /permission-templates
+   */
+  async getTemplates(
+    params?: GetPermissionTemplatesParams
+  ): Promise<PaginatedResponse<PermissionTemplate>> {
+    return apiService.get<PaginatedResponse<PermissionTemplate>>(
+      '/permission-templates',
+      params
+    );
+  }
+
+  /**
+   * Get system permission templates (predefined)
+   * GET /permission-templates/system
+   */
+  async getSystemTemplates(): Promise<PermissionTemplate[]> {
+    const response = await apiService.get<ApiResponse<PermissionTemplate[]>>(
+      '/permission-templates/system'
+    );
+    return response.data;
+  }
+
+  /**
+   * Create custom permission template
+   * POST /permission-templates
+   */
+  async createTemplate(
+    data: CreatePermissionTemplateRequest
+  ): Promise<PermissionTemplate> {
+    const response = await apiService.post<ApiResponse<PermissionTemplate>>(
+      '/permission-templates',
+      data
+    );
+    return response.data;
+  }
+
+  /**
+   * Update permission template
+   * PATCH /permission-templates/:id
+   */
+  async updateTemplate(
+    templateId: string,
+    data: Partial<CreatePermissionTemplateRequest>
+  ): Promise<PermissionTemplate> {
+    const response = await apiService.patch<ApiResponse<PermissionTemplate>>(
+      `/permission-templates/${templateId}`,
+      data
+    );
+    return response.data;
+  }
+
+  /**
+   * Delete permission template
+   * DELETE /permission-templates/:id
+   */
+  async deleteTemplate(templateId: string): Promise<{ success: boolean }> {
+    return apiService.delete<{ success: boolean }>(`/permission-templates/${templateId}`);
+  }
+
+  // ============================================
+  // Permissions
+  // ============================================
+
   /**
    * Request permission (Husband only)
    * POST /permissions

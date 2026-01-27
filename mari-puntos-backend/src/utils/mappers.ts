@@ -8,6 +8,7 @@
 import { User } from '../entities/User';
 import { Action } from '../entities/Action';
 import { Permission } from '../entities/Permission';
+import { PermissionTemplate } from '../entities/PermissionTemplate';
 import { Reward } from '../entities/Reward';
 import { Level } from '../entities/Level';
 import { Achievement } from '../entities/Achievement';
@@ -18,6 +19,7 @@ import {
   UserStatsDTO,
   ActionDTO,
   PermissionDTO,
+  PermissionTemplateDTO,
   RewardDTO,
   LevelDTO,
   AchievementDTO,
@@ -42,7 +44,6 @@ export function toUserDTO(user: User, hasPartner: boolean = false): UserDTO {
     firstName: user.firstName || '',
     lastName: user.lastName || '',
     avatarUrl: user.avatarUrl || undefined,
-    role: user.role,
     totalPoints: user.totalPoints,
     currentLevel: user.currentLevel,
     pointsInCurrentLevel: user.pointsInCurrentLevel,
@@ -88,7 +89,6 @@ export function toLeaderboardEntryDTO(user: User): LeaderboardEntryDTO {
     avatarUrl: user.avatarUrl || undefined,
     totalPoints: user.totalPoints,
     currentLevel: user.currentLevel,
-    role: user.role,
   };
 }
 
@@ -128,32 +128,52 @@ export function toActionDTOList(actions: Action[]): ActionDTO[] {
 // ============================================================================
 
 /**
+ * Convert PermissionTemplate entity to PermissionTemplateDTO
+ * Matches frontend PermissionTemplate interface exactly
+ */
+export function toPermissionTemplateDTO(template: PermissionTemplate): PermissionTemplateDTO {
+  return {
+    id: template.id,
+    title: template.title,
+    description: template.description || undefined,
+    category: template.category,
+    suggestedDurationHours: template.suggestedDurationHours || undefined,
+    suggestedPointsCost: template.suggestedPointsCost || undefined,
+    isSystemTemplate: template.isSystemTemplate,
+    isActive: template.isActive,
+    partnerLinkId: template.partnerLinkId || undefined,
+    metadata: template.metadata || undefined,
+    createdAt: template.createdAt.toISOString(),
+    updatedAt: template.updatedAt.toISOString(),
+  };
+}
+
+/**
  * Convert Permission entity to PermissionDTO
  * Matches frontend Permission interface exactly
  */
 export function toPermissionDTO(permission: Permission): PermissionDTO {
   return {
     id: permission.id,
+    templateId: permission.templateId,
     requesterId: permission.requesterId,
     approverId: permission.approverId || undefined,
-    title: permission.title,
-    description: permission.description || undefined,
-    type: permission.type,
     status: permission.status,
     requestedDate: permission.requestedDate.toISOString(),
-    durationHours: permission.durationHours || 0,
+    durationHours: permission.durationHours,
     pointsCost: permission.pointsCost,
     responseMessage: permission.responseMessage || undefined,
     respondedAt: permission.respondedAt?.toISOString() || undefined,
+    metadata: permission.metadata || undefined,
     createdAt: permission.createdAt.toISOString(),
     updatedAt: permission.updatedAt.toISOString(),
+    template: permission.template ? toPermissionTemplateDTO(permission.template) : undefined,
     requester: permission.requester ? {
       id: permission.requester.id,
       firstName: permission.requester.firstName,
       lastName: permission.requester.lastName,
       email: permission.requester.email,
       avatarUrl: permission.requester.avatarUrl || undefined,
-      role: permission.requester.role,
     } : undefined,
     approver: permission.approver ? {
       id: permission.approver.id,
@@ -161,7 +181,6 @@ export function toPermissionDTO(permission: Permission): PermissionDTO {
       lastName: permission.approver.lastName,
       email: permission.approver.email,
       avatarUrl: permission.approver.avatarUrl || undefined,
-      role: permission.approver.role,
     } : undefined,
   };
 }
@@ -171,6 +190,13 @@ export function toPermissionDTO(permission: Permission): PermissionDTO {
  */
 export function toPermissionDTOList(permissions: Permission[]): PermissionDTO[] {
   return permissions.map(toPermissionDTO);
+}
+
+/**
+ * Convert array of PermissionTemplate entities to PermissionTemplateDTOs
+ */
+export function toPermissionTemplateDTOList(templates: PermissionTemplate[]): PermissionTemplateDTO[] {
+  return templates.map(toPermissionTemplateDTO);
 }
 
 // ============================================================================
@@ -301,7 +327,6 @@ export function toPartnerInfoDTO(
       lastName: partner.lastName || '',
       email: partner.email,
       avatarUrl: partner.avatarUrl || undefined,
-      role: partner.role,
       totalPoints: partner.totalPoints,
       currentLevel: partner.currentLevel,
     },

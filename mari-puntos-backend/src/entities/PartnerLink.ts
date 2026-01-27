@@ -20,7 +20,7 @@ export class PartnerLink {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', unique: true })
   linkCode: string;
 
   @Column({

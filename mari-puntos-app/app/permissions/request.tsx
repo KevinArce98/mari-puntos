@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Platform,
   ScrollView,
@@ -8,6 +8,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -16,20 +17,13 @@ import { usePermissions } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import { createUTC6DateTime } from '@/utils/dateUtils';
 import Toast from 'react-native-toast-message';
-import { PermissionType } from '@/types';
+import { PermissionTemplate, PermissionCategory } from '@/types';
+import { permissionsService } from '@/services';
 
 const QUICK_ACTIVITIES = [
-  { id: 'gaming', label: 'Gaming', icon: 'game-controller-outline' },
-  { id: 'friends', label: 'Friends', icon: 'people-outline' },
-  { id: 'sports', label: 'Sports', icon: 'football-outline' },
-];
-
-const ACTIVITY_TYPES = [
-  { id: 'gaming', label: 'Gaming Session', cost: 10 },
-  { id: 'friends', label: 'Night Out with Friends', cost: 15 },
-  { id: 'sports', label: 'Sports Activity', cost: 8 },
-  { id: 'hobby', label: 'Personal Hobby Time', cost: 5 },
-  { id: 'other', label: 'Other', cost: 10 },
+  { id: PermissionCategory.GAMING, label: 'Gaming', icon: 'game-controller-outline' },
+  { id: PermissionCategory.SOCIAL, label: 'Friends', icon: 'people-outline' },
+  { id: PermissionCategory.SPORTS, label: 'Sports', icon: 'football-outline' },
 ];
 
 export default function RequestPermissionScreen() {
@@ -37,9 +31,13 @@ export default function RequestPermissionScreen() {
   const insets = useSafeAreaInsets();
   const { requestPermission } = usePermissions();
 
+  const [templates, setTemplates] = useState<PermissionTemplate[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(true);
   const [selectedQuick, setSelectedQuick] = useState<string | null>(null);
-  const [activityType, setActivityType] = useState<string | null>(null);
-  const [showActivityPicker, setShowActivityPicker] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<PermissionTemplate | null>(
+    null
+  );
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [duration, setDuration] = useState(2); // hours
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,37 +47,80 @@ export default function RequestPermissionScreen() {
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showPicker, setShowPicker] = useState<'date' | 'time' | null>(null);
 
-  const selectedActivity = ACTIVITY_TYPES.find((a) => a.id === activityType);
-  const estimatedCost = selectedActivity ? selectedActivity.cost * duration : 0;
+  const estimatedCost = selectedTemplate
+    ? (selectedTemplate.suggestedPointsCost || 0) *
+      (duration / (selectedTemplate.suggestedDurationHours || 1))
+    : 0;
 
-  const handleQuickSelect = (id: string) => {
-    setSelectedQuick(id);
-    setActivityType(id);
-  };
+  // Load permission templates
+  useEffect(() => {
+    loadTemplates();
+  }, []);
 
-  const handleRequest = async () => {
-    if (!activityType) {
+  // Reload templates when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadTemplates();
+    }, [])
+  );
+
+  const loadTemplates = async () => {
+    try {
+      setLoadingTemplates(true);
+      const result = await permissionsService.getTemplates();
+      console.log('Templates loaded:', result);
+      setTemplates(result.data || []);
+      if (!result.data || result.data.length === 0) {
+        Toast.show({
+          type: 'info',
+          text1: 'No hay actividades',
+          text2: 'Contacta al administrador para agregar plantillas',
+        });
+      }
+    } catch (error) {
+      console.error('Error loading templates:', error);
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Please select an activity type',
+        text2: 'No se pudieron cargar las plantillas',
+      });
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  const handleQuickSelect = (category: string) => {
+    setSelectedQuick(category);
+    // Find first template of this category
+    const template = templates.find((t) => t.category === category);
+    if (template) {
+      setSelectedTemplate(template);
+      if (template.suggestedDurationHours) {
+        setDuration(template.suggestedDurationHours);
+      }
+    }
+  };
+
+  const handleRequest = async () => {
+    if (!selectedTemplate) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Por favor selecciona un tipo de permiso',
       });
       return;
     }
 
     setLoading(true);
     try {
-      const activity = ACTIVITY_TYPES.find((a) => a.id === activityType);
       const requestedDateTime = getCombinedDateTime();
 
       await requestPermission({
-        title: activity?.label || 'Activity Request',
-        // type: activityType as any, // Maps to PermissionType enum
-        type: PermissionType.GAMING_SESSION,
+        templateId: selectedTemplate.id,
         requestedDate: requestedDateTime.toISOString(),
         durationHours: duration,
-        pointsCost: estimatedCost,
-        description: note.trim() || undefined,
+        pointsCost: Math.round(estimatedCost),
+        metadata: note.trim() ? { note: note.trim() } : undefined,
       });
 
       Toast.show({
@@ -169,182 +210,261 @@ export default function RequestPermissionScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Quick Select */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Selección Rápida</Text>
-          <View style={styles.quickSelectRow}>
-            {QUICK_ACTIVITIES.map((activity) => (
+        {loadingTemplates ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Cargando plantillas...</Text>
+          </View>
+        ) : (
+          <>
+            {/* Quick Select */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Selección Rápida</Text>
+              <View style={styles.quickSelectRow}>
+                {QUICK_ACTIVITIES.map((activity) => (
+                  <TouchableOpacity
+                    key={activity.id}
+                    style={[
+                      styles.quickSelectItem,
+                      selectedQuick === activity.id && styles.quickSelectItemSelected,
+                    ]}
+                    onPress={() => handleQuickSelect(activity.id)}
+                  >
+                    <Ionicons
+                      name={activity.icon as keyof typeof Ionicons.glyphMap}
+                      size={24}
+                      color={
+                        selectedQuick === activity.id ? colors.white : colors.text.primary
+                      }
+                    />
+                    <Text
+                      style={[
+                        styles.quickSelectLabel,
+                        selectedQuick === activity.id && styles.quickSelectLabelSelected,
+                      ]}
+                    >
+                      {activity.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Activity Type */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Tipo de Actividad</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    router.push('/permissions/create-template');
+                  }}
+                  style={styles.addButton}
+                >
+                  <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+                  <Text style={styles.addButtonText}>Nueva</Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
-                key={activity.id}
-                style={[
-                  styles.quickSelectItem,
-                  selectedQuick === activity.id && styles.quickSelectItemSelected,
-                ]}
-                onPress={() => handleQuickSelect(activity.id)}
+                style={styles.dropdown}
+                onPress={() => setShowTemplatePicker(!showTemplatePicker)}
               >
-                <Ionicons
-                  name={activity.icon as keyof typeof Ionicons.glyphMap}
-                  size={24}
-                  color={
-                    selectedQuick === activity.id ? colors.white : colors.text.primary
-                  }
-                />
+                {selectedTemplate?.metadata?.icon && (
+                  <View style={styles.dropdownIcon}>
+                    <Ionicons
+                      name={
+                        selectedTemplate.metadata.icon as keyof typeof Ionicons.glyphMap
+                      }
+                      size={20}
+                      color={colors.primary}
+                    />
+                  </View>
+                )}
                 <Text
                   style={[
-                    styles.quickSelectLabel,
-                    selectedQuick === activity.id && styles.quickSelectLabelSelected,
+                    styles.dropdownText,
+                    !selectedTemplate && styles.dropdownPlaceholder,
                   ]}
                 >
-                  {activity.label}
+                  {selectedTemplate?.title || 'Selecciona una actividad'}
                 </Text>
+                <Ionicons
+                  name={showTemplatePicker ? 'chevron-up' : 'chevron-down'}
+                  size={20}
+                  color={colors.gray[400]}
+                />
               </TouchableOpacity>
-            ))}
-          </View>
-        </View>
 
-        {/* Activity Type */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Tipo de Actividad</Text>
-          <TouchableOpacity
-            style={styles.dropdown}
-            onPress={() => setShowActivityPicker(!showActivityPicker)}
-          >
-            <Text
-              style={[styles.dropdownText, !activityType && styles.dropdownPlaceholder]}
-            >
-              {selectedActivity?.label || 'Selecciona una actividad'}
-            </Text>
-            <Ionicons
-              name={showActivityPicker ? 'chevron-up' : 'chevron-down'}
-              size={20}
-              color={colors.gray[400]}
-            />
-          </TouchableOpacity>
+              {showTemplatePicker && (
+                <Card style={styles.dropdownMenu} padding="none">
+                  {templates.length === 0 ? (
+                    <View style={styles.emptyTemplates}>
+                      <Ionicons
+                        name="information-circle-outline"
+                        size={48}
+                        color={colors.gray[400]}
+                      />
+                      <Text style={styles.emptyTemplatesText}>
+                        No hay actividades disponibles
+                      </Text>
+                      <Text style={styles.emptyTemplatesSubtext}>
+                        Las plantillas de actividades se cargan automáticamente
+                      </Text>
+                    </View>
+                  ) : (
+                    templates.map((template) => (
+                      <TouchableOpacity
+                        key={template.id}
+                        style={[
+                          styles.dropdownItem,
+                          selectedTemplate?.id === template.id &&
+                            styles.dropdownItemSelected,
+                        ]}
+                        onPress={() => {
+                          setSelectedTemplate(template);
+                          setSelectedQuick(template.category);
+                          if (template.suggestedDurationHours) {
+                            setDuration(template.suggestedDurationHours);
+                          }
+                          setShowTemplatePicker(false);
+                        }}
+                      >
+                        {template.metadata?.icon && (
+                          <View style={styles.dropdownItemIcon}>
+                            <Ionicons
+                              name={
+                                template.metadata.icon as keyof typeof Ionicons.glyphMap
+                              }
+                              size={24}
+                              color={colors.primary}
+                            />
+                          </View>
+                        )}
+                        <View style={styles.dropdownItemContent}>
+                          <Text style={styles.dropdownItemText}>{template.title}</Text>
+                          {template.description && (
+                            <Text style={styles.dropdownItemDescription}>
+                              {template.description}
+                            </Text>
+                          )}
+                        </View>
+                        {template.suggestedPointsCost && (
+                          <Text style={styles.dropdownItemCost}>
+                            {template.suggestedPointsCost} pts
+                            {template.suggestedDurationHours &&
+                              `/${template.suggestedDurationHours}h`}
+                          </Text>
+                        )}
+                      </TouchableOpacity>
+                    ))
+                  )}
+                </Card>
+              )}
+            </View>
 
-          {showActivityPicker && (
-            <Card style={styles.dropdownMenu} padding="none">
-              {ACTIVITY_TYPES.map((activity) => (
+            {/* Date & Time */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Cuándo</Text>
+              <View style={styles.dateTimeRow}>
                 <TouchableOpacity
-                  key={activity.id}
-                  style={[
-                    styles.dropdownItem,
-                    activityType === activity.id && styles.dropdownItemSelected,
-                  ]}
-                  onPress={() => {
-                    setActivityType(activity.id);
-                    setShowActivityPicker(false);
-                  }}
+                  style={styles.dateTimeButton}
+                  onPress={() =>
+                    setShowPicker((show) => {
+                      return show === 'date' ? null : 'date';
+                    })
+                  }
                 >
-                  <Text style={styles.dropdownItemText}>{activity.label}</Text>
-                  <Text style={styles.dropdownItemCost}>{activity.cost} pts/hr</Text>
+                  <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+                  <Text style={styles.dateTimeText}>{formatDate(selectedDate)}</Text>
                 </TouchableOpacity>
-              ))}
-            </Card>
-          )}
-        </View>
+                <TouchableOpacity
+                  style={styles.dateTimeButton}
+                  onPress={() =>
+                    setShowPicker((show) => {
+                      return show === 'time' ? null : 'time';
+                    })
+                  }
+                >
+                  <Ionicons name="time-outline" size={20} color={colors.primary} />
+                  <Text style={styles.dateTimeText}>{formatTime(selectedTime)}</Text>
+                </TouchableOpacity>
+              </View>
 
-        {/* Date & Time */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cuándo</Text>
-          <View style={styles.dateTimeRow}>
-            <TouchableOpacity
-              style={styles.dateTimeButton}
-              onPress={() =>
-                setShowPicker((show) => {
-                  return show === 'date' ? null : 'date';
-                })
-              }
-            >
-              <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-              <Text style={styles.dateTimeText}>{formatDate(selectedDate)}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.dateTimeButton}
-              onPress={() =>
-                setShowPicker((show) => {
-                  return show === 'time' ? null : 'time';
-                })
-              }
-            >
-              <Ionicons name="time-outline" size={20} color={colors.primary} />
-              <Text style={styles.dateTimeText}>{formatTime(selectedTime)}</Text>
-            </TouchableOpacity>
-          </View>
+              {showPicker && (
+                <View style={styles.calendarContainer}>
+                  <DateTimePicker
+                    value={showPicker === 'time' ? selectedTime : selectedDate}
+                    mode={showPicker}
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={showPicker === 'time' ? handleTimeChange : handleDateChange}
+                    minimumDate={showPicker === 'date' ? new Date() : undefined}
+                    locale="es-CR"
+                  />
+                </View>
+              )}
 
-          {showPicker && (
-            <View style={styles.calendarContainer}>
-              <DateTimePicker
-                value={showPicker === 'time' ? selectedTime : selectedDate}
-                mode={showPicker}
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={showPicker === 'time' ? handleTimeChange : handleDateChange}
-                minimumDate={showPicker === 'date' ? new Date() : undefined}
-                locale="es-CR"
-              />
-            </View>
-          )}
-
-          {/* iOS Confirm Button */}
-          {Platform.OS === 'ios' && showPicker && (
-            <Button
-              title="Confirmar"
-              onPress={() => {
-                setShowPicker(null);
-              }}
-              variant="secondary"
-              style={{ marginTop: spacing.md }}
-            />
-          )}
-        </View>
-
-        {/* Duration Control */}
-        <View style={styles.section}>
-          <View style={styles.durationHeader}>
-            <Text style={styles.sectionTitle}>Duración</Text>
-            <Text style={styles.durationValue}>{duration} horas</Text>
-          </View>
-
-          <View style={styles.durationControl}>
-            <TouchableOpacity
-              style={styles.durationButton}
-              onPress={() => handleDurationChange(-0.5)}
-            >
-              <Ionicons name="remove" size={24} color={colors.primary} />
-            </TouchableOpacity>
-
-            <View style={styles.durationTrack}>
-              <View
-                style={[styles.durationFill, { width: `${(duration / 8) * 100}%` }]}
-              />
+              {/* iOS Confirm Button */}
+              {Platform.OS === 'ios' && showPicker && (
+                <Button
+                  title="Confirmar"
+                  onPress={() => {
+                    setShowPicker(null);
+                  }}
+                  variant="secondary"
+                  style={{ marginTop: spacing.md }}
+                />
+              )}
             </View>
 
-            <TouchableOpacity
-              style={styles.durationButton}
-              onPress={() => handleDurationChange(0.5)}
-            >
-              <Ionicons name="add" size={24} color={colors.primary} />
-            </TouchableOpacity>
-          </View>
+            {/* Duration Control */}
+            <View style={styles.section}>
+              <View style={styles.durationHeader}>
+                <Text style={styles.sectionTitle}>Duración</Text>
+                <Text style={styles.durationValue}>{duration} horas</Text>
+              </View>
 
-          {/* Estimated Cost */}
-          <View style={styles.costCard}>
-            <Text style={styles.costLabel}>Costo Estimado</Text>
-            <Text style={styles.costValue}>{estimatedCost} MariPuntos</Text>
-          </View>
-        </View>
+              <View style={styles.durationControl}>
+                <TouchableOpacity
+                  style={styles.durationButton}
+                  onPress={() => handleDurationChange(-0.5)}
+                >
+                  <Ionicons name="remove" size={24} color={colors.primary} />
+                </TouchableOpacity>
 
-        {/* Optional Note */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Nota (Opcional)</Text>
-          <Input
-            placeholder="Agrega un mensaje para tu pareja..."
-            value={note}
-            onChangeText={setNote}
-            multiline
-            numberOfLines={3}
-            containerStyle={styles.noteInput}
-          />
-        </View>
+                <View style={styles.durationTrack}>
+                  <View
+                    style={[styles.durationFill, { width: `${(duration / 8) * 100}%` }]}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={styles.durationButton}
+                  onPress={() => handleDurationChange(0.5)}
+                >
+                  <Ionicons name="add" size={24} color={colors.primary} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Estimated Cost */}
+              <View style={styles.costCard}>
+                <Text style={styles.costLabel}>Costo Estimado</Text>
+                <Text style={styles.costValue}>{estimatedCost} MariPuntos</Text>
+              </View>
+            </View>
+
+            {/* Optional Note */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Nota (Opcional)</Text>
+              <Input
+                placeholder="Agrega un mensaje para tu pareja..."
+                value={note}
+                onChangeText={setNote}
+                multiline
+                numberOfLines={3}
+                containerStyle={styles.noteInput}
+              />
+            </View>
+          </>
+        )}
       </ScrollView>
 
       {/* Bottom Button */}
@@ -355,7 +475,7 @@ export default function RequestPermissionScreen() {
           title="Enviar Solicitud"
           onPress={handleRequest}
           loading={loading}
-          disabled={!activityType}
+          disabled={!selectedTemplate || loadingTemplates}
           fullWidth
           icon="send"
         />
@@ -399,6 +519,21 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  addButtonText: {
+    ...typography.styles.bodyMedium,
+    color: colors.primary,
+  },
   calendarContainer: {
     alignItems: 'center',
   },
@@ -434,9 +569,19 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     ...shadows.sm,
   },
+  dropdownIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.full,
+    backgroundColor: `${colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
   dropdownText: {
     ...typography.styles.body,
     color: colors.text.primary,
+    flex: 1,
   },
   dropdownPlaceholder: {
     color: colors.gray[400],
@@ -456,13 +601,56 @@ const styles = StyleSheet.create({
   dropdownItemSelected: {
     backgroundColor: `${colors.primary}10`,
   },
+  dropdownItemIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.full,
+    backgroundColor: `${colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
+  dropdownItemContent: {
+    flex: 1,
+    marginRight: spacing.sm,
+  },
   dropdownItemText: {
     ...typography.styles.body,
     color: colors.text.primary,
   },
+  dropdownItemDescription: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    marginTop: spacing.xs,
+  },
   dropdownItemCost: {
     ...typography.styles.caption,
     color: colors.primary,
+  },
+  emptyTemplates: {
+    padding: spacing.xl,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  emptyTemplatesText: {
+    ...typography.styles.bodyMedium,
+    color: colors.text.primary,
+    textAlign: 'center',
+  },
+  emptyTemplatesSubtext: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  loadingText: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    marginTop: spacing.md,
   },
   dateTimeRow: {
     flexDirection: 'row',

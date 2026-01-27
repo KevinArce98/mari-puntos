@@ -61,12 +61,7 @@ export const Select: React.FC<SelectProps> = ({
         disabled={disabled}
         activeOpacity={0.7}
       >
-        <Text
-          style={[
-            styles.selectText,
-            !selectedOption && styles.placeholderText,
-          ]}
-        >
+        <Text style={[styles.selectText, !selectedOption && styles.placeholderText]}>
           {selectedOption ? selectedOption.label : placeholder}
         </Text>
         <Ionicons
@@ -84,15 +79,10 @@ export const Select: React.FC<SelectProps> = ({
         animationType="fade"
         onRequestClose={() => setIsOpen(false)}
       >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setIsOpen(false)}
-        >
+        <Pressable style={styles.modalOverlay} onPress={() => setIsOpen(false)}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {label || 'Select an option'}
-              </Text>
+              <Text style={styles.modalTitle}>{label || 'Select an option'}</Text>
               <TouchableOpacity onPress={() => setIsOpen(false)}>
                 <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
@@ -103,10 +93,7 @@ export const Select: React.FC<SelectProps> = ({
               keyExtractor={(item) => item.value.toString()}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={[
-                    styles.option,
-                    item.value === value && styles.selectedOption,
-                  ]}
+                  style={[styles.option, item.value === value && styles.selectedOption]}
                   onPress={() => handleSelect(item.value)}
                   activeOpacity={0.7}
                 >
@@ -119,11 +106,7 @@ export const Select: React.FC<SelectProps> = ({
                     {item.label}
                   </Text>
                   {item.value === value && (
-                    <Ionicons
-                      name="checkmark"
-                      size={20}
-                      color={colors.primary}
-                    />
+                    <Ionicons name="checkmark" size={20} color={colors.primary} />
                   )}
                 </TouchableOpacity>
               )}

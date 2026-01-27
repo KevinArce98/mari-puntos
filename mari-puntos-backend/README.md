@@ -51,7 +51,24 @@ PARTNER_CODE_LENGTH=6
 POINTS_PER_LEVEL=100
 ```
 
-4. **Run the development server**
+4. **Run database migrations**
+```bash
+pnpm run migration:run
+```
+
+5. **Seed initial data (optional)**
+```bash
+# Seed system permission templates
+psql $DATABASE_URL < scripts/seed-permission-templates.sql
+
+# Seed achievement levels
+psql $DATABASE_URL < scripts/seed-achievements.sql
+
+# Seed user levels
+psql $DATABASE_URL < scripts/seed-levels.sql
+```
+
+6. **Run the development server**
 ```bash
 pnpm dev
 ```
@@ -61,6 +78,9 @@ pnpm dev
 - `pnpm dev` - Start development server with hot reload
 - `pnpm build` - Build for production
 - `pnpm start` - Start production server
+- `pnpm migration:generate` - Generate new migration
+- `pnpm migration:run` - Run pending migrations
+- `pnpm migration:revert` - Revert last migration
 - `pnpm typecheck` - Run TypeScript type checking
 - `pnpm lint` - Lint code with ESLint
 - `pnpm format` - Format code with Prettier
@@ -155,6 +175,14 @@ All endpoints require authentication via Clerk token in `Authorization: Bearer <
 - `GET /api/permissions/:id` - Get permission by ID
 - `POST /api/permissions/:id/respond` - Approve/reject permission (wife only)
 - `DELETE /api/permissions/:id` - Delete permission request
+
+### Permission Templates
+- `GET /api/permission-templates` - Get all templates (system + custom)
+- `GET /api/permission-templates/system` - Get system templates only
+- `GET /api/permission-templates/:id` - Get template by ID
+- `POST /api/permission-templates` - Create custom template
+- `PATCH /api/permission-templates/:id` - Update custom template
+- `DELETE /api/permission-templates/:id` - Delete custom template
 
 ### Rewards
 - `POST /api/rewards` - Create custom reward

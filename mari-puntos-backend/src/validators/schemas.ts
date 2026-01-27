@@ -7,7 +7,6 @@ import { z } from 'zod';
 import {
   ActionCategory,
   ActionStatus,
-  PermissionType,
   PermissionStatus,
   RewardCategory,
   PAGINATION_DEFAULTS,
@@ -45,28 +44,32 @@ export const joinPartnerLinkSchema = z.object({
 export const createActionSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().max(1000).optional(),
-  category: z.enum([
-    ActionCategory.HOUSEHOLD,
-    ActionCategory.CHILDCARE,
-    ActionCategory.ERRANDS,
-    ActionCategory.ROMANTIC,
-    ActionCategory.PERSONAL_GROWTH,
-    ActionCategory.OTHER,
-  ]).default(ActionCategory.OTHER),
+  category: z
+    .enum([
+      ActionCategory.HOUSEHOLD,
+      ActionCategory.CHILDCARE,
+      ActionCategory.ERRANDS,
+      ActionCategory.ROMANTIC,
+      ActionCategory.PERSONAL_GROWTH,
+      ActionCategory.OTHER,
+    ])
+    .default(ActionCategory.OTHER),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const updateActionSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(1000).optional(),
-  category: z.enum([
-    ActionCategory.HOUSEHOLD,
-    ActionCategory.CHILDCARE,
-    ActionCategory.ERRANDS,
-    ActionCategory.ROMANTIC,
-    ActionCategory.PERSONAL_GROWTH,
-    ActionCategory.OTHER,
-  ]).optional(),
+  category: z
+    .enum([
+      ActionCategory.HOUSEHOLD,
+      ActionCategory.CHILDCARE,
+      ActionCategory.ERRANDS,
+      ActionCategory.ROMANTIC,
+      ActionCategory.PERSONAL_GROWTH,
+      ActionCategory.OTHER,
+    ])
+    .optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -83,19 +86,11 @@ export const rejectActionSchema = z.object({
 // ============================================================================
 
 export const createPermissionSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200),
-  description: z.string().max(1000).optional(),
-  type: z.enum([
-    PermissionType.NIGHT_OUT,
-    PermissionType.GAMING_SESSION,
-    PermissionType.SPORTS_EVENT,
-    PermissionType.FRIENDS_HANGOUT,
-    PermissionType.HOBBY_TIME,
-    PermissionType.OTHER,
-  ]).default(PermissionType.OTHER),
+  templateId: z.uuid('Invalid template ID'),
   requestedDate: z.iso.datetime({ message: 'Invalid date format' }),
-  durationHours: z.number().int().min(1).max(168), // Max 1 week
+  durationHours: z.number().min(0.5).max(168), // Min 0.5 hours, Max 1 week
   pointsCost: z.number().int().min(0),
+  metadata: z.record(z.any(), z.unknown()).optional(),
 });
 
 export const respondPermissionSchema = z.object({
@@ -110,14 +105,16 @@ export const respondPermissionSchema = z.object({
 export const createRewardSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().max(1000).optional(),
-  category: z.enum([
-    RewardCategory.PERSONAL_TIME,
-    RewardCategory.ENTERTAINMENT,
-    RewardCategory.GIFTS,
-    RewardCategory.EXPERIENCES,
-    RewardCategory.PRIVILEGES,
-    RewardCategory.OTHER,
-  ]).default(RewardCategory.OTHER),
+  category: z
+    .enum([
+      RewardCategory.PERSONAL_TIME,
+      RewardCategory.ENTERTAINMENT,
+      RewardCategory.GIFTS,
+      RewardCategory.EXPERIENCES,
+      RewardCategory.PRIVILEGES,
+      RewardCategory.OTHER,
+    ])
+    .default(RewardCategory.OTHER),
   pointsCost: z.number().int().min(0),
   requiredLevel: z.number().int().min(1).default(1),
   imageUrl: z.url('Invalid URL').optional(),
@@ -126,14 +123,16 @@ export const createRewardSchema = z.object({
 export const updateRewardSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().max(1000).optional(),
-  category: z.enum([
-    RewardCategory.PERSONAL_TIME,
-    RewardCategory.ENTERTAINMENT,
-    RewardCategory.GIFTS,
-    RewardCategory.EXPERIENCES,
-    RewardCategory.PRIVILEGES,
-    RewardCategory.OTHER,
-  ]).optional(),
+  category: z
+    .enum([
+      RewardCategory.PERSONAL_TIME,
+      RewardCategory.ENTERTAINMENT,
+      RewardCategory.GIFTS,
+      RewardCategory.EXPERIENCES,
+      RewardCategory.PRIVILEGES,
+      RewardCategory.OTHER,
+    ])
+    .optional(),
   pointsCost: z.number().int().min(0).optional(),
   requiredLevel: z.number().int().min(1).optional(),
   imageUrl: z.url('Invalid URL').optional(),
@@ -150,40 +149,51 @@ export const redeemRewardSchema = z.object({
 
 export const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).optional().default(PAGINATION_DEFAULTS.PAGE),
-  limit: z.coerce.number().int().min(1).max(PAGINATION_DEFAULTS.MAX_LIMIT).optional().default(PAGINATION_DEFAULTS.LIMIT),
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(PAGINATION_DEFAULTS.MAX_LIMIT)
+    .optional()
+    .default(PAGINATION_DEFAULTS.LIMIT),
 });
 
 export const actionsQuerySchema = z.object({
-  status: z.enum([
-    ActionStatus.PENDING,
-    ActionStatus.APPROVED,
-    ActionStatus.REJECTED,
-  ]).optional(),
+  status: z
+    .enum([ActionStatus.PENDING, ActionStatus.APPROVED, ActionStatus.REJECTED])
+    .optional(),
   page: z.coerce.number().int().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(PAGINATION_DEFAULTS.MAX_LIMIT).optional(),
 });
 
 export const permissionsQuerySchema = z.object({
-  status: z.enum([
-    PermissionStatus.PENDING,
-    PermissionStatus.APPROVED,
-    PermissionStatus.REJECTED,
-    PermissionStatus.EXPIRED,
-  ]).optional(),
+  status: z
+    .enum([
+      PermissionStatus.PENDING,
+      PermissionStatus.APPROVED,
+      PermissionStatus.REJECTED,
+      PermissionStatus.EXPIRED,
+    ])
+    .optional(),
   page: z.coerce.number().int().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(PAGINATION_DEFAULTS.MAX_LIMIT).optional(),
 });
 
 export const rewardsQuerySchema = z.object({
-  category: z.enum([
-    RewardCategory.PERSONAL_TIME,
-    RewardCategory.ENTERTAINMENT,
-    RewardCategory.GIFTS,
-    RewardCategory.EXPERIENCES,
-    RewardCategory.PRIVILEGES,
-    RewardCategory.OTHER,
-  ]).optional(),
-  isActive: z.enum(['true', 'false']).transform((val) => val === 'true').optional(),
+  category: z
+    .enum([
+      RewardCategory.PERSONAL_TIME,
+      RewardCategory.ENTERTAINMENT,
+      RewardCategory.GIFTS,
+      RewardCategory.EXPERIENCES,
+      RewardCategory.PRIVILEGES,
+      RewardCategory.OTHER,
+    ])
+    .optional(),
+  isActive: z
+    .enum(['true', 'false'])
+    .transform((val) => val === 'true')
+    .optional(),
   page: z.coerce.number().int().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(PAGINATION_DEFAULTS.MAX_LIMIT).optional(),
 });

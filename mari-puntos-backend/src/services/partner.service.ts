@@ -135,7 +135,7 @@ export class PartnerService {
    * Returns structure matching controller expectations
    * Returns null if no active partner link exists
    */
-  async getPartnerLink(
+  async getPartnerLinkWithDetails(
     userId: string
   ): Promise<{ partnerLink: PartnerLink; partner: User } | null> {
     const partnerLink = await this.partnerLinkRepository.findOne({
@@ -172,6 +172,18 @@ export class PartnerService {
     }
 
     return partnerLink.user1Id === userId ? partnerLink.user2Id : partnerLink.user1Id;
+  }
+
+  async getPartnerLink(userId: string): Promise<PartnerLink | null> {
+    const partnerLink = await this.partnerLinkRepository.findOne({
+      where: [{ user1Id: userId }, { user2Id: userId }],
+    });
+
+    if (!partnerLink || partnerLink.status !== PartnerLinkStatus.ACTIVE) {
+      return null;
+    }
+
+    return partnerLink;
   }
 
   async unlinkPartner(userId: string): Promise<void> {

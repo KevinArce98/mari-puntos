@@ -7,6 +7,7 @@ export { Card } from './Card';
 export { Chip } from './Chip';
 export { CodeInput } from './CodeInput';
 export { CreateActionModal } from './CreateActionModal';
+export { IconSelector } from './IconSelector';
 export { Input } from './Input';
 export { ListItem } from './ListItem';
 export { PointsCard } from './PointsCard';

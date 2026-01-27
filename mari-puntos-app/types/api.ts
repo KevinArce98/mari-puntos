@@ -52,12 +52,13 @@ export enum ActionStatus {
   REJECTED = 'rejected',
 }
 
-export enum PermissionType {
-  NIGHT_OUT = 'night_out',
-  GAMING_SESSION = 'gaming_session',
-  SPORTS_EVENT = 'sports_event',
-  FRIENDS_HANGOUT = 'friends_hangout',
-  HOBBY_TIME = 'hobby_time',
+export enum PermissionCategory {
+  GAMING = 'gaming',
+  SOCIAL = 'social',
+  SPORTS = 'sports',
+  HOBBIES = 'hobbies',
+  ENTERTAINMENT = 'entertainment',
+  PERSONAL_TIME = 'personal_time',
   OTHER = 'other',
 }
 
@@ -216,24 +217,43 @@ export interface GetActionsParams extends PaginationParams {
 }
 
 // ============================================
+// Permission Template Types
+// ============================================
+
+export interface PermissionTemplate {
+  id: string;
+  title: string;
+  description?: string;
+  category: PermissionCategory;
+  suggestedDurationHours?: number;
+  suggestedPointsCost?: number;
+  isSystemTemplate: boolean;
+  isActive: boolean;
+  partnerLinkId?: string;
+  metadata?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ============================================
 // Permission Types
 // ============================================
 
 export interface Permission {
   id: string;
+  templateId: string;
   requesterId: string;
   approverId?: string;
-  title: string;
-  description?: string;
-  type: PermissionType;
   status: PermissionStatus;
   requestedDate: string;
   durationHours: number;
   pointsCost: number;
   responseMessage?: string;
   respondedAt?: string;
+  metadata?: Record<string, any>;
   createdAt: string;
   updatedAt: string;
+  template?: PermissionTemplate;
   requester?: {
     id: string;
     firstName: string;
@@ -251,12 +271,25 @@ export interface Permission {
 }
 
 export interface CreatePermissionRequest {
-  title: string;
-  description?: string;
-  type: PermissionType;
+  templateId: string;
   requestedDate: string;
   durationHours: number;
   pointsCost: number;
+  metadata?: Record<string, any>;
+}
+
+export interface CreatePermissionTemplateRequest {
+  title: string;
+  description?: string;
+  category: PermissionCategory;
+  suggestedDurationHours?: number;
+  suggestedPointsCost?: number;
+  metadata?: Record<string, any>;
+}
+
+export interface GetPermissionTemplatesParams extends PaginationParams {
+  category?: PermissionCategory;
+  isSystemTemplate?: boolean;
 }
 
 export interface RespondPermissionRequest {

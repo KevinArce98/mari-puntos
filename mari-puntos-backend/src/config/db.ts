@@ -3,6 +3,7 @@ import { config } from './env';
 import { User } from '../entities/User';
 import { PartnerLink } from '../entities/PartnerLink';
 import { Permission } from '../entities/Permission';
+import { PermissionTemplate } from '../entities/PermissionTemplate';
 import { Action } from '../entities/Action';
 import { Reward } from '../entities/Reward';
 import { Log } from '../entities/Log';
@@ -15,7 +16,17 @@ export const AppDataSource = new DataSource({
   ssl: config.isProduction ? { rejectUnauthorized: false } : false,
   synchronize: config.isDevelopment, // Only in development
   logging: config.isDevelopment,
-  entities: [User, PartnerLink, Permission, Action, Reward, Log, Level, Achievement],
+  entities: [
+    User,
+    PartnerLink,
+    Permission,
+    PermissionTemplate,
+    Action,
+    Reward,
+    Log,
+    Level,
+    Achievement,
+  ],
   migrations: ['src/migrations/**/*.ts'],
   subscribers: [],
 });

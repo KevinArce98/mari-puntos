@@ -6,11 +6,11 @@
  * Frontend is the source of truth - backend adapts to frontend
  */
 
+import { PermissionCategory } from '../entities/PermissionTemplate';
 import {
   ActionStatus,
   ActionCategory,
   PermissionStatus,
-  PermissionType,
   RewardCategory,
   PartnerLinkStatus,
   LogType,
@@ -228,23 +228,41 @@ export interface GetActionsParamsDTO extends PaginationParams {
 // ============================================================================
 
 /**
+ * Permission Template response DTO - matches frontend PermissionTemplate interface
+ */
+export interface PermissionTemplateDTO {
+  id: string;
+  title: string;
+  description?: string;
+  category: PermissionCategory;
+  suggestedDurationHours?: number;
+  suggestedPointsCost?: number;
+  isSystemTemplate: boolean;
+  isActive: boolean;
+  partnerLinkId?: string;
+  metadata?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * Permission response DTO - matches frontend Permission interface
  */
 export interface PermissionDTO {
   id: string;
+  templateId: string;
   requesterId: string;
   approverId?: string;
-  title: string;
-  description?: string;
-  type: PermissionType;
   status: PermissionStatus;
   requestedDate: string;
   durationHours: number;
   pointsCost: number;
   responseMessage?: string;
   respondedAt?: string;
+  metadata?: Record<string, any>;
   createdAt: string;
   updatedAt: string;
+  template?: PermissionTemplateDTO;
   requester?: {
     id: string;
     firstName: string;
@@ -265,12 +283,11 @@ export interface PermissionDTO {
  * Create permission request - matches frontend CreatePermissionRequest
  */
 export interface CreatePermissionDTO {
-  title: string;
-  description?: string;
-  type: PermissionType;
+  templateId: string;
   requestedDate: string;
   durationHours: number;
   pointsCost: number;
+  metadata?: Record<string, any>;
 }
 
 /**

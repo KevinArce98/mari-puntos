@@ -3,6 +3,7 @@ import usersRoutes from './users.routes';
 import partnerRoutes from './partner.routes';
 import actionsRoutes from './actions.routes';
 import permissionsRoutes from './permissions.routes';
+import permissionTemplatesRoutes from './permission-templates.routes';
 import rewardsRoutes from './rewards.routes';
 import pointsRoutes from './points.routes';
 import { getNowUTC6 } from '../utils/helpers';
@@ -48,6 +49,7 @@ router.use('/users', usersRoutes);
 router.use('/partner', partnerRoutes);
 router.use('/actions', actionsRoutes);
 router.use('/permissions', permissionsRoutes);
+router.use('/permission-templates', permissionTemplatesRoutes);
 router.use('/rewards', rewardsRoutes);
 router.use('/points', pointsRoutes);
 

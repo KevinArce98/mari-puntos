@@ -8,15 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from './User';
-
-export enum PermissionType {
-  NIGHT_OUT = 'night_out',
-  GAMING_SESSION = 'gaming_session',
-  SPORTS_EVENT = 'sports_event',
-  FRIENDS_HANGOUT = 'friends_hangout',
-  HOBBY_TIME = 'hobby_time',
-  OTHER = 'other',
-}
+import { PermissionTemplate } from './PermissionTemplate';
 
 export enum PermissionStatus {
   PENDING = 'pending',
@@ -31,23 +23,13 @@ export class Permission {
   id: string;
 
   @Column({ type: 'uuid' })
+  templateId: string;
+
+  @Column({ type: 'uuid' })
   requesterId: string;
 
   @Column({ type: 'uuid', nullable: true })
   approverId: string | null;
-
-  @Column()
-  title: string;
-
-  @Column({ type: 'text', nullable: true })
-  description: string | null;
-
-  @Column({
-    type: 'enum',
-    enum: PermissionType,
-    default: PermissionType.OTHER,
-  })
-  type: PermissionType;
 
   @Column({
     type: 'enum',
@@ -59,10 +41,10 @@ export class Permission {
   @Column({ type: 'timestamp' })
   requestedDate: Date;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'decimal', precision: 5, scale: 1 })
   durationHours: number;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'int' })
   pointsCost: number;
 
   @Column({ type: 'timestamp', nullable: true })
@@ -81,6 +63,10 @@ export class Permission {
   updatedAt: Date;
 
   // Relations
+  @ManyToOne(() => PermissionTemplate)
+  @JoinColumn({ name: 'templateId' })
+  template: PermissionTemplate;
+
   @ManyToOne(() => User, (user) => user.permissionsRequested)
   @JoinColumn({ name: 'requesterId' })
   requester: User;
