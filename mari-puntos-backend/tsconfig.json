@@ -20,6 +20,7 @@
     "noFallthroughCasesInSwitch": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
     "strictPropertyInitialization": false,
     "types": ["node"]
   },

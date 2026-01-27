@@ -16,20 +16,20 @@ export const AppDataSource = new DataSource({
   ssl: config.isProduction ? { rejectUnauthorized: false } : false,
   synchronize: false, // Never use synchronize in production
   logging: config.isDevelopment,
-  entities: config.isProduction 
+  entities: config.isProduction
     ? ['dist/entities/**/*.js']
     : [
-      User,
-      PartnerLink,
-      Permission,
-      PermissionTemplate,
-      Action,
-      Reward,
-      Log,
-      Level,
-      Achievement,
-    ],
-  migrations: config.isProduction ? ['dist/migrations/**/*.js'] : ['src/migrations/**/*.ts'],
+        User,
+        PartnerLink,
+        Permission,
+        PermissionTemplate,
+        Action,
+        Reward,
+        Log,
+        Level,
+        Achievement,
+      ],
+  migrations: config.isProduction ? [] : ['src/migrations/**/*.ts'],
   subscribers: [],
 });
 
