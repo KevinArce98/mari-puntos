@@ -210,7 +210,7 @@ export class PermissionsService {
         userId: permission.requesterId,
         type: logType,
         message,
-        pointsChange: approved && permission.pointsCost > 0 ? -permission.pointsCost : 0,
+        pointsChange: 0,
         relatedEntityId: permission.id,
         relatedEntityType: 'Permission',
       }),
