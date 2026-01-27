@@ -11,23 +11,29 @@ const FILTERS = ['All', 'Unlocked', 'In Progress'];
 
 export default function AchievementsTabScreen() {
   const insets = useSafeAreaInsets();
-  const { unlockedAchievements, lockedAchievements } = useRewards();
+  const { allRewards, availableRewards } = useRewards();
   const [selectedFilter, setSelectedFilter] = useState('All');
 
-  const totalAchievements = unlockedAchievements.length + lockedAchievements.length;
+  const totalAchievements = allRewards.length;
   const completionPercentage =
     totalAchievements > 0
-      ? Math.round((unlockedAchievements.length / totalAchievements) * 100)
+      ? Math.round((availableRewards.length / totalAchievements) * 100)
       : 0;
 
   const filteredAchievements = () => {
     switch (selectedFilter) {
       case 'Unlocked':
-        return { unlocked: unlockedAchievements, locked: [] };
+        return { unlocked: availableRewards, locked: [] };
       case 'In Progress':
-        return { unlocked: [], locked: lockedAchievements };
+        return {
+          unlocked: [],
+          locked: allRewards.filter((a) => !availableRewards.includes(a)),
+        };
       default:
-        return { unlocked: unlockedAchievements, locked: lockedAchievements };
+        return {
+          unlocked: availableRewards,
+          locked: allRewards.filter((a) => !availableRewards.includes(a)),
+        };
     }
   };
 
@@ -125,7 +131,7 @@ export default function AchievementsTabScreen() {
             <View>
               <Text style={styles.progressCardTitle}>Your Progress</Text>
               <Text style={styles.progressCardSubtitle}>
-                {unlockedAchievements.length} of {totalAchievements} achievements
+                {unlocked.length} of {totalAchievements} achievements
               </Text>
             </View>
             <View style={styles.percentageCircle}>
@@ -142,13 +148,13 @@ export default function AchievementsTabScreen() {
           <View style={styles.statsRow}>
             <View style={styles.miniStat}>
               <Ionicons name="trophy" size={18} color={colors.accent} />
-              <Text style={styles.miniStatValue}>{unlockedAchievements.length}</Text>
+              <Text style={styles.miniStatValue}>{unlocked.length}</Text>
               <Text style={styles.miniStatLabel}>Unlocked</Text>
             </View>
             <View style={styles.miniStatDivider} />
             <View style={styles.miniStat}>
               <Ionicons name="hourglass-outline" size={18} color={colors.primary} />
-              <Text style={styles.miniStatValue}>{lockedAchievements.length}</Text>
+              <Text style={styles.miniStatValue}>{locked.length}</Text>
               <Text style={styles.miniStatLabel}>In Progress</Text>
             </View>
             <View style={styles.miniStatDivider} />
