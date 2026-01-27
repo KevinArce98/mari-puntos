@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class UpdateDurationToDecimal1738000000000 implements MigrationInterface {
     name = 'UpdateDurationToDecimal1738000000000'
