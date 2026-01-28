@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'MariPuntos - Gamifica los permisos en tu relación',
+  title: 'MariPuntos BETA - Convierte tu relación en el mejor juego',
   description:
-    'Transforma la dinámica de permisos entre parejas en una experiencia divertida y gamificada. Gana puntos, solicita permisos, canjea recompensas y desbloquea logros.',
+    'Únete a la BETA privada. Gamificamos decisiones de pareja y llevá tu relación al siguiente nivel con humor, niños y mucha gamificación.',
   keywords: [
     'pareja',
     'relación',
@@ -24,12 +24,14 @@ export const metadata: Metadata = {
     'gamificación',
     'puntos',
     'recompensas',
+    'beta',
+    'app de pareja',
     'Costa Rica',
   ],
   openGraph: {
-    title: 'MariPuntos - Gamifica los permisos en tu relación',
+    title: 'MariPuntos BETA - Convierte tu relación en el mejor juego',
     description:
-      'Gana puntos por acciones, solicita permisos, canjea recompensas y desbloquea logros junto a tu pareja.',
+      'Gamificamos decisiones de pareja. Gana puntos, solicita permisos y canjea recompensas junto a tu pareja.',
     type: 'website',
   },
 };
@@ -40,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
         <Analytics />

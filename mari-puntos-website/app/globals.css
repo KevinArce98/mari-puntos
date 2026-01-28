@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #24C6B1;
+  --primary-dark: #1da896;
 }
 
 @theme inline {
@@ -14,8 +16,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #ffffff;
+    --foreground: #171717;
   }
 }
 
@@ -26,14 +28,16 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Custom Animations */
 @keyframes fade-in-down {
   0% {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-30px);
   }
   100% {
     opacity: 1;
@@ -127,6 +131,32 @@ body {
 
 .animate-float-delayed {
   animation: float-delayed 4s ease-in-out infinite;
+}
+
+/* Gradient backgrounds */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #24C6B1 0%, #1da896 100%);
+}
+
+/* Mobile-first responsive utilities */
+@media (max-width: 768px) {
+  .animate-fade-in-down,
+  .animate-slide-in-left,
+  .animate-slide-in-right,
+  .animate-slide-in-bottom {
+    animation-duration: 0.5s;
+  }
+}
+
+/* Smooth scroll padding for fixed header */
+html {
+  scroll-padding-top: 80px;
+}
+
+/* Improved button hover states */
+button:active,
+a:active {
+  transform: scale(0.98);
 }
 
 /* Prose Styles for Legal Documents */
