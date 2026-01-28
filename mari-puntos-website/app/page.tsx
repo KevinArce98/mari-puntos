@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'MariPuntos - Gamifica tu Relación de Pareja',
   description:
-    'Convierte tu relación en el mejor juego. Gamificamos decisiones de pareja y llevá tu relación al siguiente nivel con humor, niños y mucha gamificación. Únete a nuestra Beta Privada.',
+    'Gamifica tu relación con MariPuntos. Solicita permisos, gana puntos por buenas acciones y canjea recompensas en pareja de forma divertida y organizada.',
   keywords: [
     'relación de pareja',
     'gamificación',
@@ -23,8 +23,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'MariPuntos - Gamifica tu Relación de Pareja',
-    description:
-      'Convierte tu relación en el mejor juego. Únete a nuestra Beta Privada.',
+    description: 'Convierte tu relación en el mejor juego. Únete a nuestra Beta Privada.',
   },
 };
 
@@ -66,8 +65,9 @@ export default function Home() {
               </span>
             </h1>
             <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-              Gamificamos decisiones de pareja y llevá tu relación al siguiente nivel con
-              humor, niños y mucha gamificación
+              MariPuntos es la app que gamifica la dinámica de pareja: solicita permisos,
+              suma puntos por buenas acciones y canjea recompensas en un sistema claro,
+              divertido y sin conflictos.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <a
@@ -86,7 +86,6 @@ export default function Home() {
           </div>
         </div>
       </header>
-
 
       {/* How It Works Section */}
       <section id="como-funciona" className="py-16 md:py-24 bg-white">
@@ -269,9 +268,9 @@ export default function Home() {
                 <div className="absolute -inset-4 bg-linear-to-r from-[#24C6B1]/20 to-[#1da896]/20 rounded-3xl blur-2xl"></div>
                 <div className="relative bg-gray-100 rounded-[3rem] p-3 shadow-2xl max-w-75">
                   <div className="bg-white rounded-[2.5rem] overflow-hidden">
-                    <img 
-                      src="/actions.png" 
-                      alt="Evalúa Acción MariPuntos" 
+                    <img
+                      src="/actions.png"
+                      alt="Evalúa Acción MariPuntos"
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -287,9 +286,9 @@ export default function Home() {
                 <div className="absolute -inset-4 bg-linear-to-r from-[#24C6B1]/20 to-[#1da896]/20 rounded-3xl blur-2xl"></div>
                 <div className="relative bg-gray-100 rounded-[3rem] p-3 shadow-2xl max-w-75">
                   <div className="bg-white rounded-[2.5rem] overflow-hidden">
-                    <img 
-                      src="/permisos.png" 
-                      alt="Sistema de Permisos MariPuntos" 
+                    <img
+                      src="/permisos.png"
+                      alt="Sistema de Permisos MariPuntos"
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -304,7 +303,8 @@ export default function Home() {
                 Solicita Permisos
               </h3>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                ¿Quieres salir con tus amigos o jugar videojuegos? Usa tus puntos para solicitar permisos personalizados
+                ¿Quieres salir con tus amigos o jugar videojuegos? Usa tus puntos para
+                solicitar permisos personalizados
               </p>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3">
@@ -321,7 +321,9 @@ export default function Home() {
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                  <span className="text-gray-700">Permisos personalizables por pareja</span>
+                  <span className="text-gray-700">
+                    Permisos personalizables por pareja
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <svg
@@ -353,7 +355,9 @@ export default function Home() {
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                  <span className="text-gray-700">Historial y seguimiento de permisos</span>
+                  <span className="text-gray-700">
+                    Historial y seguimiento de permisos
+                  </span>
                 </li>
               </ul>
             </div>
@@ -416,7 +420,7 @@ export default function Home() {
             Mejora tu relación con el poder del juego. Únete a nuestra Beta Privada y
             obtén acceso anticipado
           </p>
-          
+
           <BetaSignupForm />
 
           <div className="flex items-center justify-center gap-2 text-sm opacity-75">
