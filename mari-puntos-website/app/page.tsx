@@ -33,9 +33,9 @@ export default function Home() {
           </div>
 
           {/* Animated shapes */}
-          <div className="absolute top-20 left-10 w-20 h-20 bg-[#FFD700] rounded-full opacity-20 animate-float"></div>
+          <div className="absolute top-20 md:left-10 left-0 w-20 h-20 bg-[#FFD700] rounded-full opacity-20 animate-float"></div>
           <div className="absolute top-40 right-20 w-32 h-32 bg-[#24C6B1] rounded-full opacity-10 animate-float-delayed"></div>
-          <div className="absolute bottom-20 left-1/4 w-16 h-16 bg-[#EC4899] rounded-full opacity-15 animate-pulse"></div>
+          <div className="absolute bottom-20 md:left-1/4 left-6 w-16 h-16 bg-[#EC4899] rounded-full opacity-15 animate-pulse"></div>
         </div>
       </header>
 
