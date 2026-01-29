@@ -56,10 +56,11 @@ class ApiService {
         }
 
         // Format error for better handling
-        const apiError: ApiError = {
+        const apiError: ApiError & { status?: number } = {
           success: false,
           error: error.response?.data?.error || error.message || 'An error occurred',
           details: error.response?.data?.details,
+          status: error.response?.status,
         };
 
         return Promise.reject(apiError);

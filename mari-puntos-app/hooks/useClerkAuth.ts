@@ -23,8 +23,15 @@ export function useClerkAuth() {
           }
         });
 
+        // Try to fetch profile, but don't fail if user doesn't exist yet (new user)
         fetchProfile().catch((error) => {
-          console.error('Error fetching user profile:', error);
+          // Only log error if it's not a 404 (user not found)
+          // New users won't have a profile until they complete signup
+          if (error?.status !== 404) {
+            console.error('Error fetching user profile:', error);
+          } else {
+            console.log('User profile not found - this is normal for new users during signup');
+          }
         });
       } else {
         apiService.clearTokenGetter();

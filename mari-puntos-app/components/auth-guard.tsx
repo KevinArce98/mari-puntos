@@ -32,17 +32,21 @@ export function AuthGuard({ children }: AuthGuardProps) {
     if (isSignedIn) {
       // Check if user profile exists in database
       if (!user && !inAuthGroup) {
-        // Profile doesn't exist, clear session and redirect to login
-        console.warn('User authenticated but profile not found. Signing out...');
+        // Profile doesn't exist and user is not on auth pages
+        // This could be a new user who hasn't completed profile creation yet
+        console.warn('User authenticated but profile not found. Redirecting to login...');
         clearUser();
-        signOut()
-          .then(() => {
-            router.replace('/(auth)/login');
-          })
-          .catch((error) => {
+        
+        // Try to sign out silently, but don't fail if already signed out
+        signOut().catch((error) => {
+          // Ignore "You are signed out" errors
+          if (!error.message?.includes('signed out')) {
             console.error('Error signing out:', error);
-            router.replace('/(auth)/login');
-          });
+          }
+        });
+        
+        // Always redirect regardless of sign out result
+        router.replace('/(auth)/login');
         return;
       }
 
