@@ -127,3 +127,61 @@ export const requirePartner = async (
 
   next();
 };
+
+/**
+ * Auth middleware for profile creation
+ * Only validates Clerk JWT token without checking if user exists in database
+ * Used for POST /users/profile endpoint
+ */
+export const clerkOnlyAuthMiddleware = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      sendError(res, 'Autenticación requerida', 401);
+      return;
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const options = { algorithms: ['RS256'] as jwt.Algorithm[] };
+    
+    let decoded: jwt.JwtPayload;
+    try {
+      decoded = jwt.verify(token, config.clerk.publicKey, options) as jwt.JwtPayload;
+    } catch (jwtError) {
+      sendError(res, 'Token inválido o expirado', 401);
+      return;
+    }
+
+    if (!decoded.exp || !decoded.nbf) {
+      sendError(res, 'Claims de token inválidos', 401);
+      return;
+    }
+
+    // Validate token expiration and not-before claims
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (decoded.exp < currentTime) {
+      sendError(res, 'El token ha expirado', 401);
+      return;
+    }
+    if (decoded.nbf > currentTime) {
+      sendError(res, 'El token aún no es válido', 401);
+      return;
+    }
+
+    const clerkId = decoded.sub as string;
+
+    // For profile creation, we only need the clerkId from the token
+    // We don't check if user exists in database
+    req.clerkId = clerkId;
+
+    next();
+  } catch (error) {
+    console.error('Clerk auth middleware error:', error);
+    sendError(res, 'Autenticación fallida', 401);
+  }
+};

@@ -31,6 +31,24 @@ export class UsersService {
    * Create a new user
    */
   async createUser(data: CreateUserInput): Promise<User> {
+    // Check if user already exists with this clerkId
+    const existingUser = await this.userRepository.findOne({ 
+      where: { clerkId: data.clerkId } 
+    });
+
+    if (existingUser) {
+      throw new AppError(409, 'El usuario ya existe');
+    }
+
+    // Check if email is already in use
+    const emailInUse = await this.userRepository.findOne({ 
+      where: { email: data.email } 
+    });
+
+    if (emailInUse) {
+      throw new AppError(409, 'El correo electrónico ya está en uso');
+    }
+
     const user = this.userRepository.create({
       clerkId: data.clerkId,
       email: data.email,

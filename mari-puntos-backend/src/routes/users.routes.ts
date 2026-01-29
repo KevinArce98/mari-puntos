@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { UsersController } from '../controllers/users.controller';
-import { authMiddleware } from '../middlewares/authMiddleware';
+import { authMiddleware, clerkOnlyAuthMiddleware } from '../middlewares/authMiddleware';
 import { asyncHandler } from '../middlewares/errorMiddleware';
 
 const router: Router = Router();
@@ -92,7 +92,7 @@ router.get('/profile', authMiddleware, asyncHandler(usersController.getProfile))
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/profile', asyncHandler(usersController.createProfile));
+router.post('/profile', clerkOnlyAuthMiddleware, asyncHandler(usersController.createProfile));
 
 /**
  * @swagger
