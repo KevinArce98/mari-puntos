@@ -19,7 +19,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user, hasPartner, refetch: refetchUser } = useUser();
-  const { myPoints, myLevel, pointsHistory, fetchHistory } = usePoints();
+  const { myPoints, pointsHistory, fetchHistory } = usePoints();
   const [refreshing, setRefreshing] = React.useState(false);
 
   // Load history on mount
@@ -58,16 +58,16 @@ export default function HomeScreen() {
             <View style={styles.noPartnerIcon}>
               <Ionicons name="people-outline" size={64} color={colors.primary} />
             </View>
-            <Text style={styles.noPartnerTitle}>Link Your Partner!</Text>
+            <Text style={styles.noPartnerTitle}>¡Vincula a tu Pareja!</Text>
             <Text style={styles.noPartnerText}>
-              Connect with your partner to start earning and spending MariPuntos together
+              Conéctate con tu pareja para empezar a ganar y gastar MariPuntos juntos
             </Text>
             <TouchableOpacity
               style={styles.linkButton}
               onPress={() => router.push('/link-partner')}
             >
               <Ionicons name="link" size={20} color={colors.white} />
-              <Text style={styles.linkButtonText}>Link Now</Text>
+              <Text style={styles.linkButtonText}>Vincular Ahora</Text>
             </TouchableOpacity>
           </Card>
         </ScrollView>
