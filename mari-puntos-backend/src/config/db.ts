@@ -13,10 +13,10 @@ import { Achievement } from '../entities/Achievement';
 export const AppDataSource = new DataSource({
   type: 'postgres',
   url: config.database.url,
-  ssl: config.isProduction ? { rejectUnauthorized: false } : false,
+  ssl: !config.isDevelopment ? { rejectUnauthorized: false } : false,
   synchronize: false, // Never use synchronize in production
   logging: config.isDevelopment,
-  entities: config.isProduction
+  entities: !config.isDevelopment
     ? ['dist/entities/**/*.js']
     : [
         User,
@@ -29,7 +29,7 @@ export const AppDataSource = new DataSource({
         Level,
         Achievement,
       ],
-  migrations: config.isProduction
+  migrations: !config.isDevelopment
     ? ['dist/migrations/**/*.js']
     : ['src/migrations/**/*.ts'],
   subscribers: [],
