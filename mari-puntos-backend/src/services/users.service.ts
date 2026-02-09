@@ -68,6 +68,7 @@ export class UsersService {
 
     if (data.firstName !== undefined) user.firstName = data.firstName;
     if (data.lastName !== undefined) user.lastName = data.lastName;
+    if (data.pushToken !== undefined) user.pushToken = data.pushToken;
 
     await this.userRepository.save(user);
 

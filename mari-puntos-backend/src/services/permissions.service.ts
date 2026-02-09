@@ -7,6 +7,7 @@ import { AppError } from '../middlewares/errorMiddleware';
 import { getNowUTC6 } from '../utils/helpers';
 import { PartnerService } from './partner.service';
 import { PointsService } from './points.service';
+import { PushNotificationService } from './push-notification.service';
 
 interface CreatePermissionData {
   templateId: string;
@@ -23,6 +24,7 @@ export class PermissionsService {
   private logRepository = AppDataSource.getRepository(Log);
   private partnerService = new PartnerService();
   private pointsService = new PointsService();
+  private pushNotificationService = new PushNotificationService();
 
   async createPermission(
     userId: string,
@@ -80,6 +82,16 @@ export class PermissionsService {
         relatedEntityType: 'Permission',
       })
     );
+
+    // Send push notification to partner
+    const partner = await this.userRepository.findOne({ where: { id: partnerId } });
+    if (partner?.pushToken) {
+      await this.pushNotificationService.sendPermissionRequestedNotification(
+        partner.pushToken,
+        user.firstName || user.email,
+        template.title
+      );
+    }
 
     return permission;
   }
@@ -224,6 +236,18 @@ export class PermissionsService {
         relatedEntityType: 'Permission',
       }),
     ]);
+
+    // Send push notification to requester
+    const requester = await this.userRepository.findOne({
+      where: { id: permission.requesterId },
+    });
+    if (requester?.pushToken) {
+      await this.pushNotificationService.sendPermissionResponseNotification(
+        requester.pushToken,
+        approved,
+        permission.template.title
+      );
+    }
 
     return permission;
   }

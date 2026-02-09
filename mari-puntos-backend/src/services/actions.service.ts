@@ -7,6 +7,7 @@ import { getNowUTC6 } from '../utils/helpers';
 import { PartnerService } from './partner.service';
 import { PointsService } from './points.service';
 import { CreateActionInput, UpdateActionInput } from '../validators/schemas';
+import { PushNotificationService } from './push-notification.service';
 
 export class ActionsService {
   private actionRepository = AppDataSource.getRepository(Action);
@@ -14,6 +15,7 @@ export class ActionsService {
   private logRepository = AppDataSource.getRepository(Log);
   private partnerService = new PartnerService();
   private pointsService = new PointsService();
+  private pushNotificationService = new PushNotificationService();
 
   async createAction(userId: string, data: CreateActionInput): Promise<Action> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -43,6 +45,19 @@ export class ActionsService {
         relatedEntityType: 'Action',
       })
     );
+
+    // Send push notification to partner
+    const partnerId = await this.partnerService.getPartnerId(userId);
+    if (partnerId) {
+      const partner = await this.userRepository.findOne({ where: { id: partnerId } });
+      if (partner?.pushToken) {
+        await this.pushNotificationService.sendActionCreatedNotification(
+          partner.pushToken,
+          user.firstName || user.email,
+          action.title
+        );
+      }
+    }
 
     return action;
   }
@@ -184,6 +199,18 @@ export class ActionsService {
       }),
     ]);
 
+    // Send push notification to action creator
+    const actionCreator = await this.userRepository.findOne({
+      where: { id: action.userId },
+    });
+    if (actionCreator?.pushToken) {
+      await this.pushNotificationService.sendActionApprovedNotification(
+        actionCreator.pushToken,
+        action.title,
+        pointsAwarded
+      );
+    }
+
     return action;
   }
 
@@ -233,6 +260,17 @@ export class ActionsService {
         relatedEntityType: 'Action',
       }),
     ]);
+
+    // Send push notification to action creator
+    const actionCreator = await this.userRepository.findOne({
+      where: { id: action.userId },
+    });
+    if (actionCreator?.pushToken) {
+      await this.pushNotificationService.sendActionRejectedNotification(
+        actionCreator.pushToken,
+        action.title
+      );
+    }
 
     return action;
   }
