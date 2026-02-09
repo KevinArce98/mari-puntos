@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-expo';
-import { useRouter, useSegments } from 'expo-router';
+import { Redirect, useSegments, useRootNavigationState } from 'expo-router';
 import React, { useEffect } from 'react';
 
 import { LoadingScreen } from '@/components/loading-screen';
@@ -21,66 +21,55 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const { signOut } = useAuth();
   const { isFirstTime, isLoading: isFirstTimeLoading } = useFirstTimeUser();
   const segments = useSegments();
-  const router = useRouter();
+  const navigationState = useRootNavigationState();
 
+  // Handle sign out when user is authenticated but profile not found
   useEffect(() => {
-    if (!isLoaded || isUserLoading || isFirstTimeLoading) return;
+    if (!isLoaded || isUserLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
 
-    // User is signed in
-    if (isSignedIn) {
-      // Check if user profile exists in database
-      if (!user && !inAuthGroup) {
-        // Profile doesn't exist and user is not on auth pages
-        // This could be a new user who hasn't completed profile creation yet
-        console.warn('User authenticated but profile not found. Redirecting to login...');
-        clearUser();
-        
-        // Try to sign out silently, but don't fail if already signed out
-        signOut().catch((error) => {
-          // Ignore "You are signed out" errors
-          if (!error.message?.includes('signed out')) {
-            console.error('Error signing out:', error);
-          }
-        });
-        
-        // Always redirect regardless of sign out result
-        router.replace('/(auth)/login');
-        return;
-      }
-
-      // Redirect away from auth pages if already signed in
-      if (inAuthGroup) {
-        router.replace('/(tabs)');
-      }
-    } else {
-      // User is not signed in
-      if (!inAuthGroup) {
-        // First time user: show welcome screen
-        if (isFirstTime) {
-          router.replace('/(auth)/welcome');
-        } else {
-          // Returning user: go directly to login
-          router.replace('/(auth)/login');
+    if (isSignedIn && !user && !inAuthGroup) {
+      console.warn('User authenticated but profile not found. Signing out...');
+      clearUser();
+      signOut().catch((error) => {
+        if (!error.message?.includes('signed out')) {
+          console.error('Error signing out:', error);
         }
+      });
+    }
+  }, [isLoaded, isSignedIn, user, isUserLoading, segments, clearUser, signOut]);
+
+  // Show loading screen while checking authentication, first time status, and navigation readiness
+  if (!navigationState?.key || !isLoaded || isUserLoading || isFirstTimeLoading) {
+    return <LoadingScreen />;
+  }
+
+  const inAuthGroup = segments[0] === '(auth)';
+
+  // User is signed in
+  if (isSignedIn) {
+    // Check if user profile exists in database
+    if (!user && !inAuthGroup) {
+      // Profile doesn't exist - redirect to login
+      return <Redirect href="/(auth)/login" />;
+    }
+
+    // Redirect away from auth pages if already signed in with valid profile
+    if (inAuthGroup && user) {
+      return <Redirect href="/(tabs)" />;
+    }
+  } else {
+    // User is not signed in
+    if (!inAuthGroup) {
+      // First time user: show welcome screen
+      if (isFirstTime) {
+        return <Redirect href="/(auth)/welcome" />;
+      } else {
+        // Returning user: go directly to login
+        return <Redirect href="/(auth)/login" />;
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isSignedIn,
-    segments,
-    isLoaded,
-    isUserLoading,
-    isFirstTime,
-    isFirstTimeLoading,
-    user,
-    router,
-  ]);
-
-  // Show loading screen while checking authentication and first time status
-  if (!isLoaded || isUserLoading || isFirstTimeLoading) {
-    return <LoadingScreen />;
   }
 
   return <>{children}</>;
