@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.xs,
     backgroundColor: colors.white,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
@@ -106,7 +107,6 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    ...typography.styles.body,
     color: colors.text.primary,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
