@@ -27,7 +27,9 @@ const startServer = async () => {
       console.log(`🌐 Server running on port ${config.port}`);
       console.log(`🔗 API URL: ${config.host}:${config.port}/api`);
       console.log(`💚 Health check: ${config.host}:${config.port}/api/health`);
-      console.log(`📚 Swagger docs: ${config.host}:${config.port}/api-docs`);
+      if (config.isDevelopment) {
+        console.log(`📚 Swagger docs: ${config.host}:${config.port}/api-docs`);
+      }
       console.log('================================');
       console.log('');
     });

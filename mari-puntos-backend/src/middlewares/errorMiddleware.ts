@@ -14,7 +14,7 @@ export class AppError extends Error {
 
   constructor(codeOrStatus: ErrorCode | number, message: string, statusCode?: number) {
     super(message);
-    
+
     // Check if first argument is an ErrorCode or HTTP status number
     if (typeof codeOrStatus === 'string' && codeOrStatus in ErrorCode) {
       // ErrorCode-based construction
@@ -26,7 +26,7 @@ export class AppError extends Error {
     } else {
       this.statusCode = 500;
     }
-    
+
     Object.setPrototypeOf(this, AppError.prototype);
   }
 }
@@ -41,7 +41,17 @@ export const errorMiddleware = (
   res: Response,
   _next: NextFunction
 ): void => {
-  console.error('Error:', err);
+  // Log error details only in development
+  if (config.isDevelopment) {
+    console.error('Error:', err);
+  } else {
+    // In production, log only safe information
+    console.error('Error occurred:', {
+      name: err.name,
+      message: err.message,
+      stack: err instanceof AppError ? undefined : err.stack,
+    });
+  }
 
   // Zod validation errors - format as { success: false, error: string, details: [] }
   if (err instanceof ZodError) {
@@ -49,7 +59,7 @@ export const errorMiddleware = (
       field: issue.path.join('.'),
       message: issue.message,
     }));
-    
+
     sendError(res, 'Error de validación', 400, details);
     return;
   }
@@ -62,8 +72,8 @@ export const errorMiddleware = (
 
   // Database errors
   if (err.name === 'QueryFailedError') {
-    const message = config.isDevelopment 
-      ? `Error de base de datos: ${err.message}` 
+    const message = config.isDevelopment
+      ? `Error de base de datos: ${err.message}`
       : 'Error de base de datos';
     sendError(res, message, 500);
     return;
@@ -82,9 +92,7 @@ export const errorMiddleware = (
   }
 
   // Default error - don't leak internal details in production
-  const message = config.isDevelopment 
-    ? err.message 
-    : 'Error interno del servidor';
+  const message = config.isDevelopment ? err.message : 'Error interno del servidor';
   sendInternalError(res, message);
 };
 
@@ -115,54 +123,60 @@ export const asyncHandler = (
 // ============================================================================
 
 export const createError = {
-  unauthorized: (message = 'No autorizado') => 
+  unauthorized: (message = 'No autorizado') =>
     new AppError(ErrorCode.UNAUTHORIZED, message),
-  
-  forbidden: (message = 'Prohibido') => 
-    new AppError(ErrorCode.FORBIDDEN, message),
-  
-  notFound: (resource = 'Recurso') => 
+
+  forbidden: (message = 'Prohibido') => new AppError(ErrorCode.FORBIDDEN, message),
+
+  notFound: (resource = 'Recurso') =>
     new AppError(ErrorCode.NOT_FOUND, `${resource} no encontrado`),
-  
-  conflict: (message: string) => 
-    new AppError(ErrorCode.CONFLICT, message),
-  
-  validation: (message: string) => 
-    new AppError(ErrorCode.VALIDATION_ERROR, message),
-  
-  insufficientPoints: () => 
+
+  conflict: (message: string) => new AppError(ErrorCode.CONFLICT, message),
+
+  validation: (message: string) => new AppError(ErrorCode.VALIDATION_ERROR, message),
+
+  insufficientPoints: () =>
     new AppError(ErrorCode.INSUFFICIENT_POINTS, 'Puntos insuficientes'),
-  
-  partnerNotLinked: () => 
+
+  partnerNotLinked: () =>
     new AppError(ErrorCode.PARTNER_NOT_LINKED, 'No tienes pareja vinculada'),
-  
-  partnerAlreadyLinked: () => 
+
+  partnerAlreadyLinked: () =>
     new AppError(ErrorCode.PARTNER_ALREADY_LINKED, 'Ya tienes una pareja vinculada'),
-  
-  invalidLinkCode: () => 
+
+  invalidLinkCode: () =>
     new AppError(ErrorCode.INVALID_LINK_CODE, 'Código de enlace inválido'),
-  
-  linkCodeExpired: () => 
+
+  linkCodeExpired: () =>
     new AppError(ErrorCode.LINK_CODE_EXPIRED, 'El código de enlace ha expirado'),
-  
-  actionAlreadyEvaluated: () => 
+
+  actionAlreadyEvaluated: () =>
     new AppError(ErrorCode.ACTION_ALREADY_EVALUATED, 'La acción ya ha sido evaluada'),
-  
-  permissionAlreadyResponded: () => 
-    new AppError(ErrorCode.PERMISSION_ALREADY_RESPONDED, 'El permiso ya ha sido respondido'),
-  
-  cannotEvaluateOwnAction: () => 
-    new AppError(ErrorCode.CANNOT_EVALUATE_OWN_ACTION, 'No puedes evaluar tu propia acción'),
-  
-  cannotRespondOwnPermission: () => 
-    new AppError(ErrorCode.CANNOT_RESPOND_OWN_PERMISSION, 'No puedes responder a tu propia solicitud de permiso'),
-  
-  rewardNotAvailable: () => 
+
+  permissionAlreadyResponded: () =>
+    new AppError(
+      ErrorCode.PERMISSION_ALREADY_RESPONDED,
+      'El permiso ya ha sido respondido'
+    ),
+
+  cannotEvaluateOwnAction: () =>
+    new AppError(
+      ErrorCode.CANNOT_EVALUATE_OWN_ACTION,
+      'No puedes evaluar tu propia acción'
+    ),
+
+  cannotRespondOwnPermission: () =>
+    new AppError(
+      ErrorCode.CANNOT_RESPOND_OWN_PERMISSION,
+      'No puedes responder a tu propia solicitud de permiso'
+    ),
+
+  rewardNotAvailable: () =>
     new AppError(ErrorCode.REWARD_NOT_AVAILABLE, 'La recompensa no está disponible'),
-  
-  levelRequirementNotMet: (required: number) => 
+
+  levelRequirementNotMet: (required: number) =>
     new AppError(ErrorCode.LEVEL_REQUIREMENT_NOT_MET, `Se requiere nivel ${required}`),
-  
-  roleRequired: (role: string) => 
+
+  roleRequired: (role: string) =>
     new AppError(ErrorCode.ROLE_REQUIRED, `Esta acción requiere el rol ${role}`),
 };
