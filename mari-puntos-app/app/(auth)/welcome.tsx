@@ -2,7 +2,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui';
@@ -25,9 +25,11 @@ export default function WelcomeScreen() {
     >
       {/* Logo */}
       <View style={styles.logoContainer}>
-        <View style={styles.logoIcon}>
-          <Ionicons name="heart" size={32} color={colors.white} />
-        </View>
+        <Image
+          source={require('@/assets/images/icon.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
         <Text style={styles.logoText}>MariPuntos</Text>
       </View>
 
@@ -79,14 +81,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: spacing.xl,
   },
-  logoIcon: {
+  logoImage: {
     width: 48,
     height: 48,
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginRight: spacing.sm,
+    borderRadius: borderRadius.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   logoText: {
     ...typography.styles.h2,

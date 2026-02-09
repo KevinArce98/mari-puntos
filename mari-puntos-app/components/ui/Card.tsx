@@ -4,7 +4,7 @@ import { StyleSheet, View, ViewStyle } from 'react-native';
 
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: ViewStyle | ViewStyle[];
   variant?: 'default' | 'elevated' | 'outlined' | 'filled';
   padding?: keyof typeof spacing | 'none';
 }

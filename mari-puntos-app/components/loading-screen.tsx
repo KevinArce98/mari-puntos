@@ -1,6 +1,6 @@
 import { colors, spacing, typography } from '@/theme';
 import React, { useEffect } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
 
 export function LoadingScreen() {
   const spinValue = React.useRef(new Animated.Value(0)).current;
@@ -68,7 +68,11 @@ export function LoadingScreen() {
             },
           ]}
         >
-          <Text style={styles.logo}>💑</Text>
+          <Image
+            source={require('@/assets/images/icon.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </Animated.View>
 
         {/* Spinning Circle */}
@@ -140,8 +144,14 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   logo: {
-    fontSize: 100,
-    textAlign: 'center',
+    width: 120,
+    height: 120,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
   },
   spinnerContainer: {
     position: 'absolute',

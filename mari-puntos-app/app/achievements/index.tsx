@@ -1,20 +1,18 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Card, Badge } from '@/components/ui';
 import { colors, typography, spacing, borderRadius } from '@/theme';
 import { formatDateOnly } from '@/utils/dateUtils';
 import { useRewards } from '@/hooks';
 
 export default function AchievementsScreen() {
-  const { unlockedAchievements, lockedAchievements } = useRewards();
+  const { allRewards, availableRewards } = useRewards();
 
   const renderAchievement = (achievement: any, isLocked: boolean) => (
-    <Card key={achievement.id} style={[styles.achievementCard, isLocked && styles.lockedCard]}>
+    <Card
+      key={achievement.id}
+      style={[styles.achievementCard, isLocked ? styles.lockedCard : {}]}
+    >
       <View style={styles.achievementHeader}>
         <Text style={[styles.achievementIcon, isLocked && styles.lockedIcon]}>
           {isLocked ? '🔒' : achievement.icon}
@@ -23,9 +21,7 @@ export default function AchievementsScreen() {
           <Text style={[styles.achievementName, isLocked && styles.lockedText]}>
             {achievement.name}
           </Text>
-          <Text style={styles.achievementDescription}>
-            {achievement.description}
-          </Text>
+          <Text style={styles.achievementDescription}>{achievement.description}</Text>
           {!isLocked && achievement.unlockedAt && (
             <Text style={styles.achievementDate}>
               Desbloqueado el {formatDateOnly(achievement.unlockedAt)}
@@ -33,14 +29,16 @@ export default function AchievementsScreen() {
           )}
         </View>
       </View>
-      
+
       {isLocked && (
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>
             <View
               style={[
                 styles.progressFill,
-                { width: `${Math.min((achievement.progress / achievement.requirement) * 100, 100)}%` },
+                {
+                  width: `${Math.min((achievement.progress / achievement.requirement) * 100, 100)}%`,
+                },
               ]}
             />
           </View>
@@ -49,7 +47,7 @@ export default function AchievementsScreen() {
           </Text>
         </View>
       )}
-      
+
       <Badge
         label={achievement.type}
         variant="primary"
@@ -70,38 +68,40 @@ export default function AchievementsScreen() {
         {/* Stats */}
         <View style={styles.statsContainer}>
           <Card style={styles.statCard}>
-            <Text style={styles.statValue}>{unlockedAchievements.length}</Text>
+            <Text style={styles.statValue}>{availableRewards.length}</Text>
             <Text style={styles.statLabel}>Desbloqueados</Text>
           </Card>
           <Card style={styles.statCard}>
-            <Text style={styles.statValue}>{lockedAchievements.length}</Text>
+            <Text style={styles.statValue}>
+              {allRewards.length - availableRewards.length}
+            </Text>
             <Text style={styles.statLabel}>Por desbloquear</Text>
           </Card>
           <Card style={styles.statCard}>
             <Text style={styles.statValue}>
-              {Math.round((unlockedAchievements.length / (unlockedAchievements.length + lockedAchievements.length)) * 100)}%
+              {Math.round((availableRewards.length / allRewards.length) * 100)}%
             </Text>
             <Text style={styles.statLabel}>Completado</Text>
           </Card>
         </View>
 
         {/* Unlocked Achievements */}
-        {unlockedAchievements.length > 0 && (
+        {availableRewards.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
-              🏆 Logros desbloqueados ({unlockedAchievements.length})
+              🏆 Logros desbloqueados ({availableRewards.length})
             </Text>
-            {unlockedAchievements.map((achievement) => renderAchievement(achievement, false))}
+            {availableRewards.map((achievement) => renderAchievement(achievement, false))}
           </View>
         )}
 
         {/* Locked Achievements */}
-        {lockedAchievements.length > 0 && (
+        {allRewards.length - availableRewards.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
-              🔒 Logros bloqueados ({lockedAchievements.length})
+              🔒 Logros bloqueados ({allRewards.length - availableRewards.length})
             </Text>
-            {lockedAchievements.map((achievement) => renderAchievement(achievement, true))}
+            {availableRewards.map((achievement) => renderAchievement(achievement, true))}
           </View>
         )}
       </ScrollView>

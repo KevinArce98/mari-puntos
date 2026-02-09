@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -210,13 +211,17 @@ export default function ProfileScreen() {
               title="Privacidad"
               leftIcon="shield-outline"
               rightIcon="chevron-forward"
-              onPress={() => {}}
+              onPress={() => Linking.openURL('https://maripuntos.com/privacidad')}
             />
             <ListItem
               title="Ayuda y Soporte"
               leftIcon="help-circle-outline"
               rightIcon="chevron-forward"
-              onPress={() => {}}
+              onPress={() =>
+                Linking.openURL(
+                  'mailto:arias9068@gmail.com?subject=Ayuda%20con%20MariPuntos'
+                )
+              }
             />
           </Card>
         </View>

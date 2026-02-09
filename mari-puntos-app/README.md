@@ -2,12 +2,15 @@
 
 **Gamifica los permisos en tu relación de pareja**
 
-MariPuntos es una aplicación móvil innovadora que transforma la dinámica de permisos entre parejas en Costa Rica en una experiencia divertida y gamificada. Gana puntos por acciones, solicita permisos, canjea recompensas y desbloquea logros junto a tu pareja.
+MariPuntos es una aplicación móvil innovadora que transforma la dinámica de permisos entre parejas en una experiencia divertida y gamificada. Gana puntos por acciones, solicita permisos, canjea recompensas y desbloquea logros junto a tu pareja.
 
 ![React Native](https://img.shields.io/badge/React_Native-0.81-61DAFB?logo=react)
 ![Expo](https://img.shields.io/badge/Expo-~54.0-000020?logo=expo)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript)
 ![License](https://img.shields.io/badge/License-Proprietary-red)
+
+🌐 **Website:** [maripuntos.com](https://maripuntos.com)  
+📧 **Soporte:** arias9068@gmail.com
 
 ## ✨ Características
 
@@ -209,7 +212,7 @@ Las contribuciones son bienvenidas. Por favor:
 
 ## 👨‍💻 Autor
 
-Desarrollado con 💑 en Costa Rica
+Desarrollado con 💑 para parejas en Costa Rica y el mundo
 
 ## 🙏 Agradecimientos
 
@@ -218,5 +221,7 @@ Desarrollado con 💑 en Costa Rica
 - Comunidad de React Native
 
 ---
+
+**¿Preguntas o comentarios?** Contáctanos en arias9068@gmail.com
 
 **¿Listo para gamificar tu relación? ¡Descarga MariPuntos hoy!** 🎮💑

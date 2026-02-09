@@ -1,8 +1,8 @@
 import { useSignIn } from '@clerk/clerk-expo';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -96,9 +96,11 @@ export default function LoginScreen() {
       >
         {/* Logo */}
         <View style={styles.logoContainer}>
-          <View style={styles.logoIcon}>
-            <Ionicons name="heart" size={32} color={colors.white} />
-          </View>
+          <Image
+            source={require('@/assets/images/icon.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
 
         {/* Header */}
@@ -187,13 +189,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.xl,
   },
-  logoIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: borderRadius.xl,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
+  logoImage: {
+    width: 120,
+    height: 120,
+    borderRadius: borderRadius.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   header: {
     alignItems: 'center',
