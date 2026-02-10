@@ -34,7 +34,11 @@ export const authMiddleware = async (
     let decoded: jwt.JwtPayload;
     try {
       decoded = jwt.verify(token, config.clerk.publicKey, options) as jwt.JwtPayload;
-    } catch (jwtError) {
+    } catch (jwtError: any) {
+      console.error('❌ JWT Verification failed:', {
+        error: jwtError.message,
+        name: jwtError.name,
+      });
       sendError(res, 'Token inválido o expirado', 401);
       return;
     }
@@ -47,10 +51,16 @@ export const authMiddleware = async (
     // Validate token expiration and not-before claims
     const currentTime = Math.floor(Date.now() / 1000);
     if (decoded.exp < currentTime) {
+      const expiredAt = new Date(decoded.exp * 1000);
+      console.error('❌ Token expired:', {
+        expiredAt: expiredAt.toISOString(),
+        currentTime: new Date(currentTime * 1000).toISOString(),
+      });
       sendError(res, 'El token ha expirado', 401);
       return;
     }
     if (decoded.nbf > currentTime) {
+      console.error('❌ Token not yet valid');
       sendError(res, 'El token aún no es válido', 401);
       return;
     }
@@ -152,7 +162,11 @@ export const clerkOnlyAuthMiddleware = async (
     let decoded: jwt.JwtPayload;
     try {
       decoded = jwt.verify(token, config.clerk.publicKey, options) as jwt.JwtPayload;
-    } catch (jwtError) {
+    } catch (jwtError: any) {
+      console.error('❌ JWT Verification failed (clerk-only):', {
+        error: jwtError.message,
+        name: jwtError.name,
+      });
       sendError(res, 'Token inválido o expirado', 401);
       return;
     }
@@ -165,10 +179,16 @@ export const clerkOnlyAuthMiddleware = async (
     // Validate token expiration and not-before claims
     const currentTime = Math.floor(Date.now() / 1000);
     if (decoded.exp < currentTime) {
+      const expiredAt = new Date(decoded.exp * 1000);
+      console.error('❌ Token expired (clerk-only):', {
+        expiredAt: expiredAt.toISOString(),
+        currentTime: new Date(currentTime * 1000).toISOString(),
+      });
       sendError(res, 'El token ha expirado', 401);
       return;
     }
     if (decoded.nbf > currentTime) {
+      console.error('❌ Token not yet valid (clerk-only)');
       sendError(res, 'El token aún no es válido', 401);
       return;
     }
