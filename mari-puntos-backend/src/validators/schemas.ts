@@ -30,6 +30,10 @@ export const updateUserSchema = z.object({
   pushToken: z.string().optional(),
 });
 
+export const sendTestNotificationSchema = z.object({
+  pushToken: z.string().min(1, 'Push token is required'),
+});
+
 // ============================================================================
 // PARTNER SCHEMAS (Matches frontend CreatePartnerLinkRequest, JoinPartnerRequest)
 // ============================================================================

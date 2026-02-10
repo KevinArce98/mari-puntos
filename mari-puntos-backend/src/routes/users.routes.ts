@@ -228,4 +228,51 @@ router.post(
   asyncHandler(usersController.deactivateAccount)
 );
 
+/**
+ * @swagger
+ * /users/test-notification:
+ *   post:
+ *     summary: Send a test push notification
+ *     description: Send a test push notification to verify the push token works
+ *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - pushToken
+ *             properties:
+ *               pushToken:
+ *                 type: string
+ *                 description: Expo push token to test
+ *                 example: ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]
+ *     responses:
+ *       200:
+ *         description: Test notification sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Test notification sent successfully
+ *       400:
+ *         description: Invalid push token
+ *       401:
+ *         description: Unauthorized
+ */
+router.post(
+  '/test-notification',
+  authMiddleware,
+  asyncHandler(usersController.sendTestNotification)
+);
+
 export default router;
