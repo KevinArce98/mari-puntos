@@ -8,3 +8,4 @@ export * from './use-theme-color';
 export * from './useClerkAuth';
 export * from './useAuthGuard';
 export * from './useFirstTimeUser';
+export * from './useNotifications';

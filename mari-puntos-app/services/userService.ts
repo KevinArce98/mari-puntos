@@ -41,6 +41,14 @@ class UserService {
   }
 
   /**
+   * Update push token
+   * PUT /users/profile
+   */
+  async updatePushToken(pushToken: string): Promise<User> {
+    return this.updateProfile({ pushToken });
+  }
+
+  /**
    * Get user statistics
    * GET /users/stats
    */

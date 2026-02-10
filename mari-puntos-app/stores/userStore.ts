@@ -21,6 +21,7 @@ interface UserState {
   fetchStats: () => Promise<void>;
   fetchPartnerInfo: () => Promise<PartnerInfo | null>;
   updateProfile: (data: UpdateProfileRequest) => Promise<void>;
+  updatePushToken: (pushToken: string) => Promise<void>;
   createPartnerLink: () => Promise<string>;
   getPartnerLinkCode: () => Promise<GetPartnerLinkCodeResponse | null>;
   joinPartnerLink: (linkCode: string) => Promise<void>;
@@ -79,6 +80,16 @@ export const useUserStore = create<UserState>((set, get) => ({
       set({ user: updatedUser, isLoading: false });
     } catch (error: any) {
       set({ error: error.error || 'Failed to update profile', isLoading: false });
+      throw error;
+    }
+  },
+
+  updatePushToken: async (pushToken) => {
+    try {
+      const updatedUser = await userService.updatePushToken(pushToken);
+      set({ user: updatedUser });
+    } catch (error: any) {
+      console.error('Error updating push token:', error);
       throw error;
     }
   },

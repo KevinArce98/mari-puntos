@@ -127,6 +127,7 @@ export interface UserStats {
 export interface UpdateProfileRequest {
   firstName?: string;
   lastName?: string;
+  pushToken?: string;
 }
 
 export interface CreateUserRequest {
