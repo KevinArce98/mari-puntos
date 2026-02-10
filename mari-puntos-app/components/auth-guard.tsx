@@ -1,7 +1,5 @@
-import { useAuth } from '@clerk/clerk-expo';
 import { Redirect, useSegments, useRootNavigationState } from 'expo-router';
-import React, { useEffect } from 'react';
-
+import React from 'react';
 import { LoadingScreen } from '@/components/loading-screen';
 import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
@@ -17,28 +15,10 @@ interface AuthGuardProps {
  */
 export function AuthGuard({ children }: AuthGuardProps) {
   const { isLoaded, isSignedIn } = useClerkAuth();
-  const { user, isLoading: isUserLoading, clearUser } = useUserStore();
-  const { signOut } = useAuth();
+  const { user, isLoading: isUserLoading } = useUserStore();
   const { isFirstTime, isLoading: isFirstTimeLoading } = useFirstTimeUser();
   const segments = useSegments();
   const navigationState = useRootNavigationState();
-
-  // Handle sign out when user is authenticated but profile not found
-  useEffect(() => {
-    if (!isLoaded || isUserLoading) return;
-
-    const inAuthGroup = segments[0] === '(auth)';
-
-    if (isSignedIn && !user && !inAuthGroup) {
-      console.warn('User authenticated but profile not found. Signing out...');
-      clearUser();
-      signOut().catch((error) => {
-        if (!error.message?.includes('signed out')) {
-          console.error('Error signing out:', error);
-        }
-      });
-    }
-  }, [isLoaded, isSignedIn, user, isUserLoading, segments, clearUser, signOut]);
 
   // Show loading screen while checking authentication, first time status, and navigation readiness
   if (!navigationState?.key || !isLoaded || isUserLoading || isFirstTimeLoading) {
