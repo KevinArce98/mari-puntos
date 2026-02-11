@@ -32,8 +32,14 @@ export class UsersController {
   createProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const data = createUserSchema.parse(req.body);
+      
+      // Get clerkId from authenticated token, not from request body (more secure)
+      const clerkId = req.clerkId!;
 
-      const user = await this.usersService.createUser(data);
+      const user = await this.usersService.createUser({
+        ...data,
+        clerkId,
+      });
 
       sendCreated(res, toUserDTO(user, false), 'Profile created successfully');
     } catch (error) {

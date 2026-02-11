@@ -162,6 +162,7 @@ export const clerkOnlyAuthMiddleware = async (
     let decoded: jwt.JwtPayload;
     try {
       decoded = jwt.verify(token, config.clerk.publicKey, options) as jwt.JwtPayload;
+      console.log('✅ Token verified successfully for profile creation');
     } catch (jwtError: any) {
       console.error('❌ JWT Verification failed (clerk-only):', {
         error: jwtError.message,
@@ -194,6 +195,7 @@ export const clerkOnlyAuthMiddleware = async (
     }
 
     const clerkId = decoded.sub as string;
+    console.log('✅ ClerkId extracted from token:', clerkId);
 
     // For profile creation, we only need the clerkId from the token
     // We don't check if user exists in database
