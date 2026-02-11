@@ -6,9 +6,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { borderRadius, colors, shadows } from '@/theme';
+import { useUser } from '@/hooks';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { hasPartner } = useUser();
 
   return (
     <Tabs
@@ -58,6 +60,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="permissions"
         options={{
+          href: hasPartner ? undefined : null,
           title: '',
           tabBarIcon: ({ focused }) => (
             <View style={styles.centerButton}>
