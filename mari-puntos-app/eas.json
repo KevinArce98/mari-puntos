@@ -10,14 +10,16 @@
       "ios": {
         "simulator": false,
         "buildConfiguration": "Debug"
-      }
+      },
+      "channel": "development"
     },
     "preview": {
       "distribution": "internal",
       "ios": {
         "simulator": false,
         "buildConfiguration": "Release"
-      }
+      },
+      "channel": "preview"
     },
     "production": {
       "distribution": "store",
@@ -25,7 +27,8 @@
       "ios": {
         "buildConfiguration": "Release",
         "resourceClass": "m-medium"
-      }
+      },
+      "channel": "production"
     }
   },
   "submit": {

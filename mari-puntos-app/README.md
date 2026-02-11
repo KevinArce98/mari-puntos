@@ -137,10 +137,18 @@ npm run web        # Abrir en navegador
 npm run lint       # Ejecutar ESLint
 ```
 
-## 📖 Documentación
+## 📦 Builds y distribución (EAS)
 
-- **[SETUP.md](./SETUP.md)** - Guía de configuración detallada
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Arquitectura técnica completa
+```bash
+# Build iOS para TestFlight (App Store Connect)
+eas build -p ios --profile production
+
+# Enviar el último build iOS a TestFlight
+eas submit -p ios --profile production --latest
+
+# Build Android APK (distribución interna)
+eas build -p android --profile preview
+```
 
 ## 🎯 Funcionalidades Principales
 
