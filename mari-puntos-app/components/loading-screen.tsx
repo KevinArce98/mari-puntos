@@ -89,7 +89,7 @@ export function LoadingScreen() {
 
         {/* App Name */}
         <Text style={styles.appName}>MariPuntos</Text>
-        
+
         {/* Loading Text */}
         <Text style={styles.loadingText}>Cargando...</Text>
 
