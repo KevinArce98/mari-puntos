@@ -72,20 +72,6 @@ export function useNotifications() {
     notificationListener.current = Notifications.addNotificationReceivedListener(
       async (notification) => {
         setNotifications((prev) => [notification, ...prev]);
-
-        // Mostrar notificación local para que sea visible en foreground
-        try {
-          await Notifications.scheduleNotificationAsync({
-            content: {
-              title: notification.request.content.title || 'Nueva notificación',
-              body: notification.request.content.body || '',
-              data: notification.request.content.data,
-            },
-            trigger: null, // Mostrar inmediatamente
-          });
-        } catch (error) {
-          console.error('❌ Error scheduling local notification:', error);
-        }
       }
     );
 
