@@ -134,7 +134,7 @@ export interface CreateUserRequest {
   email: string;
   firstName: string;
   lastName: string;
-  clerkId: string;
+  clerkId?: string; // Optional - comes from auth token on backend
   avatarUrl?: string;
 }
 

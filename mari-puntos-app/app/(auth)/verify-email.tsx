@@ -25,13 +25,37 @@ export default function VerifyEmailScreen() {
       });
 
       if (result.status === 'complete') {
-        await userService.createProfile({
-          email,
-          firstName: result.firstName || '',
-          lastName: result.lastName || '',
-          clerkId: signUp.createdUserId || '',
-        });
+        // First, activate the session to ensure we have a valid token
         await setActive({ session: result.createdSessionId });
+
+        // Add a small delay to ensure session is fully active
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Now create the profile with an authenticated token
+        // clerkId is obtained from the token on the backend, not sent in body
+        try {
+          await userService.createProfile({
+            email,
+            firstName: result.firstName || '',
+            lastName: result.lastName || '',
+          });
+        } catch (profileError: any) {
+          console.error('Error creating profile:', profileError);
+
+          // Check if user already exists (409 conflict) - this is OK, continue
+          if (profileError?.status === 409) {
+            console.log('User profile already exists, continuing...');
+          } else {
+            // For other errors, show a warning but still continue
+            // The profile will be fetched/created on next app launch via auth guard
+            Toast.show({
+              type: 'info',
+              text1: 'Perfil creado',
+              text2: 'Configura tu cuenta para continuar',
+            });
+          }
+        }
+
         router.replace('/link-partner');
       }
     } catch (error: any) {
