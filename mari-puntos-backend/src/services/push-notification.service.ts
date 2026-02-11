@@ -20,9 +20,6 @@ export class PushNotificationService {
     pushToken: string,
     payload: PushNotificationPayload
   ): Promise<void> {
-    console.log('📤 Sending push notification to:', pushToken);
-    console.log('📤 Payload:', payload);
-    
     if (!Expo.isExpoPushToken(pushToken)) {
       console.error(`Push token ${pushToken} is not a valid Expo push token`);
       return;
@@ -38,7 +35,6 @@ export class PushNotificationService {
 
     try {
       const ticketChunk = await this.expo.sendPushNotificationsAsync([message]);
-      console.log('✅ Push notification ticket received:', JSON.stringify(ticketChunk, null, 2));
       
       // Check for errors in ticket
       ticketChunk.forEach((ticket) => {
