@@ -8,6 +8,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -156,95 +159,104 @@ export default function LinkPartnerScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        {/* Puzzle Illustration */}
-        <View style={styles.illustrationContainer}>
-          <View style={styles.puzzleIcon}>
-            <Ionicons name="extension-puzzle" size={80} color={colors.primary} />
-          </View>
-        </View>
-
-        {/* Title */}
-        <Text style={styles.title}>¡Conectémonos!</Text>
-        <Text style={styles.subtitle}>
-          Conéctate con tu pareja para comenzar tu viaje en MariPuntos juntos
-        </Text>
-
-        {/* Your Unique Code Section */}
-        <Card style={styles.codeSection}>
-          <Text style={styles.sectionLabel}>Tu código único</Text>
-
-          {loadingExistingCode ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={styles.loadingText}>Verificando código...</Text>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Puzzle Illustration */}
+          <View style={styles.illustrationContainer}>
+            <View style={styles.puzzleIcon}>
+              <Ionicons name="extension-puzzle" size={80} color={colors.primary} />
             </View>
-          ) : generatedCode ? (
-            <View style={styles.generatedCodeContainer}>
-              <Text style={styles.generatedCode}>{generatedCode}</Text>
-              <TouchableOpacity style={styles.copyButton} onPress={handleCopyCode}>
-                <Ionicons name="copy-outline" size={20} color={colors.primary} />
-                <Text style={styles.copyText}>Copiar código</Text>
-              </TouchableOpacity>
+          </View>
 
-              {/* Refresh button */}
+          {/* Title */}
+          <Text style={styles.title}>¡Conectémonos!</Text>
+          <Text style={styles.subtitle}>
+            Conéctate con tu pareja para comenzar tu viaje en MariPuntos juntos
+          </Text>
+
+          {/* Your Unique Code Section */}
+          <Card style={styles.codeSection}>
+            <Text style={styles.sectionLabel}>Tu código único</Text>
+
+            {loadingExistingCode ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text style={styles.loadingText}>Verificando código...</Text>
+              </View>
+            ) : generatedCode ? (
+              <View style={styles.generatedCodeContainer}>
+                <Text style={styles.generatedCode}>{generatedCode}</Text>
+                <TouchableOpacity style={styles.copyButton} onPress={handleCopyCode}>
+                  <Ionicons name="copy-outline" size={20} color={colors.primary} />
+                  <Text style={styles.copyText}>Copiar código</Text>
+                </TouchableOpacity>
+
+                {/* Refresh button */}
+                <Button
+                  title="Verificar vinculación"
+                  onPress={handleRefreshLink}
+                  loading={refreshing}
+                  variant="outline"
+                  fullWidth
+                  icon="refresh-outline"
+                  style={styles.refreshButton}
+                />
+                <Text style={styles.refreshHint}>
+                  Toca aquí después de que tu pareja ingrese el código
+                </Text>
+              </View>
+            ) : (
               <Button
-                title="Verificar vinculación"
-                onPress={handleRefreshLink}
-                loading={refreshing}
+                title="Generar código"
+                onPress={handleGenerateCode}
+                loading={generating}
                 variant="outline"
                 fullWidth
                 icon="refresh-outline"
-                style={styles.refreshButton}
               />
-              <Text style={styles.refreshHint}>
-                Toca aquí después de que tu pareja ingrese el código
-              </Text>
-            </View>
-          ) : (
-            <Button
-              title="Generar código"
-              onPress={handleGenerateCode}
-              loading={generating}
-              variant="outline"
-              fullWidth
-              icon="refresh-outline"
-            />
-          )}
-        </Card>
+            )}
+          </Card>
 
-        {/* Divider */}
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR</Text>
-          <View style={styles.dividerLine} />
-        </View>
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>OR</Text>
+            <View style={styles.dividerLine} />
+          </View>
 
-        {/* Enter Partner Code Section */}
-        <Card style={styles.codeSection}>
-          <Text style={styles.sectionLabel}>Ingresa el código de tu pareja</Text>
-          <CodeInput value={partnerCode} onChangeText={setPartnerCode} length={6} />
-        </Card>
+          {/* Enter Partner Code Section */}
+          <Card style={styles.codeSection}>
+            <Text style={styles.sectionLabel}>Ingresa el código de tu pareja</Text>
+            <CodeInput value={partnerCode} onChangeText={setPartnerCode} length={6} />
+          </Card>
 
-        {/* Link Button */}
-        <Button
-          title="Vincular cuentas"
-          onPress={handleLinkAccounts}
-          loading={loading}
-          fullWidth
-          disabled={partnerCode.length !== 6}
-          style={styles.linkButton}
-          icon="link"
-        />
+          {/* Link Button */}
+          <Button
+            title="Vincular cuentas"
+            onPress={handleLinkAccounts}
+            loading={loading}
+            fullWidth
+            disabled={partnerCode.length !== 6}
+            style={styles.linkButton}
+            icon="link"
+          />
 
-        {/* Skip Link */}
-        <TouchableOpacity
-          style={styles.skipButton}
-          onPress={() => router.replace('/(tabs)')}
-        >
-          <Text style={styles.skipText}>Regresar</Text>
-        </TouchableOpacity>
-      </View>
+          {/* Skip Link */}
+          <TouchableOpacity
+            style={styles.skipButton}
+            onPress={() => router.replace('/(tabs)')}
+          >
+            <Text style={styles.skipText}>Regresar</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -254,8 +266,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  content: {
+  keyboardView: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     padding: spacing.lg,
     justifyContent: 'center',
   },

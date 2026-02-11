@@ -3,12 +3,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -113,145 +115,146 @@ export default function RegisterScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingTop: insets.top + spacing.lg,
-            paddingBottom: insets.bottom + spacing.lg,
-          },
-        ]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Back Button */}
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
-        </TouchableOpacity>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: insets.top + spacing.lg,
+              paddingBottom: insets.bottom + spacing.lg,
+            },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Back Button */}
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
+          </TouchableOpacity>
 
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Crear cuenta</Text>
-          <Text style={styles.subtitle}>
-            Únete a MariPuntos y comienza a ganar puntos con tu pareja
-          </Text>
-        </View>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Crear cuenta</Text>
+            <Text style={styles.subtitle}>
+              Únete a MariPuntos y comienza a ganar puntos con tu pareja
+            </Text>
+          </View>
 
-        {/* Form */}
-        <View style={styles.form}>
-          <View style={styles.nameRow}>
+          {/* Form */}
+          <View style={styles.form}>
+            <View style={styles.nameRow}>
+              <Input
+                label="Nombre"
+                placeholder="Juan"
+                value={firstName}
+                onChangeText={setFirstName}
+                containerStyle={styles.nameInput}
+                leftIcon="person-outline"
+              />
+              <Input
+                label="Apellido"
+                placeholder="Pérez"
+                value={lastName}
+                onChangeText={setLastName}
+                containerStyle={styles.nameInput}
+              />
+            </View>
+
             <Input
-              label="Nombre"
-              placeholder="Juan"
-              value={firstName}
-              onChangeText={setFirstName}
-              containerStyle={styles.nameInput}
-              leftIcon="person-outline"
+              label="Correo electrónico"
+              placeholder="tucorreo@ejemplo.com"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              leftIcon="mail-outline"
             />
+
             <Input
-              label="Apellido"
-              placeholder="Pérez"
-              value={lastName}
-              onChangeText={setLastName}
-              containerStyle={styles.nameInput}
+              label="Contraseña"
+              placeholder="Mín. 8 caracteres"
+              value={password}
+              autoComplete="off"
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              leftIcon="lock-closed-outline"
+              rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              onRightIconPress={() => setShowPassword(!showPassword)}
+            />
+
+            <Input
+              label="Confirmar contraseña"
+              autoComplete="off"
+              placeholder="Repite tu contraseña"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry={!showPassword}
+              leftIcon="lock-closed-outline"
+            />
+
+            {/* Password Requirements */}
+            <View style={styles.requirements}>
+              <View style={styles.requirementItem}>
+                <Ionicons
+                  name={password.length >= 8 ? 'checkmark-circle' : 'ellipse-outline'}
+                  size={16}
+                  color={password.length >= 8 ? colors.success : colors.gray[400]}
+                />
+                <Text
+                  style={[
+                    styles.requirementText,
+                    password.length >= 8 && styles.requirementMet,
+                  ]}
+                >
+                  Al menos 8 caracteres
+                </Text>
+              </View>
+              <View style={styles.requirementItem}>
+                <Ionicons
+                  name={
+                    password === confirmPassword && password.length > 0
+                      ? 'checkmark-circle'
+                      : 'ellipse-outline'
+                  }
+                  size={16}
+                  color={
+                    password === confirmPassword && password.length > 0
+                      ? colors.success
+                      : colors.gray[400]
+                  }
+                />
+                <Text
+                  style={[
+                    styles.requirementText,
+                    password === confirmPassword &&
+                      password.length > 0 &&
+                      styles.requirementMet,
+                  ]}
+                >
+                  Las contraseñas coinciden
+                </Text>
+              </View>
+            </View>
+
+            <Button
+              title="Crear cuenta"
+              onPress={handleRegister}
+              loading={loading}
+              fullWidth
+              size="lg"
+              icon="person-add-outline"
             />
           </View>
 
-          <Input
-            label="Correo electrónico"
-            placeholder="tucorreo@ejemplo.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            leftIcon="mail-outline"
-          />
-
-          <Input
-            label="Contraseña"
-            placeholder="Mín. 8 caracteres"
-            value={password}
-            autoComplete="off"
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            leftIcon="lock-closed-outline"
-            rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
-            onRightIconPress={() => setShowPassword(!showPassword)}
-          />
-
-          <Input
-            label="Confirmar contraseña"
-            autoComplete="off"
-            placeholder="Repite tu contraseña"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry={!showPassword}
-            leftIcon="lock-closed-outline"
-          />
-
-          {/* Password Requirements */}
-          <View style={styles.requirements}>
-            <View style={styles.requirementItem}>
-              <Ionicons
-                name={password.length >= 8 ? 'checkmark-circle' : 'ellipse-outline'}
-                size={16}
-                color={password.length >= 8 ? colors.success : colors.gray[400]}
-              />
-              <Text
-                style={[
-                  styles.requirementText,
-                  password.length >= 8 && styles.requirementMet,
-                ]}
-              >
-                Al menos 8 caracteres
-              </Text>
-            </View>
-            <View style={styles.requirementItem}>
-              <Ionicons
-                name={
-                  password === confirmPassword && password.length > 0
-                    ? 'checkmark-circle'
-                    : 'ellipse-outline'
-                }
-                size={16}
-                color={
-                  password === confirmPassword && password.length > 0
-                    ? colors.success
-                    : colors.gray[400]
-                }
-              />
-              <Text
-                style={[
-                  styles.requirementText,
-                  password === confirmPassword &&
-                    password.length > 0 &&
-                    styles.requirementMet,
-                ]}
-              >
-                Las contraseñas coinciden
-              </Text>
-            </View>
-          </View>
-
-          <Button
-            title="Crear cuenta"
-            onPress={handleRegister}
-            loading={loading}
-            fullWidth
-            size="lg"
-            icon="person-add-outline"
-          />
-        </View>
-
-        {/* Divider */}
-        {/* <View style={styles.divider}>
+          {/* Divider */}
+          {/* <View style={styles.divider}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>o regístrate con</Text>
           <View style={styles.dividerLine} />
         </View> */}
 
-        {/* Social Buttons */}
-        {/* <View style={styles.socialButtons}>
+          {/* Social Buttons */}
+          {/* <View style={styles.socialButtons}>
           <TouchableOpacity style={styles.socialButton}>
             <Ionicons name="logo-google" size={24} color={colors.text.primary} />
           </TouchableOpacity>
@@ -260,14 +263,15 @@ export default function RegisterScreen() {
           </TouchableOpacity>
         </View> */}
 
-        {/* Login Link */}
-        <View style={styles.loginContainer}>
-          <Text style={styles.loginText}>¿Ya tienes una cuenta? </Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-            <Text style={styles.loginLink}>Inicia sesión</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+          {/* Login Link */}
+          <View style={styles.loginContainer}>
+            <Text style={styles.loginText}>¿Ya tienes una cuenta? </Text>
+            <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+              <Text style={styles.loginLink}>Inicia sesión</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

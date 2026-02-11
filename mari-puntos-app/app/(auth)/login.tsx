@@ -3,12 +3,14 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -83,79 +85,80 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingTop: insets.top + spacing.xl,
-            paddingBottom: insets.bottom + spacing.lg,
-          },
-        ]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Logo */}
-        <View style={styles.logoContainer}>
-          <Image
-            source={require('@/assets/images/icon.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-        </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: insets.top + spacing.xl,
+              paddingBottom: insets.bottom + spacing.lg,
+            },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('@/assets/images/icon.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          </View>
 
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>¡Bienvenido de nuevo!</Text>
-          <Text style={styles.subtitle}>
-            Inicia sesión para continuar ganando puntos con tu pareja
-          </Text>
-        </View>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>¡Bienvenido de nuevo!</Text>
+            <Text style={styles.subtitle}>
+              Inicia sesión para continuar ganando puntos con tu pareja
+            </Text>
+          </View>
 
-        {/* Form */}
-        <View style={styles.form}>
-          <Input
-            label="Correo electrónico"
-            placeholder="tucorreo@ejemplo.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            leftIcon="mail-outline"
-          />
+          {/* Form */}
+          <View style={styles.form}>
+            <Input
+              label="Correo electrónico"
+              placeholder="tucorreo@ejemplo.com"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              leftIcon="mail-outline"
+            />
 
-          <Input
-            label="Contraseña"
-            placeholder="Ingresa tu contraseña"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            leftIcon="lock-closed-outline"
-            rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
-            onRightIconPress={() => setShowPassword(!showPassword)}
-          />
+            <Input
+              label="Contraseña"
+              placeholder="Ingresa tu contraseña"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              leftIcon="lock-closed-outline"
+              rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              onRightIconPress={() => setShowPassword(!showPassword)}
+            />
 
-          {/* <TouchableOpacity style={styles.forgotPassword}>
+            {/* <TouchableOpacity style={styles.forgotPassword}>
             <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
           </TouchableOpacity> */}
 
-          <Button
-            title="Iniciar sesión"
-            onPress={handleLogin}
-            loading={loading}
-            fullWidth
-            size="lg"
-          />
-        </View>
+            <Button
+              title="Iniciar sesión"
+              onPress={handleLogin}
+              loading={loading}
+              fullWidth
+              size="lg"
+            />
+          </View>
 
-        {/* Divider */}
-        {/* <View style={styles.divider}>
+          {/* Divider */}
+          {/* <View style={styles.divider}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>or continue with</Text>
           <View style={styles.dividerLine} />
         </View> */}
 
-        {/* Social Login */}
-        {/* <View style={styles.socialButtons}>
+          {/* Social Login */}
+          {/* <View style={styles.socialButtons}>
           <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin}>
             <Ionicons name="logo-google" size={24} color={colors.text.primary} />
           </TouchableOpacity>
@@ -164,14 +167,15 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View> */}
 
-        {/* Register Link */}
-        <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>{'¿No tienes una cuenta? '}</Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-            <Text style={styles.registerLink}>Regístrate</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+          {/* Register Link */}
+          <View style={styles.registerContainer}>
+            <Text style={styles.registerText}>{'¿No tienes una cuenta? '}</Text>
+            <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+              <Text style={styles.registerLink}>Regístrate</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

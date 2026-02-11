@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import {
+  Keyboard,
   Modal,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
   TextInput,
@@ -59,8 +61,8 @@ export function ResponseModal({
         style={styles.overlay}
       >
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={handleClose}>
-          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.modalContainer}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.modalContainer} onStartShouldSetResponder={() => true}>
               {/* Header */}
               <View style={styles.header}>
                 <Text style={styles.title}>Responder Permiso</Text>
@@ -110,7 +112,7 @@ export function ResponseModal({
                 />
               </View>
             </View>
-          </TouchableOpacity>
+          </TouchableWithoutFeedback>
         </TouchableOpacity>
       </KeyboardAvoidingView>
     </Modal>
