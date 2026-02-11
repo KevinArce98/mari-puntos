@@ -3,7 +3,7 @@ import { userService } from '@/services';
 import { colors, spacing, typography } from '@/theme';
 import { useSignUp } from '@clerk/clerk-expo';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +13,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   View,
+  BackHandler,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 
@@ -23,6 +24,30 @@ export default function VerifyEmailScreen() {
 
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(60); // Start with 60 seconds cooldown
+  const [canResend, setCanResend] = useState(false);
+
+  // Prevent back button on Android
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      // Return true to prevent default back behavior
+      return true;
+    });
+
+    return () => backHandler.remove();
+  }, []);
+
+  // Cooldown timer for resend button
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setCanResend(true);
+    }
+  }, [resendCooldown]);
 
   const handleVerify = async () => {
     if (!isLoaded) return;
@@ -79,7 +104,7 @@ export default function VerifyEmailScreen() {
   };
 
   const handleResend = async () => {
-    if (!isLoaded) return;
+    if (!isLoaded || !canResend) return;
 
     try {
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
@@ -88,6 +113,9 @@ export default function VerifyEmailScreen() {
         text1: 'Código enviado',
         text2: 'Revisa tu correo electrónico',
       });
+      // Reset cooldown
+      setResendCooldown(60);
+      setCanResend(false);
     } catch (error) {
       Toast.show({
         type: 'error',
@@ -133,14 +161,18 @@ export default function VerifyEmailScreen() {
               onPress={handleVerify}
               loading={loading}
               fullWidth
+              disabled={code.length !== 6}
               style={styles.verifyButton}
             />
 
             <Button
-              title="Reenviar código"
+              title={
+                canResend ? 'Reenviar código' : `Reenviar código (${resendCooldown}s)`
+              }
               onPress={handleResend}
               variant="ghost"
               fullWidth
+              disabled={!canResend}
             />
           </View>
         </ScrollView>

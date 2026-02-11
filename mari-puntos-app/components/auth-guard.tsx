@@ -4,6 +4,7 @@ import { LoadingScreen } from '@/components/loading-screen';
 import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useUserStore } from '@/stores';
+import { useSignUp } from '@clerk/clerk-expo';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -19,13 +20,34 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const { isFirstTime, isLoading: isFirstTimeLoading } = useFirstTimeUser();
   const segments = useSegments();
   const navigationState = useRootNavigationState();
+  const { signUp, isLoaded: signUpLoaded } = useSignUp();
 
   // Show loading screen while checking authentication, first time status, and navigation readiness
-  if (!navigationState?.key || !isLoaded || isUserLoading || isFirstTimeLoading) {
+  if (
+    !navigationState?.key ||
+    !isLoaded ||
+    !signUpLoaded ||
+    isUserLoading ||
+    isFirstTimeLoading
+  ) {
     return <LoadingScreen />;
   }
 
   const inAuthGroup = segments[0] === '(auth)';
+  const inVerifyEmail = segments[1] === 'verify-email';
+
+  // Check if user is in the middle of email verification process
+  if (signUp && signUp.status === 'missing_requirements') {
+    const emailAddress = signUp.emailAddress;
+    // User needs to verify their email
+    if (!inVerifyEmail && emailAddress) {
+      return (
+        <Redirect
+          href={{ pathname: '/(auth)/verify-email', params: { email: emailAddress } }}
+        />
+      );
+    }
+  }
 
   // User is signed in
   if (isSignedIn) {
