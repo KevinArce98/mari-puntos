@@ -3,13 +3,13 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { useClerkAuth } from './useClerkAuth';
 import { useUserStore } from '@/stores';
 
 Notifications.setNotificationHandler({
   handleNotification: async () =>
     ({
-      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
       shouldPlaySound: true,
       shouldSetBadge: true,
     }) as Notifications.NotificationBehavior,
@@ -33,8 +33,8 @@ export function useNotifications() {
   const notificationListener = useRef<Notifications.EventSubscription | null>(null);
   const responseListener = useRef<Notifications.EventSubscription | null>(null);
   const tokenSentRef = useRef(false);
-  const { isSignedIn, isLoaded } = useClerkAuth();
-  const updatePushToken = useUserStore((state) => state.updatePushToken);
+  // Use user state instead of Clerk to avoid auth conflicts
+  const user = useUserStore((state) => state.user);
 
   const handleNotificationResponse = (data: NotificationData) => {
     // Aquí puedes navegar a la pantalla correspondiente según el tipo de notificación
@@ -42,21 +42,18 @@ export function useNotifications() {
     // TODO: Implementar navegación según data.screen
   };
 
-  const sendPushTokenToBackend = useCallback(
-    async (token: string) => {
-      if (tokenSentRef.current) return;
+  const sendPushTokenToBackend = useCallback(async (token: string) => {
+    if (tokenSentRef.current) return;
 
-      try {
-        tokenSentRef.current = true;
-        await updatePushToken(token);
-        console.log('Push token sent to backend successfully');
-      } catch (error) {
-        tokenSentRef.current = false;
-        console.error('Error sending push token to backend:', error);
-      }
-    },
-    [updatePushToken]
-  );
+    try {
+      tokenSentRef.current = true;
+      // Use getState() to avoid subscribing to store changes
+      await useUserStore.getState().updatePushToken(token);
+    } catch (error) {
+      tokenSentRef.current = false;
+      console.error('Error sending push token to backend:', error);
+    }
+  }, []);
 
   useEffect(() => {
     registerForPushNotificationsAsync()
@@ -73,8 +70,22 @@ export function useNotifications() {
   useEffect(() => {
     // Listener para notificaciones recibidas mientras la app está abierta
     notificationListener.current = Notifications.addNotificationReceivedListener(
-      (notification) => {
+      async (notification) => {
         setNotifications((prev) => [notification, ...prev]);
+
+        // Mostrar notificación local para que sea visible en foreground
+        try {
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: notification.request.content.title || 'Nueva notificación',
+              body: notification.request.content.body || '',
+              data: notification.request.content.data,
+            },
+            trigger: null, // Mostrar inmediatamente
+          });
+        } catch (error) {
+          console.error('❌ Error scheduling local notification:', error);
+        }
       }
     );
 
@@ -97,12 +108,12 @@ export function useNotifications() {
     };
   }, []);
 
-  // Enviar el token cuando el usuario se autentique
+  // Enviar el token cuando el usuario esté autenticado
   useEffect(() => {
-    if (isLoaded && isSignedIn && expoPushToken) {
+    if (user && expoPushToken) {
       sendPushTokenToBackend(expoPushToken);
     }
-  }, [isLoaded, isSignedIn, expoPushToken, sendPushTokenToBackend]);
+  }, [user, expoPushToken, sendPushTokenToBackend]);
 
   return {
     expoPushToken,
@@ -150,7 +161,6 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
         handleRegistrationError('Error: No se encontró el projectId de EAS.');
       }
       token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
-      console.log('Expo Push Token:', token);
     } catch (error) {
       console.error('Error getting push token:', error);
     }

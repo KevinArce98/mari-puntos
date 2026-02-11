@@ -195,18 +195,6 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Configuración</Text>
           <Card padding="none" style={styles.menuCard}>
-            {/* <ListItem
-              title="Edit Profile"
-              leftIcon="person-outline"
-              rightIcon="chevron-forward"
-              onPress={() => {}}
-            /> */}
-            {/* <ListItem
-              title="Notifications"
-              leftIcon="notifications-outline"
-              rightIcon="chevron-forward"
-              onPress={() => {}}
-            /> */}
             <ListItem
               title="Privacidad"
               leftIcon="shield-outline"
