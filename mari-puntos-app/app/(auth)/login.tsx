@@ -195,6 +195,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: spacing.lg,
+    justifyContent: 'center',
   },
   logoContainer: {
     alignItems: 'center',
