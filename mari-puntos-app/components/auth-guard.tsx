@@ -35,6 +35,12 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   const inAuthGroup = segments[0] === '(auth)';
   const inVerifyEmail = segments[1] === 'verify-email';
+  const inLinkPartner = segments[0] === 'link-partner';
+
+  // If we're in the onboarding flow (verify-email or link-partner), don't interfere - let the flow complete
+  if (inVerifyEmail || inLinkPartner) {
+    return <>{children}</>;
+  }
 
   // Check if user is in the middle of email verification process
   if (signUp && signUp.status === 'missing_requirements') {
@@ -51,6 +57,11 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   // User is signed in
   if (isSignedIn) {
+    // Wait for user profile to load before making decisions
+    if (isUserLoading) {
+      return <LoadingScreen />;
+    }
+
     // Check if user profile exists in database
     if (!user && !inAuthGroup) {
       // Profile doesn't exist - redirect to login

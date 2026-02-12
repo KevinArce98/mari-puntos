@@ -1,4 +1,4 @@
-import { useSignUp } from '@clerk/clerk-expo';
+import { useSignUp, isClerkAPIResponseError } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -14,8 +14,8 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { Button, Input } from '@/components/ui';
+import { handleClerkErrors } from '@/types/clerk-localization';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
 
@@ -95,10 +95,11 @@ export default function RegisterScreen() {
         params: { email: email.toLowerCase().trim() },
       });
     } catch (error: any) {
-      const errorMessage =
-        error.errors?.[0]?.message ||
-        error.errors?.[0]?.longMessage ||
-        'No se pudo crear la cuenta. Por favor intenta de nuevo.';
+      let errorMessage = 'No se pudo crear la cuenta. Por favor intenta de nuevo.';
+
+      if (isClerkAPIResponseError(error)) {
+        errorMessage = handleClerkErrors(error.errors);
+      }
 
       Toast.show({
         type: 'error',

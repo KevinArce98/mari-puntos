@@ -1,5 +1,6 @@
-import { useSignIn } from '@clerk/clerk-expo';
+import { useSignIn, isClerkAPIResponseError } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
+import { handleClerkErrors } from '@/types/clerk-localization';
 import React, { useState } from 'react';
 import {
   Image,
@@ -53,11 +54,17 @@ export default function LoginScreen() {
         await setActive({ session: result.createdSessionId });
         router.replace('/(tabs)');
       }
-    } catch (e) {
+    } catch (error: any) {
+      let errorMessage = 'Correo o contraseña inválidos';
+
+      if (isClerkAPIResponseError(error)) {
+        errorMessage = handleClerkErrors(error.errors);
+      }
+
       Toast.show({
         type: 'error',
         text1: 'Inicio de sesión fallido',
-        text2: (e as any)?.error ? (e as any).error : 'Correo o contraseña inválidos',
+        text2: errorMessage,
       });
     } finally {
       setLoading(false);

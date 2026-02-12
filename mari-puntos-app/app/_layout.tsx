@@ -4,8 +4,10 @@ import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
+import { Platform } from 'react-native';
 import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthGuard } from '@/components';
 // import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -14,6 +16,7 @@ const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '
 
 function RootLayoutNav() {
   // const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
 
   useNotifications();
 
@@ -72,7 +75,9 @@ function RootLayoutNav() {
           />
         </Stack>
         <StatusBar style="dark" />
-        <Toast />
+        <Toast 
+          topOffset={Platform.OS === 'ios' ? insets.top + 10 : insets.top}
+        />
       </AuthGuard>
     </ThemeProvider>
   );

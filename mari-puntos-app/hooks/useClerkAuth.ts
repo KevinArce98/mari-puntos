@@ -30,7 +30,9 @@ export function useClerkAuth() {
           if (error?.status !== 404) {
             console.error('Error fetching user profile:', error);
           } else {
-            console.log('User profile not found - this is normal for new users during signup');
+            console.log(
+              'User profile not found - this is normal for new users during signup'
+            );
           }
         });
       } else {

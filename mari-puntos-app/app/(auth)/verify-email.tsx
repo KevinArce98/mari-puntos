@@ -1,7 +1,8 @@
 import { Button, Input } from '@/components/ui';
 import { userService } from '@/services';
 import { colors, spacing, typography } from '@/theme';
-import { useSignUp } from '@clerk/clerk-expo';
+import { useSignUp, isClerkAPIResponseError } from '@clerk/clerk-expo';
+import { handleClerkErrors } from '@/types/clerk-localization';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import {
@@ -93,10 +94,16 @@ export default function VerifyEmailScreen() {
         router.replace('/link-partner');
       }
     } catch (error: any) {
+      let errorMessage = 'Código inválido';
+
+      if (isClerkAPIResponseError(error)) {
+        errorMessage = handleClerkErrors(error.errors);
+      }
+
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: error.errors?.[0]?.message || 'Código inválido',
+        text2: errorMessage,
       });
     } finally {
       setLoading(false);
@@ -116,13 +123,17 @@ export default function VerifyEmailScreen() {
       // Reset cooldown
       setResendCooldown(60);
       setCanResend(false);
-    } catch (error) {
+    } catch (error: any) {
+      let errorMessage = 'No se pudo enviar el código';
+
+      if (isClerkAPIResponseError(error)) {
+        errorMessage = handleClerkErrors(error.errors);
+      }
+
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: (error as any).error
-          ? (error as any).error
-          : 'No se pudo enviar el código',
+        text2: errorMessage,
       });
     }
   };
