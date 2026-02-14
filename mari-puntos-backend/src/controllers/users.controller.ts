@@ -100,12 +100,12 @@ export class UsersController {
    */
   sendTestNotification = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const { pushToken } = sendTestNotificationSchema.parse(req.body);
+      const { pushToken, title, body, data } = sendTestNotificationSchema.parse(req.body);
 
       await this.pushNotificationService.sendNotification(pushToken, {
-        title: '🔔 Notificación de Prueba',
-        body: 'Tu token de notificaciones está funcionando correctamente!',
-        data: {
+        title: title || '🔔 Notificación de Prueba',
+        body: body || 'Tu token de notificaciones está funcionando correctamente!',
+        data: data || {
           type: 'test',
           timestamp: new Date().toISOString(),
         },

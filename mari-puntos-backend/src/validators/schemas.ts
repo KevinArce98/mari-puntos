@@ -32,6 +32,9 @@ export const updateUserSchema = z.object({
 
 export const sendTestNotificationSchema = z.object({
   pushToken: z.string().min(1, 'Push token is required'),
+  title: z.string().min(1, 'Title is required').optional(),
+  body: z.string().min(1, 'Body is required').optional(),
+  data: z.record(z.string(), z.any()).optional(),
 });
 
 // ============================================================================

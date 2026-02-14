@@ -233,7 +233,7 @@ router.post(
  * /users/test-notification:
  *   post:
  *     summary: Send a test push notification
- *     description: Send a test push notification to verify the push token works
+ *     description: Send a test push notification to verify the push token works. You can customize the notification content or use defaults.
  *     tags: [Users]
  *     security:
  *       - BearerAuth: []
@@ -250,6 +250,18 @@ router.post(
  *                 type: string
  *                 description: Expo push token to test
  *                 example: ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]
+ *               title:
+ *                 type: string
+ *                 description: Notification title (optional, defaults to test title)
+ *                 example: 🎉 Acción aprobada
+ *               body:
+ *                 type: string
+ *                 description: Notification body (optional, defaults to test body)
+ *                 example: Tu acción ha sido aprobada. +10 puntos
+ *               data:
+ *                 type: object
+ *                 description: Custom data payload for the notification (optional, defaults to test data)
+ *                 example: {"type": "action_approved", "pointsAwarded": 10, "screen": "actions"}
  *     responses:
  *       200:
  *         description: Test notification sent successfully
@@ -265,7 +277,7 @@ router.post(
  *                   type: string
  *                   example: Test notification sent successfully
  *       400:
- *         description: Invalid push token
+ *         description: Invalid push token or validation error
  *       401:
  *         description: Unauthorized
  */
