@@ -35,7 +35,7 @@ export class PushNotificationService {
 
     try {
       const ticketChunk = await this.expo.sendPushNotificationsAsync([message]);
-      
+
       // Check for errors in ticket
       ticketChunk.forEach((ticket) => {
         if (ticket.status === 'error') {
@@ -110,7 +110,6 @@ export class PushNotificationService {
       body: `${requesterName} solicita permiso: ${permissionTitle}`,
       data: {
         type: 'permission_requested',
-        screen: 'permissions',
       },
     });
   }
@@ -129,7 +128,6 @@ export class PushNotificationService {
       data: {
         type: 'permission_response',
         approved,
-        screen: 'permissions',
       },
     });
   }
@@ -147,7 +145,6 @@ export class PushNotificationService {
       body: `${actionCreatorName} ha completado: ${actionTitle}`,
       data: {
         type: 'action_created',
-        screen: 'actions',
       },
     });
   }
@@ -166,7 +163,6 @@ export class PushNotificationService {
       data: {
         type: 'action_approved',
         pointsAwarded,
-        screen: 'actions',
       },
     });
   }
@@ -183,7 +179,6 @@ export class PushNotificationService {
       body: `Tu acción "${actionTitle}" ha sido rechazada`,
       data: {
         type: 'action_rejected',
-        screen: 'actions',
       },
     });
   }
