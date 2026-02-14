@@ -6,6 +6,7 @@ import { sendSuccess, sendCreated } from '../utils/response';
 import { toPartnerInfoDTO } from '../utils/mappers';
 import { getNowUTC6 } from '../utils/helpers';
 import { PartnerLinkStatus } from '../shared/constants';
+import { AppError } from '../middlewares/errorMiddleware';
 
 export class PartnerController {
   private partnerService = new PartnerService();
@@ -70,7 +71,7 @@ export class PartnerController {
       const partnerLink = await this.partnerService.getPartnerLinkCode(userId);
 
       if (!partnerLink) {
-        throw new Error('No partner link found for user');
+        throw new AppError(404, 'No partner link found for user');
       }
 
       sendSuccess(
