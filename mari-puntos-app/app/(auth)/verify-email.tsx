@@ -1,7 +1,8 @@
-import { Button, Input } from '@/components/ui';
+import { Button, CodeInput } from '@/components/ui';
 import { userService } from '@/services';
 import { colors, spacing, typography } from '@/theme';
 import { useSignUp, isClerkAPIResponseError } from '@clerk/clerk-expo';
+import { Ionicons } from '@expo/vector-icons';
 import { handleClerkErrors } from '@/types/clerk-localization';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
@@ -95,6 +96,7 @@ export default function VerifyEmailScreen() {
       }
     } catch (error: any) {
       let errorMessage = 'Código inválido';
+      console.log(JSON.stringify(error, null, 2));
 
       if (isClerkAPIResponseError(error)) {
         errorMessage = handleClerkErrors(error.errors);
@@ -150,21 +152,19 @@ export default function VerifyEmailScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.content}>
-            <Text style={styles.icon}>📧</Text>
+            <Ionicons name="mail-outline" size={80} color={colors.primary} style={styles.icon} />
             <Text style={styles.title}>Verifica tu correo</Text>
             <Text style={styles.subtitle}>
               Hemos enviado un código de verificación a{'\n'}
               <Text style={styles.email}>{email}</Text>
             </Text>
 
-            <Input
-              label="Código de verificación"
-              placeholder="000000"
+            <CodeInput
+              length={6}
               value={code}
               onChangeText={setCode}
-              keyboardType="number-pad"
-              maxLength={6}
-              containerStyle={styles.input}
+              type="numeric"
+              style={styles.codeInput}
             />
 
             <Button
@@ -206,7 +206,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   icon: {
-    fontSize: 80,
     marginBottom: spacing.lg,
   },
   title: {
@@ -225,9 +224,9 @@ const styles = StyleSheet.create({
     ...typography.styles.bodyMedium,
     color: colors.primary,
   },
-  input: {
+  codeInput: {
     width: '100%',
-    marginBottom: spacing.md,
+    marginBottom: spacing.xl,
   },
   verifyButton: {
     marginBottom: spacing.md,

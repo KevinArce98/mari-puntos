@@ -70,6 +70,7 @@ export const clerkLocalization = {
     'El registro requiere un autenticador de plataforma pero el dispositivo no lo soporta.',
   passkey_registration_cancelled: 'El registro de passkey fue cancelado o expiró.',
   passkey_retrieval_cancelled: 'La verificación de passkey fue cancelada o expiró.',
+  verification_expired: 'Esta código ha expirado.',
   passwordComplexity: {
     maximumLength: 'menos de {{length}} caracteres',
     minimumLength: '{{length}} o más caracteres',

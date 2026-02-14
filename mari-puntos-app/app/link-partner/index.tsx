@@ -51,6 +51,7 @@ export default function LinkPartnerScreen() {
     };
 
     loadExistingCode();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleGenerateCode = async () => {
@@ -146,7 +147,7 @@ export default function LinkPartnerScreen() {
           text2: 'Tu pareja aún no ha ingresado el código',
         });
       }
-    } catch (error) {
+    } catch {
       Toast.show({
         type: 'info',
         text1: 'Esperando conexión',
