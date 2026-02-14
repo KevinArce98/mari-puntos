@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
     borderColor: colors.error,
   },
   input: {
+    lineHeight: 16,
     flex: 1,
     color: colors.text.primary,
     paddingVertical: spacing.md,
