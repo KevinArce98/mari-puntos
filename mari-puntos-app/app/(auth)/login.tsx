@@ -15,39 +15,38 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { Button, Input } from '@/components/ui';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button, ControlledInput } from '@/components/ui';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
+import { loginSchema, type LoginFormData } from '@/validators/auth.schema';
 
 export default function LoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signIn, setActive, isLoaded } = useSignIn();
-  // const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
     if (!isLoaded) return;
 
-    if (!email.trim() || !password.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Campos faltantes',
-        text2: 'Por favor ingresa tu correo y contraseña',
-      });
-      return;
-    }
-
-    setLoading(true);
     try {
       const result = await signIn.create({
-        identifier: email,
-        password,
+        identifier: data.email,
+        password: data.password,
       });
 
       if (result.status === 'complete') {
@@ -66,8 +65,6 @@ export default function LoginScreen() {
         text1: 'Inicio de sesión fallido',
         text2: errorMessage,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -123,21 +120,21 @@ export default function LoginScreen() {
 
           {/* Form */}
           <View style={styles.form}>
-            <Input
+            <ControlledInput
+              control={control}
+              name="email"
               label="Correo electrónico"
               placeholder="tucorreo@ejemplo.com"
-              value={email}
-              onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
               leftIcon="mail-outline"
             />
 
-            <Input
+            <ControlledInput
+              control={control}
+              name="password"
               label="Contraseña"
               placeholder="Ingresa tu contraseña"
-              value={password}
-              onChangeText={setPassword}
               secureTextEntry={!showPassword}
               leftIcon="lock-closed-outline"
               rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
@@ -150,8 +147,8 @@ export default function LoginScreen() {
 
             <Button
               title="Iniciar sesión"
-              onPress={handleLogin}
-              loading={loading}
+              onPress={handleSubmit(onSubmit)}
+              loading={isSubmitting}
               fullWidth
               size="lg"
             />

@@ -1,4 +1,4 @@
-import { Button, CodeInput } from '@/components/ui';
+import { Button, ControlledCodeInput } from '@/components/ui';
 import { userService } from '@/services';
 import { colors, spacing, typography } from '@/theme';
 import { useSignUp, isClerkAPIResponseError } from '@clerk/clerk-expo';
@@ -18,16 +18,31 @@ import {
   BackHandler,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { verifyEmailSchema, type VerifyEmailFormData } from '@/validators/auth.schema';
 
 export default function VerifyEmailScreen() {
   const { signUp, setActive, isLoaded } = useSignUp();
   const router = useRouter();
   const { email } = useLocalSearchParams<{ email: string }>();
 
-  const [code, setCode] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(60); // Start with 60 seconds cooldown
+  const [resendCooldown, setResendCooldown] = useState(60);
   const [canResend, setCanResend] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    watch,
+    formState: { isSubmitting },
+  } = useForm<VerifyEmailFormData>({
+    resolver: zodResolver(verifyEmailSchema),
+    defaultValues: {
+      code: '',
+    },
+  });
+
+  const code = watch('code');
 
   // Prevent back button on Android
   useEffect(() => {
@@ -51,13 +66,12 @@ export default function VerifyEmailScreen() {
     }
   }, [resendCooldown]);
 
-  const handleVerify = async () => {
+  const onSubmit = async (data: VerifyEmailFormData) => {
     if (!isLoaded) return;
 
-    setLoading(true);
     try {
       const result = await signUp.attemptEmailAddressVerification({
-        code,
+        code: data.code,
       });
 
       if (result.status === 'complete') {
@@ -107,8 +121,6 @@ export default function VerifyEmailScreen() {
         text1: 'Error',
         text2: errorMessage,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -152,25 +164,30 @@ export default function VerifyEmailScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.content}>
-            <Ionicons name="mail-outline" size={80} color={colors.primary} style={styles.icon} />
+            <Ionicons
+              name="mail-outline"
+              size={80}
+              color={colors.primary}
+              style={styles.icon}
+            />
             <Text style={styles.title}>Verifica tu correo</Text>
             <Text style={styles.subtitle}>
               Hemos enviado un código de verificación a{'\n'}
               <Text style={styles.email}>{email}</Text>
             </Text>
 
-            <CodeInput
+            <ControlledCodeInput
+              control={control}
+              name="code"
               length={6}
-              value={code}
-              onChangeText={setCode}
               type="numeric"
               style={styles.codeInput}
             />
 
             <Button
               title="Verificar"
-              onPress={handleVerify}
-              loading={loading}
+              onPress={handleSubmit(onSubmit)}
+              loading={isSubmitting}
               fullWidth
               disabled={code.length !== 6}
               style={styles.verifyButton}

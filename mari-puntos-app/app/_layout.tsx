@@ -75,9 +75,7 @@ function RootLayoutNav() {
           />
         </Stack>
         <StatusBar style="dark" />
-        <Toast 
-          topOffset={Platform.OS === 'ios' ? insets.top + 10 : insets.top}
-        />
+        <Toast topOffset={Platform.OS === 'ios' ? insets.top + 10 : insets.top} />
       </AuthGuard>
     </ThemeProvider>
   );
