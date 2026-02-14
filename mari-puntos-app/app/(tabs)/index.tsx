@@ -258,8 +258,6 @@ const styles = StyleSheet.create({
   noPartnerIcon: {
     width: 100,
     height: 100,
-    borderRadius: borderRadius.full,
-    backgroundColor: `${colors.primary}15`,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.lg,
