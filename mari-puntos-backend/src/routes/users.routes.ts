@@ -261,7 +261,7 @@ router.post(
  *               data:
  *                 type: object
  *                 description: Custom data payload for the notification (optional, defaults to test data)
- *                 example: {"type": "action_approved", "pointsAwarded": 10, "screen": "actions"}
+ *                 example: {"type": "action_approved", "pointsAwarded": 10}
  *     responses:
  *       200:
  *         description: Test notification sent successfully
