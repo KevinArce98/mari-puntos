@@ -6,21 +6,22 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { ActionCategory } from '@/types';
 import { colors, spacing, typography, borderRadius } from '@/theme';
-import { Button } from './Button';
+import { Button, ControlledInput } from '@/components/ui';
+import {
+  createActionSchema,
+  type CreateActionFormData,
+} from '@/validators/action.schema';
 
 interface CreateActionModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (data: {
-    title: string;
-    description?: string;
-    category: ActionCategory;
-  }) => Promise<void>;
+  onSubmit: (data: CreateActionFormData) => Promise<void>;
 }
 
 const CATEGORIES: {
@@ -41,28 +42,27 @@ export function CreateActionModal({
   onClose,
   onSubmit,
 }: CreateActionModalProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<ActionCategory>(
-    ActionCategory.HOUSEHOLD
-  );
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!title.trim()) return;
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<CreateActionFormData>({
+    resolver: zodResolver(createActionSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      category: ActionCategory.HOUSEHOLD,
+    },
+  });
 
+  const onSubmitForm = async (data: CreateActionFormData) => {
     setLoading(true);
     try {
-      await onSubmit({
-        title: title.trim(),
-        description: description.trim() || undefined,
-        category: selectedCategory,
-      });
-
-      // Reset form
-      setTitle('');
-      setDescription('');
-      setSelectedCategory(ActionCategory.HOUSEHOLD);
+      await onSubmit(data);
+      reset();
       onClose();
     } catch (error) {
       console.error('Error creating action:', error);
@@ -72,9 +72,7 @@ export function CreateActionModal({
   };
 
   const handleClose = () => {
-    setTitle('');
-    setDescription('');
-    setSelectedCategory(ActionCategory.HOUSEHOLD);
+    reset();
     onClose();
   };
 
@@ -99,12 +97,10 @@ export function CreateActionModal({
             {/* Title Input */}
             <View style={styles.section}>
               <Text style={styles.label}>Título *</Text>
-              <TextInput
-                style={styles.input}
+              <ControlledInput
+                control={control}
+                name="title"
                 placeholder="Ej: Preparé la cena"
-                placeholderTextColor={colors.gray[400]}
-                value={title}
-                onChangeText={setTitle}
                 maxLength={100}
               />
             </View>
@@ -112,12 +108,10 @@ export function CreateActionModal({
             {/* Description Input */}
             <View style={styles.section}>
               <Text style={styles.label}>Descripción (opcional)</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
+              <ControlledInput
+                control={control}
+                name="description"
                 placeholder="Agrega detalles sobre lo que hiciste..."
-                placeholderTextColor={colors.gray[400]}
-                value={description}
-                onChangeText={setDescription}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
@@ -128,37 +122,40 @@ export function CreateActionModal({
             {/* Category Selection */}
             <View style={styles.section}>
               <Text style={styles.label}>Categoría *</Text>
-              <View style={styles.categoriesGrid}>
-                {CATEGORIES.map((category) => (
-                  <TouchableOpacity
-                    key={category.value}
-                    style={[
-                      styles.categoryCard,
-                      selectedCategory === category.value && styles.categoryCardSelected,
-                    ]}
-                    onPress={() => setSelectedCategory(category.value)}
-                  >
-                    <Ionicons
-                      name={category.icon}
-                      size={24}
-                      color={
-                        selectedCategory === category.value
-                          ? colors.primary
-                          : colors.gray[400]
-                      }
-                    />
-                    <Text
-                      style={[
-                        styles.categoryLabel,
-                        selectedCategory === category.value &&
-                          styles.categoryLabelSelected,
-                      ]}
-                    >
-                      {category.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <Controller
+                control={control}
+                name="category"
+                render={({ field: { onChange, value } }) => (
+                  <View style={styles.categoriesGrid}>
+                    {CATEGORIES.map((category) => (
+                      <TouchableOpacity
+                        key={category.value}
+                        style={[
+                          styles.categoryCard,
+                          value === category.value && styles.categoryCardSelected,
+                        ]}
+                        onPress={() => onChange(category.value)}
+                      >
+                        <Ionicons
+                          name={category.icon}
+                          size={24}
+                          color={
+                            value === category.value ? colors.primary : colors.gray[400]
+                          }
+                        />
+                        <Text
+                          style={[
+                            styles.categoryLabel,
+                            value === category.value && styles.categoryLabelSelected,
+                          ]}
+                        >
+                          {category.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              />
             </View>
           </ScrollView>
 
@@ -173,9 +170,9 @@ export function CreateActionModal({
             />
             <Button
               title="Crear"
-              onPress={handleSubmit}
+              onPress={handleSubmit(onSubmitForm)}
               style={styles.actionButton}
-              disabled={!title.trim() || loading}
+              disabled={isSubmitting}
               loading={loading}
             />
           </View>

@@ -6,7 +6,6 @@ import {
   Modal,
   TouchableOpacity,
   ScrollView,
-  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
@@ -14,6 +13,13 @@ import { Action, ActionCategory } from '@/types';
 import { colors, spacing, typography, borderRadius } from '@/theme';
 import { Button } from './Button';
 import { formatDate } from '@/utils/general';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ControlledInput } from './ControlledInput';
+import {
+  reviewActionSchema,
+  type ReviewActionFormData,
+} from '@/validators/action.schema';
 
 interface ReviewActionModalProps {
   visible: boolean;
@@ -40,9 +46,21 @@ export function ReviewActionModal({
   onReject,
 }: ReviewActionModalProps) {
   const [points, setPoints] = useState(100);
-  const [rejectionReason, setRejectionReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'review' | 'reject'>('review');
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<ReviewActionFormData>({
+    resolver: zodResolver(reviewActionSchema),
+    defaultValues: {
+      points: 100,
+      rejectionReason: '',
+    },
+  });
 
   const handleApprove = async () => {
     if (!action) return;
@@ -58,12 +76,12 @@ export function ReviewActionModal({
     }
   };
 
-  const handleReject = async () => {
-    if (!action || !rejectionReason.trim()) return;
+  const onSubmitReject = async (data: ReviewActionFormData) => {
+    if (!action || !data.rejectionReason?.trim()) return;
 
     setLoading(true);
     try {
-      await onReject(action.id, rejectionReason.trim());
+      await onReject(action.id, data.rejectionReason.trim());
       resetAndClose();
     } catch (error) {
       console.error('Error rejecting action:', error);
@@ -74,7 +92,7 @@ export function ReviewActionModal({
 
   const resetAndClose = () => {
     setPoints(100);
-    setRejectionReason('');
+    reset();
     setMode('review');
     onClose();
   };
@@ -171,12 +189,10 @@ export function ReviewActionModal({
               /* Rejection Reason */
               <View style={styles.section}>
                 <Text style={styles.label}>Motivo del rechazo *</Text>
-                <TextInput
-                  style={styles.textArea}
+                <ControlledInput
+                  control={control}
+                  name="rejectionReason"
                   placeholder="Explica por qué estás rechazando esta acción..."
-                  placeholderTextColor={colors.gray[400]}
-                  value={rejectionReason}
-                  onChangeText={setRejectionReason}
                   multiline
                   numberOfLines={4}
                   textAlignVertical="top"
@@ -218,9 +234,9 @@ export function ReviewActionModal({
                 />
                 <Button
                   title="Confirmar Rechazo"
-                  onPress={handleReject}
+                  onPress={handleSubmit(onSubmitReject)}
                   style={[styles.actionButton, { backgroundColor: colors.error }]}
-                  disabled={!rejectionReason.trim() || loading}
+                  disabled={isSubmitting}
                   loading={loading}
                 />
               </>

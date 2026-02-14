@@ -15,6 +15,7 @@ import { useActions, usePoints } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
 import { ActionStatus } from '@/types';
+import { CreateActionFormData } from '@/validators/action.schema';
 
 const STATUS_FILTERS = [
   { label: 'Todas', value: null },
@@ -38,7 +39,7 @@ export default function ActionsScreen() {
     return action.status === selectedStatus;
   });
 
-  const handleCreateAction = async (data: any) => {
+  const handleCreateAction = async (data: CreateActionFormData) => {
     try {
       await createAction(data);
       Toast.show({

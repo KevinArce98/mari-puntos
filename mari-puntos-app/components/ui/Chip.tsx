@@ -17,17 +17,11 @@ export const Chip: React.FC<ChipProps> = ({
 }) => {
   return (
     <TouchableOpacity
-      style={[
-        styles.chip,
-        selected && styles.chipSelected,
-        style,
-      ]}
+      style={[styles.chip, selected && styles.chipSelected, style]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={[styles.label, selected && styles.labelSelected]}>
-        {label}
-      </Text>
+      <Text style={[styles.label, selected && styles.labelSelected]}>{label}</Text>
     </TouchableOpacity>
   );
 };

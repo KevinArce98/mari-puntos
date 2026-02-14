@@ -9,13 +9,14 @@ import {
   getStatusText,
 } from '@/utils/general';
 import { useState } from 'react';
+import { ResponseMessageFormData } from '@/validators/action.schema';
 
 interface Props {
   permission: Permission;
   handleRespond: (
     permissionId: string,
     approved: boolean,
-    message: string
+    data: ResponseMessageFormData
   ) => Promise<void>;
   loading: string | null;
 }
@@ -23,13 +24,13 @@ interface Props {
 export function PermissionCard({ permission, handleRespond, loading }: Props) {
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleApprove = async (message: string) => {
-    await handleRespond(permission.id, true, message);
+  const handleApprove = async (data: ResponseMessageFormData) => {
+    await handleRespond(permission.id, true, data);
     setModalVisible(false);
   };
 
-  const handleReject = async (message: string) => {
-    await handleRespond(permission.id, false, message);
+  const handleReject = async (data: ResponseMessageFormData) => {
+    await handleRespond(permission.id, false, data);
     setModalVisible(false);
   };
 

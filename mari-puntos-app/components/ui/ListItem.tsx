@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  TouchableOpacity,
-  View,
-  Text,
-  StyleSheet,
-  ViewStyle,
-} from 'react-native';
+import { TouchableOpacity, View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, borderRadius } from '@/theme';
 
@@ -33,25 +27,21 @@ export const ListItem: React.FC<ListItemProps> = ({
   const Container = onPress ? TouchableOpacity : View;
 
   return (
-    <Container
-      style={[styles.container, style]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      {leftComponent || (leftIcon && (
-        <View style={styles.iconContainer}>
-          <Ionicons name={leftIcon} size={24} color={colors.primary} />
-        </View>
-      ))}
-      
+    <Container style={[styles.container, style]} onPress={onPress} activeOpacity={0.7}>
+      {leftComponent ||
+        (leftIcon && (
+          <View style={styles.iconContainer}>
+            <Ionicons name={leftIcon} size={24} color={colors.primary} />
+          </View>
+        ))}
+
       <View style={styles.content}>
         <Text style={styles.title}>{title}</Text>
         {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
       </View>
-      
-      {rightComponent || (rightIcon && (
-        <Ionicons name={rightIcon} size={20} color={colors.gray[400]} />
-      ))}
+
+      {rightComponent ||
+        (rightIcon && <Ionicons name={rightIcon} size={20} color={colors.gray[400]} />)}
     </Container>
   );
 };

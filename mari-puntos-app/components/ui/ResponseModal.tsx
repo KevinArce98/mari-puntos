@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Keyboard,
   Modal,
@@ -9,17 +9,23 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
-  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { colors, spacing, typography, borderRadius } from '@/theme';
 import { Button } from './Button';
+import {
+  responseMessageSchema,
+  type ResponseMessageFormData,
+} from '@/validators/action.schema';
+import { ControlledInput } from './ControlledInput';
 
 interface ResponseModalProps {
   visible: boolean;
   onClose: () => void;
-  onApprove: (message: string) => void;
-  onReject: (message: string) => void;
+  onApprove: (data: ResponseMessageFormData) => void;
+  onReject: (data: ResponseMessageFormData) => void;
   permissionTitle: string;
   loading?: boolean;
 }
@@ -32,20 +38,25 @@ export function ResponseModal({
   permissionTitle,
   loading = false,
 }: ResponseModalProps) {
-  const [message, setMessage] = useState('');
+  const { control, handleSubmit, reset } = useForm<ResponseMessageFormData>({
+    resolver: zodResolver(responseMessageSchema),
+    defaultValues: {
+      message: '',
+    },
+  });
 
-  const handleApprove = () => {
-    onApprove(message);
-    setMessage('');
+  const onSubmitApprove = (data: ResponseMessageFormData) => {
+    onApprove(data);
+    reset();
   };
 
-  const handleReject = () => {
-    onReject(message);
-    setMessage('');
+  const onSubmitReject = (data: ResponseMessageFormData) => {
+    onReject(data);
+    reset();
   };
 
   const handleClose = () => {
-    setMessage('');
+    reset();
     onClose();
   };
 
@@ -80,16 +91,14 @@ export function ResponseModal({
               {/* Message Input */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Mensaje de respuesta (opcional)</Text>
-                <TextInput
-                  style={styles.textArea}
+                <ControlledInput
+                  control={control}
+                  name="message"
                   placeholder="Escribe un mensaje para tu pareja..."
-                  placeholderTextColor={colors.text.secondary}
                   multiline
                   numberOfLines={4}
-                  value={message}
-                  onChangeText={setMessage}
-                  editable={!loading}
                   textAlignVertical="top"
+                  editable={!loading}
                 />
               </View>
 
@@ -98,14 +107,14 @@ export function ResponseModal({
                 <Button
                   title="Rechazar"
                   textStyle={styles.rejectButtonText}
-                  onPress={handleReject}
+                  onPress={handleSubmit(onSubmitReject)}
                   variant="outline"
                   style={[styles.actionButton, styles.rejectButton]}
                   disabled={loading}
                 />
                 <Button
                   title="Aprobar"
-                  onPress={handleApprove}
+                  onPress={handleSubmit(onSubmitApprove)}
                   variant="primary"
                   style={styles.actionButton}
                   disabled={loading}

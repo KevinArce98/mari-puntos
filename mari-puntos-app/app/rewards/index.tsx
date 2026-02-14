@@ -3,13 +3,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Dimensions,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -68,9 +68,10 @@ export default function RewardsScreen() {
     },
   ];
 
-  const filteredRewards = selectedCategory === 'All' 
-    ? mockRewards 
-    : mockRewards.filter(r => r.category === selectedCategory);
+  const filteredRewards =
+    selectedCategory === 'All'
+      ? mockRewards
+      : mockRewards.filter((r) => r.category === selectedCategory);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -85,7 +86,7 @@ export default function RewardsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
@@ -107,8 +108,8 @@ export default function RewardsScreen() {
         </LinearGradient>
 
         {/* Category Filter */}
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.categoriesContainer}
           contentContainerStyle={styles.categoriesContent}
@@ -134,10 +135,7 @@ export default function RewardsScreen() {
                 <Card style={styles.rewardCard} padding="none">
                   {/* Image */}
                   <View style={styles.rewardImageContainer}>
-                    <Image
-                      source={{ uri: reward.image }}
-                      style={styles.rewardImage}
-                    />
+                    <Image source={{ uri: reward.image }} style={styles.rewardImage} />
                     {/* Points Badge */}
                     <View style={styles.pointsBadge}>
                       <Text style={styles.pointsBadgeText}>{reward.pointsCost} pts</Text>
@@ -149,7 +147,7 @@ export default function RewardsScreen() {
                       </View>
                     )}
                   </View>
-                  
+
                   {/* Content */}
                   <View style={styles.rewardContent}>
                     <Text style={styles.rewardName} numberOfLines={1}>

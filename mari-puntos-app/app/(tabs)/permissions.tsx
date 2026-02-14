@@ -11,11 +11,12 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, Badge, Button } from '@/components/ui';
 import { colors, typography, spacing, borderRadius } from '@/theme';
-import { usePermissions } from '@/hooks';
+import { ResponseMessageFormData } from '@/validators/action.schema';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PermissionCard } from '@/components';
 import { formatDateOnly, getStatusColor, getStatusText } from '@/utils/general';
+import { usePermissions } from '@/hooks';
 
 export default function PermissionsScreen() {
   const router = useRouter();
@@ -40,11 +41,14 @@ export default function PermissionsScreen() {
   const handleRespond = async (
     permissionId: string,
     approved: boolean,
-    responseMessage: string
+    data: ResponseMessageFormData
   ) => {
     setLoading(permissionId);
     try {
-      await respondToPermission(permissionId, { approved, responseMessage });
+      await respondToPermission(permissionId, {
+        approved,
+        responseMessage: data.message || '',
+      });
       Toast.show({
         type: 'success',
         text1: approved ? 'Permiso aprobado' : 'Permiso rechazado',
