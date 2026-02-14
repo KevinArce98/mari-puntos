@@ -3,6 +3,7 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useUserStore } from '@/stores';
 
 Notifications.setNotificationHandler({
@@ -35,12 +36,38 @@ export function useNotifications() {
   const tokenSentRef = useRef(false);
   // Use user state instead of Clerk to avoid auth conflicts
   const user = useUserStore((state) => state.user);
+  const router = useRouter();
 
-  const handleNotificationResponse = (data: NotificationData) => {
-    // Aquí puedes navegar a la pantalla correspondiente según el tipo de notificación
-    console.log('Notification tapped:', data);
-    // TODO: Implementar navegación según data.screen
-  };
+  const handleNotificationResponse = useCallback(
+    (data: NotificationData) => {
+      if (data.screen) {
+        // Navigate to the corresponding screen
+        let route: string;
+        switch (data.screen) {
+          case 'actions':
+            route = '/actions';
+            break;
+          case 'permissions':
+            route = '/permissions';
+            break;
+          case 'rewards':
+            route = '/rewards';
+            break;
+          case 'achievements':
+            route = '/achievements';
+            break;
+          case 'history':
+            route = '/history';
+            break;
+          default:
+            console.warn('Unknown screen:', data.screen);
+            return;
+        }
+        router.push(route as any);
+      }
+    },
+    [router]
+  );
 
   const sendPushTokenToBackend = useCallback(async (token: string) => {
     if (tokenSentRef.current) return;
@@ -92,7 +119,7 @@ export function useNotifications() {
         responseListener.current.remove();
       }
     };
-  }, []);
+  }, [handleNotificationResponse]);
 
   // Enviar el token cuando el usuario esté autenticado
   useEffect(() => {
