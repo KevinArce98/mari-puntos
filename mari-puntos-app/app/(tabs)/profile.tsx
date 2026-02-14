@@ -4,6 +4,7 @@ import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -224,8 +225,7 @@ export default function ProfileScreen() {
         />
 
         <Text style={styles.footer}>
-          MariPuntos v1.0.0{'\n'}
-          Hecho con 💑 para parejas
+          MariPuntos v{Constants.expoConfig?.version || '1.0.0'}
         </Text>
       </ScrollView>
     </View>
