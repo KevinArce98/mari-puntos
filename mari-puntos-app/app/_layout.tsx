@@ -37,14 +37,12 @@ function RootLayoutNav() {
           <Stack.Screen
             name="actions/index"
             options={{
-              presentation: 'modal',
               headerShown: false,
             }}
           />
           <Stack.Screen
             name="actions/review"
             options={{
-              presentation: 'modal',
               headerShown: false,
             }}
           />

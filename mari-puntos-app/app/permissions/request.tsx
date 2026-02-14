@@ -198,13 +198,13 @@ export default function RequestPermissionScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nuevo Permiso</Text>
+        <Text style={styles.headerTitle}>Solicitar Permiso</Text>
         <View style={{ width: 40 }} />
       </View>
 
