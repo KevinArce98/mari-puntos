@@ -133,12 +133,15 @@ export default function ResetPasswordScreen() {
               onRightIconPress={() => setShowConfirmPassword(!showConfirmPassword)}
             />
 
-            <ControlledCodeInput
-              control={control}
-              name="code"
-              length={6}
-              type="numeric"
-            />
+            <View style={styles.codeInputContainer}>
+              <Text style={styles.codeLabel}>Código de verificación</Text>
+              <ControlledCodeInput
+                control={control}
+                name="code"
+                length={6}
+                type="numeric"
+              />
+            </View>
 
             <Button
               title="Restablecer contraseña"
@@ -187,6 +190,14 @@ const styles = StyleSheet.create({
   },
   form: {
     marginBottom: spacing.lg,
+  },
+  codeInputContainer: {
+    marginBottom: spacing.md,
+  },
+  codeLabel: {
+    ...typography.styles.bodyMedium,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
   },
   backContainer: {
     alignItems: 'center',
