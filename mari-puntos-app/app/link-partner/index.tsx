@@ -17,6 +17,9 @@ import {
   View,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { linkPartnerSchema, LinkPartnerFormData } from '@/validators';
 
 export default function LinkPartnerScreen() {
   const router = useRouter();
@@ -28,12 +31,23 @@ export default function LinkPartnerScreen() {
     refetch,
   } = useUser();
 
-  const [partnerCode, setPartnerCode] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
-  const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [loadingExistingCode, setLoadingExistingCode] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const form = useForm<LinkPartnerFormData>({
+    resolver: zodResolver(linkPartnerSchema),
+    defaultValues: {
+      partnerCode: '',
+    },
+  });
+
+  const {
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+  } = form;
 
   // Load existing partner link code on mount
   useEffect(() => {
@@ -88,19 +102,19 @@ export default function LinkPartnerScreen() {
     }
   };
 
-  const handleLinkAccounts = async () => {
-    if (partnerCode.length !== 6) {
+  const onSubmit = async (data: LinkPartnerFormData) => {
+    // Validar que no intente unirse a su propio código
+    if (generatedCode && data.partnerCode.toUpperCase() === generatedCode.toUpperCase()) {
       Toast.show({
         type: 'error',
-        text1: 'Código inválido',
-        text2: 'Por favor ingresa un código de 6 caracteres',
+        text1: 'Error',
+        text2: 'No puedes unirte a tu propio código',
       });
       return;
     }
 
-    setLoading(true);
     try {
-      await joinPartnerLink(partnerCode);
+      await joinPartnerLink(data.partnerCode);
       Toast.show({
         type: 'success',
         text1: '¡Vinculado!',
@@ -115,8 +129,6 @@ export default function LinkPartnerScreen() {
           ? (error as any).error
           : 'Código inválido o expirado',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -171,9 +183,7 @@ export default function LinkPartnerScreen() {
         >
           {/* Puzzle Illustration */}
           <View style={styles.illustrationContainer}>
-            <View style={styles.puzzleIcon}>
-              <Ionicons name="extension-puzzle" size={80} color={colors.primary} />
-            </View>
+            <Ionicons name="extension-puzzle-outline" size={80} color={colors.primary} />
           </View>
 
           {/* Title */}
@@ -228,23 +238,36 @@ export default function LinkPartnerScreen() {
           {/* Divider */}
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
+            <Text style={styles.dividerText}>O</Text>
             <View style={styles.dividerLine} />
           </View>
 
           {/* Enter Partner Code Section */}
           <Card style={styles.codeSection}>
             <Text style={styles.sectionLabel}>Ingresa el código de tu pareja</Text>
-            <CodeInput value={partnerCode} onChangeText={setPartnerCode} length={6} />
+            <Controller
+              control={control}
+              name="partnerCode"
+              render={({ field: { onChange, value } }) => (
+                <CodeInput
+                  value={value}
+                  onChangeText={onChange}
+                  length={6}
+                  error={!!errors.partnerCode}
+                />
+              )}
+            />
+            {errors.partnerCode && (
+              <Text style={styles.errorText}>{errors.partnerCode.message}</Text>
+            )}
           </Card>
 
           {/* Link Button */}
           <Button
             title="Vincular cuentas"
-            onPress={handleLinkAccounts}
-            loading={loading}
+            onPress={handleSubmit(onSubmit)}
+            loading={isSubmitting}
             fullWidth
-            disabled={partnerCode.length !== 6}
             style={styles.linkButton}
             icon="link"
           />
@@ -373,5 +396,11 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: 'center',
     marginTop: spacing.sm,
+  },
+  errorText: {
+    ...typography.styles.caption,
+    color: colors.error,
+    textAlign: 'center',
+    marginTop: spacing.xs,
   },
 });

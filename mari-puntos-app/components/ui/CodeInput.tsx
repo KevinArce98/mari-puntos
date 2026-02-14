@@ -8,6 +8,7 @@ interface CodeInputProps {
   onChangeText: (value: string) => void;
   style?: ViewStyle;
   type?: 'numeric' | 'alphanumeric';
+  error?: boolean;
 }
 
 export const CodeInput: React.FC<CodeInputProps> = ({
@@ -16,6 +17,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({
   onChangeText,
   style,
   type = 'alphanumeric',
+  error = false,
 }) => {
   const inputRef = useRef<TextInput>(null);
   const [focused, setFocused] = useState(false);
@@ -50,6 +52,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({
               styles.box,
               focused && index === value.length && styles.boxFocused,
               char && styles.boxFilled,
+              error && styles.boxError,
             ]}
             onTouchEnd={handlePress}
           >
@@ -98,6 +101,9 @@ const styles = StyleSheet.create({
   boxFilled: {
     borderColor: colors.primary,
     backgroundColor: colors.gray[50],
+  },
+  boxError: {
+    borderColor: colors.error,
   },
   boxText: {
     ...typography.styles.h2,

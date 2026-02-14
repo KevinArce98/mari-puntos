@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { Button } from '@/components/ui';
 import { useFirstTimeUser } from '@/hooks';
 import { borderRadius, colors, spacing, typography } from '@/theme';
