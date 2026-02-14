@@ -23,7 +23,6 @@ export interface NotificationData {
     | 'action_created'
     | 'action_approved'
     | 'action_rejected';
-  screen?: string;
   approved?: boolean;
   pointsAwarded?: number;
 }
@@ -40,31 +39,25 @@ export function useNotifications() {
 
   const handleNotificationResponse = useCallback(
     (data: NotificationData) => {
-      if (data.screen) {
-        // Navigate to the corresponding screen
-        let route: string;
-        switch (data.screen) {
-          case 'actions':
-            route = '/actions';
-            break;
-          case 'permissions':
-            route = '/permissions';
-            break;
-          case 'rewards':
-            route = '/rewards';
-            break;
-          case 'achievements':
-            route = '/achievements';
-            break;
-          case 'history':
-            route = '/history';
-            break;
-          default:
-            console.warn('Unknown screen:', data.screen);
-            return;
-        }
-        router.push(route as any);
+      // Navigate based on notification type
+      let route: string;
+      switch (data.type) {
+        case 'permission_requested':
+        case 'permission_response':
+          route = '/permissions';
+          break;
+        case 'action_created':
+          route = '/actions/review';
+          break;
+        case 'action_approved':
+        case 'action_rejected':
+          route = '/actions';
+          break;
+        default:
+          console.warn('Unknown notification type:', data.type);
+          return;
       }
+      router.push(route as any);
     },
     [router]
   );
