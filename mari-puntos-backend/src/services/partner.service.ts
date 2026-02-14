@@ -4,11 +4,13 @@ import { User } from '../entities/User';
 import { Log, LogType } from '../entities/Log';
 import { AppError } from '../middlewares/errorMiddleware';
 import { generatePartnerCode, getNowUTC6 } from '../utils/helpers';
+import { PushNotificationService } from './push-notification.service';
 
 export class PartnerService {
   private partnerLinkRepository = AppDataSource.getRepository(PartnerLink);
   private userRepository = AppDataSource.getRepository(User);
   private logRepository = AppDataSource.getRepository(Log);
+  private pushNotificationService = new PushNotificationService();
 
   async createPartnerLink(userId: string): Promise<PartnerLink> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -74,6 +76,15 @@ export class PartnerService {
       throw new AppError(404, 'Enlace de pareja no encontrado');
     }
 
+    // Get user1 with pushToken
+    const user1 = await this.userRepository.findOne({
+      where: { id: partnerLink.user1Id },
+    });
+
+    if (!user1) {
+      throw new AppError(404, 'Usuario creador del enlace no encontrado');
+    }
+
     // Validate that user is not trying to join their own link
     if (partnerLink.user1Id === userId) {
       throw new AppError(400, 'No puedes unirte a tu propio enlace de pareja');
@@ -119,6 +130,19 @@ export class PartnerService {
         relatedEntityType: 'PartnerLink',
       }),
     ]);
+
+    // Send notification to the partner who created the link
+    if (user1.pushToken) {
+      try {
+        await this.pushNotificationService.sendPartnerLinkedNotification(
+          user1.pushToken,
+          user.firstName
+        );
+      } catch (error) {
+        console.error('Error sending partner linked notification:', error);
+        // Don't fail the linking process if notification fails
+      }
+    }
 
     return savedPartnerLink;
   }

@@ -182,4 +182,20 @@ export class PushNotificationService {
       },
     });
   }
+
+  /**
+   * Send notification for partner linked
+   */
+  async sendPartnerLinkedNotification(
+    partnerPushToken: string,
+    partnerName: string
+  ): Promise<void> {
+    await this.sendNotification(partnerPushToken, {
+      title: '💕 ¡Pareja conectada!',
+      body: `${partnerName} se ha conectado contigo. ¡Ya pueden comenzar su viaje juntos!`,
+      data: {
+        type: 'partner_linked',
+      },
+    });
+  }
 }
