@@ -51,3 +51,34 @@ export const verifyEmailSchema = z.object({
 });
 
 export type VerifyEmailFormData = z.infer<typeof verifyEmailSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .email('El correo electrónico no es válido')
+    .min(1, 'El correo electrónico es requerido')
+    .toLowerCase(),
+});
+
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    code: z
+      .string()
+      .length(6, 'El código debe tener 6 dígitos')
+      .regex(/^\d+$/, 'El código solo puede contener números'),
+    password: z
+      .string()
+      .min(8, 'La contraseña debe tener al menos 8 caracteres')
+      .max(100, 'La contraseña debe tener máximo 100 caracteres')
+      .regex(/[a-z]/, 'La contraseña debe contener al menos una letra minúscula')
+      .regex(/[A-Z]/, 'La contraseña debe contener al menos una letra mayúscula')
+      .regex(/[0-9]/, 'La contraseña debe contener al menos un número'),
+    confirmPassword: z.string().min(1, 'Debes confirmar tu contraseña'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Las contraseñas no coinciden',
+    path: ['confirmPassword'],
+  });
+
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;

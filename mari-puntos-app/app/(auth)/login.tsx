@@ -141,9 +141,12 @@ export default function LoginScreen() {
               onRightIconPress={() => setShowPassword(!showPassword)}
             />
 
-            {/* <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
-          </TouchableOpacity> */}
+            <TouchableOpacity
+              style={styles.forgotPassword}
+              onPress={() => router.push('/(auth)/forgot-password')}
+            >
+              <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+            </TouchableOpacity>
 
             <Button
               title="Iniciar sesión"
