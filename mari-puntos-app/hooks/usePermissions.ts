@@ -11,6 +11,7 @@ export const usePermissions = () => {
     fetchMyPermissions,
     fetchPartnerPermissions,
     createPermission,
+    updatePermission,
     respondToPermission,
     clearPermissions,
   } = usePermissionsStore();
@@ -22,6 +23,13 @@ export const usePermissions = () => {
 
   const handleRequestPermission = async (data: CreatePermissionRequest) => {
     await createPermission(data);
+  };
+
+  const handleUpdatePermission = async (
+    permissionId: string,
+    data: Partial<CreatePermissionRequest>
+  ) => {
+    await updatePermission(permissionId, data);
   };
 
   const handleRespondToPermission = async (
@@ -44,6 +52,7 @@ export const usePermissions = () => {
       .length,
     pendingPermissions: partnerPermissions?.filter((p) => p.status === 'pending') ?? [],
     requestPermission: handleRequestPermission,
+    updatePermission: handleUpdatePermission,
     respondToPermission: handleRespondToPermission,
     cancelPermission: handleCancelPermission,
     refetch: () => {

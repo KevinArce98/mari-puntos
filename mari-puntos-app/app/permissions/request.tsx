@@ -20,14 +20,8 @@ import { usePermissions } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import { createUTC6DateTime } from '@/utils/dateUtils';
 import Toast from 'react-native-toast-message';
-import { PermissionTemplate, PermissionCategory } from '@/types';
+import { PermissionTemplate } from '@/types';
 import { permissionsService } from '@/services';
-
-const QUICK_ACTIVITIES = [
-  { id: PermissionCategory.GAMING, label: 'Gaming', icon: 'game-controller-outline' },
-  { id: PermissionCategory.SOCIAL, label: 'Friends', icon: 'people-outline' },
-  { id: PermissionCategory.SPORTS, label: 'Sports', icon: 'football-outline' },
-];
 
 export default function RequestPermissionScreen() {
   const router = useRouter();
@@ -36,7 +30,6 @@ export default function RequestPermissionScreen() {
 
   const [templates, setTemplates] = useState<PermissionTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
-  const [selectedQuick, setSelectedQuick] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<PermissionTemplate | null>(
     null
   );
@@ -44,6 +37,8 @@ export default function RequestPermissionScreen() {
   const [duration, setDuration] = useState(2); // hours
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [customCost, setCustomCost] = useState<number | null>(null);
+  const [isEditingCost, setIsEditingCost] = useState(false);
 
   // Date & Time pickers state
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -51,9 +46,21 @@ export default function RequestPermissionScreen() {
   const [showPicker, setShowPicker] = useState<'date' | 'time' | null>(null);
 
   const estimatedCost = selectedTemplate
-    ? (selectedTemplate.suggestedPointsCost || 0) *
-      (duration / (selectedTemplate.suggestedDurationHours || 1))
+    ? selectedTemplate.suggestedPointsCost != null &&
+      selectedTemplate.suggestedDurationHours != null &&
+      selectedTemplate.suggestedDurationHours > 0 &&
+      typeof duration === 'number' &&
+      !isNaN(duration) &&
+      duration > 0
+      ? Math.round(
+          (selectedTemplate.suggestedPointsCost /
+            selectedTemplate.suggestedDurationHours) *
+            duration
+        )
+      : 0
     : 0;
+
+  const finalCost = customCost !== null ? customCost : estimatedCost;
 
   // Load permission templates
   useEffect(() => {
@@ -91,16 +98,21 @@ export default function RequestPermissionScreen() {
     }
   };
 
-  const handleQuickSelect = (category: string) => {
-    setSelectedQuick(category);
-    // Find first template of this category
-    const template = templates.find((t) => t.category === category);
-    if (template) {
-      setSelectedTemplate(template);
-      if (template.suggestedDurationHours) {
-        setDuration(template.suggestedDurationHours);
-      }
-    }
+  // Combine and sort all templates alphabetically
+  const allTemplatesSorted = [...templates].sort((a, b) =>
+    a.title.localeCompare(b.title, 'es')
+  );
+
+  const handleTemplateSelect = (template: PermissionTemplate) => {
+    setSelectedTemplate(template);
+    const suggestedDuration = template.suggestedDurationHours;
+    setDuration(
+      typeof suggestedDuration === 'number' && suggestedDuration > 0
+        ? suggestedDuration
+        : 2
+    );
+    setCustomCost(null);
+    setIsEditingCost(false);
   };
 
   const handleRequest = async () => {
@@ -108,7 +120,7 @@ export default function RequestPermissionScreen() {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Por favor selecciona un tipo de permiso',
+        text2: 'Por favor selecciona un tipo de actividad',
       });
       return;
     }
@@ -121,7 +133,7 @@ export default function RequestPermissionScreen() {
         templateId: selectedTemplate.id,
         requestedDate: requestedDateTime.toISOString(),
         durationHours: duration,
-        pointsCost: Math.round(estimatedCost),
+        pointsCost: Math.round(finalCost),
         metadata: note.trim() ? { note: note.trim() } : undefined,
       });
 
@@ -144,8 +156,15 @@ export default function RequestPermissionScreen() {
   };
 
   const handleDurationChange = (change: number) => {
-    const newDuration = Math.max(0.5, Math.min(8, duration + change));
+    const currentDuration =
+      typeof duration === 'number' && !isNaN(duration) ? duration : 2;
+    const newDuration = Math.max(0.5, Math.min(8, currentDuration + change));
     setDuration(newDuration);
+    // Reset custom cost when duration changes
+    if (customCost !== null) {
+      setCustomCost(null);
+      setIsEditingCost(false);
+    }
   };
 
   const handleDateChange = (event: any, date?: Date) => {
@@ -203,7 +222,7 @@ export default function RequestPermissionScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Solicitar Permiso</Text>
+        <Text style={styles.headerTitle}>Nueva Solicitud</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -225,50 +244,11 @@ export default function RequestPermissionScreen() {
               </View>
             ) : (
               <>
-                {/* Quick Select */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Selección Rápida</Text>
-                  <View style={styles.quickSelectRow}>
-                    {QUICK_ACTIVITIES.map((activity) => (
-                      <TouchableOpacity
-                        key={activity.id}
-                        style={[
-                          styles.quickSelectItem,
-                          selectedQuick === activity.id && styles.quickSelectItemSelected,
-                        ]}
-                        onPress={() => handleQuickSelect(activity.id)}
-                      >
-                        <Ionicons
-                          name={activity.icon as keyof typeof Ionicons.glyphMap}
-                          size={24}
-                          color={
-                            selectedQuick === activity.id
-                              ? colors.white
-                              : colors.text.primary
-                          }
-                        />
-                        <Text
-                          style={[
-                            styles.quickSelectLabel,
-                            selectedQuick === activity.id &&
-                              styles.quickSelectLabelSelected,
-                          ]}
-                        >
-                          {activity.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-
                 {/* Activity Type */}
                 <View style={styles.section}>
                   <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Tipo de Actividad</Text>
                     <TouchableOpacity
-                      onPress={() => {
-                        router.push('/permissions/create-template');
-                      }}
+                      onPress={() => router.push('/permissions/create-template')}
                       style={styles.addButton}
                     >
                       <Ionicons
@@ -276,108 +256,114 @@ export default function RequestPermissionScreen() {
                         size={20}
                         color={colors.primary}
                       />
-                      <Text style={styles.addButtonText}>Nueva</Text>
+                      <Text style={styles.addButtonText}>Nueva Actividad</Text>
                     </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    style={styles.dropdown}
-                    onPress={() => setShowTemplatePicker(!showTemplatePicker)}
-                  >
-                    {selectedTemplate?.metadata?.icon && (
-                      <View style={styles.dropdownIcon}>
-                        <Ionicons
-                          name={
-                            selectedTemplate.metadata
-                              .icon as keyof typeof Ionicons.glyphMap
-                          }
-                          size={20}
-                          color={colors.primary}
-                        />
-                      </View>
-                    )}
-                    <Text
-                      style={[
-                        styles.dropdownText,
-                        !selectedTemplate && styles.dropdownPlaceholder,
-                      ]}
-                    >
-                      {selectedTemplate?.title || 'Selecciona una actividad'}
-                    </Text>
-                    <Ionicons
-                      name={showTemplatePicker ? 'chevron-up' : 'chevron-down'}
-                      size={20}
-                      color={colors.gray[400]}
-                    />
-                  </TouchableOpacity>
 
-                  {showTemplatePicker && (
-                    <Card style={styles.dropdownMenu} padding="none">
-                      {templates.length === 0 ? (
-                        <View style={styles.emptyTemplates}>
+                  {/* All Templates Dropdown */}
+                  <View style={styles.allTemplatesSection}>
+                    <TouchableOpacity
+                      style={styles.dropdown}
+                      onPress={() => setShowTemplatePicker(!showTemplatePicker)}
+                    >
+                      {selectedTemplate?.metadata?.icon && (
+                        <View style={styles.dropdownIcon}>
                           <Ionicons
-                            name="information-circle-outline"
-                            size={48}
-                            color={colors.gray[400]}
+                            name={
+                              selectedTemplate.metadata
+                                .icon as keyof typeof Ionicons.glyphMap
+                            }
+                            size={20}
+                            color={colors.primary}
                           />
-                          <Text style={styles.emptyTemplatesText}>
-                            No hay actividades disponibles
-                          </Text>
-                          <Text style={styles.emptyTemplatesSubtext}>
-                            Las plantillas de actividades se cargan automáticamente
-                          </Text>
                         </View>
-                      ) : (
-                        templates.map((template) => (
-                          <TouchableOpacity
-                            key={template.id}
-                            style={[
-                              styles.dropdownItem,
-                              selectedTemplate?.id === template.id &&
-                                styles.dropdownItemSelected,
-                            ]}
-                            onPress={() => {
-                              setSelectedTemplate(template);
-                              setSelectedQuick(template.category);
-                              if (template.suggestedDurationHours) {
-                                setDuration(template.suggestedDurationHours);
-                              }
-                              setShowTemplatePicker(false);
-                            }}
-                          >
-                            {template.metadata?.icon && (
-                              <View style={styles.dropdownItemIcon}>
-                                <Ionicons
-                                  name={
-                                    template.metadata
-                                      .icon as keyof typeof Ionicons.glyphMap
-                                  }
-                                  size={24}
-                                  color={colors.primary}
-                                />
+                      )}
+                      <Text
+                        style={[
+                          styles.dropdownText,
+                          !selectedTemplate && styles.dropdownPlaceholder,
+                        ]}
+                      >
+                        {selectedTemplate
+                          ? selectedTemplate.title
+                          : 'Selecciona una actividad'}
+                      </Text>
+                      <Ionicons
+                        name={showTemplatePicker ? 'chevron-up' : 'chevron-down'}
+                        size={20}
+                        color={colors.gray[400]}
+                      />
+                    </TouchableOpacity>
+
+                    {showTemplatePicker && (
+                      <Card style={styles.dropdownMenu} padding="none">
+                        {allTemplatesSorted.length === 0 ? (
+                          <View style={styles.emptyTemplates}>
+                            <Ionicons
+                              name="information-circle-outline"
+                              size={48}
+                              color={colors.gray[400]}
+                            />
+                            <Text style={styles.emptyTemplatesText}>
+                              No hay actividades disponibles
+                            </Text>
+                          </View>
+                        ) : (
+                          allTemplatesSorted.map((template) => (
+                            <TouchableOpacity
+                              key={template.id}
+                              style={[
+                                styles.dropdownItem,
+                                selectedTemplate?.id === template.id &&
+                                  styles.dropdownItemSelected,
+                              ]}
+                              onPress={() => handleTemplateSelect(template)}
+                            >
+                              {template.metadata?.icon && (
+                                <View style={styles.dropdownItemIcon}>
+                                  <Ionicons
+                                    name={
+                                      template.metadata
+                                        .icon as keyof typeof Ionicons.glyphMap
+                                    }
+                                    size={24}
+                                    color={colors.primary}
+                                  />
+                                </View>
+                              )}
+                              <View style={styles.dropdownItemContent}>
+                                <View style={styles.dropdownItemTitleRow}>
+                                  <Text style={styles.dropdownItemText}>
+                                    {template.title}
+                                  </Text>
+                                  {!template.isSystemTemplate && (
+                                    <Ionicons
+                                      name="star"
+                                      size={16}
+                                      color={colors.accent}
+                                      style={styles.customBadge}
+                                    />
+                                  )}
+                                </View>
+                                {template.description && (
+                                  <Text style={styles.dropdownItemDescription}>
+                                    {template.description}
+                                  </Text>
+                                )}
                               </View>
-                            )}
-                            <View style={styles.dropdownItemContent}>
-                              <Text style={styles.dropdownItemText}>
-                                {template.title}
-                              </Text>
-                              {template.description && (
-                                <Text style={styles.dropdownItemDescription}>
-                                  {template.description}
+                              {template.suggestedPointsCost && (
+                                <Text style={styles.dropdownItemCost}>
+                                  {template.suggestedPointsCost} pts
+                                  {template.suggestedDurationHours &&
+                                    `/${template.suggestedDurationHours}h`}
                                 </Text>
                               )}
-                            </View>
-                            {template.suggestedPointsCost && (
-                              <Text style={styles.dropdownItemCost}>
-                                {template.suggestedPointsCost} pts
-                                {template.suggestedDurationHours &&
-                                  `/${template.suggestedDurationHours}h`}
-                              </Text>
-                            )}
-                          </TouchableOpacity>
-                        ))
-                      )}
-                    </Card>
-                  )}
+                            </TouchableOpacity>
+                          ))
+                        )}
+                      </Card>
+                    )}
+                  </View>
                 </View>
 
                 {/* Date & Time */}
@@ -423,6 +409,8 @@ export default function RequestPermissionScreen() {
                         }
                         minimumDate={showPicker === 'date' ? new Date() : undefined}
                         locale="es-CR"
+                        textColor={colors.text.primary}
+                        themeVariant="light"
                       />
                     </View>
                   )}
@@ -444,7 +432,9 @@ export default function RequestPermissionScreen() {
                 <View style={styles.section}>
                   <View style={styles.durationHeader}>
                     <Text style={styles.sectionTitle}>Duración</Text>
-                    <Text style={styles.durationValue}>{duration} horas</Text>
+                    <Text style={styles.durationValue}>
+                      {isNaN(duration) ? 0 : duration} horas
+                    </Text>
                   </View>
 
                   <View style={styles.durationControl}>
@@ -474,8 +464,68 @@ export default function RequestPermissionScreen() {
 
                   {/* Estimated Cost */}
                   <View style={styles.costCard}>
-                    <Text style={styles.costLabel}>Costo Estimado</Text>
-                    <Text style={styles.costValue}>{estimatedCost} MariPuntos</Text>
+                    <View style={styles.costHeader}>
+                      <Text style={styles.costLabel}>
+                        {customCost !== null ? 'Costo Personalizado' : 'Costo Estimado'}
+                      </Text>
+                      {!isEditingCost && (
+                        <TouchableOpacity onPress={() => setIsEditingCost(true)}>
+                          <Ionicons
+                            name="create-outline"
+                            size={20}
+                            color={colors.accent}
+                          />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                    {isEditingCost ? (
+                      <View style={styles.costEditContainer}>
+                        <Input
+                          value={
+                            customCost !== null
+                              ? customCost.toString()
+                              : estimatedCost.toString()
+                          }
+                          onChangeText={(text) => {
+                            const value = parseInt(text);
+                            setCustomCost(isNaN(value) ? 0 : value);
+                          }}
+                          keyboardType="numeric"
+                          placeholder="Puntos"
+                          containerStyle={styles.costInput}
+                        />
+                        <View style={styles.costEditActions}>
+                          <Button
+                            title="Cancelar"
+                            onPress={() => {
+                              setCustomCost(null);
+                              setIsEditingCost(false);
+                            }}
+                            variant="outline"
+                            size="sm"
+                            style={{ flex: 1 }}
+                          />
+                          <Button
+                            title="Aplicar"
+                            onPress={() => setIsEditingCost(false)}
+                            size="sm"
+                            style={{ flex: 1 }}
+                          />
+                        </View>
+                      </View>
+                    ) : (
+                      <View style={styles.costValueContainer}>
+                        <Text style={styles.costValue}>
+                          {isNaN(finalCost) ? 0 : Math.round(finalCost)} MariPuntos
+                        </Text>
+                        {customCost === null &&
+                          selectedTemplate?.suggestedDurationHours && (
+                            <Text style={styles.costPerHour}>
+                              ({Math.round(estimatedCost / duration)} pts/hora)
+                            </Text>
+                          )}
+                      </View>
+                    )}
                   </View>
                 </View>
 
@@ -558,6 +608,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
   },
+  subsectionTitle: {
+    ...typography.styles.bodyMedium,
+    color: colors.text.secondary,
+    marginBottom: spacing.sm,
+    marginTop: spacing.md,
+  },
+  allTemplatesSection: {
+    // No extra styling needed, uses existing dropdown styles
+  },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -567,31 +626,16 @@ const styles = StyleSheet.create({
     ...typography.styles.bodyMedium,
     color: colors.primary,
   },
-  calendarContainer: {
-    alignItems: 'center',
-  },
-  quickSelectRow: {
+  dropdownItemTitleRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  quickSelectItem: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.xl,
-    padding: spacing.md,
     alignItems: 'center',
     gap: spacing.xs,
-    ...shadows.sm,
   },
-  quickSelectItemSelected: {
-    backgroundColor: colors.text.primary,
+  customBadge: {
+    marginLeft: spacing.xs / 2,
   },
-  quickSelectLabel: {
-    ...typography.styles.caption,
-    color: colors.text.primary,
-  },
-  quickSelectLabelSelected: {
-    color: colors.white,
+  calendarContainer: {
+    alignItems: 'center',
   },
   dropdown: {
     flexDirection: 'row',
@@ -741,21 +785,44 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   costCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'column',
     backgroundColor: `${colors.accent}15`,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     marginTop: spacing.md,
   },
+  costHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
   costLabel: {
     ...typography.styles.bodyMedium,
     color: colors.text.secondary,
   },
+  costValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.xs,
+  },
   costValue: {
     ...typography.styles.h4,
     color: colors.accent,
+  },
+  costPerHour: {
+    ...typography.styles.caption,
+    color: colors.text.secondary,
+  },
+  costEditContainer: {
+    gap: spacing.sm,
+  },
+  costInput: {
+    marginBottom: 0,
+  },
+  costEditActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
   noteInput: {
     marginBottom: 0,

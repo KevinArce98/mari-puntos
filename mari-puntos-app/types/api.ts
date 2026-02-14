@@ -261,6 +261,7 @@ export interface Permission {
     lastName: string;
     email: string;
     avatarUrl?: string;
+    totalPoints: number;
   };
   approver?: {
     id: string;

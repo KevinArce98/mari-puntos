@@ -34,12 +34,15 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
     setModalVisible(false);
   };
 
+  const requesterPoints = permission.requester?.totalPoints ?? 0;
+  const hasInsufficientPoints = requesterPoints < permission.pointsCost;
+
   return (
     <>
       <Card key={permission.id} style={styles.permissionCard}>
         <View style={styles.permissionHeader}>
           <Text style={styles.permissionName}>
-            {permission.template?.title || 'Permiso sin título'}
+            {permission.template?.title || 'Solicitud sin título'}
           </Text>
           <Text style={styles.permissionPoints}>{permission.pointsCost} pts</Text>
         </View>
@@ -55,6 +58,28 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
         <Text style={styles.permissionFrom}>
           De: {permission.requester?.firstName} {permission.requester?.lastName}
         </Text>
+        
+        {/* Show requester's available points */}
+        {permission.status === 'pending' && permission.requester && (
+          <View style={styles.pointsInfo}>
+            <Text style={styles.pointsInfoLabel}>Puntos disponibles:</Text>
+            <Text style={[
+              styles.pointsInfoValue,
+              hasInsufficientPoints && styles.pointsInsufficient
+            ]}>
+              {requesterPoints} pts
+            </Text>
+          </View>
+        )}
+        
+        {hasInsufficientPoints && permission.status === 'pending' && (
+          <View style={styles.warningContainer}>
+            <Text style={styles.warningText}>
+              ⚠️ Tu pareja no tiene suficientes puntos para esta solicitud
+            </Text>
+          </View>
+        )}
+        
         <Text style={styles.permissionFrom}>
           Fecha creación: {formatDateOnly(permission.createdAt)}
         </Text>
@@ -65,6 +90,7 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
               onPress={() => setModalVisible(true)}
               size="sm"
               style={styles.actionButton}
+              disabled={hasInsufficientPoints}
             />
           </View>
         ) : (
@@ -135,5 +161,39 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
+  },
+  pointsInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.gray[50],
+    borderRadius: 8,
+    padding: spacing.sm,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  pointsInfoLabel: {
+    ...typography.styles.bodyMedium,
+    color: colors.text.secondary,
+  },
+  pointsInfoValue: {
+    ...typography.styles.bodyMedium,
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  pointsInsufficient: {
+    color: colors.error,
+  },
+  warningContainer: {
+    backgroundColor: `${colors.error}15`,
+    borderRadius: 8,
+    padding: spacing.sm,
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  warningText: {
+    ...typography.styles.caption,
+    color: colors.error,
+    textAlign: 'center',
   },
 });

@@ -27,6 +27,7 @@ export default function PermissionsScreen() {
     pendingPermissions,
     pendingCount,
     respondToPermission,
+    updatePermission,
     refetch,
   } = usePermissions();
   const [refreshing, setRefreshing] = useState(false);
@@ -51,7 +52,7 @@ export default function PermissionsScreen() {
       });
       Toast.show({
         type: 'success',
-        text1: approved ? 'Permiso aprobado' : 'Permiso rechazado',
+        text1: approved ? 'Solicitud aprobada' : 'Solicitud rechazada',
         text2: approved ? '¡Tu pareja está feliz!' : '',
       });
     } catch (error) {
@@ -83,8 +84,8 @@ export default function PermissionsScreen() {
               <Ionicons name="add-circle" size={32} color={colors.white} />
             </View>
             <View style={styles.quickActionText}>
-              <Text style={styles.quickActionTitle}>Solicitar permiso</Text>
-              <Text style={styles.quickActionSubtitle}>Pide permiso a tu pareja</Text>
+              <Text style={styles.quickActionTitle}>Nueva solicitud</Text>
+              <Text style={styles.quickActionSubtitle}>Pide permiso a tu pareja para una actividad</Text>
             </View>
             <Ionicons name="chevron-forward" size={24} color={colors.white} />
           </TouchableOpacity>
@@ -94,7 +95,7 @@ export default function PermissionsScreen() {
         {pendingCount > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Por aprobar</Text>
+              <Text style={styles.sectionTitle}>Solicitudes por aprobar</Text>
               <Badge label={pendingCount} variant="error" />
             </View>
             {pendingPermissions.map((permission) => (
@@ -112,7 +113,7 @@ export default function PermissionsScreen() {
         {partnerPermissions.filter((p) => p.status !== 'pending').length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Respuestas a permisos</Text>
+              <Text style={styles.sectionTitle}>Solicitudes respondidas</Text>
               <Badge
                 label={partnerPermissions
                   .filter((p) => p.status !== 'pending')
@@ -141,9 +142,9 @@ export default function PermissionsScreen() {
           {myPermissions.length === 0 ? (
             <Card style={styles.emptyCard}>
               <Text style={styles.emptyIcon}>📝</Text>
-              <Text style={styles.emptyText}>No tienes solicitudes de permisos</Text>
+              <Text style={styles.emptyText}>No tienes solicitudes</Text>
               <Button
-                title="Solicitar permiso"
+                title="Nueva solicitud"
                 onPress={() => router.push('/permissions/request')}
                 variant="outline"
                 size="sm"
@@ -185,6 +186,18 @@ export default function PermissionsScreen() {
                     <Text style={styles.responseMessage}>
                       {permission.responseMessage}
                     </Text>
+                  </View>
+                )}
+                {permission.status === 'pending' && (
+                  <View style={styles.permissionActions}>
+                    <Button
+                      title="Editar"
+                      onPress={() => router.push(`/permissions/edit/${permission.id}`)}
+                      variant="outline"
+                      size="sm"
+                      style={styles.actionButton}
+                      icon="create-outline"
+                    />
                   </View>
                 )}
               </Card>

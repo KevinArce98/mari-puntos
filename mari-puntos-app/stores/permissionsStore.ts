@@ -17,6 +17,10 @@ interface PermissionsState {
   fetchMyPermissions: (params?: GetPermissionsParams) => Promise<void>;
   fetchPartnerPermissions: (params?: GetPermissionsParams) => Promise<void>;
   createPermission: (data: CreatePermissionRequest) => Promise<void>;
+  updatePermission: (
+    permissionId: string,
+    data: Partial<CreatePermissionRequest>
+  ) => Promise<void>;
   respondToPermission: (
     permissionId: string,
     approved: boolean,
@@ -66,6 +70,19 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
       set({ isLoading: false });
     } catch (error: any) {
       set({ error: error.error || 'Failed to create permission', isLoading: false });
+      throw error;
+    }
+  },
+
+  updatePermission: async (permissionId, data) => {
+    set({ isLoading: true, error: null });
+    try {
+      await permissionsService.updatePermission(permissionId, data);
+      // Refetch my permissions
+      await get().fetchMyPermissions();
+      set({ isLoading: false });
+    } catch (error: any) {
+      set({ error: error.error || 'Failed to update permission', isLoading: false });
       throw error;
     }
   },

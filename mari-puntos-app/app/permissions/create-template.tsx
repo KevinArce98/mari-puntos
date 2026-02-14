@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -39,6 +41,20 @@ export default function CreateTemplateScreen() {
   const [selectedIcon, setSelectedIcon] = useState('sparkles-outline');
   const [showIconSelector, setShowIconSelector] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showListener = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, []);
 
   const handleCreate = async () => {
     if (!title.trim()) {
@@ -50,8 +66,8 @@ export default function CreateTemplateScreen() {
       return;
     }
 
-    const duration = parseInt(suggestedDuration);
-    const points = parseInt(suggestedPoints);
+    const duration = parseFloat(suggestedDuration);
+    const points = parseFloat(suggestedPoints);
 
     if (isNaN(duration) || duration <= 0) {
       Toast.show({
@@ -104,7 +120,7 @@ export default function CreateTemplateScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -114,113 +130,121 @@ export default function CreateTemplateScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Icon Selection */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Icono</Text>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => setShowIconSelector(true)}
-            >
-              <View style={styles.iconCircle}>
-                <Ionicons
-                  name={selectedIcon as keyof typeof Ionicons.glyphMap}
-                  size={40}
-                  color={colors.primary}
+      <KeyboardAvoidingView
+        style={{ flex: 1, marginBottom: keyboardHeight + 50 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Icon Selection */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Icono</Text>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => setShowIconSelector(true)}
+              >
+                <View style={styles.iconCircle}>
+                  <Ionicons
+                    name={selectedIcon as keyof typeof Ionicons.glyphMap}
+                    size={40}
+                    color={colors.primary}
+                  />
+                </View>
+                <View style={styles.iconButtonContent}>
+                  <Text style={styles.iconButtonText}>Seleccionar Icono</Text>
+                  <Text style={styles.iconButtonSubtext}>
+                    Personaliza el icono de tu actividad
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color={colors.gray[400]} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Title */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Título *</Text>
+              <Input
+                placeholder="Ej: Noche de Poker, Día de Golf..."
+                value={title}
+                onChangeText={setTitle}
+                maxLength={100}
+              />
+            </View>
+
+            {/* Description */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Descripción (Opcional)</Text>
+              <Input
+                placeholder="Describe la actividad..."
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                numberOfLines={3}
+                maxLength={500}
+              />
+            </View>
+
+            {/* Category */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Categoría</Text>
+              <Select
+                options={CATEGORY_OPTIONS}
+                value={category}
+                onValueChange={(value) => setCategory(value as PermissionCategory)}
+                placeholder="Selecciona una categoría"
+              />
+            </View>
+
+            {/* Duration & Points */}
+            <View style={styles.row}>
+              <View style={[styles.section, styles.halfWidth]}>
+                <Text style={styles.sectionTitle}>Duración (hrs)</Text>
+                <Input
+                  placeholder="2"
+                  value={suggestedDuration}
+                  onChangeText={setSuggestedDuration}
+                  keyboardType="numeric"
                 />
               </View>
-              <View style={styles.iconButtonContent}>
-                <Text style={styles.iconButtonText}>Seleccionar Icono</Text>
-                <Text style={styles.iconButtonSubtext}>
-                  Personaliza el icono de tu actividad
+
+              <View style={[styles.section, styles.halfWidth]}>
+                <Text style={styles.sectionTitle}>Puntos Sugeridos</Text>
+                <Input
+                  placeholder="50"
+                  value={suggestedPoints}
+                  onChangeText={setSuggestedPoints}
+                  keyboardType="numeric"
+                />
+              </View>
+            </View>
+
+            {/* Info Card */}
+            <Card style={styles.infoCard}>
+              <View style={styles.infoIconContainer}>
+                <Ionicons name="information-circle" size={24} color={colors.primary} />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoTitle}>Actividad Personalizada</Text>
+                <Text style={styles.infoText}>
+                  Esta actividad estará disponible solo para ti y tu pareja. Los valores
+                  sugeridos son una guía y pueden modificarse al solicitar el permiso.
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={24} color={colors.gray[400]} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Title */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Título *</Text>
-            <Input
-              placeholder="Ej: Noche de Poker, Día de Golf..."
-              value={title}
-              onChangeText={setTitle}
-              maxLength={100}
-            />
-          </View>
-
-          {/* Description */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Descripción (Opcional)</Text>
-            <Input
-              placeholder="Describe la actividad..."
-              value={description}
-              onChangeText={setDescription}
-              multiline
-              numberOfLines={3}
-              maxLength={500}
-            />
-          </View>
-
-          {/* Category */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Categoría</Text>
-            <Select
-              options={CATEGORY_OPTIONS}
-              value={category}
-              onValueChange={(value) => setCategory(value as PermissionCategory)}
-              placeholder="Selecciona una categoría"
-            />
-          </View>
-
-          {/* Duration & Points */}
-          <View style={styles.row}>
-            <View style={[styles.section, styles.halfWidth]}>
-              <Text style={styles.sectionTitle}>Duración (hrs)</Text>
-              <Input
-                placeholder="2"
-                value={suggestedDuration}
-                onChangeText={setSuggestedDuration}
-                keyboardType="numeric"
-              />
-            </View>
-
-            <View style={[styles.section, styles.halfWidth]}>
-              <Text style={styles.sectionTitle}>Puntos Sugeridos</Text>
-              <Input
-                placeholder="50"
-                value={suggestedPoints}
-                onChangeText={setSuggestedPoints}
-                keyboardType="numeric"
-              />
-            </View>
-          </View>
-
-          {/* Info Card */}
-          <Card style={styles.infoCard}>
-            <View style={styles.infoIconContainer}>
-              <Ionicons name="information-circle" size={24} color={colors.primary} />
-            </View>
-            <View style={styles.infoContent}>
-              <Text style={styles.infoTitle}>Actividad Personalizada</Text>
-              <Text style={styles.infoText}>
-                Esta actividad estará disponible solo para ti y tu pareja. Los valores
-                sugeridos son una guía y pueden modificarse al solicitar el permiso.
-              </Text>
-            </View>
-          </Card>
-        </ScrollView>
-      </TouchableWithoutFeedback>
+            </Card>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
 
       {/* Bottom Button */}
       <View
-        style={[styles.bottomContainer, { paddingBottom: insets.bottom + spacing.md }]}
+        style={[
+          styles.bottomContainer,
+          { paddingBottom: insets.bottom + spacing.md, bottom: keyboardHeight },
+        ]}
       >
         <Button
           title="Crear Actividad"
