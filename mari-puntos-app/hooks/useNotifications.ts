@@ -22,7 +22,8 @@ export interface NotificationData {
     | 'permission_response'
     | 'action_created'
     | 'action_approved'
-    | 'action_rejected';
+    | 'action_rejected'
+    | 'partner_linked';
   approved?: boolean;
   pointsAwarded?: number;
 }
@@ -52,6 +53,9 @@ export function useNotifications() {
         case 'action_approved':
         case 'action_rejected':
           route = '/actions';
+          break;
+        case 'partner_linked':
+          route = '/';
           break;
         default:
           console.warn('Unknown notification type:', data.type);
