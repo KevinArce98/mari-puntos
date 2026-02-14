@@ -110,7 +110,6 @@ export default function VerifyEmailScreen() {
       }
     } catch (error: any) {
       let errorMessage = 'Código inválido';
-      console.log(JSON.stringify(error, null, 2));
 
       if (isClerkAPIResponseError(error)) {
         errorMessage = handleClerkErrors(error.errors);

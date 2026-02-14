@@ -71,7 +71,6 @@ export default function RequestPermissionScreen() {
     try {
       setLoadingTemplates(true);
       const result = await permissionsService.getTemplates();
-      console.log('Templates loaded:', result);
       setTemplates(result.data || []);
       if (!result.data || result.data.length === 0) {
         Toast.show({
