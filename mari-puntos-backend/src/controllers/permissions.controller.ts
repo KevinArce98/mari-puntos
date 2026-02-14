@@ -4,6 +4,7 @@ import { PermissionsService } from '../services/permissions.service';
 import {
   createPermissionSchema,
   respondPermissionSchema,
+  updatePermissionSchema,
 } from '../validators/schemas';
 import { sendSuccess, sendCreated, sendPaginated, createPaginationMeta } from '../utils/response';
 import { toPermissionDTO, toPermissionDTOList } from '../utils/mappers';
@@ -129,6 +130,30 @@ export class PermissionsController {
         toPermissionDTO(permission),
         approved ? 'Permission approved' : 'Permission rejected'
       );
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  /**
+   * PATCH /permissions/:id
+   * Update a pending permission request
+   */
+  updatePermission = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const userId = req.userId!;
+      const { id } = req.params;
+      const data = updatePermissionSchema.parse(req.body);
+
+      // Convert requestedDate string to Date if provided
+      const updateData: any = { ...data };
+      if (updateData.requestedDate) {
+        updateData.requestedDate = new Date(updateData.requestedDate);
+      }
+
+      const permission = await this.permissionsService.updatePermission(id, userId, updateData);
+
+      sendSuccess(res, toPermissionDTO(permission), 'Permission updated successfully');
     } catch (error) {
       throw error;
     }

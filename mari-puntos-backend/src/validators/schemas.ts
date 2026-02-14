@@ -106,6 +106,13 @@ export const respondPermissionSchema = z.object({
   responseMessage: z.string().max(500).optional(),
 });
 
+export const updatePermissionSchema = z.object({
+  requestedDate: z.iso.datetime({ message: 'Invalid date format' }).optional(),
+  durationHours: z.number().min(0.5).max(168).optional(),
+  pointsCost: z.number().int().min(0).optional(),
+  metadata: z.record(z.any(), z.unknown()).optional(),
+});
+
 // ============================================================================
 // REWARD SCHEMAS (Matches frontend CreateRewardRequest, RedeemRewardRequest)
 // ============================================================================

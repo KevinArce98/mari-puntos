@@ -1,5 +1,3 @@
-// filepath: /Users/kevinarias/Projects/mari-puntos-backend/src/shared/dtos.ts
-
 /**
  * Data Transfer Objects (DTOs) for MariPuntos API
  * ⚠️ These MUST match the frontend TypeScript interfaces EXACTLY
@@ -269,6 +267,7 @@ export interface PermissionDTO {
     lastName: string;
     email: string;
     avatarUrl?: string;
+    totalPoints: number;
   };
   approver?: {
     id: string;

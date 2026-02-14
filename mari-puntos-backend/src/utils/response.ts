@@ -1,5 +1,3 @@
-// filepath: /Users/kevinarias/Projects/mari-puntos-backend/src/utils/response.ts
-
 /**
  * Standardized API Response Helpers
  * All responses MUST use these helpers to ensure consistency with frontend

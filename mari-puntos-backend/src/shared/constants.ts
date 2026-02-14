@@ -1,5 +1,3 @@
-// filepath: /Users/kevinarias/Projects/mari-puntos-backend/src/shared/constants.ts
-
 /**
  * Shared constants and enums for MariPuntos API
  * ⚠️ These MUST match the frontend types exactly - frontend is source of truth
