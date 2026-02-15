@@ -1,6 +1,7 @@
 import { usePermissionsStore } from '@/stores';
 import { CreatePermissionRequest, RespondPermissionRequest } from '@/types';
 import { useEffect } from 'react';
+import logger from '@/utils/logger';
 
 export const usePermissions = () => {
   const {
@@ -17,8 +18,12 @@ export const usePermissions = () => {
   } = usePermissionsStore();
 
   useEffect(() => {
-    fetchMyPermissions().catch(console.error);
-    fetchPartnerPermissions().catch(console.error);
+    fetchMyPermissions().catch((error) => {
+      logger.error('Failed to fetch my permissions in usePermissions hook', error);
+    });
+    fetchPartnerPermissions().catch((error) => {
+      logger.error('Failed to fetch partner permissions in usePermissions hook', error);
+    });
   }, []);
 
   const handleRequestPermission = async (data: CreatePermissionRequest) => {

@@ -2,14 +2,10 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Badge, Button, Card, ResponseModal } from './ui';
 import { colors, spacing, typography } from '@/theme';
 import { Permission } from '@/types';
-import {
-  formatDate,
-  formatDateOnly,
-  getStatusColor,
-  getStatusText,
-} from '@/utils/general';
+import { getStatusColor, getStatusText } from '@/utils/general';
 import { useState } from 'react';
 import { ResponseMessageFormData } from '@/validators/action.schema';
+import { formatDateOnly, formatDateWithTime } from '@/utils';
 
 interface Props {
   permission: Permission;
@@ -47,7 +43,7 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
           <Text style={styles.permissionPoints}>{permission.pointsCost} pts</Text>
         </View>
         <Text style={styles.permissionDate}>
-          Fecha solicitada: {formatDate(permission.requestedDate)}
+          Fecha solicitada: {formatDateWithTime(permission.requestedDate)}
         </Text>
         <Text style={styles.permissionDate}>
           Duración: {permission.durationHours} horas
@@ -58,20 +54,22 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
         <Text style={styles.permissionFrom}>
           De: {permission.requester?.firstName} {permission.requester?.lastName}
         </Text>
-        
+
         {/* Show requester's available points */}
         {permission.status === 'pending' && permission.requester && (
           <View style={styles.pointsInfo}>
             <Text style={styles.pointsInfoLabel}>Puntos disponibles:</Text>
-            <Text style={[
-              styles.pointsInfoValue,
-              hasInsufficientPoints && styles.pointsInsufficient
-            ]}>
+            <Text
+              style={[
+                styles.pointsInfoValue,
+                hasInsufficientPoints && styles.pointsInsufficient,
+              ]}
+            >
               {requesterPoints} pts
             </Text>
           </View>
         )}
-        
+
         {hasInsufficientPoints && permission.status === 'pending' && (
           <View style={styles.warningContainer}>
             <Text style={styles.warningText}>
@@ -79,7 +77,7 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
             </Text>
           </View>
         )}
-        
+
         <Text style={styles.permissionFrom}>
           Fecha creación: {formatDateOnly(permission.createdAt)}
         </Text>

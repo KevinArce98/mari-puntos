@@ -15,7 +15,7 @@ import { ResponseMessageFormData } from '@/validators/action.schema';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PermissionCard } from '@/components';
-import { formatDateOnly, getStatusColor, getStatusText } from '@/utils/general';
+import { formatDateOnly, getStatusColor, getStatusText } from '@/utils';
 import { usePermissions } from '@/hooks';
 
 export default function PermissionsScreen() {
@@ -27,7 +27,6 @@ export default function PermissionsScreen() {
     pendingPermissions,
     pendingCount,
     respondToPermission,
-    updatePermission,
     refetch,
   } = usePermissions();
   const [refreshing, setRefreshing] = useState(false);
@@ -85,7 +84,9 @@ export default function PermissionsScreen() {
             </View>
             <View style={styles.quickActionText}>
               <Text style={styles.quickActionTitle}>Nueva solicitud</Text>
-              <Text style={styles.quickActionSubtitle}>Pide permiso a tu pareja para una actividad</Text>
+              <Text style={styles.quickActionSubtitle}>
+                Pide permiso a tu pareja para una actividad
+              </Text>
             </View>
             <Ionicons name="chevron-forward" size={24} color={colors.white} />
           </TouchableOpacity>

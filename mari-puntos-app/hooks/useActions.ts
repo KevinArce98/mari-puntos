@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useActionsStore } from '@/stores';
 import { CreateActionRequest, GetActionsParams } from '@/types';
+import logger from '@/utils/logger';
 
 export const useActions = () => {
   const {
@@ -16,8 +17,12 @@ export const useActions = () => {
   } = useActionsStore();
 
   useEffect(() => {
-    fetchMyActions().catch(console.error);
-    fetchPartnerActions().catch(console.error);
+    fetchMyActions().catch((error) => {
+      logger.error('Failed to fetch my actions in useActions hook', error);
+    });
+    fetchPartnerActions().catch((error) => {
+      logger.error('Failed to fetch partner actions in useActions hook', error);
+    });
   }, []);
 
   const handleCreateAction = async (data: CreateActionRequest) => {

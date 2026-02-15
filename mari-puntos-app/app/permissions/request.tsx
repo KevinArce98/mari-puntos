@@ -22,6 +22,7 @@ import { createUTC6DateTime } from '@/utils/dateUtils';
 import Toast from 'react-native-toast-message';
 import { PermissionTemplate } from '@/types';
 import { permissionsService } from '@/services';
+import logger from '@/utils/logger';
 
 export default function RequestPermissionScreen() {
   const router = useRouter();
@@ -79,6 +80,7 @@ export default function RequestPermissionScreen() {
       setLoadingTemplates(true);
       const result = await permissionsService.getTemplates();
       setTemplates(result.data || []);
+      logger.debug('Permission templates loaded', { count: result.data?.length || 0 });
       if (!result.data || result.data.length === 0) {
         Toast.show({
           type: 'info',
@@ -87,7 +89,7 @@ export default function RequestPermissionScreen() {
         });
       }
     } catch (error) {
-      console.error('Error loading templates:', error);
+      logger.error('Failed to load permission templates', error as Error);
       Toast.show({
         type: 'error',
         text1: 'Error',

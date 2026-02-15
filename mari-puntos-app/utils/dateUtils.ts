@@ -73,28 +73,28 @@ export const getTimeDiffInDays = (date1: Date, date2: Date): number => {
 export const formatRelativeTime = (dateString: string): string => {
   const date = dayjs(dateString).tz(TIMEZONE);
   const now = dayjs().tz(TIMEZONE);
-  
+
   const diffInSeconds = now.diff(date, 'second');
-  
+
   if (diffInSeconds < 60) {
     return 'Ahora mismo';
   }
-  
+
   const diffInMinutes = now.diff(date, 'minute');
   if (diffInMinutes < 60) {
     return `Hace ${diffInMinutes} ${diffInMinutes === 1 ? 'minuto' : 'minutos'}`;
   }
-  
+
   const diffInHours = now.diff(date, 'hour');
   if (diffInHours < 24) {
     return `Hace ${diffInHours} ${diffInHours === 1 ? 'hora' : 'horas'}`;
   }
-  
+
   const diffInDays = now.diff(date, 'day');
   if (diffInDays < 7) {
     return `Hace ${diffInDays} ${diffInDays === 1 ? 'día' : 'días'}`;
   }
-  
+
   // For dates older than a week
   if (date.year() === now.year()) {
     return date.format('D MMM');
@@ -124,4 +124,3 @@ export const createUTC6DateTime = (date: Date, time: Date): Date => {
   const timeStr = dayjs(time).format('HH:mm:ss');
   return dayjs.tz(`${dateStr} ${timeStr}`, TIMEZONE).toDate();
 };
-

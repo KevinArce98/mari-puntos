@@ -20,6 +20,7 @@ import Toast from 'react-native-toast-message';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { linkPartnerSchema, LinkPartnerFormData } from '@/validators';
+import logger from '@/utils/logger';
 
 export default function LinkPartnerScreen() {
   const router = useRouter();
@@ -56,9 +57,12 @@ export default function LinkPartnerScreen() {
         const existingLink = await getPartnerLinkCode();
         if (existingLink && existingLink.status === 'pending') {
           setGeneratedCode(existingLink.linkCode);
+          logger.debug('Existing partner link code loaded', {
+            linkCode: existingLink.linkCode,
+          });
         }
       } catch (error) {
-        console.error('Error loading existing code:', error);
+        logger.error('Error loading existing partner link code', error as Error);
       } finally {
         setLoadingExistingCode(false);
       }
@@ -73,12 +77,14 @@ export default function LinkPartnerScreen() {
     try {
       const code = await createPartnerLink();
       setGeneratedCode(code);
+      logger.info('Partner link code generated successfully', { code });
       Toast.show({
         type: 'success',
         text1: '¡Código generado!',
         text2: 'Comparte este código con tu pareja',
       });
     } catch (error) {
+      logger.error('Failed to generate partner link code', error as Error);
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -105,6 +111,7 @@ export default function LinkPartnerScreen() {
   const onSubmit = async (data: LinkPartnerFormData) => {
     // Validar que no intente unirse a su propio código
     if (generatedCode && data.partnerCode.toUpperCase() === generatedCode.toUpperCase()) {
+      logger.warn('User attempted to join their own partner code');
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -115,6 +122,7 @@ export default function LinkPartnerScreen() {
 
     try {
       await joinPartnerLink(data.partnerCode);
+      logger.info('Successfully joined partner link', { partnerCode: data.partnerCode });
       Toast.show({
         type: 'success',
         text1: '¡Vinculado!',
@@ -122,6 +130,9 @@ export default function LinkPartnerScreen() {
       });
       router.replace('/(tabs)');
     } catch (error) {
+      logger.error('Failed to join partner link', error as Error, {
+        partnerCode: data.partnerCode,
+      });
       Toast.show({
         type: 'error',
         text1: 'Error',

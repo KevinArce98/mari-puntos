@@ -5,6 +5,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserStore } from '@/stores';
+import logger from '@/utils/logger';
 
 Notifications.setNotificationHandler({
   handleNotification: async () =>
@@ -58,7 +59,7 @@ export function useNotifications() {
           route = '/';
           break;
         default:
-          console.warn('Unknown notification type:', data.type);
+          logger.warn('Unknown notification type:', data.type);
           return;
       }
       router.push(route as any);
@@ -75,7 +76,7 @@ export function useNotifications() {
       await useUserStore.getState().updatePushToken(token);
     } catch (error) {
       tokenSentRef.current = false;
-      console.error('Error sending push token to backend:', error);
+      logger.error('Error sending push token to backend:', error as Error);
     }
   }, []);
 
@@ -87,7 +88,7 @@ export function useNotifications() {
         }
       })
       .catch((error) => {
-        console.error('Error registering for push notifications:', error);
+        logger.error('Error registering for push notifications:', error as Error);
       });
   }, []);
 

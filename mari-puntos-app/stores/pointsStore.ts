@@ -6,6 +6,7 @@ import {
   LeaderboardEntry,
   GetLeaderboardParams,
 } from '@/types';
+import logger from '@/utils/logger';
 
 interface PointsState {
   pointsHistory: PointsLog[];
@@ -43,7 +44,13 @@ export const usePointsStore = create<PointsState>((set) => ({
         paginationMeta: response.pagination,
         isLoading: false,
       }));
+      logger.debug('Points history fetched successfully', { 
+        count: response.data.length, 
+        append,
+        params 
+      });
     } catch (error: any) {
+      logger.error('Failed to fetch points history', error, { params, append });
       set({ error: error.error || 'Failed to fetch points history', isLoading: false });
       throw error;
     }
@@ -54,7 +61,9 @@ export const usePointsStore = create<PointsState>((set) => ({
     try {
       const leaderboard = await pointsService.getLeaderboard(params);
       set({ leaderboard, isLoading: false });
+      logger.debug('Leaderboard fetched successfully', { count: leaderboard.length, params });
     } catch (error: any) {
+      logger.error('Failed to fetch leaderboard', error, { params });
       set({ error: error.error || 'Failed to fetch leaderboard', isLoading: false });
       throw error;
     }

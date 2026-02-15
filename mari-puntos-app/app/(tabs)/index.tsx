@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import logger from '@/utils/logger';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -38,8 +39,9 @@ export default function HomeScreen() {
         refetchUser(),
         hasPartner ? fetchHistory({ limit: 3 }) : Promise.resolve(),
       ]);
+      logger.debug('Home screen data refreshed successfully');
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      logger.error('Error refreshing home screen data', error as Error);
     } finally {
       setRefreshing(false);
     }

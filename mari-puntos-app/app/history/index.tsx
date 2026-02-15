@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import logger from '@/utils/logger';
 
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
@@ -45,7 +46,10 @@ export default function HistoryScreen() {
       // If refresh, replace data. If loading more, append data
       await fetchHistory({ page: pageNum, limit: 20 }, !isRefresh);
     } catch (error) {
-      console.error('Error loading history:', error);
+      logger.error('Failed to load points history', error as Error, {
+        page: pageNum,
+        isRefresh,
+      });
     } finally {
       setRefreshing(false);
       setLoadingMore(false);

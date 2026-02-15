@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useUserStore } from '@/stores';
+import logger from '@/utils/logger';
 
 export const useUser = () => {
   const {
@@ -19,13 +20,17 @@ export const useUser = () => {
 
   useEffect(() => {
     if (!user) {
-      fetchProfile().catch(console.error);
+      fetchProfile().catch((error) => {
+        logger.error('Failed to fetch profile in useUser hook', error);
+      });
     }
   }, []);
 
   useEffect(() => {
     if (user && user.hasPartner && !partnerInfo) {
-      fetchPartnerInfo().catch(console.error);
+      fetchPartnerInfo().catch((error) => {
+        logger.error('Failed to fetch partner info in useUser hook', error);
+      });
     }
   }, [user]);
 

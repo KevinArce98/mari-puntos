@@ -18,6 +18,7 @@ import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
 import { PermissionCategory } from '@/types';
 import { permissionsService } from '@/services';
+import logger from '@/utils/logger';
 
 const CATEGORY_OPTIONS = [
   { label: 'Gaming', value: PermissionCategory.GAMING },
@@ -108,7 +109,12 @@ export default function CreateTemplateScreen() {
 
       router.back();
     } catch (error) {
-      console.error('Error creating template:', error);
+      logger.error('Failed to create permission template', error as Error, {
+        title: title.trim(),
+        category,
+        suggestedDurationHours: duration,
+        suggestedPointsCost: points,
+      });
       Toast.show({
         type: 'error',
         text1: 'Error',

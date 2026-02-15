@@ -12,6 +12,7 @@ import { AuthGuard } from '@/components';
 // import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNotifications } from '@/hooks/useNotifications';
 import * as Sentry from '@sentry/react-native';
+import logger from '@/utils/logger';
 
 Sentry.init({
   dsn: 'https://153f8b48a68521864815739df2df12b5@o4510342524502016.ingest.us.sentry.io/4510891051122688',
@@ -20,11 +21,28 @@ Sentry.init({
   // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
   sendDefaultPii: true,
 
+  // Set environment
+  environment: __DEV__ ? 'development' : 'production',
+
+  // Enable tracing for performance monitoring
+  tracesSampleRate: __DEV__ ? 1.0 : 0.2, // 100% in dev, 20% in prod
+
+  // Enable session tracking
+  enableAutoSessionTracking: true,
+
+  // Enable native crash tracking
+  enableNativeCrashHandling: true,
+
   // Enable Logs
   enableLogs: true,
 
   // uncomment the line below to enable Spotlight (https://spotlightjs.com)
   // spotlight: __DEV__,
+});
+
+// Log Sentry initialization
+logger.info('Sentry initialized', {
+  environment: __DEV__ ? 'development' : 'production',
 });
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';

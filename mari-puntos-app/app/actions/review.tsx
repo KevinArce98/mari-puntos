@@ -16,6 +16,7 @@ import { useActions } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
 import { ActionStatus, Action } from '@/types';
+import logger from '@/utils/logger';
 
 const STATUS_FILTERS = [
   { label: 'Pendientes', value: ActionStatus.PENDING },
@@ -66,6 +67,7 @@ export default function ReviewActionsScreen() {
     try {
       await approveAction(actionId, points);
       await refetchPartnerActions();
+      logger.info('Action approved successfully', { actionId, points });
       Toast.show({
         type: 'success',
         text1: 'Acción Aprobada',
@@ -75,7 +77,8 @@ export default function ReviewActionsScreen() {
       // Close modal and clear selection
       setShowReviewModal(false);
       setSelectedAction(null);
-    } catch {
+    } catch (error) {
+      logger.error('Failed to approve action', error as Error, { actionId, points });
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -88,6 +91,7 @@ export default function ReviewActionsScreen() {
     try {
       await rejectAction(actionId, reason);
       await refetchPartnerActions();
+      logger.info('Action rejected successfully', { actionId, reason });
       Toast.show({
         type: 'success',
         text1: 'Acción Rechazada',
@@ -97,7 +101,8 @@ export default function ReviewActionsScreen() {
       // Close modal and clear selection
       setShowReviewModal(false);
       setSelectedAction(null);
-    } catch {
+    } catch (error) {
+      logger.error('Failed to reject action', error as Error, { actionId, reason });
       Toast.show({
         type: 'error',
         text1: 'Error',

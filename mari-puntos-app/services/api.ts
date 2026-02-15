@@ -1,6 +1,7 @@
 import { ApiError } from '@/types';
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import { Platform } from 'react-native';
+import logger from '@/utils/logger';
 
 // API Base URL from environment
 // Note: Android emulator uses 10.0.2.2 to access host machine's localhost
@@ -36,7 +37,7 @@ class ApiService {
               config.headers.Authorization = `Bearer ${token}`;
             }
           } catch (error) {
-            console.error('Error getting auth token:', error);
+            logger.error('Error getting auth token in API interceptor', error as Error);
           }
         }
         return config;
@@ -50,17 +51,40 @@ class ApiService {
     this.api.interceptors.response.use(
       (response) => response,
       async (error: AxiosError<ApiError>) => {
-        if (error.response?.status === 401) {
+        const status = error.response?.status;
+        const errorMessage = error.response?.data?.error || error.message || 'An error occurred';
+        
+        if (status === 401) {
           // Token expired or invalid - Clerk will handle re-authentication
-          console.error('Unauthorized request - token may be expired');
+          logger.warn('Unauthorized API request - token may be expired');
+        } else if (status && status >= 500) {
+          // Server errors
+          logger.error('API server error', new Error(errorMessage), {
+            status,
+            url: error.config?.url,
+            method: error.config?.method,
+          });
+        } else if (status && status >= 400) {
+          // Client errors (except 401)
+          logger.warn(`API client error: ${errorMessage}`, {
+            status,
+            url: error.config?.url,
+            method: error.config?.method,
+          });
+        } else {
+          // Network or other errors
+          logger.error('API network or unknown error', error as Error, {
+            url: error.config?.url,
+            method: error.config?.method,
+          });
         }
 
         // Format error for better handling
         const apiError: ApiError & { status?: number } = {
           success: false,
-          error: error.response?.data?.error || error.message || 'An error occurred',
+          error: errorMessage,
           details: error.response?.data?.details,
-          status: error.response?.status,
+          status,
         };
 
         return Promise.reject(apiError);

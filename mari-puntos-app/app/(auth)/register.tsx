@@ -20,6 +20,7 @@ import { handleClerkErrors } from '@/types/clerk-localization';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
 import { registerSchema, type RegisterFormData } from '@/validators/auth.schema';
+import logger from '@/utils/logger';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -67,6 +68,11 @@ export default function RegisterScreen() {
       // Send verification code
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
 
+      logger.info('User registration initiated', {
+        email: data.email,
+        firstName: data.firstName,
+      });
+
       Toast.show({
         type: 'success',
         text1: '¡Cuenta creada!',
@@ -83,6 +89,11 @@ export default function RegisterScreen() {
       if (isClerkAPIResponseError(error)) {
         errorMessage = handleClerkErrors(error.errors);
       }
+
+      logger.error('User registration failed', error, {
+        email: data.email,
+        errorMessage,
+      });
 
       Toast.show({
         type: 'error',

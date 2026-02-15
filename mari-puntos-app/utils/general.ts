@@ -1,8 +1,4 @@
 import { colors } from '@/theme';
-import {
-  formatDateWithTime as formatDateWithTimeUTC6,
-  formatDateOnly as formatDateOnlyUTC6,
-} from './dateUtils';
 
 export const getStatusText = (status: string) => {
   switch (status) {
@@ -25,7 +21,3 @@ export const getStatusColor = (status: string) => {
       return colors.warning;
   }
 };
-
-export const formatDate = formatDateWithTimeUTC6;
-
-export const formatDateOnly = formatDateOnlyUTC6;

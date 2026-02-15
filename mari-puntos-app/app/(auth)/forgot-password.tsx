@@ -21,6 +21,7 @@ import { colors, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
 import { forgotPasswordSchema } from '@/validators/auth.schema';
 import type { ForgotPasswordFormData } from '@/validators/auth.schema';
+import logger from '@/utils/logger';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -48,6 +49,7 @@ export default function ForgotPasswordScreen() {
       });
 
       if (result.status === 'needs_first_factor') {
+        logger.info('Password reset email sent', { email: data.email });
         // Navigate to reset password screen
         router.push({
           pathname: '/(auth)/reset-password',
@@ -60,6 +62,11 @@ export default function ForgotPasswordScreen() {
       if (isClerkAPIResponseError(error)) {
         errorMessage = handleClerkErrors(error.errors);
       }
+
+      logger.error('Failed to send password reset email', error, {
+        email: data.email,
+        errorMessage,
+      });
 
       Toast.show({
         type: 'error',

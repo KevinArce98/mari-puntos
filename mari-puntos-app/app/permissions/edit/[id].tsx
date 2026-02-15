@@ -22,6 +22,7 @@ import { createUTC6DateTime } from '@/utils/dateUtils';
 import Toast from 'react-native-toast-message';
 import { permissionsService } from '@/services';
 import { Permission } from '@/types';
+import logger from '@/utils/logger';
 
 export default function EditPermissionScreen() {
   const router = useRouter();
@@ -44,6 +45,7 @@ export default function EditPermissionScreen() {
 
   useEffect(() => {
     loadPermission();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const loadPermission = async () => {
@@ -62,7 +64,9 @@ export default function EditPermissionScreen() {
       setCustomCost(data.pointsCost);
       setNote(data.metadata?.note || '');
     } catch (error) {
-      console.error('Error loading permission:', error);
+      logger.error('Failed to load permission for editing', error as Error, {
+        permissionId: id,
+      });
       Toast.show({
         type: 'error',
         text1: 'Error',

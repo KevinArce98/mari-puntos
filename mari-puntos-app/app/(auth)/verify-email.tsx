@@ -2,6 +2,7 @@ import { Button, ControlledCodeInput } from '@/components/ui';
 import { userService } from '@/services';
 import { colors, spacing, typography } from '@/theme';
 import { useSignUp, isClerkAPIResponseError } from '@clerk/clerk-expo';
+import logger from '@/utils/logger';
 import { Ionicons } from '@expo/vector-icons';
 import { handleClerkErrors } from '@/types/clerk-localization';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -91,7 +92,7 @@ export default function VerifyEmailScreen() {
         } catch (profileError: any) {
           // Check if user already exists (409 conflict) - this is OK, continue
           if (profileError?.status === 409) {
-            console.log('User profile already exists, continuing...');
+            logger.info('User profile already exists, continuing...');
             // Activate session and continue
             await setActive({ session: result.createdSessionId });
             router.replace('/link-partner');
@@ -113,6 +114,8 @@ export default function VerifyEmailScreen() {
         errorMessage = handleClerkErrors(error.errors);
       }
 
+      logger.error('Email verification failed', error, { email, errorMessage });
+
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -126,6 +129,7 @@ export default function VerifyEmailScreen() {
 
     try {
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      logger.info('Verification code resent', { email });
       Toast.show({
         type: 'success',
         text1: 'Código enviado',
@@ -140,6 +144,8 @@ export default function VerifyEmailScreen() {
       if (isClerkAPIResponseError(error)) {
         errorMessage = handleClerkErrors(error.errors);
       }
+
+      logger.error('Failed to resend verification code', error, { email, errorMessage });
 
       Toast.show({
         type: 'error',

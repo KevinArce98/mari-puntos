@@ -21,6 +21,7 @@ import { Button, ControlledInput } from '@/components/ui';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
 import { loginSchema, type LoginFormData } from '@/validators/auth.schema';
+import logger from '@/utils/logger';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -51,6 +52,7 @@ export default function LoginScreen() {
 
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
+        logger.info('User logged in successfully', { email: data.email });
         router.replace('/(tabs)');
       }
     } catch (error: any) {
@@ -59,6 +61,8 @@ export default function LoginScreen() {
       if (isClerkAPIResponseError(error)) {
         errorMessage = handleClerkErrors(error.errors);
       }
+
+      logger.warn('Login failed', { email: data.email, error: errorMessage });
 
       Toast.show({
         type: 'error',

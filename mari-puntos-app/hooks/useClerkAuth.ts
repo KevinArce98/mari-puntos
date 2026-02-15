@@ -2,6 +2,7 @@ import { apiService } from '@/services';
 import { useUserStore } from '@/stores';
 import { useAuth } from '@clerk/clerk-expo';
 import { useEffect } from 'react';
+import logger from '@/utils/logger';
 
 /**
  * Hook to integrate Clerk authentication with the API service
@@ -18,7 +19,7 @@ export function useClerkAuth() {
           try {
             return await getToken();
           } catch (error) {
-            console.error('Error getting Clerk token:', error);
+            logger.error('Error getting Clerk token:', error as Error);
             return null;
           }
         });
@@ -28,9 +29,9 @@ export function useClerkAuth() {
           // Only log error if it's not a 404 (user not found)
           // New users won't have a profile until they complete signup
           if (error?.status !== 404) {
-            console.error('Error fetching user profile:', error);
+            logger.error('Error fetching user profile:', error);
           } else {
-            console.log(
+            logger.info(
               'User profile not found - this is normal for new users during signup'
             );
           }

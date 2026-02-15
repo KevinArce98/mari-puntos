@@ -6,6 +6,7 @@ import {
   GetPermissionsParams,
   PermissionStatus,
 } from '@/types';
+import logger from '@/utils/logger';
 
 interface PermissionsState {
   myPermissions: Permission[];
@@ -41,7 +42,9 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
     try {
       const response = await permissionsService.getMyPermissions(params);
       set({ myPermissions: response.data, isLoading: false });
+      logger.debug('My permissions fetched successfully', { count: response.data.length, params });
     } catch (error: any) {
+      logger.error('Failed to fetch my permissions', error, { params });
       set({ error: error.error || 'Failed to fetch permissions', isLoading: false });
       throw error;
     }
@@ -52,7 +55,9 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
     try {
       const response = await permissionsService.getPartnerPermissions(params);
       set({ partnerPermissions: response.data, isLoading: false });
+      logger.debug('Partner permissions fetched successfully', { count: response.data.length, params });
     } catch (error: any) {
+      logger.error('Failed to fetch partner permissions', error, { params });
       set({
         error: error.error || 'Failed to fetch partner permissions',
         isLoading: false,
@@ -65,10 +70,12 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       await permissionsService.createPermission(data);
+      logger.info('Permission created successfully', { templateId: data.templateId, pointsCost: data.pointsCost });
       // Refetch my permissions
       await get().fetchMyPermissions({ status: PermissionStatus.PENDING });
       set({ isLoading: false });
     } catch (error: any) {
+      logger.error('Failed to create permission', error, { data });
       set({ error: error.error || 'Failed to create permission', isLoading: false });
       throw error;
     }
@@ -78,10 +85,12 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       await permissionsService.updatePermission(permissionId, data);
+      logger.info('Permission updated successfully', { permissionId });
       // Refetch my permissions
       await get().fetchMyPermissions();
       set({ isLoading: false });
     } catch (error: any) {
+      logger.error('Failed to update permission', error, { permissionId, data });
       set({ error: error.error || 'Failed to update permission', isLoading: false });
       throw error;
     }
