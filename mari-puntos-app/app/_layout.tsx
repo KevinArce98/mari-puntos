@@ -11,6 +11,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthGuard } from '@/components';
 // import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useNotifications } from '@/hooks/useNotifications';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://153f8b48a68521864815739df2df12b5@o4510342524502016.ingest.us.sentry.io/4510891051122688',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
 
@@ -79,10 +94,10 @@ function RootLayoutNav() {
   );
 }
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
       <RootLayoutNav />
     </ClerkProvider>
   );
-}
+});
