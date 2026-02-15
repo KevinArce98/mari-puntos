@@ -11,6 +11,7 @@ import {
   RewardCategory,
   PAGINATION_DEFAULTS,
 } from '../shared/constants';
+import { PermissionCategory } from '../entities/PermissionTemplate';
 
 // ============================================================================
 // USER SCHEMAS (Matches frontend CreateUserRequest, UpdateProfileRequest)
@@ -112,6 +113,21 @@ export const updatePermissionSchema = z.object({
   pointsCost: z.number().int().min(0).optional(),
   metadata: z.record(z.any(), z.unknown()).optional(),
 });
+
+// ============================================================================
+// PERMISSION TEMPLATE SCHEMAS (Matches frontend CreatePermissionTemplateRequest, UpdatePermissionTemplateRequest)
+// ============================================================================
+
+export const createPermissionTemplateSchema = z.object({
+  title: z.string().min(1).max(100),
+  description: z.string().optional(),
+  category: z.enum(PermissionCategory),
+  suggestedDurationHours: z.number().int().positive().optional(),
+  suggestedPointsCost: z.number().int().min(0).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const updatePermissionTemplateSchema = createPermissionTemplateSchema.partial();
 
 // ============================================================================
 // REWARD SCHEMAS (Matches frontend CreateRewardRequest, RedeemRewardRequest)
@@ -230,6 +246,12 @@ export type ApproveActionInput = z.infer<typeof approveActionSchema>;
 export type RejectActionInput = z.infer<typeof rejectActionSchema>;
 export type CreatePermissionInput = z.infer<typeof createPermissionSchema>;
 export type RespondPermissionInput = z.infer<typeof respondPermissionSchema>;
+export type CreatePermissionTemplateInput = z.infer<
+  typeof createPermissionTemplateSchema
+>;
+export type UpdatePermissionTemplateInput = z.infer<
+  typeof updatePermissionTemplateSchema
+>;
 export type CreateRewardInput = z.infer<typeof createRewardSchema>;
 export type UpdateRewardInput = z.infer<typeof updateRewardSchema>;
 export type RedeemRewardInput = z.infer<typeof redeemRewardSchema>;
