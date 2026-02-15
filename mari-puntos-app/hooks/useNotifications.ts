@@ -3,7 +3,7 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useRootNavigationState } from 'expo-router';
 import { useUserStore } from '@/stores';
 import logger from '@/utils/logger';
 
@@ -32,12 +32,16 @@ export interface NotificationData {
 export function useNotifications() {
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<Notifications.Notification[]>([]);
+  const [pendingNotificationData, setPendingNotificationData] =
+    useState<NotificationData | null>(null);
   const notificationListener = useRef<Notifications.EventSubscription | null>(null);
   const responseListener = useRef<Notifications.EventSubscription | null>(null);
   const tokenSentRef = useRef(false);
+  const initialNotificationHandled = useRef(false);
   // Use user state instead of Clerk to avoid auth conflicts
   const user = useUserStore((state) => state.user);
   const router = useRouter();
+  const rootNavigationState = useRootNavigationState();
 
   const handleNotificationResponse = useCallback(
     (data: NotificationData) => {
@@ -62,6 +66,8 @@ export function useNotifications() {
           logger.warn('Unknown notification type:', data.type);
           return;
       }
+
+      logger.info('Navigating to:', route);
       router.push(route as any);
     },
     [router]
@@ -92,6 +98,32 @@ export function useNotifications() {
       });
   }, []);
 
+  // Manejar notificación inicial cuando la app se abre desde una notificación estando cerrada
+  useEffect(() => {
+    const handleInitialNotification = async () => {
+      if (initialNotificationHandled.current) return;
+
+      try {
+        const response = await Notifications.getLastNotificationResponseAsync();
+
+        if (response) {
+          initialNotificationHandled.current = true;
+          const data = response.notification.request.content
+            .data as unknown as NotificationData;
+
+          if (data && data.type) {
+            logger.info('Initial notification detected:', data.type);
+            setPendingNotificationData(data);
+          }
+        }
+      } catch (error) {
+        logger.error('Error handling initial notification:', error as Error);
+      }
+    };
+
+    handleInitialNotification();
+  }, []);
+
   useEffect(() => {
     // Listener para notificaciones recibidas mientras la app está abierta
     notificationListener.current = Notifications.addNotificationReceivedListener(
@@ -100,12 +132,16 @@ export function useNotifications() {
       }
     );
 
-    // Listener para cuando el usuario toca una notificación
+    // Listener para cuando el usuario toca una notificación (app en segundo plano o abierta)
     responseListener.current = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         const data = response.notification.request.content
           .data as unknown as NotificationData;
-        handleNotificationResponse(data);
+
+        if (data && data.type) {
+          logger.info('Notification response received:', data.type);
+          setPendingNotificationData(data);
+        }
       }
     );
 
@@ -117,7 +153,28 @@ export function useNotifications() {
         responseListener.current.remove();
       }
     };
-  }, [handleNotificationResponse]);
+  }, []);
+
+  // Navegar cuando la navegación esté lista y haya una notificación pendiente
+  useEffect(() => {
+    // Esperar a que la navegación esté completamente inicializada
+    if (!rootNavigationState?.key) {
+      return;
+    }
+
+    if (!pendingNotificationData) {
+      return;
+    }
+
+    // Pequeño delay para asegurar que la navegación esté completamente lista
+    const timeoutId = setTimeout(() => {
+      logger.info('Processing pending notification:', pendingNotificationData.type);
+      handleNotificationResponse(pendingNotificationData);
+      setPendingNotificationData(null);
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [pendingNotificationData, rootNavigationState?.key, handleNotificationResponse]);
 
   // Enviar el token cuando el usuario esté autenticado
   useEffect(() => {
