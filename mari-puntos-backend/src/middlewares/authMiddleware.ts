@@ -154,6 +154,7 @@ export const clerkOnlyAuthMiddleware = async (
     // If clerkId is provided in body, allow without authentication
     // This is for the signup flow where we have the clerkId but no active session yet
     if (req.body.clerkId) {
+      console.log('✅ ClerkId provided in body for profile creation:', req.body.clerkId);
       req.clerkId = req.body.clerkId;
       next();
       return;

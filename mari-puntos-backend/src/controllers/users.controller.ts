@@ -31,19 +31,25 @@ export class UsersController {
    */
   createProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      console.log('📝 Create profile request:', { body: req.body, clerkId: req.clerkId });
+      
       const data = createUserSchema.parse(req.body);
+      console.log('✅ Schema validation passed:', data);
       
       // Get clerkId from request body if provided (during signup flow)
       // Otherwise get from authenticated token (for already authenticated users)
       const clerkId = data.clerkId || req.clerkId!;
+      console.log('🔑 Using clerkId:', clerkId);
 
       const user = await this.usersService.createUser({
         ...data,
         clerkId,
       });
+      console.log('✅ User created successfully:', user.id);
 
       sendCreated(res, toUserDTO(user, false), 'Profile created successfully');
     } catch (error) {
+      console.error('❌ Error in createProfile:', error);
       throw error;
     }
   };
