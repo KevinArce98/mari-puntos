@@ -8,6 +8,7 @@ import { getNowUTC6 } from '../utils/helpers';
 import { PartnerService } from './partner.service';
 import { PointsService } from './points.service';
 import { PushNotificationService } from './push-notification.service';
+import { logger } from '../utils/logger';
 
 interface CreatePermissionData {
   templateId: string;
@@ -30,15 +31,19 @@ export class PermissionsService {
     userId: string,
     data: CreatePermissionData
   ): Promise<Permission> {
+    logger.info({ message: 'Creating permission', userId, permissionData: data });
+
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
+      logger.warn({ message: 'User not found for permission creation', userId });
       throw new AppError(404, 'Usuario no encontrado');
     }
 
     // Verify user has partner
     const partnerId = await this.partnerService.getPartnerId(userId);
     if (!partnerId) {
+      logger.warn({ message: 'User has no partner for permission creation', userId });
       throw new AppError(400, 'Debes tener una pareja para solicitar permisos');
     }
 
@@ -49,6 +54,7 @@ export class PermissionsService {
     });
 
     if (!template || !template.isActive) {
+      logger.warn({ message: 'Permission template not found or inactive', userId, templateId: data.templateId });
       throw new AppError(404, 'Plantilla de permiso no encontrada');
     }
 
@@ -56,6 +62,7 @@ export class PermissionsService {
     if (!template.isSystemTemplate && template.partnerLinkId) {
       const partnerLink = await this.partnerService.getPartnerLink(userId);
       if (!partnerLink || partnerLink.id !== template.partnerLinkId) {
+        logger.warn({ message: 'User does not have access to template', userId, templateId: data.templateId });
         throw new AppError(403, 'No tienes acceso a esta plantilla');
       }
     }
@@ -70,7 +77,8 @@ export class PermissionsService {
       status: PermissionStatus.PENDING,
     });
 
-    await this.permissionRepository.save(permission);
+    const savedPermission = await this.permissionRepository.save(permission);
+    logger.info({ message: 'Permission created successfully', userId, permissionId: savedPermission.id });
 
     // Create log
     await this.logRepository.save(

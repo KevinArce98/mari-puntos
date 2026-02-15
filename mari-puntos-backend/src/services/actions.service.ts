@@ -8,6 +8,7 @@ import { PartnerService } from './partner.service';
 import { PointsService } from './points.service';
 import { CreateActionInput, UpdateActionInput } from '../validators/schemas';
 import { PushNotificationService } from './push-notification.service';
+import { logger } from '../utils/logger';
 
 export class ActionsService {
   private actionRepository = AppDataSource.getRepository(Action);
@@ -18,9 +19,12 @@ export class ActionsService {
   private pushNotificationService = new PushNotificationService();
 
   async createAction(userId: string, data: CreateActionInput): Promise<Action> {
+    logger.info({ message: 'Creating action', userId, actionData: data });
+
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
+      logger.warn({ message: 'User not found for action creation', userId });
       throw new AppError(404, 'Usuario no encontrado');
     }
 
@@ -33,7 +37,8 @@ export class ActionsService {
       status: ActionStatus.PENDING,
     });
 
-    await this.actionRepository.save(action);
+    const savedAction = await this.actionRepository.save(action);
+    logger.info({ message: 'Action created successfully', userId, actionId: savedAction.id });
 
     // Create log
     await this.logRepository.save(

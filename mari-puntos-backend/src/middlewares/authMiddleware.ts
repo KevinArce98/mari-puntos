@@ -4,6 +4,7 @@ import { User } from '../entities/User';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env';
 import { sendError } from '../utils/response';
+import { logger } from '../utils/logger';
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -35,10 +36,7 @@ export const authMiddleware = async (
     try {
       decoded = jwt.verify(token, config.clerk.publicKey, options) as jwt.JwtPayload;
     } catch (jwtError: any) {
-      console.error('❌ JWT Verification failed:', {
-        error: jwtError.message,
-        name: jwtError.name,
-      });
+      logger.error({ err: jwtError }, 'JWT verification failed');
       sendError(res, 'Token inválido o expirado', 401);
       return;
     }
@@ -86,9 +84,11 @@ export const authMiddleware = async (
     req.clerkId = clerkId;
     req.user = user;
 
+    logger.debug({ message: 'User authenticated successfully', userId: user.id, clerkId });
+
     next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
+    logger.error({ err: error }, 'Auth middleware error');
     sendError(res, 'Autenticación fallida', 401);
   }
 };

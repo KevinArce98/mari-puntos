@@ -11,11 +11,12 @@ import { toPermissionTemplateDTO, toPermissionTemplateDTOList } from '../utils/m
 import { PAGINATION_DEFAULTS } from '../shared/constants';
 import { z } from 'zod';
 import { PermissionCategory } from '../entities/PermissionTemplate';
+import { logger } from '../utils/logger';
 
 const createTemplateSchema = z.object({
   title: z.string().min(1).max(100),
   description: z.string().optional(),
-  category: z.nativeEnum(PermissionCategory),
+  category: z.enum(PermissionCategory),
   suggestedDurationHours: z.number().int().positive().optional(),
   suggestedPointsCost: z.number().int().min(0).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
@@ -46,6 +47,8 @@ export class PermissionTemplatesController {
             ? false
             : undefined;
 
+      logger.debug({ message: 'Getting permission templates', userId, page, limit, category, isSystemTemplate });
+
       const result = await this.templatesService.getTemplates(userId, {
         category,
         isSystemTemplate,
@@ -53,12 +56,15 @@ export class PermissionTemplatesController {
         limit,
       });
 
+      logger.debug({ message: 'Permission templates retrieved', userId, total: result.total });
+
       sendPaginated(
         res,
         toPermissionTemplateDTOList(result.templates),
         createPaginationMeta(page, limit, result.total)
       );
     } catch (error) {
+      logger.error({ err: error, userId: req.userId }, 'Error getting permission templates');
       throw error;
     }
   };
@@ -69,9 +75,15 @@ export class PermissionTemplatesController {
    */
   getSystemTemplates = async (_req: AuthRequest, res: Response): Promise<void> => {
     try {
+      logger.debug({ message: 'Getting system permission templates' });
+
       const templates = await this.templatesService.getSystemTemplates();
+
+      logger.debug({ message: 'System permission templates retrieved', count: templates.length });
+
       sendSuccess(res, toPermissionTemplateDTOList(templates));
     } catch (error) {
+      logger.error({ err: error }, 'Error getting system permission templates');
       throw error;
     }
   };
@@ -85,9 +97,15 @@ export class PermissionTemplatesController {
       const userId = req.userId!;
       const { id } = req.params;
 
+      logger.debug({ message: 'Getting permission template by ID', userId, templateId: id });
+
       const template = await this.templatesService.getTemplateById(id, userId);
+
+      logger.debug({ message: 'Permission template retrieved by ID', userId, templateId: id });
+
       sendSuccess(res, toPermissionTemplateDTO(template));
     } catch (error) {
+      logger.error({ err: error, userId: req.userId, templateId: req.params.id }, 'Error getting permission template by ID');
       throw error;
     }
   };
@@ -101,9 +119,15 @@ export class PermissionTemplatesController {
       const userId = req.userId!;
       const data = createTemplateSchema.parse(req.body);
 
+      logger.info({ message: 'Creating permission template', userId, templateData: data });
+
       const template = await this.templatesService.createTemplate(userId, data);
+
+      logger.info({ message: 'Permission template created successfully', userId, templateId: template.id });
+
       sendCreated(res, toPermissionTemplateDTO(template), 'Permission template created successfully');
     } catch (error) {
+      logger.error({ err: error, userId: req.userId }, 'Error creating permission template');
       throw error;
     }
   };
@@ -118,9 +142,15 @@ export class PermissionTemplatesController {
       const { id } = req.params;
       const data = updateTemplateSchema.parse(req.body);
 
+      logger.info({ message: 'Updating permission template', userId, templateId: id, updateData: data });
+
       const template = await this.templatesService.updateTemplate(id, userId, data);
+
+      logger.info({ message: 'Permission template updated successfully', userId, templateId: id });
+
       sendSuccess(res, toPermissionTemplateDTO(template), 'Permission template updated successfully');
     } catch (error) {
+      logger.error({ err: error, userId: req.userId, templateId: req.params.id }, 'Error updating permission template');
       throw error;
     }
   };
@@ -134,9 +164,15 @@ export class PermissionTemplatesController {
       const userId = req.userId!;
       const { id } = req.params;
 
+      logger.info({ message: 'Deleting permission template', userId, templateId: id });
+
       await this.templatesService.deleteTemplate(id, userId);
+
+      logger.info({ message: 'Permission template deleted successfully', userId, templateId: id });
+
       sendSuccess(res, { success: true }, 'Permission template deleted successfully');
     } catch (error) {
+      logger.error({ err: error, userId: req.userId, templateId: req.params.id }, 'Error deleting permission template');
       throw error;
     }
   };

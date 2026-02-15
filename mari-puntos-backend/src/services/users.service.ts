@@ -3,6 +3,7 @@ import { User } from '../entities/User';
 import { AppError } from '../middlewares/errorMiddleware';
 import { generatePartnerCode } from '../utils/helpers';
 import { CreateUserInput, UpdateUserInput } from '../validators/schemas';
+import { logger } from '../utils/logger';
 
 export class UsersService {
   private userRepository = AppDataSource.getRepository(User);
@@ -31,12 +32,15 @@ export class UsersService {
    * Create a new user
    */
   async createUser(data: CreateUserInput): Promise<User> {
+    logger.info({ message: 'Creating user with clerkId', clerkId: data.clerkId });
+
     // Check if user already exists with this clerkId
     const existingUser = await this.userRepository.findOne({ 
       where: { clerkId: data.clerkId } 
     });
 
     if (existingUser) {
+      logger.warn({ message: 'User already exists with clerkId', clerkId: data.clerkId });
       throw new AppError(409, 'El usuario ya existe');
     }
 
@@ -46,6 +50,7 @@ export class UsersService {
     });
 
     if (emailInUse) {
+      logger.warn({ message: 'Email already in use', email: data.email });
       throw new AppError(409, 'El correo electrónico ya está en uso');
     }
 
@@ -57,13 +62,18 @@ export class UsersService {
       avatarUrl: data.avatarUrl,
     });
 
-    return this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+    logger.info({ message: 'User created successfully with id', userId: savedUser.id });
+
+    return savedUser;
   }
 
   /**
    * Update user profile - returns user and hasPartner flag
    */
   async updateUser(userId: string, data: UpdateUserInput): Promise<{ user: User; hasPartner: boolean }> {
+    logger.debug({ message: 'Updating user', userId });
+
     const user = await this.getUserById(userId);
 
     if (data.firstName !== undefined) user.firstName = data.firstName;
@@ -73,6 +83,8 @@ export class UsersService {
     await this.userRepository.save(user);
 
     const hasPartner = this.checkHasPartner(user);
+
+    logger.debug({ message: 'User updated successfully', userId });
 
     return { user, hasPartner };
   }

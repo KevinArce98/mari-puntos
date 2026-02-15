@@ -5,6 +5,7 @@ import { Log, LogType } from '../entities/Log';
 import { AppError } from '../middlewares/errorMiddleware';
 import { PointsService } from './points.service';
 import { CreateRewardInput, UpdateRewardInput } from '../validators/schemas';
+import { logger } from '../utils/logger';
 
 export class RewardsService {
   private rewardRepository = AppDataSource.getRepository(Reward);
@@ -13,6 +14,8 @@ export class RewardsService {
   private pointsService = new PointsService();
 
   async createReward(userId: string, data: CreateRewardInput): Promise<Reward> {
+    logger.info({ message: 'Creating reward', userId, rewardData: data });
+
     // Get user's partner link
     const user = await this.userRepository.findOne({
       where: { id: userId },
@@ -20,6 +23,7 @@ export class RewardsService {
     });
 
     if (!user) {
+      logger.warn({ message: 'User not found for reward creation', userId });
       throw new AppError(404, 'Usuario no encontrado');
     }
 
@@ -39,9 +43,10 @@ export class RewardsService {
       isCustom: true,
     });
 
-    await this.rewardRepository.save(reward);
+    const savedReward = await this.rewardRepository.save(reward);
+    logger.info({ message: 'Reward created successfully', userId, rewardId: savedReward.id });
 
-    return reward;
+    return savedReward;
   }
 
   async getRewardById(rewardId: string): Promise<Reward> {

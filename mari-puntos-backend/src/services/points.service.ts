@@ -5,6 +5,7 @@ import { Achievement, AchievementType } from '../entities/Achievement';
 import { AppError } from '../middlewares/errorMiddleware';
 import { calculateLevel, calculatePointsInCurrentLevel, getNowUTC6 } from '../utils/helpers';
 import { In } from 'typeorm';
+import { logger } from '../utils/logger';
 
 export class PointsService {
   private userRepository = AppDataSource.getRepository(User);
@@ -12,9 +13,12 @@ export class PointsService {
   private achievementRepository = AppDataSource.getRepository(Achievement);
 
   async addPoints(userId: string, points: number, reason: string): Promise<User> {
+    logger.info({ message: 'Adding points to user', userId, points, reason });
+
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
+      logger.warn({ message: 'User not found for adding points', userId });
       throw new AppError(404, 'Usuario no encontrado');
     }
 
@@ -25,7 +29,8 @@ export class PointsService {
     user.currentLevel = calculateLevel(user.totalPoints);
     user.pointsInCurrentLevel = calculatePointsInCurrentLevel(user.totalPoints);
 
-    await this.userRepository.save(user);
+    const updatedUser = await this.userRepository.save(user);
+    logger.info({ message: 'Points added successfully', userId, points, newTotal: updatedUser.totalPoints, newLevel: updatedUser.currentLevel });
 
     // Create log
     await this.logRepository.save(
@@ -39,13 +44,14 @@ export class PointsService {
 
     // Check for level up
     if (user.currentLevel > previousLevel) {
+      logger.info({ message: 'User leveled up', userId, fromLevel: previousLevel, toLevel: user.currentLevel });
       await this.handleLevelUp(user, previousLevel);
     }
 
     // Check for achievements
     await this.checkAchievements(user);
 
-    return user;
+    return updatedUser;
   }
 
   async deductPoints(userId: string, points: number, reason: string): Promise<User> {

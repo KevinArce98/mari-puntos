@@ -4,6 +4,7 @@ import { PointsService } from '../services/points.service';
 import { sendSuccess, sendPaginated, createPaginationMeta } from '../utils/response';
 import { toPointsLogDTOList, toLeaderboardEntryDTO } from '../utils/mappers';
 import { PAGINATION_DEFAULTS } from '../shared/constants';
+import { logger } from '../utils/logger';
 
 export class PointsController {
   private pointsService = new PointsService();
@@ -21,10 +22,14 @@ export class PointsController {
         PAGINATION_DEFAULTS.MAX_LIMIT
       );
 
+      logger.debug({ message: 'Getting points history', userId, page, limit });
+
       const result = await this.pointsService.getPointsHistory(userId, {
         page,
         limit,
       });
+
+      logger.debug({ message: 'Points history retrieved', userId, total: result.total });
 
       sendPaginated(
         res,
@@ -32,6 +37,7 @@ export class PointsController {
         createPaginationMeta(page, limit, result.total)
       );
     } catch (error) {
+      logger.error({ err: error, userId: req.userId }, 'Error getting points history');
       throw error;
     }
   };
@@ -46,11 +52,16 @@ export class PointsController {
         parseInt(req.query.limit as string) || 10,
         50
       );
-      
+
+      logger.debug({ message: 'Getting points leaderboard', limit });
+
       const users = await this.pointsService.getLeaderboard(limit);
+
+      logger.debug({ message: 'Points leaderboard retrieved', count: users.length });
 
       sendSuccess(res, users.map(toLeaderboardEntryDTO));
     } catch (error) {
+      logger.error({ err: error }, 'Error getting points leaderboard');
       throw error;
     }
   };

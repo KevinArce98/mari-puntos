@@ -1,4 +1,5 @@
 import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
+import { logger } from '../utils/logger';
 
 export interface PushNotificationPayload {
   title: string;
@@ -21,7 +22,7 @@ export class PushNotificationService {
     payload: PushNotificationPayload
   ): Promise<void> {
     if (!Expo.isExpoPushToken(pushToken)) {
-      console.error(`Push token ${pushToken} is not a valid Expo push token`);
+      logger.warn({ message: 'Invalid Expo push token', pushToken });
       return;
     }
 
@@ -34,19 +35,20 @@ export class PushNotificationService {
     };
 
     try {
+      logger.debug({ message: 'Sending push notification', pushToken, title: payload.title });
+
       const ticketChunk = await this.expo.sendPushNotificationsAsync([message]);
 
       // Check for errors in ticket
       ticketChunk.forEach((ticket) => {
         if (ticket.status === 'error') {
-          console.error('❌ Error in push ticket:', ticket.message);
-          if (ticket.details?.error) {
-            console.error('❌ Error details:', ticket.details.error);
-          }
+          logger.error({ message: 'Error in push ticket', ticketMessage: ticket.message, ticketDetails: ticket.details });
         }
       });
+
+      logger.debug({ message: 'Push notification sent', pushToken });
     } catch (error) {
-      console.error('❌ Error sending push notification:', error);
+      logger.error({ err: error, pushToken }, 'Error sending push notification');
     }
   }
 

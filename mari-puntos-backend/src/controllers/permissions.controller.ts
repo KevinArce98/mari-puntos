@@ -9,6 +9,7 @@ import {
 import { sendSuccess, sendCreated, sendPaginated, createPaginationMeta } from '../utils/response';
 import { toPermissionDTO, toPermissionDTOList } from '../utils/mappers';
 import { PAGINATION_DEFAULTS } from '../shared/constants';
+import { logger } from '../utils/logger';
 
 export class PermissionsController {
   private permissionsService = new PermissionsService();
@@ -22,13 +23,18 @@ export class PermissionsController {
       const userId = req.userId!;
       const data = createPermissionSchema.parse(req.body);
 
+      logger.info({ message: 'Creating permission request', userId, permissionData: data });
+
       const permission = await this.permissionsService.createPermission(userId, {
         ...data,
         requestedDate: new Date(data.requestedDate),
       });
 
+      logger.info({ message: 'Permission requested successfully', userId, permissionId: permission.id });
+
       sendCreated(res, toPermissionDTO(permission), 'Permission requested successfully');
     } catch (error) {
+      logger.error({ err: error, userId: req.userId }, 'Error creating permission');
       throw error;
     }
   };
@@ -47,11 +53,15 @@ export class PermissionsController {
       );
       const status = req.query.status as string | undefined;
 
+      logger.debug({ message: 'Getting user permissions', userId, page, limit, status });
+
       const result = await this.permissionsService.getUserPermissions(userId, {
         status: status as any,
         page,
         limit,
       });
+
+      logger.debug({ message: 'User permissions retrieved', userId, total: result.total });
 
       sendPaginated(
         res,
@@ -59,6 +69,7 @@ export class PermissionsController {
         createPaginationMeta(page, limit, result.total)
       );
     } catch (error) {
+      logger.error({ err: error, userId: req.userId }, 'Error getting user permissions');
       throw error;
     }
   };
@@ -77,11 +88,15 @@ export class PermissionsController {
       );
       const status = req.query.status as string | undefined;
 
+      logger.debug({ message: 'Getting partner permissions', userId, page, limit, status });
+
       const result = await this.permissionsService.getPartnerPermissions(userId, {
         status: status as any,
         page,
         limit,
       });
+
+      logger.debug({ message: 'Partner permissions retrieved', userId, total: result.total });
 
       sendPaginated(
         res,
@@ -89,6 +104,7 @@ export class PermissionsController {
         createPaginationMeta(page, limit, result.total)
       );
     } catch (error) {
+      logger.error({ err: error, userId: req.userId }, 'Error getting partner permissions');
       throw error;
     }
   };
@@ -100,10 +116,16 @@ export class PermissionsController {
   getPermissionById = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
+
+      logger.debug({ message: 'Getting permission by ID', permissionId: id });
+
       const permission = await this.permissionsService.getPermissionById(id);
+
+      logger.debug({ message: 'Permission retrieved by ID', permissionId: id });
 
       sendSuccess(res, toPermissionDTO(permission));
     } catch (error) {
+      logger.error({ err: error, permissionId: req.params.id }, 'Error getting permission by ID');
       throw error;
     }
   };
@@ -118,6 +140,8 @@ export class PermissionsController {
       const { id } = req.params;
       const { approved, responseMessage } = respondPermissionSchema.parse(req.body);
 
+      logger.info({ message: 'Responding to permission', userId, permissionId: id, approved });
+
       const permission = await this.permissionsService.respondToPermission(
         id,
         userId,
@@ -125,12 +149,15 @@ export class PermissionsController {
         responseMessage
       );
 
+      logger.info({ message: 'Permission response submitted successfully', userId, permissionId: id, approved });
+
       sendSuccess(
         res,
         toPermissionDTO(permission),
         approved ? 'Permission approved' : 'Permission rejected'
       );
     } catch (error) {
+      logger.error({ err: error, userId: req.userId, permissionId: req.params.id }, 'Error responding to permission');
       throw error;
     }
   };
@@ -151,10 +178,15 @@ export class PermissionsController {
         updateData.requestedDate = new Date(updateData.requestedDate);
       }
 
+      logger.info({ message: 'Updating permission', userId, permissionId: id, updateData });
+
       const permission = await this.permissionsService.updatePermission(id, userId, updateData);
+
+      logger.info({ message: 'Permission updated successfully', userId, permissionId: id });
 
       sendSuccess(res, toPermissionDTO(permission), 'Permission updated successfully');
     } catch (error) {
+      logger.error({ err: error, userId: req.userId, permissionId: req.params.id }, 'Error updating permission');
       throw error;
     }
   };
@@ -168,10 +200,15 @@ export class PermissionsController {
       const userId = req.userId!;
       const { id } = req.params;
 
+      logger.info({ message: 'Deleting permission', userId, permissionId: id });
+
       await this.permissionsService.deletePermission(id, userId);
+
+      logger.info({ message: 'Permission deleted successfully', userId, permissionId: id });
 
       sendSuccess(res, { success: true }, 'Permission deleted successfully');
     } catch (error) {
+      logger.error({ err: error, userId: req.userId, permissionId: req.params.id }, 'Error deleting permission');
       throw error;
     }
   };

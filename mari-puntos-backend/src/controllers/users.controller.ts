@@ -5,6 +5,7 @@ import { PushNotificationService } from '../services/push-notification.service';
 import { createUserSchema, updateUserSchema, sendTestNotificationSchema } from '../validators/schemas';
 import { sendSuccess, sendCreated } from '../utils/response';
 import { toUserDTO, toUserStatsDTO } from '../utils/mappers';
+import { logger } from '../utils/logger';
 
 export class UsersController {
   private usersService = new UsersService();
@@ -31,25 +32,25 @@ export class UsersController {
    */
   createProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      console.log('📝 Create profile request:', { body: req.body, clerkId: req.clerkId });
+      logger.info({ message: 'Create profile request', body: req.body, clerkId: req.clerkId });
       
       const data = createUserSchema.parse(req.body);
-      console.log('✅ Schema validation passed:', data);
+      logger.debug({ message: 'Schema validation passed', data });
       
       // Get clerkId from request body if provided (during signup flow)
       // Otherwise get from authenticated token (for already authenticated users)
       const clerkId = data.clerkId || req.clerkId!;
-      console.log('🔑 Using clerkId:', clerkId);
+      logger.debug({ message: 'Using clerkId', clerkId });
 
       const user = await this.usersService.createUser({
         ...data,
         clerkId,
       });
-      console.log('✅ User created successfully:', user.id);
+      logger.info({ message: 'User created successfully', userId: user.id });
 
       sendCreated(res, toUserDTO(user, false), 'Profile created successfully');
     } catch (error) {
-      console.error('❌ Error in createProfile:', error);
+      logger.error({ err: error }, 'Error in createProfile');
       throw error;
     }
   };
@@ -59,14 +60,19 @@ export class UsersController {
    * Update current user's profile
    */
   updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+    const userId = req.userId!;
     try {
-      const userId = req.userId!;
       const data = updateUserSchema.parse(req.body);
+
+      logger.info({ message: 'Updating profile for user', userId });
 
       const { user, hasPartner } = await this.usersService.updateUser(userId, data);
 
+      logger.info({ message: 'Profile updated successfully for user', userId });
+
       sendSuccess(res, toUserDTO(user, hasPartner), 'Profile updated successfully');
     } catch (error) {
+      logger.error({ err: error, userId }, 'Error updating profile for user');
       throw error;
     }
   };
@@ -91,12 +97,18 @@ export class UsersController {
    * Deactivate current user's account
    */
   deactivateAccount = async (req: AuthRequest, res: Response): Promise<void> => {
+    const userId = req.userId!;
     try {
-      const userId = req.userId!;
+
+      logger.info({ message: 'Deactivating account for user', userId });
+
       await this.usersService.deactivateUser(userId);
+
+      logger.info({ message: 'Account deactivated successfully for user', userId });
 
       sendSuccess(res, null, 'Account deactivated successfully');
     } catch (error) {
+      logger.error({ err: error, userId }, 'Error deactivating account for user');
       throw error;
     }
   };
@@ -109,6 +121,8 @@ export class UsersController {
     try {
       const { pushToken, title, body, data } = sendTestNotificationSchema.parse(req.body);
 
+      logger.info({ message: 'Sending test notification to pushToken', pushToken });
+
       await this.pushNotificationService.sendNotification(pushToken, {
         title: title || '🔔 Notificación de Prueba',
         body: body || 'Tu token de notificaciones está funcionando correctamente!',
@@ -118,8 +132,11 @@ export class UsersController {
         },
       });
 
+      logger.info({ message: 'Test notification sent successfully to pushToken', pushToken });
+
       sendSuccess(res, null, 'Test notification sent successfully');
     } catch (error) {
+      logger.error({ err: error }, 'Error sending test notification');
       throw error;
     }
   };
