@@ -73,40 +73,38 @@ export default function VerifyEmailScreen() {
       const result = await signUp.attemptEmailAddressVerification({
         code: data.code,
       });
-
       if (result.status === 'complete') {
-        // First, activate the session to ensure we have a valid token
-        await setActive({ session: result.createdSessionId });
-
-        // Add a small delay to ensure session is fully active
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        // Now create the profile with an authenticated token
-        // clerkId is obtained from the token on the backend, not sent in body
+        const clerkId = result.createdUserId;
         try {
           await userService.createProfile({
             email,
             firstName: result.firstName || '',
             lastName: result.lastName || '',
+            clerkId: clerkId ?? undefined,
           });
-        } catch (profileError: any) {
-          console.error('Error creating profile:', profileError);
 
+          // Now that profile exists in DB, activate the session
+          await setActive({ session: result.createdSessionId });
+
+          // Navigate to next step
+          router.replace('/link-partner');
+        } catch (profileError: any) {
           // Check if user already exists (409 conflict) - this is OK, continue
           if (profileError?.status === 409) {
             console.log('User profile already exists, continuing...');
+            // Activate session and continue
+            await setActive({ session: result.createdSessionId });
+            router.replace('/link-partner');
           } else {
-            // For other errors, show a warning but still continue
-            // The profile will be fetched/created on next app launch via auth guard
+            // For other errors, show error and don't activate session
             Toast.show({
-              type: 'info',
-              text1: 'Perfil creado',
-              text2: 'Configura tu cuenta para continuar',
+              type: 'error',
+              text1: 'Error al crear perfil',
+              text2: profileError?.message || 'Intenta iniciar sesión nuevamente',
             });
+            return;
           }
         }
-
-        router.replace('/link-partner');
       }
     } catch (error: any) {
       let errorMessage = 'Código inválido';
