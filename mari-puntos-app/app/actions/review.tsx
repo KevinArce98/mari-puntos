@@ -10,7 +10,6 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { ActionItemCard, ReviewActionModal, Chip } from '@/components/ui';
 import { useActions } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';

@@ -8,8 +8,10 @@ import {
   TouchableOpacity,
   View,
   TextInput,
+  Platform,
 } from 'react-native';
 import { colors, spacing, typography, borderRadius, shadows } from '@/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const ICON_OPTIONS = [
   { name: 'game-controller-outline', label: 'Gaming' },
@@ -76,6 +78,7 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
   onClose,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const insets = useSafeAreaInsets();
 
   const filteredIcons = ICON_OPTIONS.filter(
     (icon) =>
@@ -90,7 +93,9 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <View style={styles.container}>
+      <View
+        style={[styles.container, { paddingTop: Platform.OS !== 'ios' ? insets.top : 0 }]}
+      >
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Seleccionar Icono</Text>

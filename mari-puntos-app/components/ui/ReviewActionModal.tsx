@@ -12,7 +12,6 @@ import Slider from '@react-native-community/slider';
 import { Action, ActionCategory } from '@/types';
 import { colors, spacing, typography, borderRadius } from '@/theme';
 import { Button } from './Button';
-import { formatDate } from '@/utils/general';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ControlledInput } from './ControlledInput';
@@ -20,6 +19,7 @@ import {
   reviewActionSchema,
   type ReviewActionFormData,
 } from '@/validators/action.schema';
+import { formatDateWithTime } from '@/utils';
 
 interface ReviewActionModalProps {
   visible: boolean;
@@ -101,7 +101,7 @@ export function ReviewActionModal({
     return null;
   }
 
-  const formattedDate = formatDate(action.createdAt);
+  const formattedDate = formatDateWithTime(action.createdAt);
 
   return (
     <Modal

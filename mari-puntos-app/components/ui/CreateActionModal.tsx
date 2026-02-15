@@ -5,7 +5,9 @@ import {
   StyleSheet,
   Modal,
   TouchableOpacity,
+  KeyboardAvoidingView,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
@@ -84,99 +86,104 @@ export function CreateActionModal({
       onRequestClose={handleClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.container}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Crear Acción</Text>
-            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={colors.text.primary} />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Title Input */}
-            <View style={styles.section}>
-              <Text style={styles.label}>Título *</Text>
-              <ControlledInput
-                control={control}
-                name="title"
-                placeholder="Ej: Preparé la cena"
-                maxLength={100}
-              />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoidingView}
+        >
+          <View style={styles.container}>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.title}>Crear Acción</Text>
+              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color={colors.text.primary} />
+              </TouchableOpacity>
             </View>
 
-            {/* Description Input */}
-            <View style={styles.section}>
-              <Text style={styles.label}>Descripción (opcional)</Text>
-              <ControlledInput
-                control={control}
-                name="description"
-                placeholder="Agrega detalles sobre lo que hiciste..."
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-                maxLength={500}
-              />
-            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Title Input */}
+              <View style={styles.section}>
+                <Text style={styles.label}>Título *</Text>
+                <ControlledInput
+                  control={control}
+                  name="title"
+                  placeholder="Ej: Preparé la cena"
+                  maxLength={100}
+                />
+              </View>
 
-            {/* Category Selection */}
-            <View style={styles.section}>
-              <Text style={styles.label}>Categoría *</Text>
-              <Controller
-                control={control}
-                name="category"
-                render={({ field: { onChange, value } }) => (
-                  <View style={styles.categoriesGrid}>
-                    {CATEGORIES.map((category) => (
-                      <TouchableOpacity
-                        key={category.value}
-                        style={[
-                          styles.categoryCard,
-                          value === category.value && styles.categoryCardSelected,
-                        ]}
-                        onPress={() => onChange(category.value)}
-                      >
-                        <Ionicons
-                          name={category.icon}
-                          size={24}
-                          color={
-                            value === category.value ? colors.primary : colors.gray[400]
-                          }
-                        />
-                        <Text
+              {/* Description Input */}
+              <View style={styles.section}>
+                <Text style={styles.label}>Descripción (opcional)</Text>
+                <ControlledInput
+                  control={control}
+                  name="description"
+                  placeholder="Agrega detalles sobre lo que hiciste..."
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  maxLength={500}
+                />
+              </View>
+
+              {/* Category Selection */}
+              <View style={styles.section}>
+                <Text style={styles.label}>Categoría *</Text>
+                <Controller
+                  control={control}
+                  name="category"
+                  render={({ field: { onChange, value } }) => (
+                    <View style={styles.categoriesGrid}>
+                      {CATEGORIES.map((category) => (
+                        <TouchableOpacity
+                          key={category.value}
                           style={[
-                            styles.categoryLabel,
-                            value === category.value && styles.categoryLabelSelected,
+                            styles.categoryCard,
+                            value === category.value && styles.categoryCardSelected,
                           ]}
+                          onPress={() => onChange(category.value)}
                         >
-                          {category.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
+                          <Ionicons
+                            name={category.icon}
+                            size={24}
+                            color={
+                              value === category.value ? colors.primary : colors.gray[400]
+                            }
+                          />
+                          <Text
+                            style={[
+                              styles.categoryLabel,
+                              value === category.value && styles.categoryLabelSelected,
+                            ]}
+                          >
+                            {category.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                />
+              </View>
+            </ScrollView>
+
+            {/* Actions */}
+            <View style={styles.actions}>
+              <Button
+                title="Cancelar"
+                variant="outline"
+                onPress={handleClose}
+                style={styles.actionButton}
+                disabled={loading}
+              />
+              <Button
+                title="Crear"
+                onPress={handleSubmit(onSubmitForm)}
+                style={styles.actionButton}
+                disabled={isSubmitting}
+                loading={loading}
               />
             </View>
-          </ScrollView>
-
-          {/* Actions */}
-          <View style={styles.actions}>
-            <Button
-              title="Cancelar"
-              variant="outline"
-              onPress={handleClose}
-              style={styles.actionButton}
-              disabled={loading}
-            />
-            <Button
-              title="Crear"
-              onPress={handleSubmit(onSubmitForm)}
-              style={styles.actionButton}
-              disabled={isSubmitting}
-              loading={loading}
-            />
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
@@ -186,6 +193,9 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
     justifyContent: 'flex-end',
   },
   container: {
@@ -239,7 +249,7 @@ const styles = StyleSheet.create({
   },
   categoryCard: {
     width: '31%',
-    aspectRatio: 1,
+    height: 80,
     backgroundColor: colors.gray[100],
     borderRadius: borderRadius.lg,
     borderWidth: 2,

@@ -126,7 +126,9 @@ export default function CreateTemplateScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View
+      style={[styles.container, { paddingTop: Platform.OS !== 'ios' ? insets.top : 0 }]}
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -346,7 +348,7 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     flexDirection: 'row',
-    backgroundColor: `${colors.primary}08`,
+    backgroundColor: Platform.OS === 'ios' ? `${colors.primary}08` : `${colors.white}`,
     borderWidth: 1,
     borderColor: `${colors.primary}20`,
   },
