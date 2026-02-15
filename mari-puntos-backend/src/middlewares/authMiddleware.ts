@@ -140,7 +140,9 @@ export const requirePartner = async (
 
 /**
  * Auth middleware for profile creation
- * Only validates Clerk JWT token without checking if user exists in database
+ * Allows two modes:
+ * 1. With clerkId in request body (during signup) - no auth token required
+ * 2. With auth token (for authenticated users) - validates token
  * Used for POST /users/profile endpoint
  */
 export const clerkOnlyAuthMiddleware = async (
@@ -149,6 +151,15 @@ export const clerkOnlyAuthMiddleware = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    // If clerkId is provided in body, allow without authentication
+    // This is for the signup flow where we have the clerkId but no active session yet
+    if (req.body.clerkId) {
+      req.clerkId = req.body.clerkId;
+      next();
+      return;
+    }
+
+    // Otherwise, require authentication token
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {

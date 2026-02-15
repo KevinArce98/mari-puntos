@@ -33,8 +33,9 @@ export class UsersController {
     try {
       const data = createUserSchema.parse(req.body);
       
-      // Get clerkId from authenticated token, not from request body (more secure)
-      const clerkId = req.clerkId!;
+      // Get clerkId from request body if provided (during signup flow)
+      // Otherwise get from authenticated token (for already authenticated users)
+      const clerkId = data.clerkId || req.clerkId!;
 
       const user = await this.usersService.createUser({
         ...data,
