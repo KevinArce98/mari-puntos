@@ -4,8 +4,10 @@ import { Card, Badge } from '@/components/ui';
 import { colors, typography, spacing, borderRadius } from '@/theme';
 import { formatDateOnly } from '@/utils/dateUtils';
 import { useRewards } from '@/hooks';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AchievementsScreen() {
+  const insets = useSafeAreaInsets();
   const { allRewards, availableRewards } = useRewards();
 
   const renderAchievement = (achievement: any, isLocked: boolean) => (
@@ -58,7 +60,7 @@ export default function AchievementsScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Logros</Text>
         <Text style={styles.subtitle}>

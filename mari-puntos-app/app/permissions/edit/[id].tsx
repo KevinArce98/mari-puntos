@@ -186,7 +186,9 @@ export default function EditPermissionScreen() {
 
   if (loadingPermission) {
     return (
-      <View style={[styles.container, styles.loadingContainer]}>
+      <View
+        style={[styles.container, { paddingTop: insets.top }, styles.loadingContainer]}
+      >
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Cargando solicitud...</Text>
       </View>
@@ -198,7 +200,7 @@ export default function EditPermissionScreen() {
   }
 
   return (
-    <View style={[styles.container]}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
