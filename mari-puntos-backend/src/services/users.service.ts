@@ -35,8 +35,8 @@ export class UsersService {
     logger.info({ message: 'Creating user with clerkId', clerkId: data.clerkId });
 
     // Check if user already exists with this clerkId
-    const existingUser = await this.userRepository.findOne({ 
-      where: { clerkId: data.clerkId } 
+    const existingUser = await this.userRepository.findOne({
+      where: { clerkId: data.clerkId },
     });
 
     if (existingUser) {
@@ -45,8 +45,8 @@ export class UsersService {
     }
 
     // Check if email is already in use
-    const emailInUse = await this.userRepository.findOne({ 
-      where: { email: data.email } 
+    const emailInUse = await this.userRepository.findOne({
+      where: { email: data.email },
     });
 
     if (emailInUse) {
@@ -54,12 +54,27 @@ export class UsersService {
       throw new AppError(409, 'El correo electrónico ya está en uso');
     }
 
+    // Fetch user from Clerk to get the imageUrl
+    let avatarUrl: string | undefined = data.avatarUrl;
+    if (data.clerkId) {
+      try {
+        const { clerkClient } = await import('../config/clerk');
+        const clerkUser = await clerkClient.users.getUser(String(data.clerkId));
+        if (clerkUser.imageUrl) {
+          avatarUrl = clerkUser.imageUrl;
+          logger.debug({ message: 'Fetched avatar URL from Clerk', avatarUrl });
+        }
+      } catch (clerkError) {
+        logger.warn({ err: clerkError }, 'Failed to fetch avatar from Clerk, using provided avatarUrl');
+      }
+    }
+
     const user = this.userRepository.create({
-      clerkId: data.clerkId,
+      clerkId: String(data.clerkId),
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
-      avatarUrl: data.avatarUrl,
+      avatarUrl,
     });
 
     const savedUser = await this.userRepository.save(user);
@@ -72,25 +87,32 @@ export class UsersService {
    * Update user profile - returns user and hasPartner flag
    * Also updates Clerk profile if firstName, lastName, or profileImage are provided
    */
-  async updateUser(userId: string, data: UpdateUserInput): Promise<{ user: User; hasPartner: boolean }> {
+  async updateUser(
+    userId: string,
+    data: UpdateUserInput
+  ): Promise<{ user: User; hasPartner: boolean }> {
     logger.debug({ message: 'Updating user', userId });
 
     const user = await this.getUserById(userId);
 
     // Update Clerk profile if needed
-    if (data.firstName !== undefined || data.lastName !== undefined || data.profileImage !== undefined) {
+    if (
+      data.firstName !== undefined ||
+      data.lastName !== undefined ||
+      data.profileImage !== undefined
+    ) {
       try {
         const { clerkClient } = await import('../config/clerk');
-        
+
         // Update profile image in Clerk if provided
         if (data.profileImage) {
           logger.debug({ message: 'Updating profile image in Clerk', userId });
-          
+
           // Convert base64 to Blob for Clerk API
           const base64Data = data.profileImage.replace(/^data:image\/\w+;base64,/, '');
           const buffer = Buffer.from(base64Data, 'base64');
           const blob = new Blob([buffer], { type: 'image/jpeg' });
-          
+
           await clerkClient.users.updateUserProfileImage(user.clerkId, {
             file: blob as File,
           });
@@ -106,10 +128,23 @@ export class UsersService {
         }
 
         logger.info({ message: 'Clerk profile updated successfully', userId });
+
+        // Fetch updated user from Clerk to get the new imageUrl
+        const clerkUser = await clerkClient.users.getUser(user.clerkId);
+        if (clerkUser.imageUrl) {
+          user.avatarUrl = clerkUser.imageUrl;
+          logger.debug({
+            message: 'Synced avatar URL from Clerk',
+            avatarUrl: clerkUser.imageUrl,
+          });
+        }
       } catch (clerkError) {
         logger.error({ err: clerkError, userId }, 'Failed to update Clerk profile');
-        const errorMessage = clerkError instanceof Error ? clerkError.message : 'Unknown error';
-        throw new Error(`Failed to update profile in Clerk: ${errorMessage}`, { cause: clerkError });
+        const errorMessage =
+          clerkError instanceof Error ? clerkError.message : 'Unknown error';
+        throw new Error(`Failed to update profile in Clerk: ${errorMessage}`, {
+          cause: clerkError,
+        });
       }
     }
 
