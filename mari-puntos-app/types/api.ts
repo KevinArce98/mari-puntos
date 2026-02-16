@@ -128,6 +128,7 @@ export interface UpdateProfileRequest {
   firstName?: string;
   lastName?: string;
   pushToken?: string;
+  profileImage?: string; // base64 encoded image
 }
 
 export interface CreateUserRequest {

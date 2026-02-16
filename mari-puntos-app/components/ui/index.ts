@@ -9,6 +9,7 @@ export { CodeInput } from './CodeInput';
 export { ControlledCodeInput } from './ControlledCodeInput';
 export { ControlledInput } from './ControlledInput';
 export { CreateActionModal } from './CreateActionModal';
+export { EditProfileModal } from './EditProfileModal';
 export { IconSelector } from './IconSelector';
 export { Input } from './Input';
 export type { InputProps } from './Input';

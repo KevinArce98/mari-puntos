@@ -101,14 +101,6 @@ export default function HomeScreen() {
               <Text style={styles.subtitle}>Vamos a ganar algunos puntos hoy!</Text>
             </View>
           </View>
-          {/* TODO: enable notifications */}
-          {/* <TouchableOpacity style={styles.notificationButton}>
-            <Ionicons
-              name="notifications-outline"
-              size={24}
-              color={colors.text.primary}
-            />
-          </TouchableOpacity> */}
         </View>
 
         {/* Points Card */}

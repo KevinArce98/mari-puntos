@@ -58,6 +58,12 @@
         }
       ],
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Se requiere acceso a las fotos para permitir que el usuario pueda seleccionar una foto de perfil."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",

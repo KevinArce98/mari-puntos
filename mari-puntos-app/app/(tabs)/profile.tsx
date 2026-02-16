@@ -1,4 +1,4 @@
-import { Avatar, Button, Card, ListItem } from '@/components/ui';
+import { Avatar, Button, Card, EditProfileModal, ListItem } from '@/components/ui';
 import { usePoints, useUser } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import { useAuth } from '@clerk/clerk-expo';
@@ -22,9 +22,11 @@ export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signOut } = useAuth();
-  const { user, partnerInfo, hasPartner, unlinkPartner } = useUser();
+  const { user, partnerInfo, hasPartner, unlinkPartner, updateProfile, refetch } =
+    useUser();
   const { myPoints } = usePoints();
   const [loading, setLoading] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const handleUnlinkPartner = () => {
     Alert.alert(
@@ -57,6 +59,33 @@ export default function ProfileScreen() {
         },
       ]
     );
+  };
+
+  const handleEditProfile = async (data: {
+    firstName?: string;
+    lastName?: string;
+    profileImage?: string;
+  }) => {
+    setLoading(true);
+    try {
+      await updateProfile(data);
+
+      await refetch();
+
+      Toast.show({
+        type: 'success',
+        text1: 'Perfil actualizado',
+        text2: 'Tu perfil se ha actualizado correctamente',
+      });
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'No se pudo actualizar el perfil',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSignOut = () => {
@@ -104,10 +133,12 @@ export default function ProfileScreen() {
               </Text>
               <Text style={styles.profileEmail}>{user?.email}</Text>
             </View>
-            {/* TODO: Edit Profile functionality */}
-            {/* <TouchableOpacity style={styles.editButton}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => setShowEditModal(true)}
+            >
               <Ionicons name="pencil" size={16} color={colors.primary} />
-            </TouchableOpacity> */}
+            </TouchableOpacity>
           </View>
 
           {/* Stats Row */}
@@ -228,6 +259,15 @@ export default function ProfileScreen() {
           MariPuntos v{Constants.expoConfig?.version || '1.0.0'}
         </Text>
       </ScrollView>
+
+      <EditProfileModal
+        visible={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSubmit={handleEditProfile}
+        currentFirstName={user?.firstName}
+        currentLastName={user?.lastName}
+        currentAvatarUrl={user?.avatarUrl}
+      />
     </View>
   );
 }
