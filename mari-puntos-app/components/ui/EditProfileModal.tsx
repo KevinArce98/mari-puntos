@@ -19,7 +19,8 @@ import {
   requestMediaLibraryPermissionsAsync,
 } from 'expo-image-picker';
 import { colors, spacing, typography, borderRadius } from '@/theme';
-import { Button, ControlledInput } from '@/components/ui';
+import { Button } from './Button';
+import { ControlledInput } from './ControlledInput';
 import {
   updateProfileSchema,
   type UpdateProfileFormData,

@@ -14,7 +14,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ActionCategory } from '@/types';
 import { colors, spacing, typography, borderRadius } from '@/theme';
-import { Button, ControlledInput } from '@/components/ui';
+import { Button } from './Button';
+import { ControlledInput } from './ControlledInput';
 import {
   createActionSchema,
   type CreateActionFormData,
