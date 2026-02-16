@@ -70,12 +70,50 @@ export class UsersService {
 
   /**
    * Update user profile - returns user and hasPartner flag
+   * Also updates Clerk profile if firstName, lastName, or profileImage are provided
    */
   async updateUser(userId: string, data: UpdateUserInput): Promise<{ user: User; hasPartner: boolean }> {
     logger.debug({ message: 'Updating user', userId });
 
     const user = await this.getUserById(userId);
 
+    // Update Clerk profile if needed
+    if (data.firstName !== undefined || data.lastName !== undefined || data.profileImage !== undefined) {
+      try {
+        const { clerkClient } = await import('../config/clerk');
+        
+        // Update profile image in Clerk if provided
+        if (data.profileImage) {
+          logger.debug({ message: 'Updating profile image in Clerk', userId });
+          
+          // Convert base64 to Blob for Clerk API
+          const base64Data = data.profileImage.replace(/^data:image\/\w+;base64,/, '');
+          const buffer = Buffer.from(base64Data, 'base64');
+          const blob = new Blob([buffer], { type: 'image/jpeg' });
+          
+          await clerkClient.users.updateUserProfileImage(user.clerkId, {
+            file: blob as File,
+          });
+        }
+
+        // Update firstName/lastName in Clerk if provided
+        if (data.firstName !== undefined || data.lastName !== undefined) {
+          logger.debug({ message: 'Updating user name in Clerk', userId });
+          await clerkClient.users.updateUser(user.clerkId, {
+            firstName: data.firstName,
+            lastName: data.lastName,
+          });
+        }
+
+        logger.info({ message: 'Clerk profile updated successfully', userId });
+      } catch (clerkError) {
+        logger.error({ err: clerkError, userId }, 'Failed to update Clerk profile');
+        const errorMessage = clerkError instanceof Error ? clerkError.message : 'Unknown error';
+        throw new Error(`Failed to update profile in Clerk: ${errorMessage}`, { cause: clerkError });
+      }
+    }
+
+    // Update local database
     if (data.firstName !== undefined) user.firstName = data.firstName;
     if (data.lastName !== undefined) user.lastName = data.lastName;
     if (data.pushToken !== undefined) user.pushToken = data.pushToken;
