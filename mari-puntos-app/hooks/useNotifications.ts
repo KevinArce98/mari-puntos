@@ -37,8 +37,6 @@ export function useNotifications() {
   const notificationListener = useRef<Notifications.EventSubscription | null>(null);
   const responseListener = useRef<Notifications.EventSubscription | null>(null);
   const tokenSentRef = useRef(false);
-  const initialNotificationHandled = useRef(false);
-  // Use user state instead of Clerk to avoid auth conflicts
   const user = useUserStore((state) => state.user);
   const router = useRouter();
   const rootNavigationState = useRootNavigationState();
@@ -96,32 +94,6 @@ export function useNotifications() {
       .catch((error) => {
         logger.error('Error registering for push notifications:', error as Error);
       });
-  }, []);
-
-  // Manejar notificación inicial cuando la app se abre desde una notificación estando cerrada
-  useEffect(() => {
-    const handleInitialNotification = async () => {
-      if (initialNotificationHandled.current) return;
-
-      try {
-        const response = await Notifications.getLastNotificationResponseAsync();
-
-        if (response) {
-          initialNotificationHandled.current = true;
-          const data = response.notification.request.content
-            .data as unknown as NotificationData;
-
-          if (data && data.type) {
-            logger.info('Initial notification detected:', data.type);
-            setPendingNotificationData(data);
-          }
-        }
-      } catch (error) {
-        logger.error('Error handling initial notification:', error as Error);
-      }
-    };
-
-    handleInitialNotification();
   }, []);
 
   useEffect(() => {
