@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { Platform } from 'react-native';
 import 'react-native-reanimated';
-import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
+import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthGuard } from '@/components';
 // import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -68,6 +68,13 @@ function RootLayoutNav() {
             }}
           />
           <Stack.Screen
+            name="permissions/edit/[id]"
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
             name="actions/review"
             options={{
               headerShown: false,
@@ -101,13 +108,7 @@ function RootLayoutNav() {
           />
         </Stack>
         <StatusBar style="dark" />
-        <Toast
-          topOffset={Platform.OS === 'ios' ? insets.top + 10 : insets.top}
-          config={{
-            success: (props) => <BaseToast {...props} style={{ zIndex: 99999 }} />,
-            error: (props) => <ErrorToast {...props} style={{ zIndex: 99999 }} />,
-          }}
-        />
+        <Toast topOffset={Platform.OS === 'ios' ? insets.top + 10 : insets.top} />
       </AuthGuard>
     </ThemeProvider>
   );
