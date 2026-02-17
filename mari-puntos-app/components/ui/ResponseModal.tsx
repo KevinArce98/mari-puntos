@@ -11,10 +11,11 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { colors, spacing, typography, borderRadius } from '@/theme';
 import { Button } from './Button';
+import { Input } from './Input';
 import {
   responseMessageSchema,
   type ResponseMessageFormData,
@@ -42,6 +43,7 @@ export function ResponseModal({
     resolver: zodResolver(responseMessageSchema),
     defaultValues: {
       message: '',
+      pointsCost: 0,
     },
   });
 
@@ -86,6 +88,32 @@ export function ResponseModal({
               <View style={styles.permissionInfo}>
                 <Text style={styles.permissionLabel}>Solicitud:</Text>
                 <Text style={styles.permissionTitle}>{permissionTitle}</Text>
+              </View>
+
+              {/* Points Cost Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Costo en Puntos *</Text>
+                <Controller
+                  control={control}
+                  name="pointsCost"
+                  render={({
+                    field: { onChange, onBlur, value },
+                    fieldState: { error },
+                  }) => (
+                    <Input
+                      placeholder="Ejemplo: 50"
+                      keyboardType="numeric"
+                      value={value?.toString() || ''}
+                      onChangeText={(text) => {
+                        const numValue = parseInt(text) || '';
+                        onChange(numValue);
+                      }}
+                      onBlur={onBlur}
+                      error={error?.message}
+                      editable={!loading}
+                    />
+                  )}
+                />
               </View>
 
               {/* Message Input */}

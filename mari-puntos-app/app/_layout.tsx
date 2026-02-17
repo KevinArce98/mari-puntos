@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { Platform } from 'react-native';
 import 'react-native-reanimated';
-import Toast from 'react-native-toast-message';
+import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthGuard } from '@/components';
 // import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -68,15 +68,10 @@ function RootLayoutNav() {
             }}
           />
           <Stack.Screen
-            name="actions/index"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
             name="actions/review"
             options={{
               headerShown: false,
+              headerBackVisible: true,
             }}
           />
 
@@ -106,7 +101,13 @@ function RootLayoutNav() {
           />
         </Stack>
         <StatusBar style="dark" />
-        <Toast topOffset={Platform.OS === 'ios' ? insets.top + 10 : insets.top} />
+        <Toast
+          topOffset={Platform.OS === 'ios' ? insets.top + 10 : insets.top}
+          config={{
+            success: (props) => <BaseToast {...props} style={{ zIndex: 99999 }} />,
+            error: (props) => <ErrorToast {...props} style={{ zIndex: 99999 }} />,
+          }}
+        />
       </AuthGuard>
     </ThemeProvider>
   );

@@ -25,7 +25,8 @@ interface PermissionsState {
   respondToPermission: (
     permissionId: string,
     approved: boolean,
-    responseMessage?: string
+    responseMessage?: string,
+    pointsCost?: number
   ) => Promise<void>;
   cancelPermission: (permissionId: string) => Promise<void>;
   clearPermissions: () => void;
@@ -42,7 +43,10 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
     try {
       const response = await permissionsService.getMyPermissions(params);
       set({ myPermissions: response.data, isLoading: false });
-      logger.debug('My permissions fetched successfully', { count: response.data.length, params });
+      logger.debug('My permissions fetched successfully', {
+        count: response.data.length,
+        params,
+      });
     } catch (error: any) {
       logger.error('Failed to fetch my permissions', error, { params });
       set({ error: error.error || 'Failed to fetch permissions', isLoading: false });
@@ -55,7 +59,10 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
     try {
       const response = await permissionsService.getPartnerPermissions(params);
       set({ partnerPermissions: response.data, isLoading: false });
-      logger.debug('Partner permissions fetched successfully', { count: response.data.length, params });
+      logger.debug('Partner permissions fetched successfully', {
+        count: response.data.length,
+        params,
+      });
     } catch (error: any) {
       logger.error('Failed to fetch partner permissions', error, { params });
       set({
@@ -70,7 +77,10 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       await permissionsService.createPermission(data);
-      logger.info('Permission created successfully', { templateId: data.templateId, pointsCost: data.pointsCost });
+      logger.info('Permission created successfully', {
+        templateId: data.templateId,
+        pointsCost: 0,
+      });
       // Refetch my permissions
       await get().fetchMyPermissions({ status: PermissionStatus.PENDING });
       set({ isLoading: false });
@@ -96,15 +106,19 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
     }
   },
 
-  respondToPermission: async (permissionId, approved, responseMessage) => {
+  respondToPermission: async (permissionId, approved, responseMessage, pointsCost) => {
     set({ isLoading: true, error: null });
     try {
       await permissionsService.respondToPermission(permissionId, {
         approved,
         responseMessage,
+        pointsCost,
       });
       // Refetch partner permissions
       await get().fetchPartnerPermissions({ status: PermissionStatus.PENDING });
+      // Update partner info to refresh points
+      const { useUserStore } = await import('./userStore');
+      await useUserStore.getState().fetchPartnerInfo();
       set({ isLoading: false });
     } catch (error: any) {
       set({ error: error.error || 'Failed to respond to permission', isLoading: false });

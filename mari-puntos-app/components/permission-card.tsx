@@ -31,7 +31,11 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
   };
 
   const requesterPoints = permission.requester?.totalPoints ?? 0;
-  const hasInsufficientPoints = requesterPoints < permission.pointsCost;
+  const displayPointsCost = permission.pointsCost ?? 0;
+  const hasInsufficientPoints =
+    permission.status === 'pending' &&
+    displayPointsCost > 0 &&
+    requesterPoints < displayPointsCost;
 
   return (
     <>
@@ -40,7 +44,9 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
           <Text style={styles.permissionName}>
             {permission.template?.title || 'Solicitud sin título'}
           </Text>
-          <Text style={styles.permissionPoints}>{permission.pointsCost} pts</Text>
+          {displayPointsCost > 0 && (
+            <Text style={styles.permissionPoints}>{displayPointsCost} pts</Text>
+          )}
         </View>
         <Text style={styles.permissionDate}>
           Fecha solicitada: {formatDateWithTime(permission.requestedDate)}
@@ -58,23 +64,12 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
         {/* Show requester's available points */}
         {permission.status === 'pending' && permission.requester && (
           <View style={styles.pointsInfo}>
-            <Text style={styles.pointsInfoLabel}>Puntos disponibles:</Text>
-            <Text
-              style={[
-                styles.pointsInfoValue,
-                hasInsufficientPoints && styles.pointsInsufficient,
-              ]}
-            >
-              {requesterPoints} pts
-            </Text>
-          </View>
-        )}
-
-        {hasInsufficientPoints && permission.status === 'pending' && (
-          <View style={styles.warningContainer}>
-            <Text style={styles.warningText}>
-              ⚠️ Tu pareja no tiene suficientes puntos para esta solicitud
-            </Text>
+            <Text style={styles.pointsInfoValue}>{requesterPoints} pts</Text>
+            {hasInsufficientPoints && (
+              <Text style={styles.warningText}>
+                ⚠️ Tu pareja no tiene suficientes puntos para esta solicitud
+              </Text>
+            )}
           </View>
         )}
 

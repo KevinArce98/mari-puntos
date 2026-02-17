@@ -38,30 +38,11 @@ export default function RequestPermissionScreen() {
   const [duration, setDuration] = useState(2); // hours
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
-  const [customCost, setCustomCost] = useState<number | null>(null);
-  const [isEditingCost, setIsEditingCost] = useState(false);
 
   // Date & Time pickers state
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showPicker, setShowPicker] = useState<'date' | 'time' | null>(null);
-
-  const estimatedCost = selectedTemplate
-    ? selectedTemplate.suggestedPointsCost != null &&
-      selectedTemplate.suggestedDurationHours != null &&
-      selectedTemplate.suggestedDurationHours > 0 &&
-      typeof duration === 'number' &&
-      !isNaN(duration) &&
-      duration > 0
-      ? Math.round(
-          (selectedTemplate.suggestedPointsCost /
-            selectedTemplate.suggestedDurationHours) *
-            duration
-        )
-      : 0
-    : 0;
-
-  const finalCost = customCost !== null ? customCost : estimatedCost;
 
   // Load permission templates
   useEffect(() => {
@@ -113,8 +94,6 @@ export default function RequestPermissionScreen() {
         ? suggestedDuration
         : 2
     );
-    setCustomCost(null);
-    setIsEditingCost(false);
   };
 
   const handleRequest = async () => {
@@ -135,7 +114,6 @@ export default function RequestPermissionScreen() {
         templateId: selectedTemplate.id,
         requestedDate: requestedDateTime.toISOString(),
         durationHours: duration,
-        pointsCost: Math.round(finalCost),
         metadata: note.trim() ? { note: note.trim() } : undefined,
       });
 
@@ -162,11 +140,6 @@ export default function RequestPermissionScreen() {
       typeof duration === 'number' && !isNaN(duration) ? duration : 2;
     const newDuration = Math.max(0.5, Math.min(8, currentDuration + change));
     setDuration(newDuration);
-    // Reset custom cost when duration changes
-    if (customCost !== null) {
-      setCustomCost(null);
-      setIsEditingCost(false);
-    }
   };
 
   const handleDateChange = (event: any, date?: Date) => {
@@ -465,72 +438,6 @@ export default function RequestPermissionScreen() {
                       <Ionicons name="add" size={24} color={colors.primary} />
                     </TouchableOpacity>
                   </View>
-
-                  {/* Estimated Cost */}
-                  <View style={styles.costCard}>
-                    <View style={styles.costHeader}>
-                      <Text style={styles.costLabel}>
-                        {customCost !== null ? 'Costo Personalizado' : 'Costo Estimado'}
-                      </Text>
-                      {!isEditingCost && (
-                        <TouchableOpacity onPress={() => setIsEditingCost(true)}>
-                          <Ionicons
-                            name="create-outline"
-                            size={20}
-                            color={colors.accent}
-                          />
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                    {isEditingCost ? (
-                      <View style={styles.costEditContainer}>
-                        <Input
-                          value={
-                            customCost !== null
-                              ? customCost.toString()
-                              : estimatedCost.toString()
-                          }
-                          onChangeText={(text) => {
-                            const value = parseInt(text);
-                            setCustomCost(isNaN(value) ? 0 : value);
-                          }}
-                          keyboardType="numeric"
-                          placeholder="Puntos"
-                          containerStyle={styles.costInput}
-                        />
-                        <View style={styles.costEditActions}>
-                          <Button
-                            title="Cancelar"
-                            onPress={() => {
-                              setCustomCost(null);
-                              setIsEditingCost(false);
-                            }}
-                            variant="outline"
-                            size="sm"
-                            style={{ flex: 1 }}
-                          />
-                          <Button
-                            title="Aplicar"
-                            onPress={() => setIsEditingCost(false)}
-                            size="sm"
-                            style={{ flex: 1 }}
-                          />
-                        </View>
-                      </View>
-                    ) : (
-                      <View style={styles.costValueContainer}>
-                        <Text style={styles.costValue}>
-                          {isNaN(finalCost) ? 0 : Math.round(finalCost)} MariPuntos
-                        </Text>
-                        {customCost === null &&
-                          selectedTemplate?.suggestedDurationHours && (
-                            <Text style={styles.costPerHour}>
-                              ({Math.round(estimatedCost / duration)} pts/hora)
-                            </Text>
-                          )}
-                      </View>
-                    )}
-                  </View>
                 </View>
 
                 {/* Optional Note */}
@@ -787,46 +694,6 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: colors.accent,
     borderRadius: borderRadius.full,
-  },
-  costCard: {
-    flexDirection: 'column',
-    backgroundColor: `${colors.accent}15`,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    marginTop: spacing.md,
-  },
-  costHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
-  },
-  costLabel: {
-    ...typography.styles.bodyMedium,
-    color: colors.text.secondary,
-  },
-  costValueContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: spacing.xs,
-  },
-  costValue: {
-    ...typography.styles.h4,
-    color: colors.accent,
-  },
-  costPerHour: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-  },
-  costEditContainer: {
-    gap: spacing.sm,
-  },
-  costInput: {
-    marginBottom: 0,
-  },
-  costEditActions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
   },
   noteInput: {
     marginBottom: 0,

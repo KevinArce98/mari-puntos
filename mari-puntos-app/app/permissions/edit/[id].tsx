@@ -33,8 +33,6 @@ export default function EditPermissionScreen() {
   const [permission, setPermission] = useState<Permission | null>(null);
   const [loadingPermission, setLoadingPermission] = useState(true);
   const [duration, setDuration] = useState(2);
-  const [customCost, setCustomCost] = useState<number | null>(null);
-  const [isEditingCost, setIsEditingCost] = useState(false);
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -61,7 +59,6 @@ export default function EditPermissionScreen() {
       setSelectedDate(requestedDate);
       setSelectedTime(requestedDate);
       setDuration(data.durationHours);
-      setCustomCost(data.pointsCost);
       setNote(data.metadata?.note || '');
     } catch (error) {
       logger.error('Failed to load permission for editing', error as Error, {
@@ -78,20 +75,6 @@ export default function EditPermissionScreen() {
     }
   };
 
-  const estimatedCost = permission?.template
-    ? permission.template.suggestedPointsCost != null &&
-      permission.template.suggestedDurationHours != null &&
-      permission.template.suggestedDurationHours > 0
-      ? Math.round(
-          (permission.template.suggestedPointsCost /
-            permission.template.suggestedDurationHours) *
-            duration
-        )
-      : 0
-    : 0;
-
-  const finalCost = customCost !== null ? customCost : estimatedCost;
-
   const handleUpdate = async () => {
     if (!id || !permission) return;
 
@@ -102,7 +85,6 @@ export default function EditPermissionScreen() {
       await updatePermission(id, {
         requestedDate: requestedDateTime.toISOString(),
         durationHours: duration,
-        pointsCost: Math.round(finalCost),
         metadata: note.trim() ? { note: note.trim() } : undefined,
       });
 
@@ -130,10 +112,6 @@ export default function EditPermissionScreen() {
     const currentDuration = isNaN(duration) ? 2 : duration;
     const newDuration = Math.max(0.5, Math.min(8, currentDuration + change));
     setDuration(newDuration);
-    // Recalculate cost if not custom
-    if (customCost === null) {
-      // Cost will auto-update via estimatedCost
-    }
   };
 
   const handleDateChange = (event: any, date?: Date) => {
@@ -319,68 +297,6 @@ export default function EditPermissionScreen() {
                   <Ionicons name="add" size={24} color={colors.primary} />
                 </TouchableOpacity>
               </View>
-
-              {/* Cost */}
-              <View style={styles.costCard}>
-                <View style={styles.costHeader}>
-                  <Text style={styles.costLabel}>
-                    {customCost !== null ? 'Costo Personalizado' : 'Costo Estimado'}
-                  </Text>
-                  {!isEditingCost && (
-                    <TouchableOpacity onPress={() => setIsEditingCost(true)}>
-                      <Ionicons name="create-outline" size={20} color={colors.accent} />
-                    </TouchableOpacity>
-                  )}
-                </View>
-                {isEditingCost ? (
-                  <View style={styles.costEditContainer}>
-                    <Input
-                      value={
-                        customCost !== null
-                          ? customCost.toString()
-                          : estimatedCost.toString()
-                      }
-                      onChangeText={(text) => {
-                        const value = parseInt(text);
-                        setCustomCost(isNaN(value) ? 0 : value);
-                      }}
-                      keyboardType="numeric"
-                      placeholder="Puntos"
-                      containerStyle={styles.costInput}
-                    />
-                    <View style={styles.costEditActions}>
-                      <Button
-                        title="Cancelar"
-                        onPress={() => {
-                          setCustomCost(null);
-                          setIsEditingCost(false);
-                        }}
-                        variant="outline"
-                        size="sm"
-                        style={{ flex: 1 }}
-                      />
-                      <Button
-                        title="Aplicar"
-                        onPress={() => setIsEditingCost(false)}
-                        size="sm"
-                        style={{ flex: 1 }}
-                      />
-                    </View>
-                  </View>
-                ) : (
-                  <View style={styles.costValueContainer}>
-                    <Text style={styles.costValue}>
-                      {isNaN(finalCost) ? 0 : Math.round(finalCost)} MariPuntos
-                    </Text>
-                    {customCost === null &&
-                      permission.template?.suggestedDurationHours && (
-                        <Text style={styles.costPerHour}>
-                          ({Math.round(estimatedCost / duration)} pts/hora)
-                        </Text>
-                      )}
-                  </View>
-                )}
-              </View>
             </View>
 
             {/* Optional Note */}
@@ -539,46 +455,6 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: colors.accent,
     borderRadius: borderRadius.full,
-  },
-  costCard: {
-    flexDirection: 'column',
-    backgroundColor: `${colors.accent}15`,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    marginTop: spacing.md,
-  },
-  costHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
-  },
-  costLabel: {
-    ...typography.styles.bodyMedium,
-    color: colors.text.secondary,
-  },
-  costValueContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: spacing.xs,
-  },
-  costValue: {
-    ...typography.styles.h4,
-    color: colors.accent,
-  },
-  costPerHour: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-  },
-  costEditContainer: {
-    gap: spacing.sm,
-  },
-  costInput: {
-    marginBottom: 0,
-  },
-  costEditActions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
   },
   noteInput: {
     marginBottom: 0,

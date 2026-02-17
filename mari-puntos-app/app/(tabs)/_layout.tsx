@@ -44,6 +44,34 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="actions"
+        options={{
+          href: hasPartner ? '/actions' : null,
+          title: 'Acciones',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'checkmark-done-circle' : 'checkmark-done-circle-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="permissions"
+        options={{
+          href: hasPartner ? '/permissions' : null,
+          title: 'Permisos',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'hand-right' : 'hand-right-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           href: null, // TODO: Add functionality later, this option hides the tab
@@ -54,18 +82,6 @@ export default function TabLayout() {
               size={24}
               color={color}
             />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="permissions"
-        options={{
-          href: hasPartner ? undefined : null,
-          title: '',
-          tabBarIcon: ({ focused }) => (
-            <View style={styles.centerButton}>
-              <Ionicons name="add" size={28} color={colors.white} />
-            </View>
           ),
         }}
       />
@@ -96,15 +112,4 @@ export default function TabLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  centerButton: {
-    width: 56,
-    height: 56,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: -20,
-    ...shadows.lg,
-  },
-});
+const styles = StyleSheet.create({});

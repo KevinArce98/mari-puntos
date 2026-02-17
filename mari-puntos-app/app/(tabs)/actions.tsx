@@ -73,9 +73,6 @@ export default function ActionsScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>Mis Acciones</Text>
         <TouchableOpacity
           onPress={() => router.push('/actions/review')}
@@ -194,22 +191,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: -spacing.sm,
-  },
   headerTitle: {
-    ...typography.styles.h3,
+    ...typography.styles.h2,
     color: colors.text.primary,
   },
   reviewButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: spacing.sm,
     position: 'relative',
   },
   badge: {
@@ -218,11 +205,10 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: colors.error,
     borderRadius: borderRadius.full,
-    minWidth: 18,
-    height: 18,
+    width: 20,
+    height: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4,
   },
   badgeText: {
     ...typography.styles.caption,
@@ -235,8 +221,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
-    padding: spacing.md,
-    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
     ...shadows.sm,
   },
   statItem: {
@@ -263,45 +249,44 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing.lg,
-    paddingTop: 0,
-    paddingBottom: spacing['3xl'],
+    paddingBottom: spacing['4xl'],
   },
   filtersContainer: {
-    marginBottom: spacing.md,
-    marginHorizontal: -spacing.lg,
+    marginBottom: spacing.lg,
   },
   filtersContent: {
-    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
   },
   section: {
-    marginBottom: spacing.lg,
+    gap: spacing.md,
   },
   emptyState: {
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: spacing['3xl'],
   },
   emptyText: {
-    ...typography.styles.body,
-    color: colors.text.secondary,
-    marginTop: spacing.md,
+    ...typography.styles.bodyLarge,
+    color: colors.text.primary,
+    marginTop: spacing.lg,
     textAlign: 'center',
   },
   emptySubtext: {
-    ...typography.styles.caption,
-    color: colors.gray[400],
-    marginTop: spacing.xs,
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    marginTop: spacing.sm,
     textAlign: 'center',
   },
   fab: {
     position: 'absolute',
     right: spacing.lg,
-    bottom: spacing.lg,
+    bottom: spacing.lg + 60,
     width: 56,
     height: 56,
     borderRadius: borderRadius.full,
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    ...shadows.md,
+    ...shadows.lg,
   },
 });

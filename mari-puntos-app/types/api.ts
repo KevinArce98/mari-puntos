@@ -249,7 +249,7 @@ export interface Permission {
   status: PermissionStatus;
   requestedDate: string;
   durationHours: number;
-  pointsCost: number;
+  pointsCost?: number;
   responseMessage?: string;
   respondedAt?: string;
   metadata?: Record<string, any>;
@@ -277,7 +277,6 @@ export interface CreatePermissionRequest {
   templateId: string;
   requestedDate: string;
   durationHours: number;
-  pointsCost: number;
   metadata?: Record<string, any>;
 }
 
@@ -298,6 +297,7 @@ export interface GetPermissionTemplatesParams extends PaginationParams {
 export interface RespondPermissionRequest {
   approved: boolean;
   responseMessage?: string;
+  pointsCost?: number; // Required when approving
 }
 
 export interface GetPermissionsParams extends PaginationParams {

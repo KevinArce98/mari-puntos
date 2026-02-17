@@ -1,4 +1,4 @@
-import { ActionCard, Avatar, Card, PointsCard } from '@/components/ui';
+import { ActionCard, Avatar, Card, PointsCard, CreateActionModal } from '@/components/ui';
 import { HistoryItem } from '@/components';
 import { usePoints, useUser } from '@/hooks';
 import { borderRadius, colors, spacing, typography } from '@/theme';
@@ -15,13 +15,18 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import logger from '@/utils/logger';
+import Toast from 'react-native-toast-message';
+import { useActions } from '@/hooks/useActions';
+import { CreateActionFormData } from '@/validators/action.schema';
 
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user, hasPartner, refetch: refetchUser } = useUser();
   const { myPoints, pointsHistory, fetchHistory } = usePoints();
+  const { createAction } = useActions();
   const [refreshing, setRefreshing] = React.useState(false);
+  const [showCreateActionModal, setShowCreateActionModal] = React.useState(false);
 
   // Load history on mount
   React.useEffect(() => {
@@ -44,6 +49,26 @@ export default function HomeScreen() {
       logger.error('Error refreshing home screen data', error as Error);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const handleCreateAction = async (data: CreateActionFormData) => {
+    try {
+      await createAction(data);
+      setShowCreateActionModal(false);
+      Toast.show({
+        type: 'success',
+        text1: 'Acción Creada',
+        text2: 'Tu acción ha sido enviada para revisión',
+      });
+      // Refresh history to show the new action
+      await fetchHistory({ limit: 3 });
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'No se pudo crear la acción',
+      });
     }
   };
 
@@ -123,7 +148,7 @@ export default function HomeScreen() {
               subtitle="Registrar una actividad para ganar puntos"
               icon="add-circle-outline"
               iconBackgroundColor={colors.primary}
-              onPress={() => router.push('/actions')}
+              onPress={() => setShowCreateActionModal(true)}
               style={styles.actionCard}
             />
           </View>
@@ -159,6 +184,13 @@ export default function HomeScreen() {
           </Card>
         </View>
       </ScrollView>
+
+      {/* Create Action Modal */}
+      <CreateActionModal
+        visible={showCreateActionModal}
+        onClose={() => setShowCreateActionModal(false)}
+        onSubmit={handleCreateAction}
+      />
     </View>
   );
 }

@@ -48,6 +48,7 @@ export default function PermissionsScreen() {
       await respondToPermission(permissionId, {
         approved,
         responseMessage: data.message || '',
+        pointsCost: data.pointsCost,
       });
       Toast.show({
         type: 'success',
