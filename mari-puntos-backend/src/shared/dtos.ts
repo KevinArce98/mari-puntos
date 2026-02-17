@@ -254,7 +254,7 @@ export interface PermissionDTO {
   status: PermissionStatus;
   requestedDate: string;
   durationHours: number;
-  pointsCost: number;
+  pointsCost?: number;
   responseMessage?: string;
   respondedAt?: string;
   metadata?: Record<string, any>;
@@ -285,7 +285,6 @@ export interface CreatePermissionDTO {
   templateId: string;
   requestedDate: string;
   durationHours: number;
-  pointsCost: number;
   metadata?: Record<string, any>;
 }
 
@@ -295,6 +294,7 @@ export interface CreatePermissionDTO {
 export interface RespondPermissionDTO {
   approved: boolean;
   responseMessage?: string;
+  pointsCost?: number; // Set by approver when approving
 }
 
 /**

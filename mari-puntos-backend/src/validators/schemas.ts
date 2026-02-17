@@ -99,19 +99,18 @@ export const createPermissionSchema = z.object({
   templateId: z.uuid('Invalid template ID'),
   requestedDate: z.iso.datetime({ message: 'Invalid date format' }),
   durationHours: z.number().min(0.5).max(168), // Min 0.5 hours, Max 1 week
-  pointsCost: z.number().int().min(0),
   metadata: z.record(z.any(), z.unknown()).optional(),
 });
 
 export const respondPermissionSchema = z.object({
   approved: z.boolean(),
   responseMessage: z.string().max(500).optional(),
+  pointsCost: z.number().int().min(0).optional(), // Set by approver when approving
 });
 
 export const updatePermissionSchema = z.object({
   requestedDate: z.iso.datetime({ message: 'Invalid date format' }).optional(),
   durationHours: z.number().min(0.5).max(168).optional(),
-  pointsCost: z.number().int().min(0).optional(),
   metadata: z.record(z.any(), z.unknown()).optional(),
 });
 

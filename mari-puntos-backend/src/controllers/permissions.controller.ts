@@ -138,15 +138,16 @@ export class PermissionsController {
     try {
       const userId = req.userId!;
       const { id } = req.params;
-      const { approved, responseMessage } = respondPermissionSchema.parse(req.body);
+      const { approved, responseMessage, pointsCost } = respondPermissionSchema.parse(req.body);
 
-      logger.info({ message: 'Responding to permission', userId, permissionId: id, approved });
+      logger.info({ message: 'Responding to permission', userId, permissionId: id, approved, pointsCost });
 
       const permission = await this.permissionsService.respondToPermission(
         id,
         userId,
         approved,
-        responseMessage
+        responseMessage,
+        pointsCost
       );
 
       logger.info({ message: 'Permission response submitted successfully', userId, permissionId: id, approved });

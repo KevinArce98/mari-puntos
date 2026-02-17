@@ -14,8 +14,7 @@ interface CreatePermissionData {
   templateId: string;
   requestedDate: Date;
   durationHours: number;
-  pointsCost: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class PermissionsService {
@@ -72,7 +71,7 @@ export class PermissionsService {
       requesterId: userId,
       requestedDate: data.requestedDate,
       durationHours: data.durationHours,
-      pointsCost: data.pointsCost,
+      pointsCost: 0, // Set by approver
       metadata: data.metadata,
       status: PermissionStatus.PENDING,
     });
@@ -169,7 +168,8 @@ export class PermissionsService {
     permissionId: string,
     approverId: string,
     approved: boolean,
-    responseMessage?: string
+    responseMessage?: string,
+    pointsCost?: number
   ): Promise<Permission> {
     const permission = await this.getPermissionById(permissionId);
     const approver = await this.userRepository.findOne({ where: { id: approverId } });
@@ -188,8 +188,12 @@ export class PermissionsService {
       throw new AppError(400, 'El permiso no está pendiente');
     }
 
-    // If approving, validate requester has enough points
-    if (approved && permission.pointsCost > 0) {
+    // If approving, set and validate pointsCost
+    if (approved) {
+      if (!pointsCost || pointsCost < 0) {
+        throw new AppError(400, 'El costo en puntos es requerido al aprobar');
+      }
+
       const requester = await this.userRepository.findOne({
         where: { id: permission.requesterId },
       });
@@ -198,9 +202,11 @@ export class PermissionsService {
         throw new AppError(404, 'Solicitante no encontrado');
       }
 
-      if (requester.totalPoints < permission.pointsCost) {
-        throw new AppError(400, `El solicitante no tiene suficientes puntos.`);
+      if (requester.totalPoints < pointsCost) {
+        throw new AppError(400, `El solicitante no tiene suficientes puntos (tiene ${requester.totalPoints}, necesita ${pointsCost}).`);
       }
+
+      permission.pointsCost = pointsCost;
     }
 
     permission.status = approved ? PermissionStatus.APPROVED : PermissionStatus.REJECTED;
@@ -210,7 +216,7 @@ export class PermissionsService {
 
     await this.permissionRepository.save(permission);
 
-    // Deduct points if approved and pointsCost is set
+    // Deduct points if approved
     if (approved && permission.pointsCost > 0) {
       await this.pointsService.deductPoints(
         permission.requesterId,
