@@ -200,4 +200,17 @@ export class PushNotificationService {
       },
     });
   }
+
+  /**
+   * Send notification for partner unlinked
+   */
+  async sendPartnerUnlinkedNotification(partnerPushToken: string): Promise<void> {
+    await this.sendNotification(partnerPushToken, {
+      title: '💔 Pareja desvinculada',
+      body: 'Tu pareja ha desvinculado la cuenta. Puedes volverte a vincular con otro código.',
+      data: {
+        type: 'partner_unlinked',
+      },
+    });
+  }
 }

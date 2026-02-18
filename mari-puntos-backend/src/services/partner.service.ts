@@ -23,12 +23,12 @@ export class PartnerService {
       throw new AppError(404, 'Usuario no encontrado');
     }
 
-    // Check if user already has a partner link
+    // Check if user already has an active or pending partner link
     const existingLink = await this.partnerLinkRepository.findOne({
       where: [{ user1Id: userId }, { user2Id: userId }],
     });
 
-    if (existingLink && existingLink.status !== PartnerLinkStatus.INACTIVE) {
+    if (existingLink) {
       logger.warn({ message: 'User already has an active or pending partner link', userId });
       throw new AppError(400, 'El usuario ya tiene un enlace de pareja');
     }
@@ -71,7 +71,7 @@ export class PartnerService {
       where: [{ user1Id: userId }, { user2Id: userId }],
     });
 
-    if (existingLink && existingLink.status !== PartnerLinkStatus.INACTIVE) {
+    if (existingLink) {
       logger.warn({ message: 'User already has an active or pending partner link', userId });
       throw new AppError(400, 'El usuario ya tiene un enlace de pareja');
     }
@@ -251,9 +251,49 @@ export class PartnerService {
       throw new AppError(404, 'Enlace de pareja no encontrado');
     }
 
-    partnerLink.status = PartnerLinkStatus.INACTIVE;
-    await this.partnerLinkRepository.save(partnerLink);
-    logger.info({ message: 'Partner unlinked successfully', userId, partnerLinkId: partnerLink.id });
+    if (partnerLink.status !== PartnerLinkStatus.ACTIVE) {
+      logger.warn({ message: 'Partner link is not active, cannot unlink', userId, status: partnerLink.status });
+      throw new AppError(400, 'No tienes una pareja vinculada activa');
+    }
+
+    const partnerId =
+      partnerLink.user1Id === userId ? partnerLink.user2Id : partnerLink.user1Id;
+    const partnerLinkId = partnerLink.id;
+
+    // Get the partner's push token for notification
+    const partner = await this.userRepository.findOne({ where: { id: partnerId } });
+
+    // Delete the partner link — both users remain with their partnerCode intact
+    await this.partnerLinkRepository.remove(partnerLink);
+    logger.info({ message: 'Partner link deleted successfully', userId, partnerLinkId });
+
+    // Create unlink logs for both users
+    await this.logRepository.save([
+      this.logRepository.create({
+        userId,
+        type: LogType.PARTNER_UNLINKED,
+        message: 'Desvinculado de pareja',
+        relatedEntityId: partnerLinkId,
+        relatedEntityType: 'PartnerLink',
+      }),
+      this.logRepository.create({
+        userId: partnerId,
+        type: LogType.PARTNER_UNLINKED,
+        message: 'Desvinculado de pareja',
+        relatedEntityId: partnerLinkId,
+        relatedEntityType: 'PartnerLink',
+      }),
+    ]);
+
+    // Notify the other partner
+    if (partner?.pushToken) {
+      try {
+        await this.pushNotificationService.sendPartnerUnlinkedNotification(partner.pushToken);
+      } catch (error) {
+        logger.error({ message: 'Error sending partner unlinked notification', error, partnerId });
+        // Don't fail the unlink process if notification fails
+      }
+    }
   }
 
   private async generateUniqueLinkCode(): Promise<string> {

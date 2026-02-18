@@ -98,6 +98,7 @@ export const LogType = {
   ACTION_REJECTED: 'action_rejected',
   REWARD_REDEEMED: 'reward_redeemed',
   PARTNER_LINKED: 'partner_linked',
+  PARTNER_UNLINKED: 'partner_unlinked',
   OTHER: 'other',
 } as const;
 
