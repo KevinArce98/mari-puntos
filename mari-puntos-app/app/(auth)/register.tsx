@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, ControlledInput } from '@/components/ui';
 import { handleClerkErrors } from '@/types/clerk-localization';
 import { borderRadius, colors, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import Toast from 'react-native-toast-message';
 import { registerSchema, type RegisterFormData } from '@/validators/auth.schema';
 import logger from '@/utils/logger';
@@ -25,6 +26,7 @@ import logger from '@/utils/logger';
 export default function RegisterScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const themeColors = useThemedColors();
   const { signUp, isLoaded } = useSignUp();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -104,7 +106,7 @@ export default function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="height">
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: themeColors.background }]} behavior="height">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
           contentContainerStyle={[
@@ -119,13 +121,13 @@ export default function RegisterScreen() {
         >
           {/* Back Button */}
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
+            <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
           </TouchableOpacity>
 
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Crear cuenta</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: themeColors.text.primary }]}>Crear cuenta</Text>
+            <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
               Únete a MariPuntos y comienza a ganar puntos con tu pareja
             </Text>
           </View>
@@ -188,7 +190,7 @@ export default function RegisterScreen() {
                 <Ionicons
                   name={hasMinLength ? 'checkmark-circle' : 'ellipse-outline'}
                   size={16}
-                  color={hasMinLength ? colors.success : colors.gray[400]}
+                  color={hasMinLength ? themeColors.success : themeColors.gray[400]}
                 />
                 <Text
                   style={[styles.requirementText, hasMinLength && styles.requirementMet]}
@@ -200,7 +202,7 @@ export default function RegisterScreen() {
                 <Ionicons
                   name={hasLowercase ? 'checkmark-circle' : 'ellipse-outline'}
                   size={16}
-                  color={hasLowercase ? colors.success : colors.gray[400]}
+                  color={hasLowercase ? themeColors.success : themeColors.gray[400]}
                 />
                 <Text
                   style={[styles.requirementText, hasLowercase && styles.requirementMet]}
@@ -212,7 +214,7 @@ export default function RegisterScreen() {
                 <Ionicons
                   name={hasUppercase ? 'checkmark-circle' : 'ellipse-outline'}
                   size={16}
-                  color={hasUppercase ? colors.success : colors.gray[400]}
+                  color={hasUppercase ? themeColors.success : themeColors.gray[400]}
                 />
                 <Text
                   style={[styles.requirementText, hasUppercase && styles.requirementMet]}
@@ -224,7 +226,7 @@ export default function RegisterScreen() {
                 <Ionicons
                   name={hasNumber ? 'checkmark-circle' : 'ellipse-outline'}
                   size={16}
-                  color={hasNumber ? colors.success : colors.gray[400]}
+                  color={hasNumber ? themeColors.success : themeColors.gray[400]}
                 />
                 <Text
                   style={[styles.requirementText, hasNumber && styles.requirementMet]}
@@ -236,7 +238,7 @@ export default function RegisterScreen() {
                 <Ionicons
                   name={passwordsMatch ? 'checkmark-circle' : 'ellipse-outline'}
                   size={16}
-                  color={passwordsMatch ? colors.success : colors.gray[400]}
+                  color={passwordsMatch ? themeColors.success : themeColors.gray[400]}
                 />
                 <Text
                   style={[
@@ -269,18 +271,18 @@ export default function RegisterScreen() {
           {/* Social Buttons */}
           {/* <View style={styles.socialButtons}>
           <TouchableOpacity style={styles.socialButton}>
-            <Ionicons name="logo-google" size={24} color={colors.text.primary} />
+            <Ionicons name="logo-google" size={24} color={themeColors.text.primary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialButton}>
-            <Ionicons name="logo-apple" size={24} color={colors.text.primary} />
+            <Ionicons name="logo-apple" size={24} color={themeColors.text.primary} />
           </TouchableOpacity>
         </View> */}
 
           {/* Login Link */}
           <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>¿Ya tienes una cuenta? </Text>
+            <Text style={[styles.loginText, { color: themeColors.text.secondary }]}>¿Ya tienes una cuenta? </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-              <Text style={styles.loginLink}>Inicia sesión</Text>
+              <Text style={[styles.loginLink, { color: themeColors.primary }]}>Inicia sesión</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -292,7 +294,6 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -311,12 +312,10 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.h1,
-    color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   subtitle: {
     ...typography.styles.body,
-    color: colors.text.secondary,
   },
   form: {
     marginBottom: spacing.lg,
@@ -339,10 +338,10 @@ const styles = StyleSheet.create({
   },
   requirementText: {
     ...typography.styles.caption,
-    color: colors.gray[400],
+    color: colors.light.gray[400],
   },
   requirementMet: {
-    color: colors.success,
+    color: colors.light.success,
   },
   divider: {
     flexDirection: 'row',
@@ -352,11 +351,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.gray[300],
+    backgroundColor: colors.light.gray[300],
   },
   dividerText: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginHorizontal: spacing.md,
   },
   socialButtons: {
@@ -369,11 +367,11 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: borderRadius.xl,
-    backgroundColor: colors.white,
+    backgroundColor: colors.light.white,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.gray[200],
+    borderColor: colors.light.gray[200],
   },
   loginContainer: {
     flexDirection: 'row',
@@ -382,10 +380,8 @@ const styles = StyleSheet.create({
   },
   loginText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
   },
   loginLink: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
 });

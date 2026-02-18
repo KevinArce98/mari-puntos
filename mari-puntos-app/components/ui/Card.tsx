@@ -1,4 +1,5 @@
-import { borderRadius, colors, shadows, spacing } from '@/theme';
+import { borderRadius, shadows, spacing } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 
@@ -15,11 +16,21 @@ export const Card: React.FC<CardProps> = ({
   variant = 'default',
   padding = 'md',
 }) => {
+  const colors = useThemedColors();
+
+  const variantStyles = {
+    default: { ...shadows.sm },
+    elevated: { ...shadows.md },
+    outlined: { borderWidth: 1, borderColor: colors.gray[200], ...shadows.none },
+    filled: { backgroundColor: colors.gray[50], ...shadows.none },
+  };
+
   return (
     <View
       style={[
         styles.card,
-        styles[variant],
+        { backgroundColor: colors.gray[100] },
+        variantStyles[variant],
         padding !== 'none' && { padding: spacing[padding] },
         style,
       ]}
@@ -31,22 +42,6 @@ export const Card: React.FC<CardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
     borderRadius: borderRadius.xl,
-  },
-  default: {
-    ...shadows.sm,
-  },
-  elevated: {
-    ...shadows.md,
-  },
-  outlined: {
-    borderWidth: 1,
-    borderColor: colors.gray[200],
-    ...shadows.none,
-  },
-  filled: {
-    backgroundColor: colors.gray[50],
-    ...shadows.none,
   },
 });

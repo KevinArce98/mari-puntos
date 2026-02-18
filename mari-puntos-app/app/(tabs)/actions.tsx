@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActionItemCard, CreateActionModal, Chip } from '@/components/ui';
-import { useActions, usePoints } from '@/hooks';
-import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { useActions, usePoints, useThemedColors } from '@/hooks';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
 import { ActionStatus } from '@/types';
 import { CreateActionFormData } from '@/validators/action.schema';
@@ -25,6 +25,7 @@ const STATUS_FILTERS = [
 ];
 
 export default function ActionsScreen() {
+  const colors = useThemedColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { myPoints } = usePoints();
@@ -70,40 +71,55 @@ export default function ActionsScreen() {
   ).length;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: colors.background },
+      ]}
+    >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Mis Acciones</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
+          Mis Acciones
+        </Text>
         <TouchableOpacity
           onPress={() => router.push('/actions/review')}
           style={styles.reviewButton}
         >
           <Ionicons name="checkmark-circle-outline" size={24} color={colors.primary} />
           {pendingPartnerCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{pendingPartnerCount}</Text>
+            <View style={[styles.badge, { backgroundColor: colors.error }]}>
+              <Text style={[styles.badgeText, { color: colors.white }]}>
+                {pendingPartnerCount}
+              </Text>
             </View>
           )}
         </TouchableOpacity>
       </View>
 
       {/* Stats Card */}
-      <View style={styles.statsCard}>
+      <View style={[styles.statsCard, { backgroundColor: colors.gray[100] }]}>
         <View style={styles.statItem}>
           <Ionicons name="trophy" size={24} color={colors.accent} />
           <View style={styles.statContent}>
-            <Text style={styles.statValue}>{myPoints.toLocaleString()}</Text>
-            <Text style={styles.statLabel}>Puntos Totales</Text>
+            <Text style={[styles.statValue, { color: colors.text.primary }]}>
+              {myPoints.toLocaleString()}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
+              Puntos Totales
+            </Text>
           </View>
         </View>
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.gray[200] }]} />
         <View style={styles.statItem}>
           <Ionicons name="time-outline" size={24} color={colors.warning} />
           <View style={styles.statContent}>
-            <Text style={styles.statValue}>
+            <Text style={[styles.statValue, { color: colors.text.primary }]}>
               {myActions.filter((a) => a.status === ActionStatus.PENDING).length}
             </Text>
-            <Text style={styles.statLabel}>Pendientes</Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
+              Pendientes
+            </Text>
           </View>
         </View>
       </View>
@@ -145,13 +161,13 @@ export default function ActionsScreen() {
                 size={48}
                 color={colors.gray[300]}
               />
-              <Text style={styles.emptyText}>
+              <Text style={[styles.emptyText, { color: colors.text.primary }]}>
                 {selectedStatus
                   ? 'No hay acciones con este estado'
                   : 'No has creado acciones aún'}
               </Text>
               {!selectedStatus && (
-                <Text style={styles.emptySubtext}>
+                <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>
                   Crea tu primera acción para empezar a ganar puntos
                 </Text>
               )}
@@ -162,11 +178,11 @@ export default function ActionsScreen() {
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: colors.primary }]}
         onPress={() => setShowCreateModal(true)}
         activeOpacity={0.8}
       >
-        <Ionicons name="add" size={28} color={colors.white} />
+        <Ionicons name="add" size={28} color={colors.text.white} />
       </TouchableOpacity>
 
       {/* Create Action Modal */}
@@ -182,7 +198,6 @@ export default function ActionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -193,7 +208,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.styles.h2,
-    color: colors.text.primary,
   },
   reviewButton: {
     padding: spacing.sm,
@@ -203,7 +217,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: colors.error,
     borderRadius: borderRadius.full,
     width: 20,
     height: 20,
@@ -212,13 +225,11 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     ...typography.styles.caption,
-    color: colors.white,
     fontSize: 10,
     fontWeight: 'bold',
   },
   statsCard: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
     padding: spacing.lg,
@@ -236,15 +247,12 @@ const styles = StyleSheet.create({
   },
   statValue: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   statLabel: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
   },
   divider: {
     width: 1,
-    backgroundColor: colors.gray[200],
     marginHorizontal: spacing.md,
   },
   scrollContent: {
@@ -267,24 +275,21 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...typography.styles.bodyLarge,
-    color: colors.text.primary,
     marginTop: spacing.lg,
     textAlign: 'center',
   },
   emptySubtext: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     marginTop: spacing.sm,
     textAlign: 'center',
   },
   fab: {
     position: 'absolute',
     right: spacing.lg,
-    bottom: spacing.lg + 60,
+    bottom: spacing.sm,
     width: 56,
     height: 56,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     ...shadows.lg,

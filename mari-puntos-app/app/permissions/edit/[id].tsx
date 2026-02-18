@@ -16,7 +16,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Button, Card, Input } from '@/components/ui';
-import { usePermissions } from '@/hooks';
+import { usePermissions, useThemedColors } from '@/hooks';
+import { useColorScheme } from 'react-native';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import { createUTC6DateTime } from '@/utils/dateUtils';
 import Toast from 'react-native-toast-message';
@@ -25,6 +26,8 @@ import { Permission } from '@/types';
 import logger from '@/utils/logger';
 
 export default function EditPermissionScreen() {
+  const themeColors = useThemedColors();
+  const colorScheme = useColorScheme() ?? 'light';
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
@@ -165,10 +168,10 @@ export default function EditPermissionScreen() {
   if (loadingPermission) {
     return (
       <View
-        style={[styles.container, { paddingTop: insets.top }, styles.loadingContainer]}
+        style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }, styles.loadingContainer]}
       >
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Cargando solicitud...</Text>
+        <ActivityIndicator size="large" color={themeColors.primary} />
+        <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>Cargando solicitud...</Text>
       </View>
     );
   }
@@ -178,13 +181,13 @@ export default function EditPermissionScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
+          <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Editar Solicitud</Text>
+        <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>Editar Solicitud</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -205,12 +208,12 @@ export default function EditPermissionScreen() {
                 <Ionicons
                   name={permission.template?.metadata?.icon || 'help-circle'}
                   size={32}
-                  color={colors.primary}
+                  color={themeColors.primary}
                 />
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoTitle}>{permission.template?.title}</Text>
+                  <Text style={[styles.infoTitle, { color: themeColors.text.primary }]}>{permission.template?.title}</Text>
                   {permission.template?.description && (
-                    <Text style={styles.infoDescription}>
+                    <Text style={[styles.infoDescription, { color: themeColors.text.secondary }]}>
                       {permission.template.description}
                     </Text>
                   )}
@@ -220,25 +223,25 @@ export default function EditPermissionScreen() {
 
             {/* Date & Time */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Cuándo</Text>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>Cuándo</Text>
               <View style={styles.dateTimeRow}>
                 <TouchableOpacity
-                  style={styles.dateTimeButton}
+                  style={[styles.dateTimeButton, { backgroundColor: themeColors.gray[100] }]}
                   onPress={() =>
                     setShowPicker((show) => (show === 'date' ? null : 'date'))
                   }
                 >
-                  <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-                  <Text style={styles.dateTimeText}>{formatDate(selectedDate)}</Text>
+                  <Ionicons name="calendar-outline" size={20} color={themeColors.primary} />
+                  <Text style={[styles.dateTimeText, { color: themeColors.text.primary }]}>{formatDate(selectedDate)}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.dateTimeButton}
+                  style={[styles.dateTimeButton, { backgroundColor: themeColors.gray[100] }]}
                   onPress={() =>
                     setShowPicker((show) => (show === 'time' ? null : 'time'))
                   }
                 >
-                  <Ionicons name="time-outline" size={20} color={colors.primary} />
-                  <Text style={styles.dateTimeText}>{formatTime(selectedTime)}</Text>
+                  <Ionicons name="time-outline" size={20} color={themeColors.primary} />
+                  <Text style={[styles.dateTimeText, { color: themeColors.text.primary }]}>{formatTime(selectedTime)}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -251,8 +254,8 @@ export default function EditPermissionScreen() {
                     onChange={showPicker === 'time' ? handleTimeChange : handleDateChange}
                     minimumDate={showPicker === 'date' ? new Date() : undefined}
                     locale="es-CR"
-                    textColor={colors.text.primary}
-                    themeVariant="light"
+                    textColor={themeColors.text.primary}
+                    themeVariant={colorScheme}
                   />
                 </View>
               )}
@@ -270,38 +273,38 @@ export default function EditPermissionScreen() {
             {/* Duration Control */}
             <View style={styles.section}>
               <View style={styles.durationHeader}>
-                <Text style={styles.sectionTitle}>Duración</Text>
-                <Text style={styles.durationValue}>
+                <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>Duración</Text>
+                <Text style={[styles.durationValue, { color: themeColors.primary }]}>
                   {isNaN(duration) ? 0 : duration} horas
                 </Text>
               </View>
 
               <View style={styles.durationControl}>
                 <TouchableOpacity
-                  style={styles.durationButton}
+                  style={[styles.durationButton, { backgroundColor: themeColors.gray[100] }]}
                   onPress={() => handleDurationChange(-0.5)}
                 >
-                  <Ionicons name="remove" size={24} color={colors.primary} />
+                  <Ionicons name="remove" size={24} color={themeColors.primary} />
                 </TouchableOpacity>
 
-                <View style={styles.durationTrack}>
+                <View style={[styles.durationTrack, { backgroundColor: themeColors.gray[200] }]}>
                   <View
-                    style={[styles.durationFill, { width: `${(duration / 8) * 100}%` }]}
+                    style={[styles.durationFill, { backgroundColor: themeColors.accent, width: `${(duration / 8) * 100}%` }]}
                   />
                 </View>
 
                 <TouchableOpacity
-                  style={styles.durationButton}
+                  style={[styles.durationButton, { backgroundColor: themeColors.gray[100] }]}
                   onPress={() => handleDurationChange(0.5)}
                 >
-                  <Ionicons name="add" size={24} color={colors.primary} />
+                  <Ionicons name="add" size={24} color={themeColors.primary} />
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* Optional Note */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Nota (Opcional)</Text>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>Nota (Opcional)</Text>
               <Input
                 placeholder="Agrega un mensaje para tu pareja..."
                 value={note}
@@ -317,7 +320,7 @@ export default function EditPermissionScreen() {
 
       {/* Bottom Button */}
       <View
-        style={[styles.bottomContainer, { paddingBottom: insets.bottom + spacing.md }]}
+        style={[styles.bottomContainer, { backgroundColor: themeColors.background, paddingBottom: insets.bottom + spacing.md }]}
       >
         <Button
           title="Guardar Cambios"
@@ -334,7 +337,6 @@ export default function EditPermissionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -342,7 +344,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     marginTop: spacing.md,
   },
   keyboardView: {
@@ -364,7 +365,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   scrollContent: {
     padding: spacing.lg,
@@ -383,19 +383,16 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   infoDescription: {
     ...typography.styles.body,
-    color: colors.text.secondary,
   },
   section: {
     marginBottom: spacing.xl,
   },
   sectionTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.md,
   },
   calendarContainer: {
@@ -410,7 +407,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.white,
     borderRadius: borderRadius.xl,
     padding: spacing.md,
     gap: spacing.sm,
@@ -418,7 +414,6 @@ const styles = StyleSheet.create({
   },
   dateTimeText: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
   },
   durationHeader: {
     flexDirection: 'row',
@@ -428,7 +423,6 @@ const styles = StyleSheet.create({
   },
   durationValue: {
     ...typography.styles.h4,
-    color: colors.primary,
   },
   durationControl: {
     flexDirection: 'row',
@@ -439,7 +433,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     ...shadows.sm,
@@ -447,13 +440,11 @@ const styles = StyleSheet.create({
   durationTrack: {
     flex: 1,
     height: 8,
-    backgroundColor: colors.gray[200],
     borderRadius: borderRadius.full,
     overflow: 'hidden',
   },
   durationFill: {
     height: '100%',
-    backgroundColor: colors.accent,
     borderRadius: borderRadius.full,
   },
   noteInput: {
@@ -464,7 +455,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.white,
     padding: spacing.lg,
     ...shadows.lg,
   },

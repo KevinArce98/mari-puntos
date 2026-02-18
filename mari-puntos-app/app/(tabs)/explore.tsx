@@ -5,13 +5,14 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar, Card, Chip, ProgressBar } from '@/components/ui';
-import { usePoints, useUser } from '@/hooks';
+import { usePoints, useThemedColors, useUser } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 
 const TIME_PERIODS = ['This Week', 'This Month', 'All Time'];
 
 export default function RankingScreen() {
   const insets = useSafeAreaInsets();
+  const themeColors = useThemedColors();
   const { user, partnerInfo } = useUser();
   const { myPoints, partnerPoints } = usePoints();
   const [selectedPeriod, setSelectedPeriod] = useState('This Week');
@@ -29,12 +30,12 @@ export default function RankingScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Ranking</Text>
-        <TouchableOpacity style={styles.historyButton}>
-          <Ionicons name="time-outline" size={24} color={colors.text.primary} />
+        <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>Ranking</Text>
+        <TouchableOpacity style={[styles.historyButton, { backgroundColor: themeColors.gray[100] }]}>
+          <Ionicons name="time-outline" size={24} color={themeColors.text.primary} />
         </TouchableOpacity>
       </View>
 
@@ -62,7 +63,7 @@ export default function RankingScreen() {
         {/* Competition Card */}
         <Card style={styles.competitionCard} padding="none">
           <LinearGradient
-            colors={[colors.primary, colors.primaryDark]}
+            colors={[themeColors.primary, themeColors.primaryDark]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.competitionGradient}
@@ -115,30 +116,36 @@ export default function RankingScreen() {
 
         {/* Weekly Stats */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Stats</Text>
+          <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>Your Stats</Text>
           <View style={styles.statsGrid}>
             <Card style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: `${colors.primary}15` }]}>
-                <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+              <View
+                style={[styles.statIcon, { backgroundColor: `${themeColors.primary}15` }]}
+              >
+                <Ionicons name="checkmark-circle" size={24} color={themeColors.primary} />
               </View>
-              <Text style={styles.statValue}>{weeklyStats.actionsCompleted}</Text>
-              <Text style={styles.statLabel}>Actions</Text>
+              <Text style={[styles.statValue, { color: themeColors.text.primary }]}>{weeklyStats.actionsCompleted}</Text>
+              <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>Actions</Text>
             </Card>
 
             <Card style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: `${colors.accent}15` }]}>
-                <Ionicons name="trophy" size={24} color={colors.accent} />
+              <View
+                style={[styles.statIcon, { backgroundColor: `${themeColors.accent}15` }]}
+              >
+                <Ionicons name="trophy" size={24} color={themeColors.accent} />
               </View>
-              <Text style={styles.statValue}>{weeklyStats.pointsEarned}</Text>
-              <Text style={styles.statLabel}>Points</Text>
+              <Text style={[styles.statValue, { color: themeColors.text.primary }]}>{weeklyStats.pointsEarned}</Text>
+              <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>Points</Text>
             </Card>
 
             <Card style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: `${colors.error}15` }]}>
-                <Ionicons name="flame" size={24} color={colors.error} />
+              <View
+                style={[styles.statIcon, { backgroundColor: `${themeColors.error}15` }]}
+              >
+                <Ionicons name="flame" size={24} color={themeColors.error} />
               </View>
-              <Text style={styles.statValue}>{weeklyStats.streak}</Text>
-              <Text style={styles.statLabel}>Day Streak</Text>
+              <Text style={[styles.statValue, { color: themeColors.text.primary }]}>{weeklyStats.streak}</Text>
+              <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>Day Streak</Text>
             </Card>
           </View>
         </View>
@@ -146,12 +153,12 @@ export default function RankingScreen() {
         {/* Weekly Goal */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Weekly Goal</Text>
-            <Text style={styles.goalProgress}>245 / 500 pts</Text>
+            <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>Weekly Goal</Text>
+            <Text style={[styles.goalProgress, { color: themeColors.accent }]}>245 / 500 pts</Text>
           </View>
           <Card style={styles.goalCard}>
-            <ProgressBar progress={49} color={colors.accent} height={12} />
-            <Text style={styles.goalText}>
+            <ProgressBar progress={49} color={themeColors.accent} height={12} />
+            <Text style={[styles.goalText, { color: themeColors.text.secondary }]}>
               Earn 255 more points to reach your weekly goal!
             </Text>
           </Card>
@@ -159,7 +166,7 @@ export default function RankingScreen() {
 
         {/* Recent Activity */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
+          <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>Recent Activity</Text>
           <Card padding="none" style={styles.activityCard}>
             {[
               {
@@ -183,21 +190,25 @@ export default function RankingScreen() {
             ].map((item, index) => (
               <View
                 key={index}
-                style={[styles.activityItem, index < 2 && styles.activityItemBorder]}
+                style={[styles.activityItem, index < 2 && { borderBottomWidth: 1, borderBottomColor: themeColors.gray[100] }]}
               >
                 <View
                   style={[
                     styles.activityIcon,
-                    { backgroundColor: `${colors.primary}15` },
+                    { backgroundColor: `${themeColors.primary}15` },
                   ]}
                 >
-                  <Ionicons name={item.icon as any} size={20} color={colors.primary} />
+                  <Ionicons
+                    name={item.icon as any}
+                    size={20}
+                    color={themeColors.primary}
+                  />
                 </View>
                 <View style={styles.activityContent}>
-                  <Text style={styles.activityAction}>{item.action}</Text>
-                  <Text style={styles.activityTime}>{item.time}</Text>
+                  <Text style={[styles.activityAction, { color: themeColors.text.primary }]}>{item.action}</Text>
+                  <Text style={[styles.activityTime, { color: themeColors.text.secondary }]}>{item.time}</Text>
                 </View>
-                <Text style={styles.activityPoints}>+{item.points}</Text>
+                <Text style={[styles.activityPoints, { color: themeColors.primary }]}>+{item.points}</Text>
               </View>
             ))}
           </Card>
@@ -210,7 +221,6 @@ export default function RankingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -221,13 +231,11 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.styles.h2,
-    color: colors.text.primary,
   },
   historyButton: {
     width: 44,
     height: 44,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     ...shadows.sm,
@@ -253,7 +261,7 @@ const styles = StyleSheet.create({
   },
   competitionTitle: {
     ...typography.styles.h3,
-    color: colors.white,
+    color: colors.light.white,
     textAlign: 'center',
     marginBottom: spacing.lg,
   },
@@ -269,12 +277,12 @@ const styles = StyleSheet.create({
   },
   playerName: {
     ...typography.styles.bodyMedium,
-    color: colors.white,
+    color: colors.light.white,
     marginTop: spacing.sm,
   },
   playerPoints: {
     ...typography.styles.h3,
-    color: colors.accent,
+    color: colors.light.accent,
     marginTop: spacing.xs,
   },
   vsCenter: {
@@ -290,7 +298,7 @@ const styles = StyleSheet.create({
   },
   vsText: {
     ...typography.styles.bodyMedium,
-    color: colors.white,
+    color: colors.light.white,
     fontFamily: typography.fontFamily.bold,
   },
   progressContainer: {
@@ -304,7 +312,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.accent,
+    backgroundColor: colors.light.accent,
     borderRadius: borderRadius.full,
   },
   progressLabels: {
@@ -327,12 +335,10 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.md,
   },
   goalProgress: {
     ...typography.styles.bodyMedium,
-    color: colors.accent,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -353,11 +359,9 @@ const styles = StyleSheet.create({
   },
   statValue: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   statLabel: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: 2,
   },
   goalCard: {
@@ -365,7 +369,6 @@ const styles = StyleSheet.create({
   },
   goalText: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     textAlign: 'center',
     marginTop: spacing.md,
   },
@@ -377,10 +380,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
-  },
-  activityItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[100],
   },
   activityIcon: {
     width: 40,
@@ -395,15 +394,12 @@ const styles = StyleSheet.create({
   },
   activityAction: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
   },
   activityTime: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: 2,
   },
   activityPoints: {
     ...typography.styles.h4,
-    color: colors.primary,
   },
 });

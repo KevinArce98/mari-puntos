@@ -19,6 +19,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, ControlledInput } from '@/components/ui';
 import { borderRadius, colors, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import Toast from 'react-native-toast-message';
 import { loginSchema, type LoginFormData } from '@/validators/auth.schema';
 import logger from '@/utils/logger';
@@ -26,6 +27,7 @@ import logger from '@/utils/logger';
 export default function LoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const themeColors = useThemedColors();
   const { signIn, setActive, isLoaded } = useSignIn();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -90,7 +92,7 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -116,8 +118,8 @@ export default function LoginScreen() {
 
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>¡Bienvenido de nuevo!</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: themeColors.text.primary }]}>¡Bienvenido de nuevo!</Text>
+            <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
               Inicia sesión para continuar ganando puntos con tu pareja
             </Text>
           </View>
@@ -149,7 +151,7 @@ export default function LoginScreen() {
               style={styles.forgotPassword}
               onPress={() => router.push('/(auth)/forgot-password')}
             >
-              <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+              <Text style={[styles.forgotPasswordText, { color: themeColors.primary }]}>¿Olvidaste tu contraseña?</Text>
             </TouchableOpacity>
 
             <Button
@@ -171,18 +173,18 @@ export default function LoginScreen() {
           {/* Social Login */}
           {/* <View style={styles.socialButtons}>
           <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin}>
-            <Ionicons name="logo-google" size={24} color={colors.text.primary} />
+            <Ionicons name="logo-google" size={24} color={themeColors.text.primary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialButton}>
-            <Ionicons name="logo-apple" size={24} color={colors.text.primary} />
+            <Ionicons name="logo-apple" size={24} color={themeColors.text.primary} />
           </TouchableOpacity>
         </View> */}
 
           {/* Register Link */}
           <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>{'¿No tienes una cuenta? '}</Text>
+            <Text style={[styles.registerText, { color: themeColors.text.secondary }]}>{'¿No tienes una cuenta? '}</Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-              <Text style={styles.registerLink}>Regístrate</Text>
+              <Text style={[styles.registerLink, { color: themeColors.primary }]}>Regístrate</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -194,7 +196,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -221,12 +222,10 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.h1,
-    color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   subtitle: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     textAlign: 'center',
   },
   form: {
@@ -239,7 +238,6 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
   divider: {
     flexDirection: 'row',
@@ -249,11 +247,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.gray[300],
+    backgroundColor: colors.light.gray[300],
   },
   dividerText: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginHorizontal: spacing.md,
   },
   socialButtons: {
@@ -266,11 +263,11 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: borderRadius.xl,
-    backgroundColor: colors.white,
+    backgroundColor: colors.light.white,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.gray[200],
+    borderColor: colors.light.gray[200],
   },
   registerContainer: {
     flexDirection: 'row',
@@ -279,10 +276,8 @@ const styles = StyleSheet.create({
   },
   registerText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
   },
   registerLink: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
 });

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActionItemCard, ReviewActionModal, Chip } from '@/components/ui';
-import { useActions } from '@/hooks';
+import { useActions, useThemedColors } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
 import { ActionStatus, Action } from '@/types';
@@ -27,6 +27,7 @@ const STATUS_FILTERS = [
 export default function ReviewActionsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const colors = useThemedColors();
   const { partnerActions, approveAction, rejectAction, refetchPartnerActions } =
     useActions();
 
@@ -111,30 +112,30 @@ export default function ReviewActionsScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Revisar Acciones</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Revisar Acciones</Text>
       </View>
 
       {/* Stats Card */}
-      <View style={styles.statsCard}>
+      <View style={[styles.statsCard, { backgroundColor: colors.gray[100] }]}>
         <View style={styles.statItem}>
           <Ionicons name="time-outline" size={24} color={colors.warning} />
           <View style={styles.statContent}>
-            <Text style={styles.statValue}>{pendingCount}</Text>
-            <Text style={styles.statLabel}>Pendientes</Text>
+            <Text style={[styles.statValue, { color: colors.text.primary }]}>{pendingCount}</Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Pendientes</Text>
           </View>
         </View>
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.gray[200] }]} />
         <View style={styles.statItem}>
           <Ionicons name="list-outline" size={24} color={colors.primary} />
           <View style={styles.statContent}>
-            <Text style={styles.statValue}>{partnerActions.length}</Text>
-            <Text style={styles.statLabel}>Total</Text>
+            <Text style={[styles.statValue, { color: colors.text.primary }]}>{partnerActions.length}</Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Total</Text>
           </View>
         </View>
       </View>
@@ -182,7 +183,7 @@ export default function ReviewActionsScreen() {
                 size={48}
                 color={colors.gray[300]}
               />
-              <Text style={styles.emptyText}>
+              <Text style={[styles.emptyText, { color: colors.text.primary }]}>
                 {selectedStatus === ActionStatus.PENDING
                   ? 'No hay acciones pendientes'
                   : selectedStatus
@@ -190,7 +191,7 @@ export default function ReviewActionsScreen() {
                     : 'No hay acciones para revisar'}
               </Text>
               {selectedStatus === ActionStatus.PENDING && (
-                <Text style={styles.emptySubtext}>
+                <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>
                   Las acciones de tu pareja aparecerán aquí
                 </Text>
               )}
@@ -217,7 +218,6 @@ export default function ReviewActionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -237,7 +237,6 @@ const styles = StyleSheet.create({
     ...typography.styles.h3,
     flex: 1,
     textAlign: 'center',
-    color: colors.text.primary,
   },
   badgeContainer: {
     width: 40,
@@ -246,7 +245,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerBadge: {
-    backgroundColor: colors.error,
     borderRadius: borderRadius.full,
     minWidth: 24,
     height: 24,
@@ -256,13 +254,11 @@ const styles = StyleSheet.create({
   },
   headerBadgeText: {
     ...typography.styles.caption,
-    color: colors.white,
     fontSize: 12,
     fontWeight: 'bold',
   },
   statsCard: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
     padding: spacing.md,
@@ -280,15 +276,12 @@ const styles = StyleSheet.create({
   },
   statValue: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   statLabel: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
   },
   divider: {
     width: 1,
-    backgroundColor: colors.gray[200],
     marginHorizontal: spacing.md,
   },
   scrollContent: {
@@ -312,13 +305,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     marginTop: spacing.md,
     textAlign: 'center',
   },
   emptySubtext: {
     ...typography.styles.caption,
-    color: colors.gray[400],
     marginTop: spacing.xs,
     textAlign: 'center',
   },

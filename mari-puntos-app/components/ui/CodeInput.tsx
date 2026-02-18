@@ -1,4 +1,5 @@
 import { borderRadius, colors, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import React, { useRef, useState } from 'react';
 import { StyleSheet, TextInput, View, ViewStyle } from 'react-native';
 
@@ -21,6 +22,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({
 }) => {
   const inputRef = useRef<TextInput>(null);
   const [focused, setFocused] = useState(false);
+  const themeColors = useThemedColors();
 
   const handlePress = () => {
     inputRef.current?.focus();
@@ -50,13 +52,14 @@ export const CodeInput: React.FC<CodeInputProps> = ({
             key={index}
             style={[
               styles.box,
-              focused && index === value.length && styles.boxFocused,
-              char && styles.boxFilled,
-              error && styles.boxError,
+              { borderColor: themeColors.gray[300], backgroundColor: themeColors.gray[100] },
+              focused && index === value.length && { borderColor: themeColors.primary, borderWidth: 2 },
+              char && { borderColor: themeColors.primary, backgroundColor: themeColors.gray[50] },
+              error && { borderColor: themeColors.error },
             ]}
             onTouchEnd={handlePress}
           >
-            <TextInput style={styles.boxText} value={char} editable={false} />
+            <TextInput style={[styles.boxText, { color: themeColors.text.primary }]} value={char} editable={false} />
           </View>
         ))}
       </View>
@@ -89,25 +92,11 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: borderRadius.lg,
     borderWidth: 1.5,
-    borderColor: colors.gray[300],
-    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  boxFocused: {
-    borderColor: colors.primary,
-    borderWidth: 2,
-  },
-  boxFilled: {
-    borderColor: colors.primary,
-    backgroundColor: colors.gray[50],
-  },
-  boxError: {
-    borderColor: colors.error,
-  },
   boxText: {
     ...typography.styles.h2,
-    color: colors.text.primary,
     textAlign: 'center',
   },
   hiddenInput: {

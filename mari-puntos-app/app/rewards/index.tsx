@@ -14,8 +14,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Card, Chip } from '@/components/ui';
-import { usePoints } from '@/hooks';
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { usePoints, useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - spacing.lg * 2 - spacing.md) / 2;
@@ -25,6 +25,7 @@ const CATEGORIES = ['All', 'Romantic', 'Activities', 'Naughty'];
 export default function RewardsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const colors = useThemedColors();
   const { myPoints } = usePoints();
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -74,15 +75,15 @@ export default function RewardsScreen() {
       : mockRewards.filter((r) => r.category === selectedCategory);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Rewards Catalog</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Rewards Catalog</Text>
         <TouchableOpacity>
-          <Text style={styles.historyLink}>History</Text>
+          <Text style={[styles.historyLink, { color: colors.primary }]}>History</Text>
         </TouchableOpacity>
       </View>
 
@@ -137,13 +138,17 @@ export default function RewardsScreen() {
                   <View style={styles.rewardImageContainer}>
                     <Image source={{ uri: reward.image }} style={styles.rewardImage} />
                     {/* Points Badge */}
-                    <View style={styles.pointsBadge}>
-                      <Text style={styles.pointsBadgeText}>{reward.pointsCost} pts</Text>
+                    <View style={[styles.pointsBadge, { backgroundColor: colors.primary }]}>
+                      <Text style={[styles.pointsBadgeText, { color: colors.white }]}>{reward.pointsCost} pts</Text>
                     </View>
                     {/* Lock Overlay */}
                     {isLocked && (
                       <View style={styles.lockOverlay}>
-                        <Ionicons name="lock-closed" size={24} color={colors.white} />
+                        <Ionicons
+                          name="lock-closed"
+                          size={24}
+                          color={colors.white}
+                        />
                       </View>
                     )}
                   </View>
@@ -174,7 +179,7 @@ export default function RewardsScreen() {
         {/* Suggest Custom Reward */}
         <TouchableOpacity style={styles.suggestLink}>
           <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-          <Text style={styles.suggestText}>Suggest a Custom Reward</Text>
+          <Text style={[styles.suggestText, { color: colors.primary }]}>Suggest a Custom Reward</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -184,7 +189,6 @@ export default function RewardsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -202,11 +206,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   historyLink: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
   scrollContent: {
     padding: spacing.lg,
@@ -238,7 +240,7 @@ const styles = StyleSheet.create({
   balancePoints: {
     fontSize: 36,
     fontFamily: typography.fontFamily.bold,
-    color: colors.white,
+    color: '#FFFFFF',
     lineHeight: 42,
   },
   balanceUnit: {
@@ -271,20 +273,17 @@ const styles = StyleSheet.create({
   rewardImage: {
     width: '100%',
     height: '100%',
-    backgroundColor: colors.gray[200],
   },
   pointsBadge: {
     position: 'absolute',
     top: spacing.sm,
     right: spacing.sm,
-    backgroundColor: colors.primary,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: borderRadius.full,
   },
   pointsBadgeText: {
     ...typography.styles.small,
-    color: colors.white,
     fontFamily: typography.fontFamily.bold,
   },
   lockOverlay: {
@@ -298,12 +297,10 @@ const styles = StyleSheet.create({
   },
   rewardName: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
     marginBottom: 2,
   },
   rewardDescription: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginBottom: spacing.sm,
     minHeight: 32,
   },
@@ -319,6 +316,5 @@ const styles = StyleSheet.create({
   },
   suggestText: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
 });

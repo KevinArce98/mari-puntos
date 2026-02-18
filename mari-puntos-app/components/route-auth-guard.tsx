@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui';
 import { colors, spacing } from '@/theme';
+import { useThemedColors } from '@/hooks';
 
 /**
  * Example of a route-specific auth guard component
@@ -12,16 +13,17 @@ import { colors, spacing } from '@/theme';
  */
 export function RouteAuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const themeColors = useThemedColors();
 
   const handleGoToLogin = () => {
     router.replace('/(auth)/login');
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <View style={styles.content}>
-        <Text style={styles.title}>Acceso Denegado</Text>
-        <Text style={styles.message}>
+        <Text style={[styles.title, { color: themeColors.text.primary }]}>Acceso Denegado</Text>
+        <Text style={[styles.message, { color: themeColors.text.secondary }]}>
           Necesitas iniciar sesión para acceder a esta página.
         </Text>
         <Button
@@ -38,7 +40,6 @@ export function RouteAuthGuard({ children }: { children: React.ReactNode }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -49,12 +50,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: colors.text.primary,
     marginBottom: spacing.md,
   },
   message: {
     fontSize: 16,
-    color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.xl,
   },

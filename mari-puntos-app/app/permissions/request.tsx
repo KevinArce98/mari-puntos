@@ -5,6 +5,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,8 +17,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Button, Card, Input } from '@/components/ui';
-import { usePermissions } from '@/hooks';
-import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { usePermissions, useThemedColors } from '@/hooks';
+import { useColorScheme } from 'react-native';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { createUTC6DateTime } from '@/utils/dateUtils';
 import Toast from 'react-native-toast-message';
 import { PermissionTemplate } from '@/types';
@@ -25,6 +27,8 @@ import { permissionsService } from '@/services';
 import logger from '@/utils/logger';
 
 export default function RequestPermissionScreen() {
+  const themeColors = useThemedColors();
+  const colorScheme = useColorScheme() ?? 'light';
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { requestPermission } = usePermissions();
@@ -88,6 +92,7 @@ export default function RequestPermissionScreen() {
 
   const handleTemplateSelect = (template: PermissionTemplate) => {
     setSelectedTemplate(template);
+    setShowTemplatePicker(false);
     const suggestedDuration = template.suggestedDurationHours;
     setDuration(
       typeof suggestedDuration === 'number' && suggestedDuration > 0
@@ -192,14 +197,22 @@ export default function RequestPermissionScreen() {
 
   return (
     <View
-      style={[styles.container, { paddingTop: Platform.OS !== 'ios' ? insets.top : 0 }]}
+      style={[
+        styles.container,
+        {
+          backgroundColor: themeColors.background,
+          paddingTop: Platform.OS !== 'ios' ? insets.top : 0,
+        },
+      ]}
     >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
+          <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nueva Solicitud</Text>
+        <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
+          Nueva Solicitud
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -216,8 +229,10 @@ export default function RequestPermissionScreen() {
           >
             {loadingTemplates ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={styles.loadingText}>Cargando plantillas...</Text>
+                <ActivityIndicator size="large" color={themeColors.primary} />
+                <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>
+                  Cargando plantillas...
+                </Text>
               </View>
             ) : (
               <>
@@ -231,34 +246,50 @@ export default function RequestPermissionScreen() {
                       <Ionicons
                         name="add-circle-outline"
                         size={20}
-                        color={colors.primary}
+                        color={themeColors.primary}
                       />
-                      <Text style={styles.addButtonText}>Nueva Actividad</Text>
+                      <Text
+                        style={[styles.addButtonText, { color: themeColors.primary }]}
+                      >
+                        Nueva Actividad
+                      </Text>
                     </TouchableOpacity>
                   </View>
 
                   {/* All Templates Dropdown */}
                   <View style={styles.allTemplatesSection}>
+                    {showTemplatePicker && (
+                      <Pressable
+                        style={styles.dropdownBackdrop}
+                        onPress={() => setShowTemplatePicker(false)}
+                      />
+                    )}
                     <TouchableOpacity
-                      style={styles.dropdown}
+                      style={[styles.dropdown, { backgroundColor: themeColors.gray[100] }]}  
                       onPress={() => setShowTemplatePicker(!showTemplatePicker)}
                     >
                       {selectedTemplate?.metadata?.icon && (
-                        <View style={styles.dropdownIcon}>
+                        <View
+                          style={[
+                            styles.dropdownIcon,
+                            { backgroundColor: `${themeColors.primary}15` },
+                          ]}
+                        >
                           <Ionicons
                             name={
                               selectedTemplate.metadata
                                 .icon as keyof typeof Ionicons.glyphMap
                             }
                             size={20}
-                            color={colors.primary}
+                            color={themeColors.primary}
                           />
                         </View>
                       )}
                       <Text
                         style={[
                           styles.dropdownText,
-                          !selectedTemplate && styles.dropdownPlaceholder,
+                          { color: themeColors.text.primary },
+                          !selectedTemplate && { color: themeColors.gray[400] },
                         ]}
                       >
                         {selectedTemplate
@@ -268,7 +299,7 @@ export default function RequestPermissionScreen() {
                       <Ionicons
                         name={showTemplatePicker ? 'chevron-up' : 'chevron-down'}
                         size={20}
-                        color={colors.gray[400]}
+                        color={themeColors.gray[400]}
                       />
                     </TouchableOpacity>
 
@@ -279,9 +310,14 @@ export default function RequestPermissionScreen() {
                             <Ionicons
                               name="information-circle-outline"
                               size={48}
-                              color={colors.gray[400]}
+                              color={themeColors.gray[400]}
                             />
-                            <Text style={styles.emptyTemplatesText}>
+                            <Text
+                              style={[
+                                styles.emptyTemplatesText,
+                                { color: themeColors.text.primary },
+                              ]}
+                            >
                               No hay actividades disponibles
                             </Text>
                           </View>
@@ -291,45 +327,67 @@ export default function RequestPermissionScreen() {
                               key={template.id}
                               style={[
                                 styles.dropdownItem,
-                                selectedTemplate?.id === template.id &&
-                                  styles.dropdownItemSelected,
+                                { borderBottomColor: themeColors.gray[100] },
+                                selectedTemplate?.id === template.id && {
+                                  backgroundColor: `${themeColors.primary}10`,
+                                },
                               ]}
                               onPress={() => handleTemplateSelect(template)}
                             >
                               {template.metadata?.icon && (
-                                <View style={styles.dropdownItemIcon}>
+                                <View
+                                  style={[
+                                    styles.dropdownItemIcon,
+                                    { backgroundColor: `${themeColors.primary}15` },
+                                  ]}
+                                >
                                   <Ionicons
                                     name={
                                       template.metadata
                                         .icon as keyof typeof Ionicons.glyphMap
                                     }
                                     size={24}
-                                    color={colors.primary}
+                                    color={themeColors.primary}
                                   />
                                 </View>
                               )}
                               <View style={styles.dropdownItemContent}>
                                 <View style={styles.dropdownItemTitleRow}>
-                                  <Text style={styles.dropdownItemText}>
+                                  <Text
+                                    style={[
+                                      styles.dropdownItemText,
+                                      { color: themeColors.text.primary },
+                                    ]}
+                                  >
                                     {template.title}
                                   </Text>
                                   {!template.isSystemTemplate && (
                                     <Ionicons
                                       name="star"
                                       size={16}
-                                      color={colors.accent}
+                                      color={themeColors.accent}
                                       style={styles.customBadge}
                                     />
                                   )}
                                 </View>
                                 {template.description && (
-                                  <Text style={styles.dropdownItemDescription}>
+                                  <Text
+                                    style={[
+                                      styles.dropdownItemDescription,
+                                      { color: themeColors.text.secondary },
+                                    ]}
+                                  >
                                     {template.description}
                                   </Text>
                                 )}
                               </View>
                               {template.suggestedPointsCost && (
-                                <Text style={styles.dropdownItemCost}>
+                                <Text
+                                  style={[
+                                    styles.dropdownItemCost,
+                                    { color: themeColors.primary },
+                                  ]}
+                                >
                                   {template.suggestedPointsCost} pts
                                   {template.suggestedDurationHours &&
                                     `/${template.suggestedDurationHours}h`}
@@ -345,10 +403,17 @@ export default function RequestPermissionScreen() {
 
                 {/* Date & Time */}
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Cuándo</Text>
+                  <Text
+                    style={[styles.sectionTitle, { color: themeColors.text.primary }]}
+                  >
+                    Cuándo
+                  </Text>
                   <View style={styles.dateTimeRow}>
                     <TouchableOpacity
-                      style={styles.dateTimeButton}
+                      style={[
+                        styles.dateTimeButton,
+                        { backgroundColor: themeColors.gray[100] },
+                      ]}
                       onPress={() =>
                         setShowPicker((show) => {
                           return show === 'date' ? null : 'date';
@@ -358,20 +423,35 @@ export default function RequestPermissionScreen() {
                       <Ionicons
                         name="calendar-outline"
                         size={20}
-                        color={colors.primary}
+                        color={themeColors.primary}
                       />
-                      <Text style={styles.dateTimeText}>{formatDate(selectedDate)}</Text>
+                      <Text
+                        style={[styles.dateTimeText, { color: themeColors.text.primary }]}
+                      >
+                        {formatDate(selectedDate)}
+                      </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={styles.dateTimeButton}
+                      style={[
+                        styles.dateTimeButton,
+                        { backgroundColor: themeColors.gray[100] },
+                      ]}
                       onPress={() =>
                         setShowPicker((show) => {
                           return show === 'time' ? null : 'time';
                         })
                       }
                     >
-                      <Ionicons name="time-outline" size={20} color={colors.primary} />
-                      <Text style={styles.dateTimeText}>{formatTime(selectedTime)}</Text>
+                      <Ionicons
+                        name="time-outline"
+                        size={20}
+                        color={themeColors.primary}
+                      />
+                      <Text
+                        style={[styles.dateTimeText, { color: themeColors.text.primary }]}
+                      >
+                        {formatTime(selectedTime)}
+                      </Text>
                     </TouchableOpacity>
                   </View>
 
@@ -386,8 +466,8 @@ export default function RequestPermissionScreen() {
                         }
                         minimumDate={showPicker === 'date' ? new Date() : undefined}
                         locale="es-CR"
-                        textColor={colors.text.primary}
-                        themeVariant="light"
+                        textColor={themeColors.text.primary}
+                        themeVariant={colorScheme}
                       />
                     </View>
                   )}
@@ -408,41 +488,61 @@ export default function RequestPermissionScreen() {
                 {/* Duration Control */}
                 <View style={styles.section}>
                   <View style={styles.durationHeader}>
-                    <Text style={styles.sectionTitle}>Duración</Text>
-                    <Text style={styles.durationValue}>
+                    <Text
+                      style={[styles.sectionTitle, { color: themeColors.text.primary }]}
+                    >
+                      Duración
+                    </Text>
+                    <Text style={[styles.durationValue, { color: themeColors.primary }]}>
                       {isNaN(duration) ? 0 : duration} horas
                     </Text>
                   </View>
 
                   <View style={styles.durationControl}>
                     <TouchableOpacity
-                      style={styles.durationButton}
+                      style={[
+                        styles.durationButton,
+                        { backgroundColor: themeColors.gray[100] },
+                      ]}
                       onPress={() => handleDurationChange(-0.5)}
                     >
-                      <Ionicons name="remove" size={24} color={colors.primary} />
+                      <Ionicons name="remove" size={24} color={themeColors.primary} />
                     </TouchableOpacity>
 
-                    <View style={styles.durationTrack}>
+                    <View
+                      style={[
+                        styles.durationTrack,
+                        { backgroundColor: themeColors.gray[200] },
+                      ]}
+                    >
                       <View
                         style={[
                           styles.durationFill,
+                          { backgroundColor: themeColors.accent },
                           { width: `${(duration / 8) * 100}%` },
                         ]}
                       />
                     </View>
 
                     <TouchableOpacity
-                      style={styles.durationButton}
+                      style={[
+                        styles.durationButton,
+                        { backgroundColor: themeColors.gray[100] },
+                      ]}
                       onPress={() => handleDurationChange(0.5)}
                     >
-                      <Ionicons name="add" size={24} color={colors.primary} />
+                      <Ionicons name="add" size={24} color={themeColors.primary} />
                     </TouchableOpacity>
                   </View>
                 </View>
 
                 {/* Optional Note */}
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Nota (Opcional)</Text>
+                  <Text
+                    style={[styles.sectionTitle, { color: themeColors.text.primary }]}
+                  >
+                    Nota (Opcional)
+                  </Text>
                   <Input
                     placeholder="Agrega un mensaje para tu pareja..."
                     value={note}
@@ -460,7 +560,13 @@ export default function RequestPermissionScreen() {
 
       {/* Bottom Button */}
       <View
-        style={[styles.bottomContainer, { paddingBottom: insets.bottom + spacing.md }]}
+        style={[
+          styles.bottomContainer,
+          {
+            backgroundColor: themeColors.background,
+            paddingBottom: insets.bottom + spacing.md,
+          },
+        ]}
       >
         <Button
           title="Enviar Solicitud"
@@ -478,7 +584,6 @@ export default function RequestPermissionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -499,7 +604,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   scrollContent: {
     padding: spacing.lg,
@@ -510,7 +614,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.md,
   },
   sectionHeader: {
@@ -521,12 +624,19 @@ const styles = StyleSheet.create({
   },
   subsectionTitle: {
     ...typography.styles.bodyMedium,
-    color: colors.text.secondary,
     marginBottom: spacing.sm,
     marginTop: spacing.md,
   },
   allTemplatesSection: {
-    // No extra styling needed, uses existing dropdown styles
+    zIndex: 10,
+  },
+  dropdownBackdrop: {
+    position: 'absolute',
+    top: -9999,
+    left: -9999,
+    right: -9999,
+    bottom: -9999,
+    zIndex: 9,
   },
   addButton: {
     flexDirection: 'row',
@@ -535,7 +645,6 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
   dropdownItemTitleRow: {
     flexDirection: 'row',
@@ -552,31 +661,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.white,
     borderRadius: borderRadius.xl,
     padding: spacing.md,
+    zIndex: 10,
     ...shadows.sm,
   },
   dropdownIcon: {
     width: 32,
     height: 32,
     borderRadius: borderRadius.full,
-    backgroundColor: `${colors.primary}15`,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
   },
   dropdownText: {
     ...typography.styles.body,
-    color: colors.text.primary,
     flex: 1,
   },
-  dropdownPlaceholder: {
-    color: colors.gray[400],
-  },
+  dropdownPlaceholder: {},
   dropdownMenu: {
     marginTop: spacing.sm,
     overflow: 'hidden',
+    zIndex: 10,
   },
   dropdownItem: {
     flexDirection: 'row',
@@ -584,16 +690,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[100],
   },
-  dropdownItemSelected: {
-    backgroundColor: `${colors.primary}10`,
-  },
+  dropdownItemSelected: {},
   dropdownItemIcon: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.full,
-    backgroundColor: `${colors.primary}15`,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
@@ -604,16 +706,13 @@ const styles = StyleSheet.create({
   },
   dropdownItemText: {
     ...typography.styles.body,
-    color: colors.text.primary,
   },
   dropdownItemDescription: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: spacing.xs,
   },
   dropdownItemCost: {
     ...typography.styles.caption,
-    color: colors.primary,
   },
   emptyTemplates: {
     padding: spacing.xl,
@@ -622,12 +721,10 @@ const styles = StyleSheet.create({
   },
   emptyTemplatesText: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
     textAlign: 'center',
   },
   emptyTemplatesSubtext: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     textAlign: 'center',
   },
   loadingContainer: {
@@ -637,7 +734,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     marginTop: spacing.md,
   },
   dateTimeRow: {
@@ -649,7 +745,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.white,
     borderRadius: borderRadius.xl,
     padding: spacing.md,
     gap: spacing.sm,
@@ -657,7 +752,6 @@ const styles = StyleSheet.create({
   },
   dateTimeText: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
   },
   durationHeader: {
     flexDirection: 'row',
@@ -667,7 +761,6 @@ const styles = StyleSheet.create({
   },
   durationValue: {
     ...typography.styles.h4,
-    color: colors.primary,
   },
   durationControl: {
     flexDirection: 'row',
@@ -678,7 +771,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     ...shadows.sm,
@@ -686,13 +778,11 @@ const styles = StyleSheet.create({
   durationTrack: {
     flex: 1,
     height: 8,
-    backgroundColor: colors.gray[200],
     borderRadius: borderRadius.full,
     overflow: 'hidden',
   },
   durationFill: {
     height: '100%',
-    backgroundColor: colors.accent,
     borderRadius: borderRadius.full,
   },
   noteInput: {
@@ -703,7 +793,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.white,
     padding: spacing.lg,
     ...shadows.lg,
   },

@@ -1,5 +1,5 @@
 import { Button, Card, CodeInput } from '@/components/ui';
-import { useUser } from '@/hooks';
+import { useUser, useThemedColors } from '@/hooks';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -23,6 +23,7 @@ import { linkPartnerSchema, LinkPartnerFormData } from '@/validators';
 import logger from '@/utils/logger';
 
 export default function LinkPartnerScreen() {
+  const themeColors = useThemedColors();
   const router = useRouter();
   const {
     joinPartnerLink,
@@ -182,7 +183,7 @@ export default function LinkPartnerScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -194,30 +195,34 @@ export default function LinkPartnerScreen() {
         >
           {/* Puzzle Illustration */}
           <View style={styles.illustrationContainer}>
-            <Ionicons name="extension-puzzle-outline" size={80} color={colors.primary} />
+            <Ionicons
+              name="extension-puzzle-outline"
+              size={80}
+              color={themeColors.primary}
+            />
           </View>
 
           {/* Title */}
-          <Text style={styles.title}>¡Conectémonos!</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: themeColors.text.primary }]}>¡Conectémonos!</Text>
+          <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
             Conéctate con tu pareja para comenzar tu viaje en MariPuntos juntos
           </Text>
 
           {/* Your Unique Code Section */}
           <Card style={styles.codeSection}>
-            <Text style={styles.sectionLabel}>Tu código único</Text>
+            <Text style={[styles.sectionLabel, { color: themeColors.text.secondary }]}>Tu código único</Text>
 
             {loadingExistingCode ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color={colors.primary} />
-                <Text style={styles.loadingText}>Verificando código...</Text>
+                <ActivityIndicator size="small" color={themeColors.primary} />
+                <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>Verificando código...</Text>
               </View>
             ) : generatedCode ? (
               <View style={styles.generatedCodeContainer}>
-                <Text style={styles.generatedCode}>{generatedCode}</Text>
+                <Text style={[styles.generatedCode, { color: themeColors.primary }]}>{generatedCode}</Text>
                 <TouchableOpacity style={styles.copyButton} onPress={handleCopyCode}>
-                  <Ionicons name="copy-outline" size={20} color={colors.primary} />
-                  <Text style={styles.copyText}>Copiar código</Text>
+                  <Ionicons name="copy-outline" size={20} color={themeColors.primary} />
+                  <Text style={[styles.copyText, { color: themeColors.primary }]}>Copiar código</Text>
                 </TouchableOpacity>
 
                 {/* Refresh button */}
@@ -230,7 +235,7 @@ export default function LinkPartnerScreen() {
                   icon="refresh-outline"
                   style={styles.refreshButton}
                 />
-                <Text style={styles.refreshHint}>
+                <Text style={[styles.refreshHint, { color: themeColors.text.secondary }]}>
                   Toca aquí después de que tu pareja ingrese el código
                 </Text>
               </View>
@@ -248,14 +253,14 @@ export default function LinkPartnerScreen() {
 
           {/* Divider */}
           <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>O</Text>
-            <View style={styles.dividerLine} />
+            <View style={[styles.dividerLine, { backgroundColor: themeColors.gray[300] }]} />
+            <Text style={[styles.dividerText, { color: themeColors.text.secondary }]}>O</Text>
+            <View style={[styles.dividerLine, { backgroundColor: themeColors.gray[300] }]} />
           </View>
 
           {/* Enter Partner Code Section */}
           <Card style={styles.codeSection}>
-            <Text style={styles.sectionLabel}>Ingresa el código de tu pareja</Text>
+            <Text style={[styles.sectionLabel, { color: themeColors.text.secondary }]}>Ingresa el código de tu pareja</Text>
             <Controller
               control={control}
               name="partnerCode"
@@ -288,7 +293,7 @@ export default function LinkPartnerScreen() {
             style={styles.skipButton}
             onPress={() => router.replace('/(tabs)')}
           >
-            <Text style={styles.skipText}>Regresar</Text>
+            <Text style={[styles.skipText, { color: themeColors.text.secondary }]}>Regresar</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -299,7 +304,6 @@ export default function LinkPartnerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -317,19 +321,16 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: borderRadius.full,
-    backgroundColor: `${colors.primary}15`,
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     ...typography.styles.h1,
-    color: colors.text.primary,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   subtitle: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.xl,
     paddingHorizontal: spacing.md,
@@ -339,7 +340,6 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     ...typography.styles.bodyMedium,
-    color: colors.text.secondary,
     marginBottom: spacing.md,
     textAlign: 'center',
   },
@@ -348,7 +348,6 @@ const styles = StyleSheet.create({
   },
   generatedCode: {
     ...typography.styles.h1,
-    color: colors.primary,
     letterSpacing: 8,
     marginBottom: spacing.md,
   },
@@ -359,7 +358,6 @@ const styles = StyleSheet.create({
   },
   copyText: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
   divider: {
     flexDirection: 'row',
@@ -369,11 +367,9 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.gray[300],
   },
   dividerText: {
     ...typography.styles.bodyMedium,
-    color: colors.text.secondary,
     marginHorizontal: spacing.md,
   },
   linkButton: {
@@ -386,7 +382,6 @@ const styles = StyleSheet.create({
   },
   skipText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -397,20 +392,18 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
   },
   refreshButton: {
     marginTop: spacing.lg,
   },
   refreshHint: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     textAlign: 'center',
     marginTop: spacing.sm,
   },
   errorText: {
     ...typography.styles.caption,
-    color: colors.error,
+    color: colors.light.error,
     textAlign: 'center',
     marginTop: spacing.xs,
   },

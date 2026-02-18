@@ -1,6 +1,7 @@
 import { Button, ControlledCodeInput } from '@/components/ui';
 import { userService } from '@/services';
 import { colors, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import { useSignUp, isClerkAPIResponseError } from '@clerk/clerk-expo';
 import logger from '@/utils/logger';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,6 +30,7 @@ export default function VerifyEmailScreen() {
   const router = useRouter();
   const { email } = useLocalSearchParams<{ email: string }>();
   const insets = useSafeAreaInsets();
+  const themeColors = useThemedColors();
 
   const [resendCooldown, setResendCooldown] = useState(60);
   const [canResend, setCanResend] = useState(false);
@@ -159,7 +161,7 @@ export default function VerifyEmailScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -175,13 +177,13 @@ export default function VerifyEmailScreen() {
             <Ionicons
               name="mail-outline"
               size={80}
-              color={colors.primary}
+              color={themeColors.primary}
               style={styles.icon}
             />
-            <Text style={styles.title}>Verifica tu correo</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: themeColors.text.primary }]}>Verifica tu correo</Text>
+            <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
               Hemos enviado un código de verificación a{'\n'}
-              <Text style={styles.email}>{email}</Text>
+              <Text style={[styles.email, { color: themeColors.primary }]}>{email}</Text>
             </Text>
 
             <ControlledCodeInput
@@ -220,7 +222,6 @@ export default function VerifyEmailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -235,19 +236,16 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.h2,
-    color: colors.text.primary,
     marginBottom: spacing.md,
     textAlign: 'center',
   },
   subtitle: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing['2xl'],
   },
   email: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
   codeInput: {
     width: '100%',

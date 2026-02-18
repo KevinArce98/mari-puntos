@@ -4,13 +4,14 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge, Card, Chip, ProgressBar } from '@/components/ui';
-import { useRewards } from '@/hooks';
+import { useRewards, useThemedColors } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 
 const FILTERS = ['All', 'Unlocked', 'In Progress'];
 
 export default function AchievementsTabScreen() {
   const insets = useSafeAreaInsets();
+  const themeColors = useThemedColors();
   const { allRewards, availableRewards } = useRewards();
   const [selectedFilter, setSelectedFilter] = useState('All');
 
@@ -50,7 +51,8 @@ export default function AchievementsTabScreen() {
           <View
             style={[
               styles.achievementIconContainer,
-              isLocked ? styles.lockedIconContainer : undefined,
+              { backgroundColor: `${themeColors.accent}15` },
+              isLocked && { backgroundColor: themeColors.gray[100] },
             ]}
           >
             <Text style={styles.achievementIcon}>
@@ -67,12 +69,16 @@ export default function AchievementsTabScreen() {
               </Text>
               {!isLocked && (
                 <View style={styles.unlockedBadge}>
-                  <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={16}
+                    color={themeColors.success}
+                  />
                 </View>
               )}
             </View>
 
-            <Text style={styles.achievementDescription} numberOfLines={2}>
+            <Text style={[styles.achievementDescription, { color: themeColors.text.secondary }]} numberOfLines={2}>
               {achievement.description}
             </Text>
 
@@ -83,15 +89,15 @@ export default function AchievementsTabScreen() {
                     (achievement.progress / achievement.requirement) * 100,
                     100
                   )}
-                  color={colors.primary}
+                  color={themeColors.primary}
                   height={6}
                 />
-                <Text style={styles.progressText}>
+                <Text style={[styles.progressText, { color: themeColors.text.secondary }]}>
                   {achievement.progress} / {achievement.requirement}
                 </Text>
               </View>
             ) : (
-              <Text style={styles.achievementDate}>
+              <Text style={[styles.achievementDate, { color: themeColors.success }]}>
                 Unlocked {new Date(achievement.unlockedAt).toLocaleDateString()}
               </Text>
             )}
@@ -108,15 +114,15 @@ export default function AchievementsTabScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Achievements</Text>
-        <TouchableOpacity style={styles.infoButton}>
+        <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>Achievements</Text>
+        <TouchableOpacity style={[styles.infoButton, { backgroundColor: themeColors.gray[100] }]}>
           <Ionicons
             name="information-circle-outline"
             size={24}
-            color={colors.text.primary}
+            color={themeColors.text.primary}
           />
         </TouchableOpacity>
       </View>
@@ -129,39 +135,39 @@ export default function AchievementsTabScreen() {
         <Card style={styles.progressCard}>
           <View style={styles.progressCardHeader}>
             <View>
-              <Text style={styles.progressCardTitle}>Your Progress</Text>
-              <Text style={styles.progressCardSubtitle}>
+              <Text style={[styles.progressCardTitle, { color: themeColors.text.primary }]}>Your Progress</Text>
+              <Text style={[styles.progressCardSubtitle, { color: themeColors.text.secondary }]}>
                 {unlocked.length} of {totalAchievements} achievements
               </Text>
             </View>
-            <View style={styles.percentageCircle}>
-              <Text style={styles.percentageText}>{completionPercentage}%</Text>
+            <View style={[styles.percentageCircle, { backgroundColor: `${themeColors.accent}15` }]}>
+              <Text style={[styles.percentageText, { color: themeColors.accent }]}>{completionPercentage}%</Text>
             </View>
           </View>
 
           <ProgressBar
             progress={completionPercentage}
-            color={colors.accent}
+            color={themeColors.accent}
             height={10}
           />
 
-          <View style={styles.statsRow}>
+          <View style={[styles.statsRow, { borderTopColor: themeColors.gray[100] }]}>
             <View style={styles.miniStat}>
-              <Ionicons name="trophy" size={18} color={colors.accent} />
-              <Text style={styles.miniStatValue}>{unlocked.length}</Text>
-              <Text style={styles.miniStatLabel}>Unlocked</Text>
+              <Ionicons name="trophy" size={18} color={themeColors.accent} />
+              <Text style={[styles.miniStatValue, { color: themeColors.text.primary }]}>{unlocked.length}</Text>
+              <Text style={[styles.miniStatLabel, { color: themeColors.text.secondary }]}>Unlocked</Text>
             </View>
-            <View style={styles.miniStatDivider} />
+            <View style={[styles.miniStatDivider, { backgroundColor: themeColors.gray[200] }]} />
             <View style={styles.miniStat}>
-              <Ionicons name="hourglass-outline" size={18} color={colors.primary} />
-              <Text style={styles.miniStatValue}>{locked.length}</Text>
-              <Text style={styles.miniStatLabel}>In Progress</Text>
+              <Ionicons name="hourglass-outline" size={18} color={themeColors.primary} />
+              <Text style={[styles.miniStatValue, { color: themeColors.text.primary }]}>{locked.length}</Text>
+              <Text style={[styles.miniStatLabel, { color: themeColors.text.secondary }]}>In Progress</Text>
             </View>
-            <View style={styles.miniStatDivider} />
+            <View style={[styles.miniStatDivider, { backgroundColor: themeColors.gray[200] }]} />
             <View style={styles.miniStat}>
-              <Ionicons name="star" size={18} color={colors.warning} />
-              <Text style={styles.miniStatValue}>{totalAchievements}</Text>
-              <Text style={styles.miniStatLabel}>Total</Text>
+              <Ionicons name="star" size={18} color={themeColors.warning} />
+              <Text style={[styles.miniStatValue, { color: themeColors.text.primary }]}>{totalAchievements}</Text>
+              <Text style={[styles.miniStatLabel, { color: themeColors.text.secondary }]}>Total</Text>
             </View>
           </View>
         </Card>
@@ -187,8 +193,8 @@ export default function AchievementsTabScreen() {
         {unlocked.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>🏆 Unlocked</Text>
-              <Text style={styles.sectionCount}>{unlocked.length}</Text>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>🏆 Unlocked</Text>
+              <Text style={[styles.sectionCount, { color: themeColors.text.secondary }]}>{unlocked.length}</Text>
             </View>
             {unlocked.map((achievement: any) => renderAchievement(achievement, false))}
           </View>
@@ -198,8 +204,8 @@ export default function AchievementsTabScreen() {
         {locked.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>🔒 In Progress</Text>
-              <Text style={styles.sectionCount}>{locked.length}</Text>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>🔒 In Progress</Text>
+              <Text style={[styles.sectionCount, { color: themeColors.text.secondary }]}>{locked.length}</Text>
             </View>
             {locked.map((achievement: any) => renderAchievement(achievement, true))}
           </View>
@@ -208,11 +214,11 @@ export default function AchievementsTabScreen() {
         {/* Empty State */}
         {unlocked.length === 0 && locked.length === 0 && (
           <Card style={styles.emptyCard}>
-            <View style={styles.emptyIconContainer}>
-              <Ionicons name="trophy-outline" size={48} color={colors.gray[400]} />
+            <View style={[styles.emptyIconContainer, { backgroundColor: themeColors.gray[100] }]}>
+              <Ionicons name="trophy-outline" size={48} color={themeColors.gray[400]} />
             </View>
-            <Text style={styles.emptyTitle}>No Achievements Yet</Text>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyTitle, { color: themeColors.text.primary }]}>No Achievements Yet</Text>
+            <Text style={[styles.emptyText, { color: themeColors.text.secondary }]}>
               Start completing actions to unlock achievements!
             </Text>
           </Card>
@@ -225,7 +231,6 @@ export default function AchievementsTabScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -236,13 +241,11 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.styles.h2,
-    color: colors.text.primary,
   },
   infoButton: {
     width: 44,
     height: 44,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     ...shadows.sm,
@@ -263,24 +266,20 @@ const styles = StyleSheet.create({
   },
   progressCardTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
   },
   progressCardSubtitle: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: 2,
   },
   percentageCircle: {
     width: 56,
     height: 56,
     borderRadius: borderRadius.full,
-    backgroundColor: `${colors.accent}15`,
     justifyContent: 'center',
     alignItems: 'center',
   },
   percentageText: {
     ...typography.styles.h4,
-    color: colors.accent,
   },
   statsRow: {
     flexDirection: 'row',
@@ -288,7 +287,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.gray[100],
   },
   miniStat: {
     alignItems: 'center',
@@ -296,16 +294,13 @@ const styles = StyleSheet.create({
   },
   miniStatValue: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginTop: spacing.xs,
   },
   miniStatLabel: {
     ...typography.styles.small,
-    color: colors.text.secondary,
   },
   miniStatDivider: {
     width: 1,
-    backgroundColor: colors.gray[200],
   },
   filterContainer: {
     marginBottom: spacing.lg,
@@ -325,11 +320,9 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
   },
   sectionCount: {
     ...typography.styles.bodyMedium,
-    color: colors.text.secondary,
   },
   achievementCard: {
     marginBottom: spacing.md,
@@ -345,13 +338,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: borderRadius.lg,
-    backgroundColor: `${colors.accent}15`,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
-  },
-  lockedIconContainer: {
-    backgroundColor: colors.gray[100],
   },
   achievementIcon: {
     fontSize: 28,
@@ -366,18 +355,13 @@ const styles = StyleSheet.create({
   },
   achievementName: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
     flex: 1,
-  },
-  lockedText: {
-    color: colors.text.secondary,
   },
   unlockedBadge: {
     marginLeft: spacing.sm,
   },
   achievementDescription: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: 2,
     marginBottom: spacing.sm,
   },
@@ -386,13 +370,11 @@ const styles = StyleSheet.create({
   },
   progressText: {
     ...typography.styles.small,
-    color: colors.text.secondary,
     textAlign: 'right',
     marginTop: spacing.xs,
   },
   achievementDate: {
     ...typography.styles.small,
-    color: colors.success,
   },
   emptyCard: {
     alignItems: 'center',
@@ -402,19 +384,16 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.gray[100],
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.md,
   },
   emptyTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   emptyText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     textAlign: 'center',
   },
 });

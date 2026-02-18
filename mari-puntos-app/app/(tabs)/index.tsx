@@ -1,7 +1,7 @@
 import { ActionCard, Avatar, Card, PointsCard, CreateActionModal } from '@/components/ui';
 import { HistoryItem } from '@/components';
-import { usePoints, useUser } from '@/hooks';
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { usePoints, useUser, useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -20,6 +20,7 @@ import { useActions } from '@/hooks/useActions';
 import { CreateActionFormData } from '@/validators/action.schema';
 
 export default function HomeScreen() {
+  const colors = useThemedColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user, hasPartner, refetch: refetchUser } = useUser();
@@ -74,7 +75,12 @@ export default function HomeScreen() {
 
   if (!hasPartner) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View
+        style={[
+          styles.container,
+          { paddingTop: insets.top, backgroundColor: colors.background },
+        ]}
+      >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           refreshControl={
@@ -85,16 +91,20 @@ export default function HomeScreen() {
             <View style={styles.noPartnerIcon}>
               <Ionicons name="people-outline" size={64} color={colors.primary} />
             </View>
-            <Text style={styles.noPartnerTitle}>¡Vincula a tu Pareja!</Text>
-            <Text style={styles.noPartnerText}>
+            <Text style={[styles.noPartnerTitle, { color: colors.text.primary }]}>
+              ¡Vincula a tu Pareja!
+            </Text>
+            <Text style={[styles.noPartnerText, { color: colors.text.secondary }]}>
               Conéctate con tu pareja para empezar a ganar y gastar MariPuntos juntos
             </Text>
             <TouchableOpacity
-              style={styles.linkButton}
+              style={[styles.linkButton, { backgroundColor: colors.primary }]}
               onPress={() => router.push('/link-partner')}
             >
-              <Ionicons name="link" size={20} color={colors.white} />
-              <Text style={styles.linkButtonText}>Vincular Ahora</Text>
+              <Ionicons name="link" size={20} color={colors.text.white} />
+              <Text style={[styles.linkButtonText, { color: colors.text.white }]}>
+                Vincular Ahora
+              </Text>
             </TouchableOpacity>
           </Card>
         </ScrollView>
@@ -103,7 +113,12 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: colors.background },
+      ]}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -120,10 +135,12 @@ export default function HomeScreen() {
               // level={myLevel} TODO: enable level when ready
             />
             <View style={styles.greetingContainer}>
-              <Text style={styles.greeting}>
+              <Text style={[styles.greeting, { color: colors.text.primary }]}>
                 Hola, {user?.firstName?.split(' ')[0] || 'there'}! 👋
               </Text>
-              <Text style={styles.subtitle}>Vamos a ganar algunos puntos hoy!</Text>
+              <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
+                Vamos a ganar algunos puntos hoy!
+              </Text>
             </View>
           </View>
         </View>
@@ -133,7 +150,9 @@ export default function HomeScreen() {
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+            Acciones Rápidas
+          </Text>
           <View style={styles.actionsContainer}>
             <ActionCard
               title="Solicitar Permiso"
@@ -157,9 +176,11 @@ export default function HomeScreen() {
         {/* Recent History */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Historial Reciente</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+              Historial Reciente
+            </Text>
             <TouchableOpacity onPress={() => router.push('/history')}>
-              <Text style={styles.seeAllText}>Ver Todo</Text>
+              <Text style={[styles.seeAllText, { color: colors.primary }]}>Ver Todo</Text>
             </TouchableOpacity>
           </View>
 
@@ -167,7 +188,9 @@ export default function HomeScreen() {
             {pointsHistory.length === 0 ? (
               <View style={styles.emptyHistoryContainer}>
                 <Ionicons name="time-outline" size={48} color={colors.text.secondary} />
-                <Text style={styles.emptyHistoryText}>No hay actividad reciente</Text>
+                <Text style={[styles.emptyHistoryText, { color: colors.text.primary }]}>
+                  No hay actividad reciente
+                </Text>
               </View>
             ) : (
               pointsHistory
@@ -198,7 +221,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollContent: {
     padding: spacing.lg,
@@ -219,18 +241,15 @@ const styles = StyleSheet.create({
   },
   greeting: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   subtitle: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: 2,
   },
   notificationButton: {
     width: 44,
     height: 44,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -248,12 +267,10 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.md,
   },
   seeAllText: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
   actionsContainer: {
     gap: spacing.sm,
@@ -271,7 +288,6 @@ const styles = StyleSheet.create({
   },
   emptyHistoryText: {
     ...typography.styles.bodyLarge,
-    color: colors.text.primary,
     marginTop: spacing.md,
     textAlign: 'center',
   },
@@ -290,20 +306,17 @@ const styles = StyleSheet.create({
   },
   noPartnerTitle: {
     ...typography.styles.h2,
-    color: colors.text.primary,
     marginBottom: spacing.sm,
     textAlign: 'center',
   },
   noPartnerText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.xl,
   },
   linkButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primary,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.xl,
@@ -311,6 +324,5 @@ const styles = StyleSheet.create({
   },
   linkButtonText: {
     ...typography.styles.button,
-    color: colors.white,
   },
 });

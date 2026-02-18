@@ -1,8 +1,10 @@
 import { colors, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import React, { useEffect } from 'react';
 import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
 
 export function LoadingScreen() {
+  const themeColors = useThemedColors();
   const spinValue = React.useRef(new Animated.Value(0)).current;
   const pulseValue = React.useRef(new Animated.Value(1)).current;
   const fadeValue = React.useRef(new Animated.Value(0)).current;
@@ -50,7 +52,7 @@ export function LoadingScreen() {
   });
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <Animated.View
         style={[
           styles.content,
@@ -84,14 +86,14 @@ export function LoadingScreen() {
             },
           ]}
         >
-          <View style={styles.spinner} />
+          <View style={[styles.spinner, { borderColor: themeColors.gray[200], borderTopColor: themeColors.primary, borderRightColor: themeColors.primary }]} />
         </Animated.View>
 
         {/* App Name */}
-        <Text style={styles.appName}>MariPuntos</Text>
+        <Text style={[styles.appName, { color: themeColors.primary }]}>MariPuntos</Text>
 
         {/* Loading Text */}
-        <Text style={styles.loadingText}>Cargando...</Text>
+        <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>Cargando...</Text>
 
         {/* Animated Dots */}
         <View style={styles.dotsContainer}>
@@ -131,7 +133,6 @@ function AnimatedDot({ delay }: { delay: number }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -166,20 +167,15 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 60,
     borderWidth: 4,
-    borderColor: colors.gray[200],
-    borderTopColor: colors.primary,
-    borderRightColor: colors.primary,
   },
   appName: {
     ...typography.styles.h1,
-    color: colors.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
     fontWeight: 'bold',
   },
   loadingText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     marginBottom: spacing.md,
   },
   dotsContainer: {
@@ -191,6 +187,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.light.primary,
   },
 });

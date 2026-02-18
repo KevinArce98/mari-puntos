@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { Action, ActionCategory } from '@/types';
 import { colors, spacing, typography, borderRadius } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import { Button } from './Button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,6 +46,7 @@ export function ReviewActionModal({
   onApprove,
   onReject,
 }: ReviewActionModalProps) {
+  const themeColors = useThemedColors();
   const [points, setPoints] = useState(100);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'review' | 'reject'>('review');
@@ -111,38 +113,38 @@ export function ReviewActionModal({
       onRequestClose={resetAndClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: themeColors.gray[100] }]}>
           {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>
+          <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
+            <Text style={[styles.title, { color: themeColors.text.primary }]}>
               {mode === 'review' ? 'Revisar Acción' : 'Rechazar Acción'}
             </Text>
             <TouchableOpacity onPress={resetAndClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={colors.text.primary} />
+              <Ionicons name="close" size={24} color={themeColors.text.primary} />
             </TouchableOpacity>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
             {/* Action Details */}
-            <View style={styles.actionDetails}>
-              <Text style={styles.actionTitle}>{action.title}</Text>
-              <Text style={styles.actionCategory}>
+            <View style={[styles.actionDetails, { backgroundColor: themeColors.gray[50] }]}>
+              <Text style={[styles.actionTitle, { color: themeColors.text.primary }]}>{action.title}</Text>
+              <Text style={[styles.actionCategory, { color: themeColors.primary }]}>
                 {CATEGORY_LABELS[action.category]}
               </Text>
               {action.description && (
-                <Text style={styles.actionDescription}>{action.description}</Text>
+                <Text style={[styles.actionDescription, { color: themeColors.text.secondary }]}>{action.description}</Text>
               )}
-              <Text style={styles.actionDate}>{formattedDate}</Text>
+              <Text style={[styles.actionDate, { color: themeColors.gray[400] }]}>{formattedDate}</Text>
             </View>
 
             {mode === 'review' ? (
               /* Points Slider */
               <View style={styles.section}>
                 <View style={styles.pointsHeader}>
-                  <Text style={styles.label}>Puntos a otorgar</Text>
-                  <View style={styles.pointsBadge}>
-                    <Ionicons name="trophy" size={20} color={colors.accent} />
-                    <Text style={styles.pointsValue}>{points}</Text>
+                  <Text style={[styles.label, { color: themeColors.text.primary }]}>Puntos a otorgar</Text>
+                  <View style={[styles.pointsBadge, { backgroundColor: `${themeColors.accent}15` }]}>
+                  <Ionicons name="trophy" size={20} color={themeColors.accent} />
+                    <Text style={[styles.pointsValue, { color: themeColors.accent }]}>{points}</Text>
                   </View>
                 </View>
                 <Slider
@@ -152,30 +154,35 @@ export function ReviewActionModal({
                   step={10}
                   value={points}
                   onValueChange={setPoints}
-                  minimumTrackTintColor={colors.primary}
-                  maximumTrackTintColor={colors.gray[300]}
-                  thumbTintColor={colors.primary}
+                  minimumTrackTintColor={themeColors.primary}
+                  maximumTrackTintColor={themeColors.gray[300]}
+                  thumbTintColor={themeColors.primary}
                 />
                 <View style={styles.sliderLabels}>
-                  <Text style={styles.sliderLabel}>0</Text>
-                  <Text style={styles.sliderLabel}>1000</Text>
+                  <Text style={[styles.sliderLabel, { color: themeColors.gray[400] }]}>0</Text>
+                  <Text style={[styles.sliderLabel, { color: themeColors.gray[400] }]}>1000</Text>
                 </View>
                 <View style={styles.suggestedPoints}>
-                  <Text style={styles.suggestedLabel}>Sugerencias:</Text>
+                  <Text style={[styles.suggestedLabel, { color: themeColors.text.secondary }]}>Sugerencias:</Text>
                   <View style={styles.suggestedButtons}>
                     {[50, 100, 250, 500].map((value) => (
                       <TouchableOpacity
                         key={value}
                         style={[
                           styles.suggestedButton,
-                          points === value && styles.suggestedButtonActive,
+                          { backgroundColor: themeColors.gray[100] },
+                          points === value && [
+                            styles.suggestedButtonActive,
+                            { backgroundColor: `${themeColors.primary}15`, borderColor: themeColors.primary },
+                          ],
                         ]}
                         onPress={() => setPoints(value)}
                       >
                         <Text
                           style={[
                             styles.suggestedButtonText,
-                            points === value && styles.suggestedButtonTextActive,
+                            { color: themeColors.gray[600] },
+                            points === value && [styles.suggestedButtonTextActive, { color: themeColors.primary }],
                           ]}
                         >
                           {value}
@@ -235,7 +242,7 @@ export function ReviewActionModal({
                 <Button
                   title="Confirmar Rechazo"
                   onPress={handleSubmit(onSubmitReject)}
-                  style={[styles.actionButton, { backgroundColor: colors.error }]}
+                  style={[styles.actionButton, { backgroundColor: themeColors.error }]}
                   disabled={isSubmitting}
                   loading={loading}
                 />
@@ -255,7 +262,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   container: {
-    backgroundColor: colors.white,
     borderTopLeftRadius: borderRadius['2xl'],
     borderTopRightRadius: borderRadius['2xl'],
     maxHeight: '90%',
@@ -267,11 +273,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
   },
   title: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   closeButton: {
     padding: spacing.xs,
@@ -281,29 +285,24 @@ const styles = StyleSheet.create({
   },
   actionDetails: {
     padding: spacing.lg,
-    backgroundColor: colors.gray[50],
     margin: spacing.lg,
     borderRadius: borderRadius.lg,
   },
   actionTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   actionCategory: {
     ...typography.styles.caption,
-    color: colors.primary,
     fontWeight: '600',
     marginBottom: spacing.sm,
   },
   actionDescription: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     marginBottom: spacing.sm,
   },
   actionDate: {
     ...typography.styles.caption,
-    color: colors.gray[400],
   },
   section: {
     paddingHorizontal: spacing.lg,
@@ -317,20 +316,17 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
   },
   pointsBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: `${colors.accent}15`,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
   },
   pointsValue: {
     ...typography.styles.h3,
-    color: colors.accent,
     fontWeight: 'bold',
   },
   slider: {
@@ -344,14 +340,12 @@ const styles = StyleSheet.create({
   },
   sliderLabel: {
     ...typography.styles.caption,
-    color: colors.gray[400],
   },
   suggestedPoints: {
     marginTop: spacing.sm,
   },
   suggestedLabel: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginBottom: spacing.sm,
   },
   suggestedButtons: {
@@ -361,28 +355,20 @@ const styles = StyleSheet.create({
   suggestedButton: {
     flex: 1,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.gray[100],
     borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: 'transparent',
     alignItems: 'center',
   },
-  suggestedButtonActive: {
-    backgroundColor: `${colors.primary}15`,
-    borderColor: colors.primary,
-  },
+  suggestedButtonActive: {},
   suggestedButtonText: {
     ...typography.styles.bodyMedium,
-    color: colors.gray[600],
   },
   suggestedButtonTextActive: {
-    color: colors.primary,
     fontWeight: '600',
   },
   textArea: {
     ...typography.styles.body,
-    color: colors.text.primary,
-    backgroundColor: colors.gray[100],
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,

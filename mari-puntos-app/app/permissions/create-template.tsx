@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Input, IconSelector, Select } from '@/components/ui';
-import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import Toast from 'react-native-toast-message';
 import { PermissionCategory } from '@/types';
 import { permissionsService } from '@/services';
@@ -31,6 +32,7 @@ const CATEGORY_OPTIONS = [
 ];
 
 export default function CreateTemplateScreen() {
+  const themeColors = useThemedColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -127,14 +129,22 @@ export default function CreateTemplateScreen() {
 
   return (
     <View
-      style={[styles.container, { paddingTop: Platform.OS !== 'ios' ? insets.top : 0 }]}
+      style={[
+        styles.container,
+        {
+          backgroundColor: themeColors.background,
+          paddingTop: Platform.OS !== 'ios' ? insets.top : 0,
+        },
+      ]}
     >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
+          <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nueva Actividad</Text>
+        <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
+          Nueva Actividad
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -150,31 +160,53 @@ export default function CreateTemplateScreen() {
           >
             {/* Icon Selection */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Icono</Text>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Icono
+              </Text>
               <TouchableOpacity
-                style={styles.iconButton}
+                style={[styles.iconButton, { backgroundColor: themeColors.gray[100] }]}
                 onPress={() => setShowIconSelector(true)}
               >
-                <View style={styles.iconCircle}>
+                <View
+                  style={[
+                    styles.iconCircle,
+                    { backgroundColor: `${themeColors.primary}15` },
+                  ]}
+                >
                   <Ionicons
                     name={selectedIcon as keyof typeof Ionicons.glyphMap}
                     size={40}
-                    color={colors.primary}
+                    color={themeColors.primary}
                   />
                 </View>
                 <View style={styles.iconButtonContent}>
-                  <Text style={styles.iconButtonText}>Seleccionar Icono</Text>
-                  <Text style={styles.iconButtonSubtext}>
+                  <Text
+                    style={[styles.iconButtonText, { color: themeColors.text.primary }]}
+                  >
+                    Seleccionar Icono
+                  </Text>
+                  <Text
+                    style={[
+                      styles.iconButtonSubtext,
+                      { color: themeColors.text.secondary },
+                    ]}
+                  >
                     Personaliza el icono de tu actividad
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={24} color={colors.gray[400]} />
+                <Ionicons
+                  name="chevron-forward"
+                  size={24}
+                  color={themeColors.gray[400]}
+                />
               </TouchableOpacity>
             </View>
 
             {/* Title */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Título *</Text>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Título *
+              </Text>
               <Input
                 placeholder="Ej: Noche de Poker, Día de Golf..."
                 value={title}
@@ -185,7 +217,9 @@ export default function CreateTemplateScreen() {
 
             {/* Description */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Descripción (Opcional)</Text>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Descripción (Opcional)
+              </Text>
               <Input
                 placeholder="Describe la actividad..."
                 value={description}
@@ -198,7 +232,9 @@ export default function CreateTemplateScreen() {
 
             {/* Category */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Categoría</Text>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Categoría
+              </Text>
               <Select
                 options={CATEGORY_OPTIONS}
                 value={category}
@@ -210,7 +246,9 @@ export default function CreateTemplateScreen() {
             {/* Duration & Points */}
             <View style={styles.row}>
               <View style={[styles.section, styles.halfWidth]}>
-                <Text style={styles.sectionTitle}>Duración (hrs)</Text>
+                <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                  Duración (hrs)
+                </Text>
                 <Input
                   placeholder="2"
                   value={suggestedDuration}
@@ -220,7 +258,9 @@ export default function CreateTemplateScreen() {
               </View>
 
               <View style={[styles.section, styles.halfWidth]}>
-                <Text style={styles.sectionTitle}>Puntos Sugeridos</Text>
+                <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                  Puntos Sugeridos
+                </Text>
                 <Input
                   placeholder="50"
                   value={suggestedPoints}
@@ -231,13 +271,30 @@ export default function CreateTemplateScreen() {
             </View>
 
             {/* Info Card */}
-            <Card style={styles.infoCard}>
+            <Card
+              style={[
+                styles.infoCard,
+                {
+                  backgroundColor:
+                    Platform.OS === 'ios'
+                      ? `${themeColors.primary}08`
+                      : themeColors.white,
+                  borderColor: `${themeColors.primary}20`,
+                },
+              ]}
+            >
               <View style={styles.infoIconContainer}>
-                <Ionicons name="information-circle" size={24} color={colors.primary} />
+                <Ionicons
+                  name="information-circle"
+                  size={24}
+                  color={themeColors.primary}
+                />
               </View>
               <View style={styles.infoContent}>
-                <Text style={styles.infoTitle}>Actividad Personalizada</Text>
-                <Text style={styles.infoText}>
+                <Text style={[styles.infoTitle, { color: themeColors.text.primary }]}>
+                  Actividad Personalizada
+                </Text>
+                <Text style={[styles.infoText, { color: themeColors.text.secondary }]}>
                   Esta actividad estará disponible solo para ti y tu pareja. Los valores
                   sugeridos son una guía y pueden modificarse al solicitar el permiso.
                 </Text>
@@ -251,7 +308,11 @@ export default function CreateTemplateScreen() {
       <View
         style={[
           styles.bottomContainer,
-          { paddingBottom: insets.bottom + spacing.md, bottom: keyboardHeight },
+          {
+            backgroundColor: themeColors.background,
+            paddingBottom: insets.bottom + spacing.md,
+            bottom: keyboardHeight,
+          },
         ]}
       >
         <Button
@@ -278,7 +339,6 @@ export default function CreateTemplateScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -296,7 +356,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   scrollContent: {
     padding: spacing.lg,
@@ -307,13 +366,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.md,
   },
   iconButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
     borderRadius: borderRadius.xl,
     padding: spacing.md,
     ...shadows.sm,
@@ -322,7 +379,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: borderRadius.full,
-    backgroundColor: `${colors.primary}15`,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
@@ -332,11 +388,9 @@ const styles = StyleSheet.create({
   },
   iconButtonText: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
   },
   iconButtonSubtext: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: spacing.xs,
   },
   row: {
@@ -348,9 +402,7 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     flexDirection: 'row',
-    backgroundColor: Platform.OS === 'ios' ? `${colors.primary}08` : `${colors.white}`,
     borderWidth: 1,
-    borderColor: `${colors.primary}20`,
   },
   infoIconContainer: {
     marginRight: spacing.md,
@@ -360,12 +412,10 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   infoText: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     lineHeight: 18,
   },
   bottomContainer: {
@@ -373,7 +423,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.white,
     padding: spacing.lg,
     ...shadows.lg,
   },

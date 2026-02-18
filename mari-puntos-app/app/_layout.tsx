@@ -1,6 +1,6 @@
 import { ClerkProvider } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
-import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
@@ -9,7 +9,7 @@ import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthGuard } from '@/components';
-// import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNotifications } from '@/hooks/useNotifications';
 import * as Sentry from '@sentry/react-native';
 import logger from '@/utils/logger';
@@ -48,13 +48,13 @@ logger.info('Sentry initialized', {
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
 
 function RootLayoutNav() {
-  // const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
 
   useNotifications();
 
   return (
-    <ThemeProvider value={DefaultTheme}>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthGuard>
         <Stack>
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -107,7 +107,7 @@ function RootLayoutNav() {
             }}
           />
         </Stack>
-        <StatusBar style="dark" />
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         <Toast topOffset={Platform.OS === 'ios' ? insets.top + 10 : insets.top} />
       </AuthGuard>
     </ThemeProvider>

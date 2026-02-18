@@ -18,6 +18,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, ControlledCodeInput, ControlledInput } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import Toast from 'react-native-toast-message';
 import { resetPasswordSchema } from '@/validators/auth.schema';
 import type { ResetPasswordFormData } from '@/validators/auth.schema';
@@ -25,6 +26,7 @@ import type { ResetPasswordFormData } from '@/validators/auth.schema';
 export default function ResetPasswordScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const themeColors = useThemedColors();
   const { signIn, setActive, isLoaded } = useSignIn();
   const { email } = useLocalSearchParams<{ email: string }>();
   const [showPassword, setShowPassword] = useState(false);
@@ -86,7 +88,7 @@ export default function ResetPasswordScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -103,8 +105,8 @@ export default function ResetPasswordScreen() {
         >
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Restablecer contraseña</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: themeColors.text.primary }]}>Restablecer contraseña</Text>
+            <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
               Ingresa el código que enviamos a {email} y tu nueva contraseña
             </Text>
           </View>
@@ -134,7 +136,7 @@ export default function ResetPasswordScreen() {
             />
 
             <View style={styles.codeInputContainer}>
-              <Text style={styles.codeLabel}>Código de verificación</Text>
+              <Text style={[styles.codeLabel, { color: themeColors.text.primary }]}>Código de verificación</Text>
               <ControlledCodeInput
                 control={control}
                 name="code"
@@ -155,7 +157,7 @@ export default function ResetPasswordScreen() {
           {/* Back */}
           <View style={styles.backContainer}>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text style={styles.backLink}>Volver</Text>
+              <Text style={[styles.backLink, { color: themeColors.primary }]}>Volver</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -167,7 +169,6 @@ export default function ResetPasswordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -180,12 +181,10 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.h1,
-    color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   subtitle: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     textAlign: 'center',
   },
   form: {
@@ -196,7 +195,6 @@ const styles = StyleSheet.create({
   },
   codeLabel: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   backContainer: {
@@ -204,6 +202,5 @@ const styles = StyleSheet.create({
   },
   backLink: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
 });

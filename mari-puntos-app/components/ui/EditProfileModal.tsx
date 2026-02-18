@@ -19,6 +19,7 @@ import {
   requestMediaLibraryPermissionsAsync,
 } from 'expo-image-picker';
 import { colors, spacing, typography, borderRadius } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import { Button } from './Button';
 import { ControlledInput } from './ControlledInput';
 import {
@@ -43,6 +44,7 @@ export function EditProfileModal({
   currentLastName = '',
   currentAvatarUrl,
 }: EditProfileModalProps) {
+  const themeColors = useThemedColors();
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -130,34 +132,34 @@ export function EditProfileModal({
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardAvoidingView}
         >
-          <View style={styles.container}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Editar Perfil</Text>
+          <View style={[styles.container, { backgroundColor: themeColors.gray[100] }]}>
+            <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
+              <Text style={[styles.title, { color: themeColors.text.primary }]}>Editar Perfil</Text>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color={colors.text.primary} />
+                <Ionicons name="close" size={24} color={themeColors.text.primary} />
               </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.section}>
-                <Text style={styles.label}>Foto de Perfil</Text>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>Foto de Perfil</Text>
                 <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
                   {displayImage ? (
-                    <Image source={{ uri: displayImage }} style={styles.avatar} />
+                    <Image source={{ uri: displayImage }} style={[styles.avatar, { backgroundColor: themeColors.gray[200] }]} />
                   ) : (
-                    <View style={styles.avatarPlaceholder}>
-                      <Ionicons name="person" size={48} color={colors.gray[400]} />
+                    <View style={[styles.avatarPlaceholder, { backgroundColor: themeColors.gray[200] }]}>
+                      <Ionicons name="person" size={48} color={themeColors.gray[400]} />
                     </View>
                   )}
-                  <View style={styles.avatarEditBadge}>
-                    <Ionicons name="camera" size={16} color={colors.white} />
+                  <View style={[styles.avatarEditBadge, { backgroundColor: themeColors.primary, borderColor: themeColors.white }]}>
+                    <Ionicons name="camera" size={16} color={themeColors.white} />
                   </View>
                 </TouchableOpacity>
-                <Text style={styles.hint}>Toca para cambiar tu foto</Text>
+                <Text style={[styles.hint, { color: themeColors.text.secondary }]}>Toca para cambiar tu foto</Text>
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.label}>Nombre *</Text>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>Nombre *</Text>
                 <ControlledInput
                   control={control}
                   name="firstName"
@@ -167,7 +169,7 @@ export function EditProfileModal({
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.label}>Apellido *</Text>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>Apellido *</Text>
                 <ControlledInput
                   control={control}
                   name="lastName"
@@ -210,7 +212,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   container: {
-    backgroundColor: colors.white,
     borderTopLeftRadius: borderRadius['2xl'],
     borderTopRightRadius: borderRadius['2xl'],
     maxHeight: '90%',
@@ -222,11 +223,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
   },
   title: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   closeButton: {
     padding: spacing.xs,
@@ -237,7 +236,6 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   avatarContainer: {
@@ -249,13 +247,11 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.gray[200],
   },
   avatarPlaceholder: {
     width: 120,
     height: 120,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.gray[200],
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -266,15 +262,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: colors.white,
   },
   hint: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     textAlign: 'center',
   },
   actions: {

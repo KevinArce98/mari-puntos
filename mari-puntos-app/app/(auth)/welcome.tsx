@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui';
-import { useFirstTimeUser } from '@/hooks';
+import { useFirstTimeUser, useThemedColors } from '@/hooks';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 
 interface OnboardingStep {
@@ -41,6 +41,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
 ];
 
 export default function WelcomeScreen() {
+  const themeColors = useThemedColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { markAsNotFirstTime } = useFirstTimeUser();
@@ -72,7 +73,7 @@ export default function WelcomeScreen() {
 
   return (
     <View
-      style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}
+      style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top, paddingBottom: insets.bottom }]}
     >
       {/* Logo */}
       <View style={styles.logoContainer}>
@@ -81,20 +82,20 @@ export default function WelcomeScreen() {
           style={styles.logoImage}
           resizeMode="contain"
         />
-        <Text style={styles.logoText}>MariPuntos</Text>
+        <Text style={[styles.logoText, { color: themeColors.primary }]}>MariPuntos</Text>
       </View>
 
       {/* Skip button */}
       {!isLastStep && (
         <Pressable onPress={handleSkip} style={styles.skipButton}>
-          <Text style={styles.skipText}>Saltar</Text>
+          <Text style={[styles.skipText, { color: themeColors.primary }]}>Saltar</Text>
         </Pressable>
       )}
 
       {/* Illustration */}
       <View style={styles.illustrationContainer}>
         <View style={styles.illustrationPlaceholder}>
-          <Ionicons name={currentStepData.icon} size={120} color={colors.primary} />
+          <Ionicons name={currentStepData.icon} size={120} color={themeColors.primary} />
         </View>
       </View>
 
@@ -105,7 +106,8 @@ export default function WelcomeScreen() {
             key={index}
             style={[
               styles.progressDot,
-              index === currentStep && styles.progressDotActive,
+              { backgroundColor: themeColors.gray[200] },
+              index === currentStep && { backgroundColor: themeColors.primary, width: 24 },
             ]}
           />
         ))}
@@ -113,8 +115,8 @@ export default function WelcomeScreen() {
 
       {/* Content */}
       <View style={styles.content}>
-        <Text style={styles.title}>{currentStepData.title}</Text>
-        <Text style={styles.subtitle}>{currentStepData.description}</Text>
+        <Text style={[styles.title, { color: themeColors.text.primary }]}>{currentStepData.title}</Text>
+        <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>{currentStepData.description}</Text>
       </View>
 
       {/* Actions */}
@@ -155,7 +157,6 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
     padding: spacing.lg,
   },
   logoContainer: {
@@ -177,7 +178,6 @@ const styles = StyleSheet.create({
   },
   logoText: {
     ...typography.styles.h2,
-    color: colors.primary,
   },
   skipButton: {
     position: 'absolute',
@@ -188,7 +188,6 @@ const styles = StyleSheet.create({
   },
   skipText: {
     ...typography.styles.body,
-    color: colors.primary,
     fontWeight: '600',
   },
   illustrationContainer: {
@@ -213,11 +212,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.gray[200],
-  },
-  progressDotActive: {
-    backgroundColor: colors.primary,
-    width: 24,
   },
   content: {
     alignItems: 'center',
@@ -225,13 +219,11 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.h1,
-    color: colors.text.primary,
     textAlign: 'center',
     marginBottom: spacing.md,
   },
   subtitle: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     textAlign: 'center',
     paddingHorizontal: spacing.md,
     lineHeight: 22,

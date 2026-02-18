@@ -3,10 +3,11 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Card, Badge } from '@/components/ui';
 import { colors, typography, spacing, borderRadius } from '@/theme';
 import { formatDateOnly } from '@/utils/dateUtils';
-import { useRewards } from '@/hooks';
+import { useRewards, useThemedColors } from '@/hooks';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AchievementsScreen() {
+  const themeColors = useThemedColors();
   const insets = useSafeAreaInsets();
   const { allRewards, availableRewards } = useRewards();
 
@@ -20,12 +21,12 @@ export default function AchievementsScreen() {
           {isLocked ? '🔒' : achievement.icon}
         </Text>
         <View style={styles.achievementInfo}>
-          <Text style={[styles.achievementName, isLocked && styles.lockedText]}>
+          <Text style={[styles.achievementName, { color: themeColors.text.primary }, isLocked && { color: themeColors.text.light }]}>
             {achievement.name}
           </Text>
-          <Text style={styles.achievementDescription}>{achievement.description}</Text>
+          <Text style={[styles.achievementDescription, { color: themeColors.text.secondary }]}>{achievement.description}</Text>
           {!isLocked && achievement.unlockedAt && (
-            <Text style={styles.achievementDate}>
+            <Text style={[styles.achievementDate, { color: themeColors.success }]}>
               Desbloqueado el {formatDateOnly(achievement.unlockedAt)}
             </Text>
           )}
@@ -34,17 +35,18 @@ export default function AchievementsScreen() {
 
       {isLocked && (
         <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
+          <View style={[styles.progressBar, { backgroundColor: themeColors.gray[200] }]}>
             <View
               style={[
                 styles.progressFill,
+                { backgroundColor: themeColors.primary },
                 {
                   width: `${Math.min((achievement.progress / achievement.requirement) * 100, 100)}%`,
                 },
               ]}
             />
           </View>
-          <Text style={styles.progressText}>
+          <Text style={[styles.progressText, { color: themeColors.text.secondary }]}>
             {achievement.progress} / {achievement.requirement}
           </Text>
         </View>
@@ -60,37 +62,37 @@ export default function AchievementsScreen() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Logros</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, { color: themeColors.text.primary }]}>Logros</Text>
+        <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
           Completa desafíos y desbloquea logros especiales
         </Text>
 
         {/* Stats */}
         <View style={styles.statsContainer}>
           <Card style={styles.statCard}>
-            <Text style={styles.statValue}>{availableRewards.length}</Text>
-            <Text style={styles.statLabel}>Desbloqueados</Text>
+            <Text style={[styles.statValue, { color: themeColors.primary }]}>{availableRewards.length}</Text>
+            <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>Desbloqueados</Text>
           </Card>
           <Card style={styles.statCard}>
-            <Text style={styles.statValue}>
+            <Text style={[styles.statValue, { color: themeColors.primary }]}>
               {allRewards.length - availableRewards.length}
             </Text>
-            <Text style={styles.statLabel}>Por desbloquear</Text>
+            <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>Por desbloquear</Text>
           </Card>
           <Card style={styles.statCard}>
-            <Text style={styles.statValue}>
+            <Text style={[styles.statValue, { color: themeColors.primary }]}>
               {Math.round((availableRewards.length / allRewards.length) * 100)}%
             </Text>
-            <Text style={styles.statLabel}>Completado</Text>
+            <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>Completado</Text>
           </Card>
         </View>
 
         {/* Unlocked Achievements */}
         {availableRewards.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
+            <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
               🏆 Logros desbloqueados ({availableRewards.length})
             </Text>
             {availableRewards.map((achievement) => renderAchievement(achievement, false))}
@@ -100,7 +102,7 @@ export default function AchievementsScreen() {
         {/* Locked Achievements */}
         {allRewards.length - availableRewards.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
+            <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
               🔒 Logros bloqueados ({allRewards.length - availableRewards.length})
             </Text>
             {availableRewards.map((achievement) => renderAchievement(achievement, true))}
@@ -114,19 +116,16 @@ export default function AchievementsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollContent: {
     padding: spacing.lg,
   },
   title: {
     ...typography.styles.h2,
-    color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   subtitle: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     marginBottom: spacing.xl,
   },
   statsContainer: {
@@ -142,12 +141,10 @@ const styles = StyleSheet.create({
   },
   statValue: {
     ...typography.styles.h2,
-    color: colors.primary,
     marginBottom: spacing.xs,
   },
   statLabel: {
     ...typography.styles.small,
-    color: colors.text.secondary,
     textAlign: 'center',
   },
   section: {
@@ -155,7 +152,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.md,
   },
   achievementCard: {
@@ -181,38 +177,30 @@ const styles = StyleSheet.create({
   },
   achievementName: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.xs / 2,
   },
-  lockedText: {
-    color: colors.text.light,
-  },
+  lockedText: {},
   achievementDescription: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginBottom: spacing.xs,
   },
   achievementDate: {
     ...typography.styles.small,
-    color: colors.success,
   },
   progressContainer: {
     marginBottom: spacing.md,
   },
   progressBar: {
     height: 6,
-    backgroundColor: colors.gray[200],
     borderRadius: borderRadius.full,
     overflow: 'hidden',
     marginBottom: spacing.xs,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.primary,
   },
   progressText: {
     ...typography.styles.small,
-    color: colors.text.secondary,
     textAlign: 'right',
   },
   typeBadge: {

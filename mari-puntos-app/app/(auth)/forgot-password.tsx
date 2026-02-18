@@ -18,6 +18,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, ControlledInput } from '@/components/ui';
 import { colors, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import Toast from 'react-native-toast-message';
 import { forgotPasswordSchema } from '@/validators/auth.schema';
 import type { ForgotPasswordFormData } from '@/validators/auth.schema';
@@ -26,6 +27,7 @@ import logger from '@/utils/logger';
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const themeColors = useThemedColors();
   const { signIn, isLoaded } = useSignIn();
 
   const {
@@ -78,7 +80,7 @@ export default function ForgotPasswordScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: themeColors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -95,8 +97,8 @@ export default function ForgotPasswordScreen() {
         >
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Olvidé mi contraseña</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: themeColors.text.primary }]}>Olvidé mi contraseña</Text>
+            <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
               Ingresa tu correo electrónico y te enviaremos un código para restablecer tu
               contraseña
             </Text>
@@ -126,7 +128,7 @@ export default function ForgotPasswordScreen() {
           {/* Back to Login */}
           <View style={styles.backContainer}>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text style={styles.backLink}>Volver al inicio de sesión</Text>
+              <Text style={[styles.backLink, { color: themeColors.primary }]}>Volver al inicio de sesión</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -138,7 +140,6 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -151,12 +152,10 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.h1,
-    color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   subtitle: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     textAlign: 'center',
   },
   form: {
@@ -167,6 +166,5 @@ const styles = StyleSheet.create({
   },
   backLink: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
 });

@@ -9,7 +9,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, borderRadius } from '@/theme';
+import { typography, spacing, borderRadius } from '@/theme';
+import { useThemedColors } from '@/hooks';
 
 export interface InputProps extends TextInputProps {
   label?: string;
@@ -31,6 +32,7 @@ export const Input: React.FC<InputProps> = ({
   secureTextEntry,
   ...props
 }) => {
+  const colors = useThemedColors();
   const [isSecure, setIsSecure] = useState(secureTextEntry);
 
   const toggleSecure = () => {
@@ -39,9 +41,17 @@ export const Input: React.FC<InputProps> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && (
+        <Text style={[styles.label, { color: colors.text.primary }]}>{label}</Text>
+      )}
 
-      <View style={[styles.inputContainer, error && styles.inputError]}>
+      <View
+        style={[
+          styles.inputContainer,
+          { backgroundColor: colors.gray[100], borderColor: colors.gray[300] },
+          error && { borderColor: colors.error },
+        ]}
+      >
         {leftIcon && (
           <Ionicons
             name={leftIcon}
@@ -54,6 +64,7 @@ export const Input: React.FC<InputProps> = ({
         <TextInput
           style={[
             styles.input,
+            { color: colors.text.primary },
             leftIcon && styles.inputWithLeftIcon,
             (rightIcon || secureTextEntry) && styles.inputWithRightIcon,
           ]}
@@ -79,7 +90,7 @@ export const Input: React.FC<InputProps> = ({
         )}
       </View>
 
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && <Text style={[styles.error, { color: colors.error }]}>{error}</Text>}
     </View>
   );
 };
@@ -90,25 +101,18 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: colors.white,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.gray[300],
-  },
-  inputError: {
-    borderColor: colors.error,
   },
   input: {
     lineHeight: 16,
     flex: 1,
-    color: colors.text.primary,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
   },
@@ -126,7 +130,6 @@ const styles = StyleSheet.create({
   },
   error: {
     ...typography.styles.small,
-    color: colors.error,
     marginTop: spacing.xs,
   },
 });

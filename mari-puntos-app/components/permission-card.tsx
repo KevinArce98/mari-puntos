@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Badge, Button, Card, ResponseModal } from './ui';
-import { colors, spacing, typography } from '@/theme';
+import { spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import { Permission } from '@/types';
 import { getStatusColor, getStatusText } from '@/utils/general';
 import { useState } from 'react';
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function PermissionCard({ permission, handleRespond, loading }: Props) {
+  const colors = useThemedColors();
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleApprove = async (data: ResponseMessageFormData) => {
@@ -41,39 +43,50 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
     <>
       <Card key={permission.id} style={styles.permissionCard}>
         <View style={styles.permissionHeader}>
-          <Text style={styles.permissionName}>
+          <Text style={[styles.permissionName, { color: colors.text.primary }]}>
             {permission.template?.title || 'Solicitud sin título'}
           </Text>
           {displayPointsCost > 0 && (
-            <Text style={styles.permissionPoints}>{displayPointsCost} pts</Text>
+            <Text style={[styles.permissionPoints, { color: colors.primary }]}>
+              {displayPointsCost} pts
+            </Text>
           )}
         </View>
-        <Text style={styles.permissionDate}>
+        <Text style={[styles.permissionDate, { color: colors.text.secondary }]}>
           Fecha solicitada: {formatDateWithTime(permission.requestedDate)}
         </Text>
-        <Text style={styles.permissionDate}>
+        <Text style={[styles.permissionDate, { color: colors.text.secondary }]}>
           Duración: {permission.durationHours} horas
         </Text>
         {permission.template?.description && (
-          <Text style={styles.permissionMessage}>{permission.template.description}</Text>
+          <Text
+            style={[
+              styles.permissionMessage,
+              { color: colors.text.primary, borderLeftColor: colors.primary },
+            ]}
+          >
+            {permission.template.description}
+          </Text>
         )}
-        <Text style={styles.permissionFrom}>
+        <Text style={[styles.permissionFrom, { color: colors.text.secondary }]}>
           De: {permission.requester?.firstName} {permission.requester?.lastName}
         </Text>
 
         {/* Show requester's available points */}
         {permission.status === 'pending' && permission.requester && (
-          <View style={styles.pointsInfo}>
-            <Text style={styles.pointsInfoValue}>{requesterPoints} pts</Text>
+          <View style={[styles.pointsInfo, { backgroundColor: colors.gray[50] }]}>
+            <Text style={[styles.pointsInfoValue, { color: colors.primary }]}>
+              {requesterPoints} pts
+            </Text>
             {hasInsufficientPoints && (
-              <Text style={styles.warningText}>
+              <Text style={[styles.warningText, { color: colors.error }]}>
                 ⚠️ Tu pareja no tiene suficientes puntos para esta solicitud
               </Text>
             )}
           </View>
         )}
 
-        <Text style={styles.permissionFrom}>
+        <Text style={[styles.permissionFrom, { color: colors.text.secondary }]}>
           Fecha creación: {formatDateOnly(permission.createdAt)}
         </Text>
         {permission.status === 'pending' ? (
@@ -122,26 +135,21 @@ const styles = StyleSheet.create({
   },
   permissionName: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     flex: 1,
   },
   permissionPoints: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
   permissionFrom: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginBottom: spacing.xs,
   },
   permissionMessage: {
     ...typography.styles.body,
-    color: colors.text.primary,
     fontStyle: 'italic',
     marginBottom: spacing.sm,
     paddingLeft: spacing.md,
     borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
   },
   permissionDate: {
     ...typography.styles.body,
@@ -159,7 +167,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: colors.gray[50],
     borderRadius: 8,
     padding: spacing.sm,
     marginTop: spacing.sm,
@@ -167,18 +174,13 @@ const styles = StyleSheet.create({
   },
   pointsInfoLabel: {
     ...typography.styles.bodyMedium,
-    color: colors.text.secondary,
   },
   pointsInfoValue: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
     fontWeight: '600',
   },
-  pointsInsufficient: {
-    color: colors.error,
-  },
+  pointsInsufficient: {},
   warningContainer: {
-    backgroundColor: `${colors.error}15`,
     borderRadius: 8,
     padding: spacing.sm,
     marginTop: spacing.xs,
@@ -186,7 +188,6 @@ const styles = StyleSheet.create({
   },
   warningText: {
     ...typography.styles.caption,
-    color: colors.error,
     textAlign: 'center',
   },
 });

@@ -13,6 +13,7 @@ export function ThemedView({
   darkColor,
   ...otherProps
 }: ThemedViewProps) {
+  // Usar background por defecto
   const backgroundColor = useThemeColor(
     { light: lightColor, dark: darkColor },
     'background'

@@ -14,12 +14,14 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ActionCategory } from '@/types';
 import { colors, spacing, typography, borderRadius } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import { Button } from './Button';
 import { ControlledInput } from './ControlledInput';
 import {
   createActionSchema,
   type CreateActionFormData,
 } from '@/validators/action.schema';
+
 
 interface CreateActionModalProps {
   visible: boolean;
@@ -45,6 +47,7 @@ export function CreateActionModal({
   onClose,
   onSubmit,
 }: CreateActionModalProps) {
+  const themeColors = useThemedColors();
   const [loading, setLoading] = useState(false);
 
   const {
@@ -91,19 +94,19 @@ export function CreateActionModal({
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardAvoidingView}
         >
-          <View style={styles.container}>
+          <View style={[styles.container, { backgroundColor: themeColors.gray[100] }]}>
             {/* Header */}
-            <View style={styles.header}>
-              <Text style={styles.title}>Crear Acción</Text>
+            <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
+              <Text style={[styles.title, { color: themeColors.text.primary }]}>Crear Acción</Text>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color={colors.text.primary} />
+                <Ionicons name="close" size={24} color={themeColors.text.primary} />
               </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
               {/* Title Input */}
               <View style={styles.section}>
-                <Text style={styles.label}>Título *</Text>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>Título *</Text>
                 <ControlledInput
                   control={control}
                   name="title"
@@ -114,7 +117,7 @@ export function CreateActionModal({
 
               {/* Description Input */}
               <View style={styles.section}>
-                <Text style={styles.label}>Descripción (opcional)</Text>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>Descripción (opcional)</Text>
                 <ControlledInput
                   control={control}
                   name="description"
@@ -128,7 +131,7 @@ export function CreateActionModal({
 
               {/* Category Selection */}
               <View style={styles.section}>
-                <Text style={styles.label}>Categoría *</Text>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>Categoría *</Text>
                 <Controller
                   control={control}
                   name="category"
@@ -139,7 +142,11 @@ export function CreateActionModal({
                           key={category.value}
                           style={[
                             styles.categoryCard,
-                            value === category.value && styles.categoryCardSelected,
+                            { backgroundColor: themeColors.gray[100] },
+                            value === category.value && [
+                              styles.categoryCardSelected,
+                              { backgroundColor: `${themeColors.primary}10`, borderColor: themeColors.primary },
+                            ],
                           ]}
                           onPress={() => onChange(category.value)}
                         >
@@ -147,13 +154,16 @@ export function CreateActionModal({
                             name={category.icon}
                             size={24}
                             color={
-                              value === category.value ? colors.primary : colors.gray[400]
+                              value === category.value
+                                ? themeColors.primary
+                                : themeColors.gray[400]
                             }
                           />
                           <Text
                             style={[
                               styles.categoryLabel,
-                              value === category.value && styles.categoryLabelSelected,
+                              { color: themeColors.gray[600] },
+                              value === category.value && [styles.categoryLabelSelected, { color: themeColors.primary }],
                             ]}
                           >
                             {category.label}
@@ -200,7 +210,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   container: {
-    backgroundColor: colors.white,
     borderTopLeftRadius: borderRadius['2xl'],
     borderTopRightRadius: borderRadius['2xl'],
     maxHeight: '90%',
@@ -212,11 +221,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
   },
   title: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   closeButton: {
     padding: spacing.xs,
@@ -227,13 +234,10 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   input: {
     ...typography.styles.body,
-    color: colors.text.primary,
-    backgroundColor: colors.gray[100],
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -251,7 +255,6 @@ const styles = StyleSheet.create({
   categoryCard: {
     width: '31%',
     height: 80,
-    backgroundColor: colors.gray[100],
     borderRadius: borderRadius.lg,
     borderWidth: 2,
     borderColor: 'transparent',
@@ -260,16 +263,13 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   categoryCardSelected: {
-    backgroundColor: `${colors.primary}10`,
-    borderColor: colors.primary,
+    borderWidth: 2,
   },
   categoryLabel: {
     ...typography.styles.caption,
-    color: colors.gray[600],
     textAlign: 'center',
   },
   categoryLabelSelected: {
-    color: colors.primary,
     fontWeight: '600',
   },
   actions: {

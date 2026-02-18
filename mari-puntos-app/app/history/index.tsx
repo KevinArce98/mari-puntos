@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui';
 import { HistoryItem } from '@/components';
-import { usePoints } from '@/hooks';
-import { colors, spacing, typography } from '@/theme';
+import { usePoints, useThemedColors } from '@/hooks';
+import { spacing, typography } from '@/theme';
 import { PointsLog } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
@@ -19,6 +19,7 @@ import logger from '@/utils/logger';
 
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
+  const colors = useThemedColors();
   const { pointsHistory, fetchHistory, isLoading, paginationMeta } = usePoints();
   const [refreshing, setRefreshing] = React.useState(false);
   const [page, setPage] = React.useState(1);
@@ -86,8 +87,8 @@ export default function HistoryScreen() {
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="time-outline" size={64} color={colors.text.secondary} />
-      <Text style={styles.emptyText}>No hay historial</Text>
-      <Text style={styles.emptySubtext}>
+      <Text style={[styles.emptyText, { color: colors.text.primary }]}>No hay historial</Text>
+      <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>
         Tus actividades y transacciones aparecerán aquí
       </Text>
     </View>
@@ -99,7 +100,7 @@ export default function HistoryScreen() {
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color={colors.primary} />
-        <Text style={styles.loadingText}>Cargando más...</Text>
+        <Text style={[styles.loadingText, { color: colors.text.secondary }]}>Cargando más...</Text>
       </View>
     );
   };
@@ -142,7 +143,7 @@ export default function HistoryScreen() {
       />
 
       {isLoading && pointsHistory.length === 0 && (
-        <View style={styles.initialLoader}>
+        <View style={[styles.initialLoader, { backgroundColor: colors.background }]}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       )}
@@ -153,7 +154,6 @@ export default function HistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   listContent: {
     padding: spacing.lg,
@@ -172,13 +172,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...typography.styles.h3,
-    color: colors.text.primary,
     marginTop: spacing.lg,
     textAlign: 'center',
   },
   emptySubtext: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     marginTop: spacing.xs,
     textAlign: 'center',
   },
@@ -191,12 +189,10 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
   },
   initialLoader: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.background,
   },
 });

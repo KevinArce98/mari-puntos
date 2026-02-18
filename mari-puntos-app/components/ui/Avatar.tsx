@@ -1,4 +1,5 @@
 import { borderRadius, colors, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import React from 'react';
 import { Image, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
@@ -19,6 +20,8 @@ export const Avatar: React.FC<AvatarProps> = ({
   level,
   style,
 }) => {
+  const themeColors = useThemedColors();
+
   const getInitials = (fullName: string) => {
     const names = fullName.trim().split(' ');
     if (names.length === 0) return '?';
@@ -31,20 +34,20 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   return (
     <View style={[styles.wrapper, style]}>
-      <View style={[styles.container, sizeStyles]}>
+      <View style={[styles.container, sizeStyles, { backgroundColor: themeColors.gray[200] }]}>
         {imageUri ? (
           <Image source={{ uri: imageUri }} style={styles.image} />
         ) : (
-          <Text style={[styles.initials, styles[`initials_${size}`]]}>
+          <Text style={[styles.initials, styles[`initials_${size}`], { color: themeColors.text.secondary }]}>
             {getInitials(name)}
           </Text>
         )}
       </View>
       {showLevel && level !== undefined && (
         <View
-          style={[styles.levelBadge, { width: levelBadgeSize, height: levelBadgeSize }]}
+          style={[styles.levelBadge, { width: levelBadgeSize, height: levelBadgeSize, backgroundColor: themeColors.primary, borderColor: themeColors.white }]}
         >
-          <Text style={styles.levelText}>Lvl {level}</Text>
+          <Text style={[styles.levelText, { color: themeColors.white }]}>Lvl {level}</Text>
         </View>
       )}
     </View>
@@ -56,7 +59,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   container: {
-    backgroundColor: colors.gray[200],
     borderRadius: borderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
@@ -67,22 +69,18 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   initials: {
-    color: colors.text.secondary,
     fontFamily: typography.fontFamily.bold,
   },
   levelBadge: {
     position: 'absolute',
     bottom: -2,
     left: -2,
-    backgroundColor: colors.primary,
     borderRadius: borderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: colors.white,
   },
   levelText: {
-    color: colors.white,
     fontSize: 8,
     fontFamily: typography.fontFamily.bold,
   },

@@ -1,5 +1,6 @@
 // filepath: /Users/kevinarias/Projects/mari-puntos-app/components/ui/ActionCard.tsx
-import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
@@ -17,22 +18,29 @@ export const ActionCard: React.FC<ActionCardProps> = ({
   title,
   subtitle,
   icon,
-  iconBackgroundColor = colors.primary,
+  iconBackgroundColor,
   onPress,
   style,
 }) => {
+  const colors = useThemedColors();
+  const bgColor = iconBackgroundColor || colors.primary;
+
   return (
     <TouchableOpacity
-      style={[styles.container, style]}
+      style={[styles.container, { backgroundColor: colors.gray[100] }, style]}
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <View style={[styles.iconContainer, { backgroundColor: iconBackgroundColor }]}>
-        <Ionicons name={icon} size={24} color={colors.white} />
+      <View style={[styles.iconContainer, { backgroundColor: bgColor }]}>
+        <Ionicons name={icon} size={24} color={colors.text.white} />
       </View>
       <View style={styles.content}>
-        <Text style={styles.title}>{title}</Text>
-        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
+        {subtitle && (
+          <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
+            {subtitle}
+          </Text>
+        )}
       </View>
       <Ionicons name="chevron-forward" size={20} color={colors.gray[400]} />
     </TouchableOpacity>
@@ -43,7 +51,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
     borderRadius: borderRadius.xl,
     padding: spacing.md,
     ...shadows.sm,
@@ -61,11 +68,9 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.h4,
-    color: colors.text.primary,
   },
   subtitle: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: 2,
   },
 });

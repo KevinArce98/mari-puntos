@@ -1,5 +1,8 @@
 import { colors } from '@/theme';
 
+// Status colors use fixed brand colors (not theme-dependent)
+const c = colors.light;
+
 export const getStatusText = (status: string) => {
   switch (status) {
     case 'approved':
@@ -14,10 +17,10 @@ export const getStatusText = (status: string) => {
 export const getStatusColor = (status: string) => {
   switch (status) {
     case 'approved':
-      return colors.success;
+      return c.success;
     case 'rejected':
-      return colors.error;
+      return c.error;
     default:
-      return colors.warning;
+      return c.warning;
   }
 };
