@@ -2,7 +2,11 @@ import { Response } from 'express';
 import { AuthRequest } from '../middlewares/authMiddleware';
 import { UsersService } from '../services/users.service';
 import { PushNotificationService } from '../services/push-notification.service';
-import { createUserSchema, updateUserSchema, sendTestNotificationSchema } from '../validators/schemas';
+import {
+  createUserSchema,
+  updateUserSchema,
+  sendTestNotificationSchema,
+} from '../validators/schemas';
 import { sendSuccess, sendCreated } from '../utils/response';
 import { toUserDTO, toUserStatsDTO } from '../utils/mappers';
 import { logger } from '../utils/logger';
@@ -16,14 +20,10 @@ export class UsersController {
    * Get current user's profile
    */
   getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-      const userId = req.userId!;
-      const { user, hasPartner } = await this.usersService.getUserProfile(userId);
+    const userId = req.userId!;
+    const { user, hasPartner } = await this.usersService.getUserProfile(userId);
 
-      sendSuccess(res, toUserDTO(user, hasPartner));
-    } catch (error) {
-      throw error;
-    }
+    sendSuccess(res, toUserDTO(user, hasPartner));
   };
 
   /**
@@ -32,11 +32,15 @@ export class UsersController {
    */
   createProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      logger.info({ message: 'Create profile request', body: req.body, clerkId: req.clerkId });
-      
+      logger.info({
+        message: 'Create profile request',
+        body: req.body,
+        clerkId: req.clerkId,
+      });
+
       const data = createUserSchema.parse(req.body);
       logger.debug({ message: 'Schema validation passed', data });
-      
+
       // Get clerkId from request body if provided (during signup flow)
       // Otherwise get from authenticated token (for already authenticated users)
       const clerkId = data.clerkId || req.clerkId!;
@@ -82,14 +86,10 @@ export class UsersController {
    * Get current user's statistics
    */
   getStats = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-      const userId = req.userId!;
-      const stats = await this.usersService.getUserStats(userId);
+    const userId = req.userId!;
+    const stats = await this.usersService.getUserStats(userId);
 
-      sendSuccess(res, toUserStatsDTO(stats));
-    } catch (error) {
-      throw error;
-    }
+    sendSuccess(res, toUserStatsDTO(stats));
   };
 
   /**
@@ -99,7 +99,6 @@ export class UsersController {
   deactivateAccount = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId!;
     try {
-
       logger.info({ message: 'Deactivating account for user', userId });
 
       await this.usersService.deactivateUser(userId);
@@ -132,7 +131,10 @@ export class UsersController {
         },
       });
 
-      logger.info({ message: 'Test notification sent successfully to pushToken', pushToken });
+      logger.info({
+        message: 'Test notification sent successfully to pushToken',
+        pushToken,
+      });
 
       sendSuccess(res, null, 'Test notification sent successfully');
     } catch (error) {

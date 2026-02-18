@@ -28,8 +28,8 @@ export class PartnerService {
       where: [{ user1Id: userId }, { user2Id: userId }],
     });
 
-    if (existingLink) {
-      logger.warn({ message: 'User already has a partner link', userId });
+    if (existingLink && existingLink.status !== PartnerLinkStatus.INACTIVE) {
+      logger.warn({ message: 'User already has an active or pending partner link', userId });
       throw new AppError(400, 'El usuario ya tiene un enlace de pareja');
     }
 
@@ -66,13 +66,13 @@ export class PartnerService {
       throw new AppError(404, 'Usuario no encontrado');
     }
 
-    // Check if user already has a partner link
+    // Check if user already has an active or pending partner link
     const existingLink = await this.partnerLinkRepository.findOne({
       where: [{ user1Id: userId }, { user2Id: userId }],
     });
 
-    if (existingLink) {
-      logger.warn({ message: 'User already has a partner link', userId });
+    if (existingLink && existingLink.status !== PartnerLinkStatus.INACTIVE) {
+      logger.warn({ message: 'User already has an active or pending partner link', userId });
       throw new AppError(400, 'El usuario ya tiene un enlace de pareja');
     }
 
@@ -165,8 +165,8 @@ export class PartnerService {
 
   async getPartnerLinkCode(userId: string): Promise<PartnerLink | null> {
     logger.debug({ message: 'Getting partner link code', userId });
-    let partnerLink = await this.partnerLinkRepository.findOne({
-      where: [{ user1Id: userId }],
+    const partnerLink = await this.partnerLinkRepository.findOne({
+      where: { user1Id: userId, status: PartnerLinkStatus.PENDING },
     });
     logger.info({ message: 'Partner link code retrieved', userId, found: !!partnerLink });
     return partnerLink;
