@@ -43,14 +43,26 @@ export function useNotifications() {
 
   const handleNotificationResponse = useCallback(
     (data: NotificationData) => {
+      const hasPartner = !!useUserStore.getState().partnerInfo?.id;
+
       // Navigate based on notification type
       let route: string;
       switch (data.type) {
         case 'permission_requested':
         case 'permission_response':
+          if (!hasPartner) {
+            logger.warn('Skipping navigation to /permissions — user has no partner');
+            router.push('/');
+            return;
+          }
           route = '/permissions';
           break;
         case 'action_created':
+          if (!hasPartner) {
+            logger.warn('Skipping navigation to /actions/review — user has no partner');
+            router.push('/');
+            return;
+          }
           route = '/actions/review';
           break;
         case 'action_approved':
@@ -162,7 +174,7 @@ export function useNotifications() {
 }
 
 function handleRegistrationError(errorMessage: string) {
-  alert(errorMessage);
+  logger.warn('Push notification registration error:', errorMessage);
   throw new Error(errorMessage);
 }
 

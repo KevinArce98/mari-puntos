@@ -1,22 +1,26 @@
 import { create } from 'zustand';
 import { actionsService } from '@/services';
-import {
-  Action,
-  CreateActionRequest,
-  GetActionsParams,
-  ActionStatus,
-} from '@/types';
+import { Action, CreateActionRequest, GetActionsParams, ActionStatus } from '@/types';
 import logger from '@/utils/logger';
+
+interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
 
 interface ActionsState {
   myActions: Action[];
   partnerActions: Action[];
   isLoading: boolean;
   error: string | null;
-  
+  myActionsPagination: PaginationMeta | null;
+  partnerActionsPagination: PaginationMeta | null;
+
   // Actions
-  fetchMyActions: (params?: GetActionsParams) => Promise<void>;
-  fetchPartnerActions: (params?: GetActionsParams) => Promise<void>;
+  fetchMyActions: (params?: GetActionsParams, append?: boolean) => Promise<void>;
+  fetchPartnerActions: (params?: GetActionsParams, append?: boolean) => Promise<void>;
   createAction: (data: CreateActionRequest) => Promise<void>;
   approveAction: (actionId: string, pointsAwarded: number) => Promise<void>;
   rejectAction: (actionId: string, rejectionReason: string) => Promise<void>;
@@ -28,13 +32,22 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
   partnerActions: [],
   isLoading: false,
   error: null,
+  myActionsPagination: null,
+  partnerActionsPagination: null,
 
-  fetchMyActions: async (params) => {
+  fetchMyActions: async (params, append = false) => {
     set({ isLoading: true, error: null });
     try {
       const response = await actionsService.getMyActions(params);
-      set({ myActions: response.data, isLoading: false });
-      logger.debug('My actions fetched successfully', { count: response.data.length, params });
+      set((state) => ({
+        myActions: append ? [...state.myActions, ...response.data] : response.data,
+        myActionsPagination: response.pagination ?? null,
+        isLoading: false,
+      }));
+      logger.debug('My actions fetched successfully', {
+        count: response.data.length,
+        params,
+      });
     } catch (error: any) {
       logger.error('Failed to fetch my actions', error, { params });
       set({ error: error.error || 'Failed to fetch actions', isLoading: false });
@@ -42,12 +55,21 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
     }
   },
 
-  fetchPartnerActions: async (params) => {
+  fetchPartnerActions: async (params, append = false) => {
     set({ isLoading: true, error: null });
     try {
       const response = await actionsService.getPartnerActions(params);
-      set({ partnerActions: response.data, isLoading: false });
-      logger.debug('Partner actions fetched successfully', { count: response.data.length, params });
+      set((state) => ({
+        partnerActions: append
+          ? [...state.partnerActions, ...response.data]
+          : response.data,
+        partnerActionsPagination: response.pagination ?? null,
+        isLoading: false,
+      }));
+      logger.debug('Partner actions fetched successfully', {
+        count: response.data.length,
+        params,
+      });
     } catch (error: any) {
       logger.error('Failed to fetch partner actions', error, { params });
       set({ error: error.error || 'Failed to fetch partner actions', isLoading: false });

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useActionsStore } from '@/stores';
+import { useActionsStore, useUserStore } from '@/stores';
 import { CreateActionRequest, GetActionsParams } from '@/types';
 import logger from '@/utils/logger';
 
@@ -9,21 +9,28 @@ export const useActions = () => {
     partnerActions,
     isLoading,
     error,
+    myActionsPagination,
+    partnerActionsPagination,
     fetchMyActions,
     fetchPartnerActions,
     createAction,
     approveAction,
     rejectAction,
   } = useActionsStore();
+  const { user } = useUserStore();
 
   useEffect(() => {
+    // Only fetch actions if user is loaded (ensures token is available)
+    if (!user) return;
+
     fetchMyActions().catch((error) => {
       logger.error('Failed to fetch my actions in useActions hook', error);
     });
     fetchPartnerActions().catch((error) => {
       logger.error('Failed to fetch partner actions in useActions hook', error);
     });
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const handleCreateAction = async (data: CreateActionRequest) => {
     await createAction(data);
@@ -37,8 +44,11 @@ export const useActions = () => {
     await rejectAction(actionId, rejectionReason);
   };
 
-  const fetchPartnerActionsForReview = async (params?: GetActionsParams) => {
-    await fetchPartnerActions(params);
+  const fetchPartnerActionsForReview = async (
+    params?: GetActionsParams,
+    append = false
+  ) => {
+    await fetchPartnerActions(params, append);
   };
 
   return {
@@ -46,6 +56,8 @@ export const useActions = () => {
     partnerActions,
     isLoading,
     error,
+    myActionsPagination,
+    partnerActionsPagination,
     createAction: handleCreateAction,
     approveAction: handleApproveAction,
     rejectAction: handleRejectAction,

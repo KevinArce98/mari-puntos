@@ -13,12 +13,12 @@ import {
   TouchableWithoutFeedback,
   View,
   ActivityIndicator,
+  useColorScheme,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Button, Card, Input } from '@/components/ui';
-import { usePermissions, useThemedColors } from '@/hooks';
-import { useColorScheme } from 'react-native';
+import { Button, Card, TextAreaWithCounter } from '@/components/ui';
+import { usePermissions, useThemedColors, useUser } from '@/hooks';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { createUTC6DateTime } from '@/utils/dateUtils';
 import Toast from 'react-native-toast-message';
@@ -31,6 +31,7 @@ export default function RequestPermissionScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user } = useUser();
   const { requestPermission } = usePermissions();
 
   const [templates, setTemplates] = useState<PermissionTemplate[]>([]);
@@ -50,14 +51,16 @@ export default function RequestPermissionScreen() {
 
   // Load permission templates
   useEffect(() => {
+    if (!user) return;
     loadTemplates();
-  }, []);
+  }, [user]);
 
   // Reload templates when screen comes into focus
   useFocusEffect(
     useCallback(() => {
+      if (!user) return;
       loadTemplates();
-    }, [])
+    }, [user])
   );
 
   const loadTemplates = async () => {
@@ -265,7 +268,10 @@ export default function RequestPermissionScreen() {
                       />
                     )}
                     <TouchableOpacity
-                      style={[styles.dropdown, { backgroundColor: themeColors.gray[100] }]}  
+                      style={[
+                        styles.dropdown,
+                        { backgroundColor: themeColors.gray[100] },
+                      ]}
                       onPress={() => setShowTemplatePicker(!showTemplatePicker)}
                     >
                       {selectedTemplate?.metadata?.icon && (
@@ -543,12 +549,12 @@ export default function RequestPermissionScreen() {
                   >
                     Nota (Opcional)
                   </Text>
-                  <Input
+                  <TextAreaWithCounter
                     placeholder="Agrega un mensaje para tu pareja..."
                     value={note}
                     onChangeText={setNote}
-                    multiline
                     numberOfLines={3}
+                    maxLength={500}
                     containerStyle={styles.noteInput}
                   />
                 </View>

@@ -1,4 +1,3 @@
-// filepath: /Users/kevinarias/Projects/mari-puntos-app/components/ui/ActionCard.tsx
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import { Ionicons } from '@expo/vector-icons';

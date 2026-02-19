@@ -1,11 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, View, Pressable } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Dimensions,
+  FlatList,
+  Image,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui';
 import { useFirstTimeUser, useThemedColors } from '@/hooks';
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { borderRadius, spacing, typography } from '@/theme';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface OnboardingStep {
   icon: keyof typeof Ionicons.glyphMap;
@@ -46,6 +58,7 @@ export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
   const { markAsNotFirstTime } = useFirstTimeUser();
   const [currentStep, setCurrentStep] = useState(0);
+  const flatListRef = useRef<FlatList<OnboardingStep>>(null);
 
   // Mark as not first time when component mounts
   useEffect(() => {
@@ -53,27 +66,57 @@ export default function WelcomeScreen() {
   }, [markAsNotFirstTime]);
 
   const isLastStep = currentStep === ONBOARDING_STEPS.length - 1;
-  const currentStepData = ONBOARDING_STEPS[currentStep];
+
+  const scrollToStep = (index: number) => {
+    flatListRef.current?.scrollToIndex({ index, animated: true });
+    setCurrentStep(index);
+  };
 
   const handleNext = () => {
     if (currentStep < ONBOARDING_STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      scrollToStep(currentStep + 1);
     }
   };
 
   const handleSkip = () => {
-    setCurrentStep(ONBOARDING_STEPS.length - 1);
+    scrollToStep(ONBOARDING_STEPS.length - 1);
   };
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const index = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    if (index !== currentStep && index >= 0 && index < ONBOARDING_STEPS.length) {
+      setCurrentStep(index);
+    }
+  };
+
+  const renderStep = ({ item }: { item: OnboardingStep }) => (
+    <View style={styles.slide}>
+      <View style={styles.illustrationContainer}>
+        <View style={styles.illustrationPlaceholder}>
+          <Ionicons name={item.icon} size={120} color={themeColors.primary} />
+        </View>
+      </View>
+      <View style={styles.content}>
+        <Text style={[styles.title, { color: themeColors.text.primary }]}>
+          {item.title}
+        </Text>
+        <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
+          {item.description}
+        </Text>
+      </View>
+    </View>
+  );
 
   return (
     <View
-      style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top, paddingBottom: insets.bottom }]}
+      style={[
+        styles.container,
+        {
+          backgroundColor: themeColors.background,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        },
+      ]}
     >
       {/* Logo */}
       <View style={styles.logoContainer}>
@@ -92,12 +135,24 @@ export default function WelcomeScreen() {
         </Pressable>
       )}
 
-      {/* Illustration */}
-      <View style={styles.illustrationContainer}>
-        <View style={styles.illustrationPlaceholder}>
-          <Ionicons name={currentStepData.icon} size={120} color={themeColors.primary} />
-        </View>
-      </View>
+      {/* Swipeable slides */}
+      <FlatList
+        ref={flatListRef}
+        data={ONBOARDING_STEPS}
+        renderItem={renderStep}
+        keyExtractor={(_, index) => String(index)}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleScroll}
+        scrollEventThrottle={16}
+        style={styles.flatList}
+        getItemLayout={(_, index) => ({
+          length: SCREEN_WIDTH,
+          offset: SCREEN_WIDTH * index,
+          index,
+        })}
+      />
 
       {/* Progress Indicators */}
       <View style={styles.progressContainer}>
@@ -107,32 +162,19 @@ export default function WelcomeScreen() {
             style={[
               styles.progressDot,
               { backgroundColor: themeColors.gray[200] },
-              index === currentStep && { backgroundColor: themeColors.primary, width: 24 },
+              index === currentStep && {
+                backgroundColor: themeColors.primary,
+                width: 24,
+              },
             ]}
           />
         ))}
       </View>
 
-      {/* Content */}
-      <View style={styles.content}>
-        <Text style={[styles.title, { color: themeColors.text.primary }]}>{currentStepData.title}</Text>
-        <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>{currentStepData.description}</Text>
-      </View>
-
       {/* Actions */}
       <View style={styles.actions}>
         {!isLastStep ? (
-          <>
-            <Button title="Siguiente" onPress={handleNext} fullWidth size="lg" />
-            {currentStep > 0 && (
-              <Button
-                title="Anterior"
-                onPress={handlePrevious}
-                variant="outline"
-                fullWidth
-              />
-            )}
-          </>
+          <Button title="Siguiente" onPress={handleNext} fullWidth size="lg" />
         ) : (
           <>
             <Button
@@ -189,6 +231,15 @@ const styles = StyleSheet.create({
   skipText: {
     ...typography.styles.body,
     fontWeight: '600',
+  },
+  flatList: {
+    flex: 1,
+    marginHorizontal: -spacing.lg,
+  },
+  slide: {
+    width: SCREEN_WIDTH,
+    paddingHorizontal: spacing.lg,
+    justifyContent: 'center',
   },
   illustrationContainer: {
     flex: 1,

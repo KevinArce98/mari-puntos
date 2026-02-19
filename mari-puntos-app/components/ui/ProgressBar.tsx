@@ -1,5 +1,4 @@
-// filepath: /Users/kevinarias/Projects/mari-puntos-app/components/ui/ProgressBar.tsx
-import { borderRadius, colors } from '@/theme';
+import { borderRadius } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';

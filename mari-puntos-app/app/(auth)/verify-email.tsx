@@ -1,6 +1,6 @@
 import { Button, ControlledCodeInput } from '@/components/ui';
 import { userService } from '@/services';
-import { colors, spacing, typography } from '@/theme';
+import { spacing, typography } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import { useSignUp, isClerkAPIResponseError } from '@clerk/clerk-expo';
 import logger from '@/utils/logger';
@@ -180,7 +180,9 @@ export default function VerifyEmailScreen() {
               color={themeColors.primary}
               style={styles.icon}
             />
-            <Text style={[styles.title, { color: themeColors.text.primary }]}>Verifica tu correo</Text>
+            <Text style={[styles.title, { color: themeColors.text.primary }]}>
+              Verifica tu correo
+            </Text>
             <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
               Hemos enviado un código de verificación a{'\n'}
               <Text style={[styles.email, { color: themeColors.primary }]}>{email}</Text>

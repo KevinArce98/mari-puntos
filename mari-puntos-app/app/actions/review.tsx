@@ -2,17 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  ScrollView,
+  ActivityIndicator,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
+import { LegendList } from '@legendapp/list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActionItemCard, ReviewActionModal, Chip } from '@/components/ui';
 import { useActions, useThemedColors } from '@/hooks';
-import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
 import { ActionStatus, Action } from '@/types';
 import logger from '@/utils/logger';
@@ -28,8 +30,15 @@ export default function ReviewActionsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colors = useThemedColors();
-  const { partnerActions, approveAction, rejectAction, refetchPartnerActions } =
-    useActions();
+  const {
+    partnerActions,
+    approveAction,
+    rejectAction,
+    refetchPartnerActions,
+    partnerActionsPagination,
+  } = useActions();
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const [selectedStatus, setSelectedStatus] = useState<ActionStatus | null>(
     ActionStatus.PENDING
@@ -49,10 +58,24 @@ export default function ReviewActionsScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
+    setPage(1);
     try {
-      await refetchPartnerActions();
+      await refetchPartnerActions({ page: 1, limit: 20 });
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    if (loadingMore || !partnerActionsPagination) return;
+    if (partnerActionsPagination.page >= partnerActionsPagination.totalPages) return;
+    const nextPage = page + 1;
+    setLoadingMore(true);
+    setPage(nextPage);
+    try {
+      await refetchPartnerActions({ page: nextPage, limit: 20 }, true);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -112,13 +135,20 @@ export default function ReviewActionsScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: colors.background },
+      ]}
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Revisar Acciones</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
+          Revisar Acciones
+        </Text>
       </View>
 
       {/* Stats Card */}
@@ -126,79 +156,94 @@ export default function ReviewActionsScreen() {
         <View style={styles.statItem}>
           <Ionicons name="time-outline" size={24} color={colors.warning} />
           <View style={styles.statContent}>
-            <Text style={[styles.statValue, { color: colors.text.primary }]}>{pendingCount}</Text>
-            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Pendientes</Text>
+            <Text style={[styles.statValue, { color: colors.text.primary }]}>
+              {pendingCount}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
+              Pendientes
+            </Text>
           </View>
         </View>
         <View style={[styles.divider, { backgroundColor: colors.gray[200] }]} />
         <View style={styles.statItem}>
           <Ionicons name="list-outline" size={24} color={colors.primary} />
           <View style={styles.statContent}>
-            <Text style={[styles.statValue, { color: colors.text.primary }]}>{partnerActions.length}</Text>
-            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>Total</Text>
+            <Text style={[styles.statValue, { color: colors.text.primary }]}>
+              {partnerActions.length}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
+              Total
+            </Text>
           </View>
         </View>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <LegendList
+        data={filteredActions}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => handleActionPress(item)}
+            disabled={item.status !== ActionStatus.PENDING}
+          >
+            <ActionItemCard action={item} showStatus />
+          </TouchableOpacity>
+        )}
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
-      >
-        {/* Status Filter */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filtersContainer}
-          contentContainerStyle={styles.filtersContent}
-        >
-          {STATUS_FILTERS.map((filter) => (
-            <Chip
-              key={filter.label}
-              label={filter.label}
-              selected={selectedStatus === filter.value}
-              onPress={() => setSelectedStatus(filter.value)}
-            />
-          ))}
-        </ScrollView>
-
-        {/* Actions List */}
-        <View style={styles.section}>
-          {filteredActions.length > 0 ? (
-            filteredActions.map((action) => (
-              <TouchableOpacity
-                key={action.id}
-                onPress={() => handleActionPress(action)}
-                disabled={action.status !== ActionStatus.PENDING}
-              >
-                <ActionItemCard action={action} showStatus />
-              </TouchableOpacity>
-            ))
-          ) : (
-            <View style={styles.emptyState}>
-              <Ionicons
-                name={selectedStatus ? 'filter-outline' : 'checkmark-done-outline'}
-                size={48}
-                color={colors.gray[300]}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListHeaderComponent={
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filtersContainer}
+            contentContainerStyle={styles.filtersContent}
+          >
+            {STATUS_FILTERS.map((filter) => (
+              <Chip
+                key={filter.label}
+                label={filter.label}
+                selected={selectedStatus === filter.value}
+                onPress={() => setSelectedStatus(filter.value)}
               />
-              <Text style={[styles.emptyText, { color: colors.text.primary }]}>
-                {selectedStatus === ActionStatus.PENDING
-                  ? 'No hay acciones pendientes'
-                  : selectedStatus
-                    ? 'No hay acciones con este estado'
-                    : 'No hay acciones para revisar'}
+            ))}
+          </ScrollView>
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Ionicons
+              name={selectedStatus ? 'filter-outline' : 'checkmark-done-outline'}
+              size={48}
+              color={colors.gray[300]}
+            />
+            <Text style={[styles.emptyText, { color: colors.text.primary }]}>
+              {selectedStatus === ActionStatus.PENDING
+                ? 'No hay acciones pendientes'
+                : selectedStatus
+                  ? 'No hay acciones con este estado'
+                  : 'No hay acciones para revisar'}
+            </Text>
+            {selectedStatus === ActionStatus.PENDING && (
+              <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>
+                Las acciones de tu pareja aparecerán aquí
               </Text>
-              {selectedStatus === ActionStatus.PENDING && (
-                <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>
-                  Las acciones de tu pareja aparecerán aquí
-                </Text>
-              )}
+            )}
+          </View>
+        }
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={styles.footerLoader}>
+              <ActivityIndicator size="small" color={colors.primary} />
             </View>
-          )}
-        </View>
-      </ScrollView>
+          ) : null
+        }
+        ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
+        estimatedItemSize={80}
+      />
 
       {/* Review Action Modal */}
       <ReviewActionModal
@@ -298,6 +343,13 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: spacing.lg,
+  },
+  itemSeparator: {
+    height: spacing.sm,
+  },
+  footerLoader: {
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
   },
   emptyState: {
     alignItems: 'center',

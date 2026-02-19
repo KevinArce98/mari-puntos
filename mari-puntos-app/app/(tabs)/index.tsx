@@ -3,8 +3,8 @@ import { HistoryItem } from '@/components';
 import { usePoints, useUser, useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import React, { useCallback } from 'react';
 import {
   RefreshControl,
   ScrollView,
@@ -29,13 +29,13 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = React.useState(false);
   const [showCreateActionModal, setShowCreateActionModal] = React.useState(false);
 
-  // Load history on mount
-  React.useEffect(() => {
-    if (hasPartner) {
+  useFocusEffect(
+    useCallback(() => {
+      if (!user || !hasPartner) return;
       fetchHistory({ limit: 3 });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasPartner]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user, hasPartner])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);

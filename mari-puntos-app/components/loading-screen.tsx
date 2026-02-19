@@ -86,14 +86,25 @@ export function LoadingScreen() {
             },
           ]}
         >
-          <View style={[styles.spinner, { borderColor: themeColors.gray[200], borderTopColor: themeColors.primary, borderRightColor: themeColors.primary }]} />
+          <View
+            style={[
+              styles.spinner,
+              {
+                borderColor: themeColors.gray[200],
+                borderTopColor: themeColors.primary,
+                borderRightColor: themeColors.primary,
+              },
+            ]}
+          />
         </Animated.View>
 
         {/* App Name */}
         <Text style={[styles.appName, { color: themeColors.primary }]}>MariPuntos</Text>
 
         {/* Loading Text */}
-        <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>Cargando...</Text>
+        <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>
+          Cargando...
+        </Text>
 
         {/* Animated Dots */}
         <View style={styles.dotsContainer}>

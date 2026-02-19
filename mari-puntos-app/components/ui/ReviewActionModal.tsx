@@ -10,12 +10,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { Action, ActionCategory } from '@/types';
-import { colors, spacing, typography, borderRadius } from '@/theme';
+import { spacing, typography, borderRadius } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import { Button } from './Button';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ControlledInput } from './ControlledInput';
+import { TextAreaWithCounter } from './TextAreaWithCounter';
 import {
   reviewActionSchema,
   type ReviewActionFormData,
@@ -126,25 +126,47 @@ export function ReviewActionModal({
 
           <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
             {/* Action Details */}
-            <View style={[styles.actionDetails, { backgroundColor: themeColors.gray[50] }]}>
-              <Text style={[styles.actionTitle, { color: themeColors.text.primary }]}>{action.title}</Text>
+            <View
+              style={[styles.actionDetails, { backgroundColor: themeColors.gray[50] }]}
+            >
+              <Text style={[styles.actionTitle, { color: themeColors.text.primary }]}>
+                {action.title}
+              </Text>
               <Text style={[styles.actionCategory, { color: themeColors.primary }]}>
                 {CATEGORY_LABELS[action.category]}
               </Text>
               {action.description && (
-                <Text style={[styles.actionDescription, { color: themeColors.text.secondary }]}>{action.description}</Text>
+                <Text
+                  style={[
+                    styles.actionDescription,
+                    { color: themeColors.text.secondary },
+                  ]}
+                >
+                  {action.description}
+                </Text>
               )}
-              <Text style={[styles.actionDate, { color: themeColors.gray[400] }]}>{formattedDate}</Text>
+              <Text style={[styles.actionDate, { color: themeColors.gray[400] }]}>
+                {formattedDate}
+              </Text>
             </View>
 
             {mode === 'review' ? (
               /* Points Slider */
               <View style={styles.section}>
                 <View style={styles.pointsHeader}>
-                  <Text style={[styles.label, { color: themeColors.text.primary }]}>Puntos a otorgar</Text>
-                  <View style={[styles.pointsBadge, { backgroundColor: `${themeColors.accent}15` }]}>
-                  <Ionicons name="trophy" size={20} color={themeColors.accent} />
-                    <Text style={[styles.pointsValue, { color: themeColors.accent }]}>{points}</Text>
+                  <Text style={[styles.label, { color: themeColors.text.primary }]}>
+                    Puntos a otorgar
+                  </Text>
+                  <View
+                    style={[
+                      styles.pointsBadge,
+                      { backgroundColor: `${themeColors.accent}15` },
+                    ]}
+                  >
+                    <Ionicons name="trophy" size={20} color={themeColors.accent} />
+                    <Text style={[styles.pointsValue, { color: themeColors.accent }]}>
+                      {points}
+                    </Text>
                   </View>
                 </View>
                 <Slider
@@ -159,11 +181,19 @@ export function ReviewActionModal({
                   thumbTintColor={themeColors.primary}
                 />
                 <View style={styles.sliderLabels}>
-                  <Text style={[styles.sliderLabel, { color: themeColors.gray[400] }]}>0</Text>
-                  <Text style={[styles.sliderLabel, { color: themeColors.gray[400] }]}>1000</Text>
+                  <Text style={[styles.sliderLabel, { color: themeColors.gray[400] }]}>
+                    0
+                  </Text>
+                  <Text style={[styles.sliderLabel, { color: themeColors.gray[400] }]}>
+                    1000
+                  </Text>
                 </View>
                 <View style={styles.suggestedPoints}>
-                  <Text style={[styles.suggestedLabel, { color: themeColors.text.secondary }]}>Sugerencias:</Text>
+                  <Text
+                    style={[styles.suggestedLabel, { color: themeColors.text.secondary }]}
+                  >
+                    Sugerencias:
+                  </Text>
                   <View style={styles.suggestedButtons}>
                     {[50, 100, 250, 500].map((value) => (
                       <TouchableOpacity
@@ -173,7 +203,10 @@ export function ReviewActionModal({
                           { backgroundColor: themeColors.gray[100] },
                           points === value && [
                             styles.suggestedButtonActive,
-                            { backgroundColor: `${themeColors.primary}15`, borderColor: themeColors.primary },
+                            {
+                              backgroundColor: `${themeColors.primary}15`,
+                              borderColor: themeColors.primary,
+                            },
                           ],
                         ]}
                         onPress={() => setPoints(value)}
@@ -182,7 +215,10 @@ export function ReviewActionModal({
                           style={[
                             styles.suggestedButtonText,
                             { color: themeColors.gray[600] },
-                            points === value && [styles.suggestedButtonTextActive, { color: themeColors.primary }],
+                            points === value && [
+                              styles.suggestedButtonTextActive,
+                              { color: themeColors.primary },
+                            ],
                           ]}
                         >
                           {value}
@@ -195,15 +231,22 @@ export function ReviewActionModal({
             ) : (
               /* Rejection Reason */
               <View style={styles.section}>
-                <Text style={styles.label}>Motivo del rechazo *</Text>
-                <ControlledInput
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>
+                  Motivo del rechazo *
+                </Text>
+                <Controller
                   control={control}
                   name="rejectionReason"
-                  placeholder="Explica por qué estás rechazando esta acción..."
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                  maxLength={500}
+                  render={({ field: { onChange, value } }) => (
+                    <TextAreaWithCounter
+                      placeholder="Explica por qué estás rechazando esta acción..."
+                      value={value ?? ''}
+                      onChangeText={onChange}
+                      numberOfLines={4}
+                      textAlignVertical="top"
+                      maxLength={500}
+                    />
+                  )}
                 />
               </View>
             )}

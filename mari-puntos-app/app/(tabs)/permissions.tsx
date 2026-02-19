@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, Badge, Button } from '@/components/ui';
 import { colors, typography, spacing, borderRadius } from '@/theme';
@@ -16,12 +16,13 @@ import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PermissionCard } from '@/components';
 import { formatDateOnly, getStatusColor, getStatusText } from '@/utils';
-import { usePermissions, useThemedColors } from '@/hooks';
+import { usePermissions, useThemedColors, useUser } from '@/hooks';
 
 export default function PermissionsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const themeColors = useThemedColors();
+  const { user } = useUser();
   const {
     myPermissions,
     partnerPermissions,
@@ -32,6 +33,14 @@ export default function PermissionsScreen() {
   } = usePermissions();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+      refetch();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -70,7 +79,12 @@ export default function PermissionsScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: themeColors.background }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: themeColors.background },
+      ]}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -98,7 +112,9 @@ export default function PermissionsScreen() {
         {pendingCount > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>Solicitudes por aprobar</Text>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Solicitudes por aprobar
+              </Text>
               <Badge label={pendingCount} variant="error" />
             </View>
             {pendingPermissions.map((permission) => (
@@ -116,7 +132,9 @@ export default function PermissionsScreen() {
         {partnerPermissions.filter((p) => p.status !== 'pending').length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>Solicitudes respondidas</Text>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Solicitudes respondidas
+              </Text>
               <Badge
                 label={partnerPermissions
                   .filter((p) => p.status !== 'pending')
@@ -140,12 +158,16 @@ export default function PermissionsScreen() {
         {/* My Permissions */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>Mis solicitudes</Text>
+            <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+              Mis solicitudes
+            </Text>
           </View>
           {myPermissions.length === 0 ? (
             <Card style={styles.emptyCard}>
               <Text style={styles.emptyIcon}>📝</Text>
-              <Text style={[styles.emptyText, { color: themeColors.text.secondary }]}>No tienes solicitudes</Text>
+              <Text style={[styles.emptyText, { color: themeColors.text.secondary }]}>
+                No tienes solicitudes
+              </Text>
               <Button
                 title="Nueva solicitud"
                 onPress={() => router.push('/permissions/request')}
@@ -157,7 +179,9 @@ export default function PermissionsScreen() {
             myPermissions.map((permission) => (
               <Card key={permission.id} style={styles.permissionCard}>
                 <View style={styles.permissionHeader}>
-                  <Text style={[styles.permissionName, { color: themeColors.text.primary }]}>
+                  <Text
+                    style={[styles.permissionName, { color: themeColors.text.primary }]}
+                  >
                     {permission.template?.title || 'Permiso sin título'}
                   </Text>
                   <Badge
@@ -168,25 +192,56 @@ export default function PermissionsScreen() {
                   />
                 </View>
                 {permission.template?.description && (
-                  <Text style={[styles.permissionMessage, { color: themeColors.text.primary, borderLeftColor: themeColors.primary }]}>
+                  <Text
+                    style={[
+                      styles.permissionMessage,
+                      {
+                        color: themeColors.text.primary,
+                        borderLeftColor: themeColors.primary,
+                      },
+                    ]}
+                  >
                     {permission.template.description}
                   </Text>
                 )}
                 <View style={styles.permissionFooter}>
                   <View>
-                    <Text style={[styles.permissionDate, { color: themeColors.text.light }]}>
+                    <Text
+                      style={[styles.permissionDate, { color: themeColors.text.light }]}
+                    >
                       Solicitado: {formatDateOnly(permission.requestedDate)}
                     </Text>
-                    <Text style={[styles.permissionDate, { color: themeColors.text.light }]}>
+                    <Text
+                      style={[styles.permissionDate, { color: themeColors.text.light }]}
+                    >
                       Duración: {permission.durationHours}h
                     </Text>
                   </View>
-                  <Text style={[styles.permissionPoints, { color: themeColors.primary }]}>{permission.pointsCost} pts</Text>
+                  <Text style={[styles.permissionPoints, { color: themeColors.primary }]}>
+                    {permission.pointsCost} pts
+                  </Text>
                 </View>
                 {permission.responseMessage && (
-                  <View style={[styles.responseContainer, { backgroundColor: themeColors.gray[50] }]}>
-                    <Text style={[styles.responseLabel, { color: themeColors.text.secondary }]}>Respuesta:</Text>
-                    <Text style={[styles.responseMessage, { color: themeColors.text.primary }]}>
+                  <View
+                    style={[
+                      styles.responseContainer,
+                      { backgroundColor: themeColors.gray[50] },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.responseLabel,
+                        { color: themeColors.text.secondary },
+                      ]}
+                    >
+                      Respuesta:
+                    </Text>
+                    <Text
+                      style={[
+                        styles.responseMessage,
+                        { color: themeColors.text.primary },
+                      ]}
+                    >
                       {permission.responseMessage}
                     </Text>
                   </View>

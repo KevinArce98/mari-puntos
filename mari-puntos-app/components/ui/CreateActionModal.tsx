@@ -13,15 +13,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ActionCategory } from '@/types';
-import { colors, spacing, typography, borderRadius } from '@/theme';
+import { spacing, typography, borderRadius } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import { Button } from './Button';
 import { ControlledInput } from './ControlledInput';
+import { TextAreaWithCounter } from './TextAreaWithCounter';
 import {
   createActionSchema,
   type CreateActionFormData,
 } from '@/validators/action.schema';
-
 
 interface CreateActionModalProps {
   visible: boolean;
@@ -97,7 +97,9 @@ export function CreateActionModal({
           <View style={[styles.container, { backgroundColor: themeColors.gray[100] }]}>
             {/* Header */}
             <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
-              <Text style={[styles.title, { color: themeColors.text.primary }]}>Crear Acción</Text>
+              <Text style={[styles.title, { color: themeColors.text.primary }]}>
+                Crear Acción
+              </Text>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                 <Ionicons name="close" size={24} color={themeColors.text.primary} />
               </TouchableOpacity>
@@ -106,7 +108,9 @@ export function CreateActionModal({
             <ScrollView showsVerticalScrollIndicator={false}>
               {/* Title Input */}
               <View style={styles.section}>
-                <Text style={[styles.label, { color: themeColors.text.primary }]}>Título *</Text>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>
+                  Título *
+                </Text>
                 <ControlledInput
                   control={control}
                   name="title"
@@ -117,21 +121,30 @@ export function CreateActionModal({
 
               {/* Description Input */}
               <View style={styles.section}>
-                <Text style={[styles.label, { color: themeColors.text.primary }]}>Descripción (opcional)</Text>
-                <ControlledInput
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>
+                  Descripción (opcional)
+                </Text>
+                <Controller
                   control={control}
                   name="description"
-                  placeholder="Agrega detalles sobre lo que hiciste..."
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                  maxLength={500}
+                  render={({ field: { onChange, value } }) => (
+                    <TextAreaWithCounter
+                      placeholder="Agrega detalles sobre lo que hiciste..."
+                      value={value ?? ''}
+                      onChangeText={onChange}
+                      numberOfLines={4}
+                      textAlignVertical="top"
+                      maxLength={500}
+                    />
+                  )}
                 />
               </View>
 
               {/* Category Selection */}
               <View style={styles.section}>
-                <Text style={[styles.label, { color: themeColors.text.primary }]}>Categoría *</Text>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>
+                  Categoría *
+                </Text>
                 <Controller
                   control={control}
                   name="category"
@@ -145,7 +158,10 @@ export function CreateActionModal({
                             { backgroundColor: themeColors.gray[100] },
                             value === category.value && [
                               styles.categoryCardSelected,
-                              { backgroundColor: `${themeColors.primary}10`, borderColor: themeColors.primary },
+                              {
+                                backgroundColor: `${themeColors.primary}10`,
+                                borderColor: themeColors.primary,
+                              },
                             ],
                           ]}
                           onPress={() => onChange(category.value)}
@@ -163,7 +179,10 @@ export function CreateActionModal({
                             style={[
                               styles.categoryLabel,
                               { color: themeColors.gray[600] },
-                              value === category.value && [styles.categoryLabelSelected, { color: themeColors.primary }],
+                              value === category.value && [
+                                styles.categoryLabelSelected,
+                                { color: themeColors.primary },
+                              ],
                             ]}
                           >
                             {category.label}

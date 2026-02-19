@@ -187,6 +187,7 @@ export default function LinkPartnerScreen() {
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -203,26 +204,36 @@ export default function LinkPartnerScreen() {
           </View>
 
           {/* Title */}
-          <Text style={[styles.title, { color: themeColors.text.primary }]}>¡Conectémonos!</Text>
+          <Text style={[styles.title, { color: themeColors.text.primary }]}>
+            ¡Conectémonos!
+          </Text>
           <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
             Conéctate con tu pareja para comenzar tu viaje en MariPuntos juntos
           </Text>
 
           {/* Your Unique Code Section */}
           <Card style={styles.codeSection}>
-            <Text style={[styles.sectionLabel, { color: themeColors.text.secondary }]}>Tu código único</Text>
+            <Text style={[styles.sectionLabel, { color: themeColors.text.secondary }]}>
+              Tu código único
+            </Text>
 
             {loadingExistingCode ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="small" color={themeColors.primary} />
-                <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>Verificando código...</Text>
+                <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>
+                  Verificando código...
+                </Text>
               </View>
             ) : generatedCode ? (
               <View style={styles.generatedCodeContainer}>
-                <Text style={[styles.generatedCode, { color: themeColors.primary }]}>{generatedCode}</Text>
+                <Text style={[styles.generatedCode, { color: themeColors.primary }]}>
+                  {generatedCode}
+                </Text>
                 <TouchableOpacity style={styles.copyButton} onPress={handleCopyCode}>
                   <Ionicons name="copy-outline" size={20} color={themeColors.primary} />
-                  <Text style={[styles.copyText, { color: themeColors.primary }]}>Copiar código</Text>
+                  <Text style={[styles.copyText, { color: themeColors.primary }]}>
+                    Copiar código
+                  </Text>
                 </TouchableOpacity>
 
                 {/* Refresh button */}
@@ -253,14 +264,22 @@ export default function LinkPartnerScreen() {
 
           {/* Divider */}
           <View style={styles.divider}>
-            <View style={[styles.dividerLine, { backgroundColor: themeColors.gray[300] }]} />
-            <Text style={[styles.dividerText, { color: themeColors.text.secondary }]}>O</Text>
-            <View style={[styles.dividerLine, { backgroundColor: themeColors.gray[300] }]} />
+            <View
+              style={[styles.dividerLine, { backgroundColor: themeColors.gray[300] }]}
+            />
+            <Text style={[styles.dividerText, { color: themeColors.text.secondary }]}>
+              O
+            </Text>
+            <View
+              style={[styles.dividerLine, { backgroundColor: themeColors.gray[300] }]}
+            />
           </View>
 
           {/* Enter Partner Code Section */}
           <Card style={styles.codeSection}>
-            <Text style={[styles.sectionLabel, { color: themeColors.text.secondary }]}>Ingresa el código de tu pareja</Text>
+            <Text style={[styles.sectionLabel, { color: themeColors.text.secondary }]}>
+              Ingresa el código de tu pareja
+            </Text>
             <Controller
               control={control}
               name="partnerCode"
@@ -293,7 +312,9 @@ export default function LinkPartnerScreen() {
             style={styles.skipButton}
             onPress={() => router.replace('/(tabs)')}
           >
-            <Text style={[styles.skipText, { color: themeColors.text.secondary }]}>Regresar</Text>
+            <Text style={[styles.skipText, { color: themeColors.text.secondary }]}>
+              Regresar
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

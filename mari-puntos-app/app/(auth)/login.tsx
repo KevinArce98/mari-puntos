@@ -1,7 +1,5 @@
-import { useSignIn, isClerkAPIResponseError } from '@clerk/clerk-expo';
-import { useRouter } from 'expo-router';
-import { handleClerkErrors } from '@/types/clerk-localization';
 import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
 import {
   Image,
   Keyboard,
@@ -14,13 +12,15 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useSignIn, isClerkAPIResponseError } from '@clerk/clerk-expo';
+import { handleClerkErrors } from '@/types/clerk-localization';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, ControlledInput } from '@/components/ui';
 import { borderRadius, colors, spacing, typography } from '@/theme';
-import { useThemedColors } from '@/hooks';
 import Toast from 'react-native-toast-message';
+import { useThemedColors } from '@/hooks';
 import { loginSchema, type LoginFormData } from '@/validators/auth.schema';
 import logger from '@/utils/logger';
 
@@ -118,7 +118,9 @@ export default function LoginScreen() {
 
           {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.title, { color: themeColors.text.primary }]}>¡Bienvenido de nuevo!</Text>
+            <Text style={[styles.title, { color: themeColors.text.primary }]}>
+              ¡Bienvenido de nuevo!
+            </Text>
             <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
               Inicia sesión para continuar ganando puntos con tu pareja
             </Text>
@@ -151,7 +153,9 @@ export default function LoginScreen() {
               style={styles.forgotPassword}
               onPress={() => router.push('/(auth)/forgot-password')}
             >
-              <Text style={[styles.forgotPasswordText, { color: themeColors.primary }]}>¿Olvidaste tu contraseña?</Text>
+              <Text style={[styles.forgotPasswordText, { color: themeColors.primary }]}>
+                ¿Olvidaste tu contraseña?
+              </Text>
             </TouchableOpacity>
 
             <Button
@@ -182,9 +186,13 @@ export default function LoginScreen() {
 
           {/* Register Link */}
           <View style={styles.registerContainer}>
-            <Text style={[styles.registerText, { color: themeColors.text.secondary }]}>{'¿No tienes una cuenta? '}</Text>
+            <Text style={[styles.registerText, { color: themeColors.text.secondary }]}>
+              {'¿No tienes una cuenta? '}
+            </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-              <Text style={[styles.registerLink, { color: themeColors.primary }]}>Regístrate</Text>
+              <Text style={[styles.registerLink, { color: themeColors.primary }]}>
+                Regístrate
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

@@ -1,4 +1,4 @@
-import { usePermissionsStore } from '@/stores';
+import { usePermissionsStore, useUserStore } from '@/stores';
 import { CreatePermissionRequest, RespondPermissionRequest } from '@/types';
 import { useEffect } from 'react';
 import logger from '@/utils/logger';
@@ -16,15 +16,20 @@ export const usePermissions = () => {
     respondToPermission,
     clearPermissions,
   } = usePermissionsStore();
+  const { user } = useUserStore();
 
   useEffect(() => {
+    // Only fetch permissions if user is loaded (ensures token is available)
+    if (!user) return;
+
     fetchMyPermissions().catch((error) => {
       logger.error('Failed to fetch my permissions in usePermissions hook', error);
     });
     fetchPartnerPermissions().catch((error) => {
       logger.error('Failed to fetch partner permissions in usePermissions hook', error);
     });
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const handleRequestPermission = async (data: CreatePermissionRequest) => {
     await createPermission(data);

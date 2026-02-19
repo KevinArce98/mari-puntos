@@ -1,4 +1,4 @@
-import { borderRadius, colors, typography } from '@/theme';
+import { borderRadius, typography } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import React from 'react';
 import { Image, StyleSheet, Text, View, ViewStyle } from 'react-native';
@@ -34,20 +34,38 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   return (
     <View style={[styles.wrapper, style]}>
-      <View style={[styles.container, sizeStyles, { backgroundColor: themeColors.gray[200] }]}>
+      <View
+        style={[styles.container, sizeStyles, { backgroundColor: themeColors.gray[200] }]}
+      >
         {imageUri ? (
           <Image source={{ uri: imageUri }} style={styles.image} />
         ) : (
-          <Text style={[styles.initials, styles[`initials_${size}`], { color: themeColors.text.secondary }]}>
+          <Text
+            style={[
+              styles.initials,
+              styles[`initials_${size}`],
+              { color: themeColors.text.secondary },
+            ]}
+          >
             {getInitials(name)}
           </Text>
         )}
       </View>
       {showLevel && level !== undefined && (
         <View
-          style={[styles.levelBadge, { width: levelBadgeSize, height: levelBadgeSize, backgroundColor: themeColors.primary, borderColor: themeColors.white }]}
+          style={[
+            styles.levelBadge,
+            {
+              width: levelBadgeSize,
+              height: levelBadgeSize,
+              backgroundColor: themeColors.primary,
+              borderColor: themeColors.white,
+            },
+          ]}
         >
-          <Text style={[styles.levelText, { color: themeColors.white }]}>Lvl {level}</Text>
+          <Text style={[styles.levelText, { color: themeColors.white }]}>
+            Lvl {level}
+          </Text>
         </View>
       )}
     </View>

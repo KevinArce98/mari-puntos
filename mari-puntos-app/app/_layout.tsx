@@ -106,6 +106,13 @@ function RootLayoutNav() {
               headerShown: true,
             }}
           />
+          <Stack.Screen
+            name="profile/change-password"
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+            }}
+          />
         </Stack>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         <Toast topOffset={Platform.OS === 'ios' ? insets.top + 10 : insets.top} />

@@ -1,6 +1,6 @@
+import React, { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -30,11 +30,20 @@ export default function RankingScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: themeColors.background, paddingTop: insets.top },
+      ]}
+    >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>Ranking</Text>
-        <TouchableOpacity style={[styles.historyButton, { backgroundColor: themeColors.gray[100] }]}>
+        <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
+          Ranking
+        </Text>
+        <TouchableOpacity
+          style={[styles.historyButton, { backgroundColor: themeColors.gray[100] }]}
+        >
           <Ionicons name="time-outline" size={24} color={themeColors.text.primary} />
         </TouchableOpacity>
       </View>
@@ -116,7 +125,9 @@ export default function RankingScreen() {
 
         {/* Weekly Stats */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>Your Stats</Text>
+          <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+            Your Stats
+          </Text>
           <View style={styles.statsGrid}>
             <Card style={styles.statCard}>
               <View
@@ -124,8 +135,12 @@ export default function RankingScreen() {
               >
                 <Ionicons name="checkmark-circle" size={24} color={themeColors.primary} />
               </View>
-              <Text style={[styles.statValue, { color: themeColors.text.primary }]}>{weeklyStats.actionsCompleted}</Text>
-              <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>Actions</Text>
+              <Text style={[styles.statValue, { color: themeColors.text.primary }]}>
+                {weeklyStats.actionsCompleted}
+              </Text>
+              <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>
+                Actions
+              </Text>
             </Card>
 
             <Card style={styles.statCard}>
@@ -134,8 +149,12 @@ export default function RankingScreen() {
               >
                 <Ionicons name="trophy" size={24} color={themeColors.accent} />
               </View>
-              <Text style={[styles.statValue, { color: themeColors.text.primary }]}>{weeklyStats.pointsEarned}</Text>
-              <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>Points</Text>
+              <Text style={[styles.statValue, { color: themeColors.text.primary }]}>
+                {weeklyStats.pointsEarned}
+              </Text>
+              <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>
+                Points
+              </Text>
             </Card>
 
             <Card style={styles.statCard}>
@@ -144,8 +163,12 @@ export default function RankingScreen() {
               >
                 <Ionicons name="flame" size={24} color={themeColors.error} />
               </View>
-              <Text style={[styles.statValue, { color: themeColors.text.primary }]}>{weeklyStats.streak}</Text>
-              <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>Day Streak</Text>
+              <Text style={[styles.statValue, { color: themeColors.text.primary }]}>
+                {weeklyStats.streak}
+              </Text>
+              <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>
+                Day Streak
+              </Text>
             </Card>
           </View>
         </View>
@@ -153,8 +176,12 @@ export default function RankingScreen() {
         {/* Weekly Goal */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>Weekly Goal</Text>
-            <Text style={[styles.goalProgress, { color: themeColors.accent }]}>245 / 500 pts</Text>
+            <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+              Weekly Goal
+            </Text>
+            <Text style={[styles.goalProgress, { color: themeColors.accent }]}>
+              245 / 500 pts
+            </Text>
           </View>
           <Card style={styles.goalCard}>
             <ProgressBar progress={49} color={themeColors.accent} height={12} />
@@ -166,7 +193,9 @@ export default function RankingScreen() {
 
         {/* Recent Activity */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>Recent Activity</Text>
+          <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+            Recent Activity
+          </Text>
           <Card padding="none" style={styles.activityCard}>
             {[
               {
@@ -190,7 +219,13 @@ export default function RankingScreen() {
             ].map((item, index) => (
               <View
                 key={index}
-                style={[styles.activityItem, index < 2 && { borderBottomWidth: 1, borderBottomColor: themeColors.gray[100] }]}
+                style={[
+                  styles.activityItem,
+                  index < 2 && {
+                    borderBottomWidth: 1,
+                    borderBottomColor: themeColors.gray[100],
+                  },
+                ]}
               >
                 <View
                   style={[
@@ -205,10 +240,20 @@ export default function RankingScreen() {
                   />
                 </View>
                 <View style={styles.activityContent}>
-                  <Text style={[styles.activityAction, { color: themeColors.text.primary }]}>{item.action}</Text>
-                  <Text style={[styles.activityTime, { color: themeColors.text.secondary }]}>{item.time}</Text>
+                  <Text
+                    style={[styles.activityAction, { color: themeColors.text.primary }]}
+                  >
+                    {item.action}
+                  </Text>
+                  <Text
+                    style={[styles.activityTime, { color: themeColors.text.secondary }]}
+                  >
+                    {item.time}
+                  </Text>
                 </View>
-                <Text style={[styles.activityPoints, { color: themeColors.primary }]}>+{item.points}</Text>
+                <Text style={[styles.activityPoints, { color: themeColors.primary }]}>
+                  +{item.points}
+                </Text>
               </View>
             ))}
           </Card>

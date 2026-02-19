@@ -1,7 +1,7 @@
+import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
 import { useSignUp, isClerkAPIResponseError } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -106,7 +106,10 @@ export default function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView style={[styles.container, { backgroundColor: themeColors.background }]} behavior="height">
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: themeColors.background }]}
+      behavior="height"
+    >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
           contentContainerStyle={[
@@ -126,7 +129,9 @@ export default function RegisterScreen() {
 
           {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.title, { color: themeColors.text.primary }]}>Crear cuenta</Text>
+            <Text style={[styles.title, { color: themeColors.text.primary }]}>
+              Crear cuenta
+            </Text>
             <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
               Únete a MariPuntos y comienza a ganar puntos con tu pareja
             </Text>
@@ -280,9 +285,13 @@ export default function RegisterScreen() {
 
           {/* Login Link */}
           <View style={styles.loginContainer}>
-            <Text style={[styles.loginText, { color: themeColors.text.secondary }]}>¿Ya tienes una cuenta? </Text>
+            <Text style={[styles.loginText, { color: themeColors.text.secondary }]}>
+              ¿Ya tienes una cuenta?{' '}
+            </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-              <Text style={[styles.loginLink, { color: themeColors.primary }]}>Inicia sesión</Text>
+              <Text style={[styles.loginLink, { color: themeColors.primary }]}>
+                Inicia sesión
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

@@ -1,4 +1,3 @@
-// filepath: /Users/kevinarias/Projects/mari-puntos-app/components/ui/PointsCard.tsx
 import { borderRadius, spacing, typography } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,7 +22,9 @@ export const PointsCard: React.FC<PointsCardProps> = ({
 
   if (variant === 'compact') {
     return (
-      <View style={[styles.compactContainer, { backgroundColor: colors.gray[100] }, style]}>
+      <View
+        style={[styles.compactContainer, { backgroundColor: colors.gray[100] }, style]}
+      >
         <Ionicons name="trophy" size={20} color={colors.accent} />
         <Text style={[styles.compactPoints, { color: colors.text.primary }]}>
           {points.toLocaleString()}

@@ -10,7 +10,7 @@ import {
   Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, spacing, borderRadius } from '@/theme';
+import { typography, spacing, borderRadius } from '@/theme';
 import { useThemedColors } from '@/hooks';
 
 export interface SelectOption {
@@ -51,7 +51,9 @@ export const Select: React.FC<SelectProps> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label && <Text style={[styles.label, { color: themeColors.text.primary }]}>{label}</Text>}
+      {label && (
+        <Text style={[styles.label, { color: themeColors.text.primary }]}>{label}</Text>
+      )}
 
       <TouchableOpacity
         style={[
@@ -64,7 +66,13 @@ export const Select: React.FC<SelectProps> = ({
         disabled={disabled}
         activeOpacity={0.7}
       >
-        <Text style={[styles.selectText, { color: themeColors.text.primary }, !selectedOption && { color: themeColors.gray[400] }]}>
+        <Text
+          style={[
+            styles.selectText,
+            { color: themeColors.text.primary },
+            !selectedOption && { color: themeColors.gray[400] },
+          ]}
+        >
           {selectedOption ? selectedOption.label : placeholder}
         </Text>
         <Ionicons
@@ -84,8 +92,12 @@ export const Select: React.FC<SelectProps> = ({
       >
         <Pressable style={styles.modalOverlay} onPress={() => setIsOpen(false)}>
           <View style={[styles.modalContent, { backgroundColor: themeColors.gray[100] }]}>
-            <View style={[styles.modalHeader, { borderBottomColor: themeColors.gray[200] }]}>
-              <Text style={[styles.modalTitle, { color: themeColors.text.primary }]}>{label || 'Select an option'}</Text>
+            <View
+              style={[styles.modalHeader, { borderBottomColor: themeColors.gray[200] }]}
+            >
+              <Text style={[styles.modalTitle, { color: themeColors.text.primary }]}>
+                {label || 'Select an option'}
+              </Text>
               <TouchableOpacity onPress={() => setIsOpen(false)}>
                 <Ionicons name="close" size={24} color={themeColors.text.primary} />
               </TouchableOpacity>
@@ -99,7 +111,9 @@ export const Select: React.FC<SelectProps> = ({
                   style={[
                     styles.option,
                     { borderBottomColor: themeColors.gray[100] },
-                    item.value === value && { backgroundColor: themeColors.primary + '10' },
+                    item.value === value && {
+                      backgroundColor: themeColors.primary + '10',
+                    },
                   ]}
                   onPress={() => handleSelect(item.value)}
                   activeOpacity={0.7}
@@ -108,7 +122,10 @@ export const Select: React.FC<SelectProps> = ({
                     style={[
                       styles.optionText,
                       { color: themeColors.text.primary },
-                      item.value === value && { ...typography.styles.bodyMedium, color: themeColors.primary },
+                      item.value === value && {
+                        ...typography.styles.bodyMedium,
+                        color: themeColors.primary,
+                      },
                     ]}
                   >
                     {item.label}

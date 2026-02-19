@@ -44,7 +44,11 @@ export const Button: React.FC<ButtonProps> = ({
   const variantStyles = {
     primary: { backgroundColor: colors.primary },
     secondary: { backgroundColor: colors.accent },
-    outline: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: colors.gray[300] },
+    outline: {
+      backgroundColor: 'transparent',
+      borderWidth: 1.5,
+      borderColor: colors.gray[300],
+    },
     ghost: { backgroundColor: 'transparent' },
     danger: { backgroundColor: colors.error },
   };
@@ -92,7 +96,9 @@ export const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <ActivityIndicator
           color={
-            variant === 'primary' || variant === 'danger' ? colors.text.white : colors.primary
+            variant === 'primary' || variant === 'danger'
+              ? colors.text.white
+              : colors.primary
           }
         />
       ) : (

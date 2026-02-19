@@ -68,7 +68,7 @@ export const Input: React.FC<InputProps> = ({
             leftIcon && styles.inputWithLeftIcon,
             (rightIcon || secureTextEntry) && styles.inputWithRightIcon,
           ]}
-          placeholderTextColor={colors.gray[400]}
+          placeholderTextColor={colors.gray[500]}
           secureTextEntry={isSecure}
           {...props}
         />

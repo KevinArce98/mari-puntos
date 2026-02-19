@@ -52,8 +52,9 @@ class ApiService {
       (response) => response,
       async (error: AxiosError<ApiError>) => {
         const status = error.response?.status;
-        const errorMessage = error.response?.data?.error || error.message || 'An error occurred';
-        
+        const errorMessage =
+          error.response?.data?.error || error.message || 'An error occurred';
+
         if (status === 401) {
           // Token expired or invalid - Clerk will handle re-authentication
           logger.warn('Unauthorized API request - token may be expired');

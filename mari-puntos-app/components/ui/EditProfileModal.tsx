@@ -18,7 +18,7 @@ import {
   launchImageLibraryAsync,
   requestMediaLibraryPermissionsAsync,
 } from 'expo-image-picker';
-import { colors, spacing, typography, borderRadius } from '@/theme';
+import { spacing, typography, borderRadius } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import { Button } from './Button';
 import { ControlledInput } from './ControlledInput';
@@ -134,7 +134,9 @@ export function EditProfileModal({
         >
           <View style={[styles.container, { backgroundColor: themeColors.gray[100] }]}>
             <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
-              <Text style={[styles.title, { color: themeColors.text.primary }]}>Editar Perfil</Text>
+              <Text style={[styles.title, { color: themeColors.text.primary }]}>
+                Editar Perfil
+              </Text>
               <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
                 <Ionicons name="close" size={24} color={themeColors.text.primary} />
               </TouchableOpacity>
@@ -142,24 +144,46 @@ export function EditProfileModal({
 
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.section}>
-                <Text style={[styles.label, { color: themeColors.text.primary }]}>Foto de Perfil</Text>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>
+                  Foto de Perfil
+                </Text>
                 <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
                   {displayImage ? (
-                    <Image source={{ uri: displayImage }} style={[styles.avatar, { backgroundColor: themeColors.gray[200] }]} />
+                    <Image
+                      source={{ uri: displayImage }}
+                      style={[styles.avatar, { backgroundColor: themeColors.gray[200] }]}
+                    />
                   ) : (
-                    <View style={[styles.avatarPlaceholder, { backgroundColor: themeColors.gray[200] }]}>
+                    <View
+                      style={[
+                        styles.avatarPlaceholder,
+                        { backgroundColor: themeColors.gray[200] },
+                      ]}
+                    >
                       <Ionicons name="person" size={48} color={themeColors.gray[400]} />
                     </View>
                   )}
-                  <View style={[styles.avatarEditBadge, { backgroundColor: themeColors.primary, borderColor: themeColors.white }]}>
+                  <View
+                    style={[
+                      styles.avatarEditBadge,
+                      {
+                        backgroundColor: themeColors.primary,
+                        borderColor: themeColors.white,
+                      },
+                    ]}
+                  >
                     <Ionicons name="camera" size={16} color={themeColors.white} />
                   </View>
                 </TouchableOpacity>
-                <Text style={[styles.hint, { color: themeColors.text.secondary }]}>Toca para cambiar tu foto</Text>
+                <Text style={[styles.hint, { color: themeColors.text.secondary }]}>
+                  Toca para cambiar tu foto
+                </Text>
               </View>
 
               <View style={styles.section}>
-                <Text style={[styles.label, { color: themeColors.text.primary }]}>Nombre *</Text>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>
+                  Nombre *
+                </Text>
                 <ControlledInput
                   control={control}
                   name="firstName"
@@ -169,7 +193,9 @@ export function EditProfileModal({
               </View>
 
               <View style={styles.section}>
-                <Text style={[styles.label, { color: themeColors.text.primary }]}>Apellido *</Text>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>
+                  Apellido *
+                </Text>
                 <ControlledInput
                   control={control}
                   name="lastName"

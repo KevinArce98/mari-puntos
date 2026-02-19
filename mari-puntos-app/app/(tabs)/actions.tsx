@@ -1,17 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import React, { useState, useCallback } from 'react';
 import {
-  ScrollView,
+  ActivityIndicator,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
+import { LegendList } from '@legendapp/list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActionItemCard, CreateActionModal, Chip } from '@/components/ui';
-import { useActions, usePoints, useThemedColors } from '@/hooks';
+import { useActions, usePoints, useThemedColors, useUser } from '@/hooks';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
 import { ActionStatus } from '@/types';
@@ -28,8 +30,39 @@ export default function ActionsScreen() {
   const colors = useThemedColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user } = useUser();
   const { myPoints } = usePoints();
-  const { myActions, partnerActions, createAction, refetchMyActions } = useActions();
+  const {
+    myActions,
+    partnerActions,
+    createAction,
+    refetchMyActions,
+    myActionsPagination,
+  } = useActions();
+  const [page, setPage] = React.useState(1);
+  const [loadingMore, setLoadingMore] = React.useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+      setPage(1);
+      refetchMyActions({ page: 1, limit: 20 });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user])
+  );
+
+  const handleLoadMore = async () => {
+    if (loadingMore || !myActionsPagination) return;
+    if (myActionsPagination.page >= myActionsPagination.totalPages) return;
+    const nextPage = page + 1;
+    setLoadingMore(true);
+    setPage(nextPage);
+    try {
+      await refetchMyActions({ page: nextPage, limit: 20 }, true);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const [selectedStatus, setSelectedStatus] = useState<ActionStatus | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -124,57 +157,63 @@ export default function ActionsScreen() {
         </View>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
+      <LegendList
+        data={filteredActions}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <ActionItemCard action={item} showStatus />}
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
-      >
-        {/* Status Filter */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filtersContainer}
-          contentContainerStyle={styles.filtersContent}
-        >
-          {STATUS_FILTERS.map((filter) => (
-            <Chip
-              key={filter.label}
-              label={filter.label}
-              selected={selectedStatus === filter.value}
-              onPress={() => setSelectedStatus(filter.value)}
-            />
-          ))}
-        </ScrollView>
-
-        {/* Actions List */}
-        <View style={styles.section}>
-          {filteredActions.length > 0 ? (
-            filteredActions.map((action) => (
-              <ActionItemCard key={action.id} action={action} showStatus />
-            ))
-          ) : (
-            <View style={styles.emptyState}>
-              <Ionicons
-                name={selectedStatus ? 'filter-outline' : 'calendar-outline'}
-                size={48}
-                color={colors.gray[300]}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListHeaderComponent={
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filtersContainer}
+            contentContainerStyle={styles.filtersContent}
+          >
+            {STATUS_FILTERS.map((filter) => (
+              <Chip
+                key={filter.label}
+                label={filter.label}
+                selected={selectedStatus === filter.value}
+                onPress={() => setSelectedStatus(filter.value)}
               />
-              <Text style={[styles.emptyText, { color: colors.text.primary }]}>
-                {selectedStatus
-                  ? 'No hay acciones con este estado'
-                  : 'No has creado acciones aún'}
+            ))}
+          </ScrollView>
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Ionicons
+              name={selectedStatus ? 'filter-outline' : 'calendar-outline'}
+              size={48}
+              color={colors.gray[300]}
+            />
+            <Text style={[styles.emptyText, { color: colors.text.primary }]}>
+              {selectedStatus
+                ? 'No hay acciones con este estado'
+                : 'No has creado acciones aún'}
+            </Text>
+            {!selectedStatus && (
+              <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>
+                Crea tu primera acción para empezar a ganar puntos
               </Text>
-              {!selectedStatus && (
-                <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>
-                  Crea tu primera acción para empezar a ganar puntos
-                </Text>
-              )}
+            )}
+          </View>
+        }
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={styles.footerLoader}>
+              <ActivityIndicator size="small" color={colors.primary} />
             </View>
-          )}
-        </View>
-      </ScrollView>
+          ) : null
+        }
+        ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
+        estimatedItemSize={80}
+      />
 
       {/* Floating Action Button */}
       <TouchableOpacity
@@ -267,6 +306,13 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: spacing.md,
+  },
+  itemSeparator: {
+    height: spacing.sm,
+  },
+  footerLoader: {
+    paddingVertical: spacing.lg,
+    alignItems: 'center',
   },
   emptyState: {
     alignItems: 'center',

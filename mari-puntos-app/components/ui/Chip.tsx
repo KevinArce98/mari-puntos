@@ -23,17 +23,24 @@ export const Chip: React.FC<ChipProps> = ({
       style={[
         styles.chip,
         { backgroundColor: themeColors.gray[100], borderColor: themeColors.gray[200] },
-        selected && { backgroundColor: themeColors.primary, borderColor: themeColors.primary },
+        selected && {
+          backgroundColor: themeColors.primary,
+          borderColor: themeColors.primary,
+        },
         style,
       ]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={[
-        styles.label,
-        { color: themeColors.text.primary },
-        selected && { color: colors.light.white },
-      ]}>{label}</Text>
+      <Text
+        style={[
+          styles.label,
+          { color: themeColors.text.primary },
+          selected && { color: colors.light.white },
+        ]}
+      >
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 };

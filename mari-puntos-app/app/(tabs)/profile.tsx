@@ -251,6 +251,18 @@ export default function ProfileScreen() {
           </Text>
           <Card padding="none" style={styles.menuCard}>
             <ListItem
+              title="Notificaciones"
+              leftIcon="notifications-outline"
+              rightIcon="chevron-forward"
+              onPress={() => Linking.openSettings()}
+            />
+            <ListItem
+              title="Cambiar contraseña"
+              leftIcon="lock-closed-outline"
+              rightIcon="chevron-forward"
+              onPress={() => router.push('/profile/change-password')}
+            />
+            <ListItem
               title="Privacidad"
               leftIcon="shield-outline"
               rightIcon="chevron-forward"

@@ -75,13 +75,20 @@ export default function RewardsScreen() {
       : mockRewards.filter((r) => r.category === selectedCategory);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: colors.background },
+      ]}
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Rewards Catalog</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
+          Rewards Catalog
+        </Text>
         <TouchableOpacity>
           <Text style={[styles.historyLink, { color: colors.primary }]}>History</Text>
         </TouchableOpacity>
@@ -138,17 +145,17 @@ export default function RewardsScreen() {
                   <View style={styles.rewardImageContainer}>
                     <Image source={{ uri: reward.image }} style={styles.rewardImage} />
                     {/* Points Badge */}
-                    <View style={[styles.pointsBadge, { backgroundColor: colors.primary }]}>
-                      <Text style={[styles.pointsBadgeText, { color: colors.white }]}>{reward.pointsCost} pts</Text>
+                    <View
+                      style={[styles.pointsBadge, { backgroundColor: colors.primary }]}
+                    >
+                      <Text style={[styles.pointsBadgeText, { color: colors.white }]}>
+                        {reward.pointsCost} pts
+                      </Text>
                     </View>
                     {/* Lock Overlay */}
                     {isLocked && (
                       <View style={styles.lockOverlay}>
-                        <Ionicons
-                          name="lock-closed"
-                          size={24}
-                          color={colors.white}
-                        />
+                        <Ionicons name="lock-closed" size={24} color={colors.white} />
                       </View>
                     )}
                   </View>
@@ -179,7 +186,9 @@ export default function RewardsScreen() {
         {/* Suggest Custom Reward */}
         <TouchableOpacity style={styles.suggestLink}>
           <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-          <Text style={[styles.suggestText, { color: colors.primary }]}>Suggest a Custom Reward</Text>
+          <Text style={[styles.suggestText, { color: colors.primary }]}>
+            Suggest a Custom Reward
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

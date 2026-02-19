@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Card, Badge } from '@/components/ui';
-import { colors, typography, spacing, borderRadius } from '@/theme';
+import { typography, spacing, borderRadius } from '@/theme';
 import { formatDateOnly } from '@/utils/dateUtils';
 import { useRewards, useThemedColors } from '@/hooks';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,10 +21,20 @@ export default function AchievementsScreen() {
           {isLocked ? '🔒' : achievement.icon}
         </Text>
         <View style={styles.achievementInfo}>
-          <Text style={[styles.achievementName, { color: themeColors.text.primary }, isLocked && { color: themeColors.text.light }]}>
+          <Text
+            style={[
+              styles.achievementName,
+              { color: themeColors.text.primary },
+              isLocked && { color: themeColors.text.light },
+            ]}
+          >
             {achievement.name}
           </Text>
-          <Text style={[styles.achievementDescription, { color: themeColors.text.secondary }]}>{achievement.description}</Text>
+          <Text
+            style={[styles.achievementDescription, { color: themeColors.text.secondary }]}
+          >
+            {achievement.description}
+          </Text>
           {!isLocked && achievement.unlockedAt && (
             <Text style={[styles.achievementDate, { color: themeColors.success }]}>
               Desbloqueado el {formatDateOnly(achievement.unlockedAt)}
@@ -62,7 +72,12 @@ export default function AchievementsScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: themeColors.background, paddingTop: insets.top },
+      ]}
+    >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={[styles.title, { color: themeColors.text.primary }]}>Logros</Text>
         <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
@@ -72,20 +87,28 @@ export default function AchievementsScreen() {
         {/* Stats */}
         <View style={styles.statsContainer}>
           <Card style={styles.statCard}>
-            <Text style={[styles.statValue, { color: themeColors.primary }]}>{availableRewards.length}</Text>
-            <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>Desbloqueados</Text>
+            <Text style={[styles.statValue, { color: themeColors.primary }]}>
+              {availableRewards.length}
+            </Text>
+            <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>
+              Desbloqueados
+            </Text>
           </Card>
           <Card style={styles.statCard}>
             <Text style={[styles.statValue, { color: themeColors.primary }]}>
               {allRewards.length - availableRewards.length}
             </Text>
-            <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>Por desbloquear</Text>
+            <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>
+              Por desbloquear
+            </Text>
           </Card>
           <Card style={styles.statCard}>
             <Text style={[styles.statValue, { color: themeColors.primary }]}>
               {Math.round((availableRewards.length / allRewards.length) * 100)}%
             </Text>
-            <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>Completado</Text>
+            <Text style={[styles.statLabel, { color: themeColors.text.secondary }]}>
+              Completado
+            </Text>
           </Card>
         </View>
 

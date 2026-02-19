@@ -4,7 +4,7 @@ import { View, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { spacing } from '@/theme';
 import { useThemedColors } from '@/hooks';
 
 /**
@@ -22,7 +22,9 @@ export function RouteAuthGuard({ children }: { children: React.ReactNode }) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <View style={styles.content}>
-        <Text style={[styles.title, { color: themeColors.text.primary }]}>Acceso Denegado</Text>
+        <Text style={[styles.title, { color: themeColors.text.primary }]}>
+          Acceso Denegado
+        </Text>
         <Text style={[styles.message, { color: themeColors.text.secondary }]}>
           Necesitas iniciar sesión para acceder a esta página.
         </Text>

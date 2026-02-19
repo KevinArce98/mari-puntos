@@ -1,4 +1,4 @@
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { borderRadius, spacing, typography } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import React, { useRef, useState } from 'react';
 import { StyleSheet, TextInput, View, ViewStyle } from 'react-native';
@@ -52,14 +52,28 @@ export const CodeInput: React.FC<CodeInputProps> = ({
             key={index}
             style={[
               styles.box,
-              { borderColor: themeColors.gray[300], backgroundColor: themeColors.gray[100] },
-              focused && index === value.length && { borderColor: themeColors.primary, borderWidth: 2 },
-              char && { borderColor: themeColors.primary, backgroundColor: themeColors.gray[50] },
+              {
+                borderColor: themeColors.gray[300],
+                backgroundColor: themeColors.gray[100],
+              },
+              focused &&
+                index === value.length && {
+                  borderColor: themeColors.primary,
+                  borderWidth: 2,
+                },
+              char && {
+                borderColor: themeColors.primary,
+                backgroundColor: themeColors.gray[50],
+              },
               error && { borderColor: themeColors.error },
             ]}
             onTouchEnd={handlePress}
           >
-            <TextInput style={[styles.boxText, { color: themeColors.text.primary }]} value={char} editable={false} />
+            <TextInput
+              style={[styles.boxText, { color: themeColors.text.primary }]}
+              value={char}
+              editable={false}
+            />
           </View>
         ))}
       </View>

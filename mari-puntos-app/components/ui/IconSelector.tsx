@@ -96,18 +96,36 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <View
-        style={[styles.container, { backgroundColor: themeColors.background, paddingTop: Platform.OS !== 'ios' ? insets.top : 0 }]}
+        style={[
+          styles.container,
+          {
+            backgroundColor: themeColors.background,
+            paddingTop: Platform.OS !== 'ios' ? insets.top : 0,
+          },
+        ]}
       >
         {/* Header */}
-        <View style={[styles.header, { backgroundColor: themeColors.gray[100], borderBottomColor: themeColors.gray[200] }]}>
-          <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>Seleccionar Icono</Text>
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: themeColors.gray[100],
+              borderBottomColor: themeColors.gray[200],
+            },
+          ]}
+        >
+          <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
+            Seleccionar Icono
+          </Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Ionicons name="close" size={28} color={themeColors.text.primary} />
           </TouchableOpacity>
         </View>
 
         {/* Search */}
-        <View style={[styles.searchContainer, { backgroundColor: themeColors.gray[100] }]}>
+        <View
+          style={[styles.searchContainer, { backgroundColor: themeColors.gray[100] }]}
+        >
           <Ionicons
             name="search-outline"
             size={20}
@@ -130,7 +148,10 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
               key={icon.name}
               style={[
                 styles.iconItem,
-                selectedIcon === icon.name && { backgroundColor: themeColors.background, borderRadius: borderRadius.lg },
+                selectedIcon === icon.name && {
+                  backgroundColor: themeColors.background,
+                  borderRadius: borderRadius.lg,
+                },
               ]}
               onPress={() => handleSelect(icon.name)}
             >
@@ -155,7 +176,10 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
                 style={[
                   styles.iconLabel,
                   { color: themeColors.text.secondary },
-                  selectedIcon === icon.name && { color: themeColors.primary, fontWeight: '600' },
+                  selectedIcon === icon.name && {
+                    color: themeColors.primary,
+                    fontWeight: '600',
+                  },
                 ]}
                 numberOfLines={2}
               >

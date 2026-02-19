@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, ControlledCodeInput, ControlledInput } from '@/components/ui';
-import { colors, spacing, typography } from '@/theme';
+import { spacing, typography } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import Toast from 'react-native-toast-message';
 import { resetPasswordSchema } from '@/validators/auth.schema';
@@ -105,7 +105,9 @@ export default function ResetPasswordScreen() {
         >
           {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.title, { color: themeColors.text.primary }]}>Restablecer contraseña</Text>
+            <Text style={[styles.title, { color: themeColors.text.primary }]}>
+              Restablecer contraseña
+            </Text>
             <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
               Ingresa el código que enviamos a {email} y tu nueva contraseña
             </Text>
@@ -136,7 +138,9 @@ export default function ResetPasswordScreen() {
             />
 
             <View style={styles.codeInputContainer}>
-              <Text style={[styles.codeLabel, { color: themeColors.text.primary }]}>Código de verificación</Text>
+              <Text style={[styles.codeLabel, { color: themeColors.text.primary }]}>
+                Código de verificación
+              </Text>
               <ControlledCodeInput
                 control={control}
                 name="code"
@@ -157,7 +161,9 @@ export default function ResetPasswordScreen() {
           {/* Back */}
           <View style={styles.backContainer}>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text style={[styles.backLink, { color: themeColors.primary }]}>Volver</Text>
+              <Text style={[styles.backLink, { color: themeColors.primary }]}>
+                Volver
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

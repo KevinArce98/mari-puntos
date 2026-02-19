@@ -6,14 +6,8 @@ import { PointsLog } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
 import React from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { LegendList } from '@legendapp/list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import logger from '@/utils/logger';
 
@@ -87,7 +81,9 @@ export default function HistoryScreen() {
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="time-outline" size={64} color={colors.text.secondary} />
-      <Text style={[styles.emptyText, { color: colors.text.primary }]}>No hay historial</Text>
+      <Text style={[styles.emptyText, { color: colors.text.primary }]}>
+        No hay historial
+      </Text>
       <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>
         Tus actividades y transacciones aparecerán aquí
       </Text>
@@ -100,7 +96,9 @@ export default function HistoryScreen() {
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.text.secondary }]}>Cargando más...</Text>
+        <Text style={[styles.loadingText, { color: colors.text.secondary }]}>
+          Cargando más...
+        </Text>
       </View>
     );
   };
@@ -119,7 +117,7 @@ export default function HistoryScreen() {
         }}
       />
 
-      <FlatList
+      <LegendList
         data={pointsHistory}
         renderItem={renderHistoryItem}
         keyExtractor={(item) => item.id}
@@ -140,6 +138,7 @@ export default function HistoryScreen() {
         onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
+        estimatedItemSize={72}
       />
 
       {isLoading && pointsHistory.length === 0 && (

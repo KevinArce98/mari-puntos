@@ -74,7 +74,10 @@ export function ActionItemCard({
           {/* Content */}
           <View style={styles.content}>
             <View style={styles.header}>
-              <Text style={[styles.title, { color: themeColors.text.primary }]} numberOfLines={1}>
+              <Text
+                style={[styles.title, { color: themeColors.text.primary }]}
+                numberOfLines={1}
+              >
                 {action.title}
               </Text>
               {showStatus && (
@@ -89,21 +92,31 @@ export function ActionItemCard({
             </View>
 
             {action.description && (
-              <Text style={[styles.description, { color: themeColors.text.secondary }]} numberOfLines={2}>
+              <Text
+                style={[styles.description, { color: themeColors.text.secondary }]}
+                numberOfLines={2}
+              >
                 {action.description}
               </Text>
             )}
 
             <View style={styles.footer}>
-              <Text style={[styles.date, { color: themeColors.gray[400] }]}>{formattedDate}</Text>
+              <Text style={[styles.date, { color: themeColors.gray[400] }]}>
+                {formattedDate}
+              </Text>
               {action.status === ActionStatus.APPROVED && (
                 <View style={styles.pointsBadge}>
                   <Ionicons name="trophy" size={14} color={themeColors.accent} />
-                  <Text style={[styles.pointsText, { color: themeColors.accent }]}>+{action.pointsAwarded} pts</Text>
+                  <Text style={[styles.pointsText, { color: themeColors.accent }]}>
+                    +{action.pointsAwarded} pts
+                  </Text>
                 </View>
               )}
               {action.status === ActionStatus.REJECTED && action.rejectionReason && (
-                <Text style={[styles.rejectionReason, { color: themeColors.error }]} numberOfLines={1}>
+                <Text
+                  style={[styles.rejectionReason, { color: themeColors.error }]}
+                  numberOfLines={1}
+                >
                   {action.rejectionReason}
                 </Text>
               )}

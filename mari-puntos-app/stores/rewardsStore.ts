@@ -1,17 +1,13 @@
 import { create } from 'zustand';
 import { rewardsService } from '@/services';
-import {
-  Reward,
-  CreateRewardRequest,
-  GetRewardsParams,
-} from '@/types';
+import { Reward, CreateRewardRequest, GetRewardsParams } from '@/types';
 
 interface RewardsState {
   allRewards: Reward[];
   availableRewards: Reward[];
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   fetchAllRewards: (params?: GetRewardsParams) => Promise<void>;
   fetchAvailableRewards: () => Promise<void>;
@@ -43,7 +39,10 @@ export const useRewardsStore = create<RewardsState>((set, get) => ({
       const rewards = await rewardsService.getAvailableRewards();
       set({ availableRewards: rewards, isLoading: false });
     } catch (error: any) {
-      set({ error: error.error || 'Failed to fetch available rewards', isLoading: false });
+      set({
+        error: error.error || 'Failed to fetch available rewards',
+        isLoading: false,
+      });
       throw error;
     }
   },

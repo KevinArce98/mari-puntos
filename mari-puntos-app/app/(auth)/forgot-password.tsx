@@ -1,7 +1,7 @@
-import { useSignIn, isClerkAPIResponseError } from '@clerk/clerk-expo';
-import { useRouter } from 'expo-router';
-import { handleClerkErrors } from '@/types/clerk-localization';
 import React from 'react';
+import { useRouter } from 'expo-router';
+import { useSignIn, isClerkAPIResponseError } from '@clerk/clerk-expo';
+import { handleClerkErrors } from '@/types/clerk-localization';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, ControlledInput } from '@/components/ui';
-import { colors, spacing, typography } from '@/theme';
+import { spacing, typography } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import Toast from 'react-native-toast-message';
 import { forgotPasswordSchema } from '@/validators/auth.schema';
@@ -97,7 +97,9 @@ export default function ForgotPasswordScreen() {
         >
           {/* Header */}
           <View style={styles.header}>
-            <Text style={[styles.title, { color: themeColors.text.primary }]}>Olvidé mi contraseña</Text>
+            <Text style={[styles.title, { color: themeColors.text.primary }]}>
+              Olvidé mi contraseña
+            </Text>
             <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
               Ingresa tu correo electrónico y te enviaremos un código para restablecer tu
               contraseña
@@ -128,7 +130,9 @@ export default function ForgotPasswordScreen() {
           {/* Back to Login */}
           <View style={styles.backContainer}>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text style={[styles.backLink, { color: themeColors.primary }]}>Volver al inicio de sesión</Text>
+              <Text style={[styles.backLink, { color: themeColors.primary }]}>
+                Volver al inicio de sesión
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

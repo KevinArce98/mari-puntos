@@ -20,3 +20,4 @@ export { ResponseModal } from './ResponseModal';
 export { ReviewActionModal } from './ReviewActionModal';
 export { Select } from './Select';
 export type { SelectOption } from './Select';
+export { TextAreaWithCounter } from './TextAreaWithCounter';

@@ -1,11 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { Badge, Card, Chip, ProgressBar } from '@/components/ui';
 import { useRewards, useThemedColors } from '@/hooks';
-import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
 
 const FILTERS = ['All', 'Unlocked', 'In Progress'];
 
@@ -63,7 +62,7 @@ export default function AchievementsTabScreen() {
           <View style={styles.achievementInfo}>
             <View style={styles.achievementHeader}>
               <Text
-                style={[styles.achievementName, isLocked ? styles.lockedText : undefined]}
+                style={[styles.achievementName, isLocked ? styles.lockedCard : undefined]}
               >
                 {achievement.name}
               </Text>
@@ -78,7 +77,13 @@ export default function AchievementsTabScreen() {
               )}
             </View>
 
-            <Text style={[styles.achievementDescription, { color: themeColors.text.secondary }]} numberOfLines={2}>
+            <Text
+              style={[
+                styles.achievementDescription,
+                { color: themeColors.text.secondary },
+              ]}
+              numberOfLines={2}
+            >
               {achievement.description}
             </Text>
 
@@ -92,7 +97,9 @@ export default function AchievementsTabScreen() {
                   color={themeColors.primary}
                   height={6}
                 />
-                <Text style={[styles.progressText, { color: themeColors.text.secondary }]}>
+                <Text
+                  style={[styles.progressText, { color: themeColors.text.secondary }]}
+                >
                   {achievement.progress} / {achievement.requirement}
                 </Text>
               </View>
@@ -114,11 +121,20 @@ export default function AchievementsTabScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: themeColors.background, paddingTop: insets.top },
+      ]}
+    >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>Achievements</Text>
-        <TouchableOpacity style={[styles.infoButton, { backgroundColor: themeColors.gray[100] }]}>
+        <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
+          Achievements
+        </Text>
+        <TouchableOpacity
+          style={[styles.infoButton, { backgroundColor: themeColors.gray[100] }]}
+        >
           <Ionicons
             name="information-circle-outline"
             size={24}
@@ -135,13 +151,29 @@ export default function AchievementsTabScreen() {
         <Card style={styles.progressCard}>
           <View style={styles.progressCardHeader}>
             <View>
-              <Text style={[styles.progressCardTitle, { color: themeColors.text.primary }]}>Your Progress</Text>
-              <Text style={[styles.progressCardSubtitle, { color: themeColors.text.secondary }]}>
+              <Text
+                style={[styles.progressCardTitle, { color: themeColors.text.primary }]}
+              >
+                Your Progress
+              </Text>
+              <Text
+                style={[
+                  styles.progressCardSubtitle,
+                  { color: themeColors.text.secondary },
+                ]}
+              >
                 {unlocked.length} of {totalAchievements} achievements
               </Text>
             </View>
-            <View style={[styles.percentageCircle, { backgroundColor: `${themeColors.accent}15` }]}>
-              <Text style={[styles.percentageText, { color: themeColors.accent }]}>{completionPercentage}%</Text>
+            <View
+              style={[
+                styles.percentageCircle,
+                { backgroundColor: `${themeColors.accent}15` },
+              ]}
+            >
+              <Text style={[styles.percentageText, { color: themeColors.accent }]}>
+                {completionPercentage}%
+              </Text>
             </View>
           </View>
 
@@ -154,20 +186,36 @@ export default function AchievementsTabScreen() {
           <View style={[styles.statsRow, { borderTopColor: themeColors.gray[100] }]}>
             <View style={styles.miniStat}>
               <Ionicons name="trophy" size={18} color={themeColors.accent} />
-              <Text style={[styles.miniStatValue, { color: themeColors.text.primary }]}>{unlocked.length}</Text>
-              <Text style={[styles.miniStatLabel, { color: themeColors.text.secondary }]}>Unlocked</Text>
+              <Text style={[styles.miniStatValue, { color: themeColors.text.primary }]}>
+                {unlocked.length}
+              </Text>
+              <Text style={[styles.miniStatLabel, { color: themeColors.text.secondary }]}>
+                Unlocked
+              </Text>
             </View>
-            <View style={[styles.miniStatDivider, { backgroundColor: themeColors.gray[200] }]} />
+            <View
+              style={[styles.miniStatDivider, { backgroundColor: themeColors.gray[200] }]}
+            />
             <View style={styles.miniStat}>
               <Ionicons name="hourglass-outline" size={18} color={themeColors.primary} />
-              <Text style={[styles.miniStatValue, { color: themeColors.text.primary }]}>{locked.length}</Text>
-              <Text style={[styles.miniStatLabel, { color: themeColors.text.secondary }]}>In Progress</Text>
+              <Text style={[styles.miniStatValue, { color: themeColors.text.primary }]}>
+                {locked.length}
+              </Text>
+              <Text style={[styles.miniStatLabel, { color: themeColors.text.secondary }]}>
+                In Progress
+              </Text>
             </View>
-            <View style={[styles.miniStatDivider, { backgroundColor: themeColors.gray[200] }]} />
+            <View
+              style={[styles.miniStatDivider, { backgroundColor: themeColors.gray[200] }]}
+            />
             <View style={styles.miniStat}>
               <Ionicons name="star" size={18} color={themeColors.warning} />
-              <Text style={[styles.miniStatValue, { color: themeColors.text.primary }]}>{totalAchievements}</Text>
-              <Text style={[styles.miniStatLabel, { color: themeColors.text.secondary }]}>Total</Text>
+              <Text style={[styles.miniStatValue, { color: themeColors.text.primary }]}>
+                {totalAchievements}
+              </Text>
+              <Text style={[styles.miniStatLabel, { color: themeColors.text.secondary }]}>
+                Total
+              </Text>
             </View>
           </View>
         </Card>
@@ -193,8 +241,12 @@ export default function AchievementsTabScreen() {
         {unlocked.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>🏆 Unlocked</Text>
-              <Text style={[styles.sectionCount, { color: themeColors.text.secondary }]}>{unlocked.length}</Text>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                🏆 Unlocked
+              </Text>
+              <Text style={[styles.sectionCount, { color: themeColors.text.secondary }]}>
+                {unlocked.length}
+              </Text>
             </View>
             {unlocked.map((achievement: any) => renderAchievement(achievement, false))}
           </View>
@@ -204,8 +256,12 @@ export default function AchievementsTabScreen() {
         {locked.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>🔒 In Progress</Text>
-              <Text style={[styles.sectionCount, { color: themeColors.text.secondary }]}>{locked.length}</Text>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                🔒 In Progress
+              </Text>
+              <Text style={[styles.sectionCount, { color: themeColors.text.secondary }]}>
+                {locked.length}
+              </Text>
             </View>
             {locked.map((achievement: any) => renderAchievement(achievement, true))}
           </View>
@@ -214,10 +270,17 @@ export default function AchievementsTabScreen() {
         {/* Empty State */}
         {unlocked.length === 0 && locked.length === 0 && (
           <Card style={styles.emptyCard}>
-            <View style={[styles.emptyIconContainer, { backgroundColor: themeColors.gray[100] }]}>
+            <View
+              style={[
+                styles.emptyIconContainer,
+                { backgroundColor: themeColors.gray[100] },
+              ]}
+            >
               <Ionicons name="trophy-outline" size={48} color={themeColors.gray[400]} />
             </View>
-            <Text style={[styles.emptyTitle, { color: themeColors.text.primary }]}>No Achievements Yet</Text>
+            <Text style={[styles.emptyTitle, { color: themeColors.text.primary }]}>
+              No Achievements Yet
+            </Text>
             <Text style={[styles.emptyText, { color: themeColors.text.secondary }]}>
               Start completing actions to unlock achievements!
             </Text>

@@ -77,24 +77,44 @@ export function ResponseModal({
       >
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={handleClose}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={[styles.modalContainer, { backgroundColor: themeColors.gray[100] }]} onStartShouldSetResponder={() => true}>
+            <View
+              style={[styles.modalContainer, { backgroundColor: themeColors.gray[100] }]}
+              onStartShouldSetResponder={() => true}
+            >
               {/* Header */}
               <View style={styles.header}>
-                <Text style={[styles.title, { color: themeColors.text.primary }]}>Responder Permiso</Text>
+                <Text style={[styles.title, { color: themeColors.text.primary }]}>
+                  Responder Permiso
+                </Text>
                 <TouchableOpacity onPress={handleClose}>
                   <Ionicons name="close" size={24} color={themeColors.text.secondary} />
                 </TouchableOpacity>
               </View>
 
               {/* Permission Title */}
-              <View style={[styles.permissionInfo, { backgroundColor: themeColors.background }]}>
-                <Text style={[styles.permissionLabel, { color: themeColors.text.secondary }]}>Solicitud:</Text>
-                <Text style={[styles.permissionTitle, { color: themeColors.text.primary }]}>{permissionTitle}</Text>
+              <View
+                style={[
+                  styles.permissionInfo,
+                  { backgroundColor: themeColors.background },
+                ]}
+              >
+                <Text
+                  style={[styles.permissionLabel, { color: themeColors.text.secondary }]}
+                >
+                  Solicitud:
+                </Text>
+                <Text
+                  style={[styles.permissionTitle, { color: themeColors.text.primary }]}
+                >
+                  {permissionTitle}
+                </Text>
               </View>
 
               {/* Points Cost Input */}
               <View style={styles.inputContainer}>
-                <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>Costo en Puntos *</Text>
+                <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>
+                  Costo en Puntos *
+                </Text>
                 <Controller
                   control={control}
                   name="pointsCost"
@@ -120,7 +140,9 @@ export function ResponseModal({
 
               {/* Message Input */}
               <View style={styles.inputContainer}>
-                <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>Mensaje de respuesta (opcional)</Text>
+                <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>
+                  Mensaje de respuesta (opcional)
+                </Text>
                 <ControlledInput
                   control={control}
                   name="message"
