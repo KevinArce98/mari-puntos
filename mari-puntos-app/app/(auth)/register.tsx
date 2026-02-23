@@ -21,6 +21,12 @@ import { borderRadius, colors, spacing, typography } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import Toast from 'react-native-toast-message';
 import { registerSchema, type RegisterFormData } from '@/validators/auth.schema';
+import {
+  hasPasswordLowercase,
+  hasPasswordNumber,
+  hasPasswordSymbol,
+  hasPasswordUppercase,
+} from '@/validators/password.rules';
 import logger from '@/utils/logger';
 
 export default function RegisterScreen() {
@@ -51,9 +57,10 @@ export default function RegisterScreen() {
 
   // Password validation helpers
   const hasMinLength = password.length >= 8;
-  const hasLowercase = /[a-z]/.test(password);
-  const hasUppercase = /[A-Z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
+  const hasLowercase = hasPasswordLowercase(password);
+  const hasUppercase = hasPasswordUppercase(password);
+  const hasNumber = hasPasswordNumber(password);
+  const hasSymbol = hasPasswordSymbol(password);
   const passwordsMatch = password === confirmPassword && password.length > 0;
 
   const onSubmit = async (data: RegisterFormData) => {
@@ -237,6 +244,18 @@ export default function RegisterScreen() {
                   style={[styles.requirementText, hasNumber && styles.requirementMet]}
                 >
                   Un número (0-9)
+                </Text>
+              </View>
+              <View style={styles.requirementItem}>
+                <Ionicons
+                  name={hasSymbol ? 'checkmark-circle' : 'ellipse-outline'}
+                  size={16}
+                  color={hasSymbol ? themeColors.success : themeColors.gray[400]}
+                />
+                <Text
+                  style={[styles.requirementText, hasSymbol && styles.requirementMet]}
+                >
+                  Un símbolo (ej. !@#$)
                 </Text>
               </View>
               <View style={styles.requirementItem}>

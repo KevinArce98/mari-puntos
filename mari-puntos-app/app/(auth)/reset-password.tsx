@@ -22,6 +22,7 @@ import { useThemedColors } from '@/hooks';
 import Toast from 'react-native-toast-message';
 import { resetPasswordSchema } from '@/validators/auth.schema';
 import type { ResetPasswordFormData } from '@/validators/auth.schema';
+import { hasPasswordSymbol } from '@/validators/password.rules';
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function ResetPasswordScreen() {
   const {
     control,
     handleSubmit,
+    watch,
     formState: { isSubmitting },
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
@@ -44,6 +46,9 @@ export default function ResetPasswordScreen() {
       confirmPassword: '',
     },
   });
+
+  const password = watch('password');
+  const hasSymbol = hasPasswordSymbol(password);
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     if (!isLoaded) return;
@@ -126,6 +131,15 @@ export default function ResetPasswordScreen() {
               onRightIconPress={() => setShowPassword(!showPassword)}
             />
 
+            <Text
+              style={[
+                styles.passwordRule,
+                { color: hasSymbol ? themeColors.success : themeColors.text.secondary },
+              ]}
+            >
+              Debe contener al menos un símbolo (ej. !@#$)
+            </Text>
+
             <ControlledInput
               control={control}
               name="confirmPassword"
@@ -195,6 +209,11 @@ const styles = StyleSheet.create({
   },
   form: {
     marginBottom: spacing.lg,
+  },
+  passwordRule: {
+    ...typography.styles.caption,
+    marginTop: -spacing.xs,
+    marginBottom: spacing.sm,
   },
   codeInputContainer: {
     marginBottom: spacing.md,

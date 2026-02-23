@@ -20,17 +20,12 @@ import { Button } from '@/components/ui';
 import { ControlledInput } from '@/components/ui/ControlledInput';
 import { useThemedColors } from '@/hooks';
 import { spacing, typography } from '@/theme';
+import { hasPasswordSymbol, passwordSchema } from '@/validators/password.rules';
 
 const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, 'La contraseña actual es requerida'),
-    newPassword: z
-      .string()
-      .min(8, 'La contraseña debe tener al menos 8 caracteres')
-      .max(100, 'La contraseña debe tener máximo 100 caracteres')
-      .regex(/[a-z]/, 'La contraseña debe contener al menos una letra minúscula')
-      .regex(/[A-Z]/, 'La contraseña debe contener al menos una letra mayúscula')
-      .regex(/[0-9]/, 'La contraseña debe contener al menos un número'),
+    newPassword: passwordSchema,
     confirmNewPassword: z.string().min(1, 'Debes confirmar tu nueva contraseña'),
   })
   .refine((data) => data.newPassword === data.confirmNewPassword, {
@@ -51,7 +46,7 @@ export default function ChangePasswordScreen() {
     ? user?.externalAccounts?.length === 0 || user?.passwordEnabled
     : true;
 
-  const { control, handleSubmit, reset } = useForm<ChangePasswordFormData>({
+  const { control, handleSubmit, watch, reset } = useForm<ChangePasswordFormData>({
     resolver: zodResolver(changePasswordSchema),
     defaultValues: {
       currentPassword: '',
@@ -59,6 +54,9 @@ export default function ChangePasswordScreen() {
       confirmNewPassword: '',
     },
   });
+
+  const newPassword = watch('newPassword');
+  const hasSymbol = hasPasswordSymbol(newPassword);
 
   const onSubmit = async (data: ChangePasswordFormData) => {
     if (!user) return;
@@ -147,6 +145,14 @@ export default function ChangePasswordScreen() {
               secureTextEntry
               leftIcon="lock-open-outline"
             />
+            <Text
+              style={[
+                styles.passwordRule,
+                { color: hasSymbol ? colors.success : colors.text.secondary },
+              ]}
+            >
+              Debe contener al menos un símbolo (ej. !@#$)
+            </Text>
             <ControlledInput
               control={control}
               name="confirmNewPassword"
@@ -200,6 +206,11 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginTop: spacing.md,
+  },
+  passwordRule: {
+    ...typography.styles.caption,
+    marginTop: -spacing.xs,
+    marginBottom: spacing.sm,
   },
   noPasswordContainer: {
     flex: 1,

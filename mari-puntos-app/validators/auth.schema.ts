@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { passwordSchema } from './password.rules';
 
 export const registerSchema = z
   .object({
@@ -17,13 +18,7 @@ export const registerSchema = z
       .email('El correo electrónico no es válido')
       .min(1, 'El correo electrónico es requerido')
       .toLowerCase(),
-    password: z
-      .string()
-      .min(8, 'La contraseña debe tener al menos 8 caracteres')
-      .max(100, 'La contraseña debe tener máximo 100 caracteres')
-      .regex(/[a-z]/, 'La contraseña debe contener al menos una letra minúscula')
-      .regex(/[A-Z]/, 'La contraseña debe contener al menos una letra mayúscula')
-      .regex(/[0-9]/, 'La contraseña debe contener al menos un número'),
+    password: passwordSchema,
     confirmPassword: z.string().min(1, 'Debes confirmar tu contraseña'),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -67,13 +62,7 @@ export const resetPasswordSchema = z
       .string()
       .length(6, 'El código debe tener 6 dígitos')
       .regex(/^\d+$/, 'El código solo puede contener números'),
-    password: z
-      .string()
-      .min(8, 'La contraseña debe tener al menos 8 caracteres')
-      .max(100, 'La contraseña debe tener máximo 100 caracteres')
-      .regex(/[a-z]/, 'La contraseña debe contener al menos una letra minúscula')
-      .regex(/[A-Z]/, 'La contraseña debe contener al menos una letra mayúscula')
-      .regex(/[0-9]/, 'La contraseña debe contener al menos un número'),
+    password: passwordSchema,
     confirmPassword: z.string().min(1, 'Debes confirmar tu contraseña'),
   })
   .refine((data) => data.password === data.confirmPassword, {
