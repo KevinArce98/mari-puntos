@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../config/db';
 import { User } from '../entities/User';
+import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/env';
 import { sendError } from '../utils/response';
@@ -10,6 +11,29 @@ export interface AuthRequest extends Request {
   userId?: string;
   user?: User;
   clerkId?: string;
+}
+
+/**
+ * Verify and decode a Clerk JWT token.
+ * Returns the decoded payload or throws if invalid.
+ */
+function verifyClerkJWT(token: string): jwt.JwtPayload {
+  const options = { algorithms: ['RS256'] as jwt.Algorithm[] };
+  const decoded = jwt.verify(token, config.clerk.publicKey, options) as jwt.JwtPayload;
+
+  if (!decoded.exp || !decoded.nbf) {
+    throw Object.assign(new Error('Missing token claims'), { name: 'InvalidClaimsError' });
+  }
+
+  const currentTime = Math.floor(Date.now() / 1000);
+  if (decoded.exp < currentTime) {
+    throw Object.assign(new Error('Token expired'), { name: 'TokenExpiredError' });
+  }
+  if (decoded.nbf > currentTime) {
+    throw Object.assign(new Error('Token not yet valid'), { name: 'TokenNotBeforeError' });
+  }
+
+  return decoded;
 }
 
 /**
@@ -30,36 +54,20 @@ export const authMiddleware = async (
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const options = { algorithms: ['RS256'] as jwt.Algorithm[] };
-    
+
     let decoded: jwt.JwtPayload;
     try {
-      decoded = jwt.verify(token, config.clerk.publicKey, options) as jwt.JwtPayload;
-    } catch (jwtError: any) {
+      decoded = verifyClerkJWT(token);
+    } catch (jwtError: unknown) {
       logger.error({ err: jwtError }, 'JWT verification failed');
-      sendError(res, 'Token inválido o expirado', 401);
-      return;
-    }
-
-    if (!decoded.exp || !decoded.nbf) {
-      sendError(res, 'Claims de token inválidos', 401);
-      return;
-    }
-
-    // Validate token expiration and not-before claims
-    const currentTime = Math.floor(Date.now() / 1000);
-    if (decoded.exp < currentTime) {
-      const expiredAt = new Date(decoded.exp * 1000);
-      console.error('❌ Token expired:', {
-        expiredAt: expiredAt.toISOString(),
-        currentTime: new Date(currentTime * 1000).toISOString(),
-      });
-      sendError(res, 'El token ha expirado', 401);
-      return;
-    }
-    if (decoded.nbf > currentTime) {
-      console.error('❌ Token not yet valid');
-      sendError(res, 'El token aún no es válido', 401);
+      const errName = jwtError instanceof Error ? jwtError.name : '';
+      if (errName === 'TokenExpiredError') {
+        sendError(res, 'El token ha expirado', 401);
+      } else if (errName === 'TokenNotBeforeError') {
+        sendError(res, 'El token aún no es válido', 401);
+      } else {
+        sendError(res, 'Token inválido o expirado', 401);
+      }
       return;
     }
 
@@ -115,23 +123,29 @@ export const optionalAuthMiddleware = async (
 };
 
 /**
- * Middleware to require a linked partner
- * Must be used after authMiddleware
+ * Middleware to require an active linked partner.
+ * Must be used after authMiddleware.
  */
 export const requirePartner = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  if (!req.user) {
+  if (!req.userId) {
     sendError(res, 'Authentication required', 401);
     return;
   }
 
-  // Check if user has a partner linked
-  // This is a simplified check - the actual partner link check should be done in service layer
-  if (!req.user.partnerCode) {
-    sendError(res, 'No partner linked. Please link with a partner first.', 400);
+  const partnerLinkRepository = AppDataSource.getRepository(PartnerLink);
+  const partnerLink = await partnerLinkRepository.findOne({
+    where: [
+      { user1Id: req.userId, status: PartnerLinkStatus.ACTIVE },
+      { user2Id: req.userId, status: PartnerLinkStatus.ACTIVE },
+    ],
+  });
+
+  if (!partnerLink) {
+    sendError(res, 'No tienes una pareja vinculada. Por favor vincula a tu pareja primero.', 400);
     return;
   }
 
@@ -139,11 +153,9 @@ export const requirePartner = async (
 };
 
 /**
- * Auth middleware for profile creation
- * Allows two modes:
- * 1. With clerkId in request body (during signup) - no auth token required
- * 2. With auth token (for authenticated users) - validates token
- * Used for POST /users/profile endpoint
+ * Auth middleware for profile creation.
+ * Requires a valid Clerk JWT. Extracts clerkId from the token only — never from the request body.
+ * Used for POST /users/profile endpoint.
  */
 export const clerkOnlyAuthMiddleware = async (
   req: AuthRequest,
@@ -151,16 +163,6 @@ export const clerkOnlyAuthMiddleware = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // If clerkId is provided in body, allow without authentication
-    // This is for the signup flow where we have the clerkId but no active session yet
-    if (req.body.clerkId) {
-      console.log('✅ ClerkId provided in body for profile creation:', req.body.clerkId);
-      req.clerkId = req.body.clerkId;
-      next();
-      return;
-    }
-
-    // Otherwise, require authentication token
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -169,53 +171,31 @@ export const clerkOnlyAuthMiddleware = async (
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const options = { algorithms: ['RS256'] as jwt.Algorithm[] };
-    
+
     let decoded: jwt.JwtPayload;
     try {
-      decoded = jwt.verify(token, config.clerk.publicKey, options) as jwt.JwtPayload;
-      console.log('✅ Token verified successfully for profile creation');
-    } catch (jwtError: any) {
-      console.error('❌ JWT Verification failed (clerk-only):', {
-        error: jwtError.message,
-        name: jwtError.name,
-      });
-      sendError(res, 'Token inválido o expirado', 401);
-      return;
-    }
-
-    if (!decoded.exp || !decoded.nbf) {
-      sendError(res, 'Claims de token inválidos', 401);
-      return;
-    }
-
-    // Validate token expiration and not-before claims
-    const currentTime = Math.floor(Date.now() / 1000);
-    if (decoded.exp < currentTime) {
-      const expiredAt = new Date(decoded.exp * 1000);
-      console.error('❌ Token expired (clerk-only):', {
-        expiredAt: expiredAt.toISOString(),
-        currentTime: new Date(currentTime * 1000).toISOString(),
-      });
-      sendError(res, 'El token ha expirado', 401);
-      return;
-    }
-    if (decoded.nbf > currentTime) {
-      console.error('❌ Token not yet valid (clerk-only)');
-      sendError(res, 'El token aún no es válido', 401);
+      decoded = verifyClerkJWT(token);
+      logger.debug('Token verified successfully for profile creation');
+    } catch (jwtError: unknown) {
+      logger.error({ err: jwtError }, 'JWT verification failed (clerk-only)');
+      const errName = jwtError instanceof Error ? jwtError.name : '';
+      if (errName === 'TokenExpiredError') {
+        sendError(res, 'El token ha expirado', 401);
+      } else if (errName === 'TokenNotBeforeError') {
+        sendError(res, 'El token aún no es válido', 401);
+      } else {
+        sendError(res, 'Token inválido o expirado', 401);
+      }
       return;
     }
 
     const clerkId = decoded.sub as string;
-    console.log('✅ ClerkId extracted from token:', clerkId);
+    logger.debug({ message: 'ClerkId extracted from token for profile creation' });
 
-    // For profile creation, we only need the clerkId from the token
-    // We don't check if user exists in database
     req.clerkId = clerkId;
-
     next();
   } catch (error) {
-    console.error('Clerk auth middleware error:', error);
+    logger.error({ err: error }, 'Clerk auth middleware error');
     sendError(res, 'Autenticación fallida', 401);
   }
 };

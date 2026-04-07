@@ -10,6 +10,7 @@ import {
 import { sendSuccess, sendCreated, sendPaginated, createPaginationMeta } from '../utils/response';
 import { toActionDTO, toActionDTOList } from '../utils/mappers';
 import { PAGINATION_DEFAULTS } from '../shared/constants';
+import { ActionStatus } from '../entities/Action';
 import { logger } from '../utils/logger';
 
 export class ActionsController {
@@ -54,7 +55,7 @@ export class ActionsController {
       logger.debug({ message: 'Getting user actions', userId, page, limit, status });
 
       const result = await this.actionsService.getUserActions(userId, {
-        status: status as any,
+        status: status as ActionStatus | undefined,
         page,
         limit,
       });
@@ -89,7 +90,7 @@ export class ActionsController {
       logger.debug({ message: 'Getting partner actions', userId, page, limit, status });
 
       const result = await this.actionsService.getPartnerActions(userId, {
-        status: status as any,
+        status: status as ActionStatus | undefined,
         page,
         limit,
       });
@@ -113,11 +114,12 @@ export class ActionsController {
    */
   getActionById = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      const userId = req.userId!;
       const { id } = req.params;
 
-      logger.debug({ message: 'Getting action by ID', actionId: id, userId: req.userId });
+      logger.debug({ message: 'Getting action by ID', actionId: id, userId });
 
-      const action = await this.actionsService.getActionById(id);
+      const action = await this.actionsService.getActionById(id, userId);
 
       logger.debug({ message: 'Action retrieved', actionId: id });
 

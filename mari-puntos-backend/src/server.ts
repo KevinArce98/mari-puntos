@@ -37,17 +37,17 @@ const startServer = async () => {
 
     // Graceful shutdown
     const gracefulShutdown = async (signal: string) => {
-      console.log(`\n${signal} received. Starting graceful shutdown...`);
+      logger.info(`${signal} received. Starting graceful shutdown...`);
 
       server.close(async () => {
-        console.log('✅ HTTP server closed');
+        logger.info('HTTP server closed');
 
         try {
           await closeDatabase();
-          console.log('✅ Database connection closed');
+          logger.info('Database connection closed');
           process.exit(0);
         } catch (error) {
-          console.error('❌ Error during shutdown:', error);
+          logger.error({ err: error }, 'Error during shutdown');
           process.exit(1);
         }
       });

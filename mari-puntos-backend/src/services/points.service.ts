@@ -148,6 +148,17 @@ export class PointsService {
     await this.checkLevelAchievements(user);
   }
 
+  /** Called externally after a points-modifying transaction to check achievements without re-saving points. */
+  async checkAchievementsForUser(userId: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) return;
+    const previousLevel = user.currentLevel;
+    if (user.currentLevel > previousLevel) {
+      await this.handleLevelUp(user, previousLevel);
+    }
+    await this.checkAchievements(user);
+  }
+
   private async checkAchievements(user: User): Promise<void> {
     // Get user's unlocked achievements
     const unlockedAchievements = await this.achievementRepository.find({

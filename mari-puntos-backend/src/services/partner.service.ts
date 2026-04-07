@@ -126,7 +126,7 @@ export class PartnerService {
 
     await this.userRepository.save(user);
     const savedPartnerLink = await this.partnerLinkRepository.save(partnerLink);
-    console.log({ user1Id: savedPartnerLink.user1Id, user2Id: partnerLink.user2Id });
+    logger.info({ message: 'Partner link activated', user1Id: savedPartnerLink.user1Id, user2Id: partnerLink.user2Id });
 
     // Create logs for both users
     await this.logRepository.save([
@@ -297,32 +297,26 @@ export class PartnerService {
   }
 
   private async generateUniqueLinkCode(): Promise<string> {
-    let code: string;
-    let exists = true;
-
-    while (exists) {
-      code = generatePartnerCode();
+    const MAX_ATTEMPTS = 10;
+    for (let i = 0; i < MAX_ATTEMPTS; i++) {
+      const code = generatePartnerCode();
       const existingLink = await this.partnerLinkRepository.findOne({
         where: { linkCode: code },
       });
-      exists = !!existingLink;
+      if (!existingLink) return code;
     }
-
-    return code!;
+    throw new AppError(500, 'No se pudo generar un código de enlace único. Intenta de nuevo.');
   }
 
   private async generateUniquePartnerCode(): Promise<string> {
-    let code: string;
-    let exists = true;
-
-    while (exists) {
-      code = generatePartnerCode();
+    const MAX_ATTEMPTS = 10;
+    for (let i = 0; i < MAX_ATTEMPTS; i++) {
+      const code = generatePartnerCode();
       const existingUser = await this.userRepository.findOne({
         where: { partnerCode: code },
       });
-      exists = !!existingUser;
+      if (!existingUser) return code;
     }
-
-    return code!;
+    throw new AppError(500, 'No se pudo generar un código de pareja único. Intenta de nuevo.');
   }
 }

@@ -3,7 +3,7 @@ import { Action, ActionStatus, ActionCategory } from '../entities/Action';
 import { User } from '../entities/User';
 import { Log, LogType } from '../entities/Log';
 import { AppError } from '../middlewares/errorMiddleware';
-import { getNowUTC6 } from '../utils/helpers';
+import { getNowUTC6, calculateLevel, calculatePointsInCurrentLevel } from '../utils/helpers';
 import { PartnerService } from './partner.service';
 import { PointsService } from './points.service';
 import { CreateActionInput, UpdateActionInput } from '../validators/schemas';
@@ -33,7 +33,7 @@ export class ActionsService {
       title: data.title,
       description: data.description,
       category: data.category as ActionCategory,
-      metadata: data.metadata as Record<string, any>,
+      metadata: data.metadata as Record<string, unknown>,
       status: ActionStatus.PENDING,
     });
 
@@ -67,7 +67,7 @@ export class ActionsService {
     return action;
   }
 
-  async getActionById(actionId: string): Promise<Action> {
+  async getActionById(actionId: string, requestingUserId?: string): Promise<Action> {
     const action = await this.actionRepository.findOne({
       where: { id: actionId },
       relations: ['user'],
@@ -75,6 +75,15 @@ export class ActionsService {
 
     if (!action) {
       throw new AppError(404, 'Acción no encontrada');
+    }
+
+    if (requestingUserId) {
+      if (action.userId !== requestingUserId) {
+        const partnerId = await this.partnerService.getPartnerId(requestingUserId);
+        if (partnerId !== action.userId) {
+          throw new AppError(403, 'No tienes acceso a esta acción');
+        }
+      }
     }
 
     return action;
@@ -143,7 +152,7 @@ export class ActionsService {
     if (data.title !== undefined) action.title = data.title;
     if (data.description !== undefined) action.description = data.description;
     if (data.category !== undefined) action.category = data.category as ActionCategory;
-    if (data.metadata !== undefined) action.metadata = data.metadata as Record<string, any>;
+    if (data.metadata !== undefined) action.metadata = data.metadata as Record<string, unknown>;
 
     await this.actionRepository.save(action);
 
@@ -177,43 +186,64 @@ export class ActionsService {
     action.approvedBy = approverId;
     action.approvedAt = getNowUTC6();
 
-    await this.actionRepository.save(action);
+    await AppDataSource.transaction(async (manager) => {
+      const actionRepo = manager.getRepository(Action);
+      const userRepo = manager.getRepository(User);
+      const logRepo = manager.getRepository(Log);
 
-    // Add points to user
-    await this.pointsService.addPoints(
-      action.userId,
-      pointsAwarded,
-      `Puntos ganados: ${action.title}`
-    );
+      await actionRepo.save(action);
 
-    // Create logs
-    await this.logRepository.save([
-      this.logRepository.create({
-        userId: action.userId,
-        type: LogType.ACTION_APPROVED,
-        message: `Acción aprobada: ${action.title}`,
-        relatedEntityId: action.id,
-        relatedEntityType: 'Action',
-      }),
-      this.logRepository.create({
-        userId: approverId,
-        type: LogType.ACTION_APPROVED,
-        message: `Aprobaste acción: ${action.title}`,
-        relatedEntityId: action.id,
-        relatedEntityType: 'Action',
-      }),
-    ]);
+      const actionUser = await userRepo.findOne({ where: { id: action.userId } });
+      if (!actionUser) throw new AppError(404, 'Usuario no encontrado');
+      actionUser.totalPoints += pointsAwarded;
+      actionUser.currentLevel = calculateLevel(actionUser.totalPoints);
+      actionUser.pointsInCurrentLevel = calculatePointsInCurrentLevel(actionUser.totalPoints);
+      await userRepo.save(actionUser);
 
-    // Send push notification to action creator
-    const actionCreator = await this.userRepository.findOne({
-      where: { id: action.userId },
+      await logRepo.save([
+        logRepo.create({
+          userId: action.userId,
+          type: LogType.POINTS_EARNED,
+          message: `Puntos ganados: ${action.title}`,
+          pointsChange: pointsAwarded,
+          relatedEntityId: action.id,
+          relatedEntityType: 'Action',
+        }),
+        logRepo.create({
+          userId: action.userId,
+          type: LogType.ACTION_APPROVED,
+          message: `Acción aprobada: ${action.title}`,
+          relatedEntityId: action.id,
+          relatedEntityType: 'Action',
+        }),
+        logRepo.create({
+          userId: approverId,
+          type: LogType.ACTION_APPROVED,
+          message: `Aprobaste acción: ${action.title}`,
+          relatedEntityId: action.id,
+          relatedEntityType: 'Action',
+        }),
+      ]);
     });
-    if (actionCreator?.pushToken) {
-      await this.pushNotificationService.sendActionApprovedNotification(
-        actionCreator.pushToken,
-        action.title,
-        pointsAwarded
-      );
+
+    // Non-critical: check achievements and send notification outside the transaction
+    try {
+      await this.pointsService.checkAchievementsForUser(action.userId);
+    } catch (err) {
+      logger.error({ err }, 'Achievement check failed after approveAction');
+    }
+
+    try {
+      const actionCreator = await this.userRepository.findOne({ where: { id: action.userId } });
+      if (actionCreator?.pushToken) {
+        await this.pushNotificationService.sendActionApprovedNotification(
+          actionCreator.pushToken,
+          action.title,
+          pointsAwarded
+        );
+      }
+    } catch (err) {
+      logger.error({ err }, 'Push notification failed after approveAction');
     }
 
     return action;

@@ -21,7 +21,7 @@ export class User {
   @Column({ unique: true })
   clerkId: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column({ nullable: true })

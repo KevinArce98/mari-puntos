@@ -12,7 +12,7 @@ interface CreatePermissionTemplateData {
   category: PermissionCategory;
   suggestedDurationHours?: number;
   suggestedPointsCost?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface GetTemplatesParams {

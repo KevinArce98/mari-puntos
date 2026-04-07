@@ -9,6 +9,7 @@ import {
 import { sendSuccess, sendCreated, sendPaginated, createPaginationMeta } from '../utils/response';
 import { toPermissionDTO, toPermissionDTOList } from '../utils/mappers';
 import { PAGINATION_DEFAULTS } from '../shared/constants';
+import { PermissionStatus } from '../entities/Permission';
 import { logger } from '../utils/logger';
 
 export class PermissionsController {
@@ -56,7 +57,7 @@ export class PermissionsController {
       logger.debug({ message: 'Getting user permissions', userId, page, limit, status });
 
       const result = await this.permissionsService.getUserPermissions(userId, {
-        status: status as any,
+        status: status as PermissionStatus | undefined,
         page,
         limit,
       });
@@ -91,7 +92,7 @@ export class PermissionsController {
       logger.debug({ message: 'Getting partner permissions', userId, page, limit, status });
 
       const result = await this.permissionsService.getPartnerPermissions(userId, {
-        status: status as any,
+        status: status as PermissionStatus | undefined,
         page,
         limit,
       });
@@ -174,10 +175,10 @@ export class PermissionsController {
       const data = updatePermissionSchema.parse(req.body);
 
       // Convert requestedDate string to Date if provided
-      const updateData: any = { ...data };
-      if (updateData.requestedDate) {
-        updateData.requestedDate = new Date(updateData.requestedDate);
-      }
+      const updateData = {
+        ...data,
+        requestedDate: data.requestedDate ? new Date(data.requestedDate) : undefined,
+      };
 
       logger.info({ message: 'Updating permission', userId, permissionId: id, updateData });
 

@@ -1,14 +1,19 @@
 import { AppDataSource } from '../config/db';
+import { User } from '../entities/User';
 import { Permission, PermissionStatus } from '../entities/Permission';
 import { PermissionTemplate } from '../entities/PermissionTemplate';
-import { User } from '../entities/User';
 import { Log, LogType } from '../entities/Log';
 import { AppError } from '../middlewares/errorMiddleware';
-import { getNowUTC6 } from '../utils/helpers';
+import { getNowUTC6, calculateLevel, calculatePointsInCurrentLevel } from '../utils/helpers';
 import { PartnerService } from './partner.service';
-import { PointsService } from './points.service';
 import { PushNotificationService } from './push-notification.service';
 import { logger } from '../utils/logger';
+
+interface UpdatePermissionData {
+  requestedDate?: Date;
+  durationHours?: number;
+  metadata?: Record<string, unknown>;
+}
 
 interface CreatePermissionData {
   templateId: string;
@@ -23,7 +28,6 @@ export class PermissionsService {
   private userRepository = AppDataSource.getRepository(User);
   private logRepository = AppDataSource.getRepository(Log);
   private partnerService = new PartnerService();
-  private pointsService = new PointsService();
   private pushNotificationService = new PushNotificationService();
 
   async createPermission(
@@ -188,24 +192,11 @@ export class PermissionsService {
       throw new AppError(400, 'El permiso no está pendiente');
     }
 
-    // If approving, set and validate pointsCost
+    // If approving, validate pointsCost upfront before starting the transaction
     if (approved) {
       if (!pointsCost || pointsCost < 0) {
         throw new AppError(400, 'El costo en puntos es requerido al aprobar');
       }
-
-      const requester = await this.userRepository.findOne({
-        where: { id: permission.requesterId },
-      });
-
-      if (!requester) {
-        throw new AppError(404, 'Solicitante no encontrado');
-      }
-
-      if (requester.totalPoints < pointsCost) {
-        throw new AppError(400, `El solicitante no tiene suficientes puntos (tiene ${requester.totalPoints}, necesita ${pointsCost}).`);
-      }
-
       permission.pointsCost = pointsCost;
     }
 
@@ -214,53 +205,73 @@ export class PermissionsService {
     permission.respondedAt = getNowUTC6();
     permission.responseMessage = responseMessage || null;
 
-    await this.permissionRepository.save(permission);
-
-    // Deduct points if approved
-    if (approved && permission.pointsCost > 0) {
-      await this.pointsService.deductPoints(
-        permission.requesterId,
-        permission.pointsCost,
-        `Puntos reducidos: ${permission.template.title}`
-      );
-    }
-
-    // Create logs
     const logType = approved ? LogType.PERMISSION_APPROVED : LogType.PERMISSION_REJECTED;
-    const message = approved
-      ? `Permiso aprobado: ${permission.template.title}`
-      : `Permiso rechazado: ${permission.template.title}`;
 
-    await this.logRepository.save([
-      this.logRepository.create({
-        userId: permission.requesterId,
-        type: logType,
-        message,
-        pointsChange: 0,
-        relatedEntityId: permission.id,
-        relatedEntityType: 'Permission',
-      }),
-      this.logRepository.create({
-        userId: approverId,
-        type: logType,
-        message: approved
-          ? `Aprobaste permiso: ${permission.template.title}`
-          : `Rechazaste permiso: ${permission.template.title}`,
-        relatedEntityId: permission.id,
-        relatedEntityType: 'Permission',
-      }),
-    ]);
+    await AppDataSource.transaction(async (manager) => {
+      const permissionRepo = manager.getRepository(Permission);
+      const userRepo = manager.getRepository(User);
+      const logRepo = manager.getRepository(Log);
 
-    // Send push notification to requester
-    const requester = await this.userRepository.findOne({
-      where: { id: permission.requesterId },
+      await permissionRepo.save(permission);
+
+      if (approved && permission.pointsCost > 0) {
+        const requesterUser = await userRepo.findOne({ where: { id: permission.requesterId } });
+        if (!requesterUser) throw new AppError(404, 'Solicitante no encontrado');
+        if (requesterUser.totalPoints < permission.pointsCost) {
+          throw new AppError(400, `Puntos insuficientes (tiene ${requesterUser.totalPoints}, necesita ${permission.pointsCost}).`);
+        }
+        requesterUser.totalPoints -= permission.pointsCost;
+        requesterUser.currentLevel = calculateLevel(requesterUser.totalPoints);
+        requesterUser.pointsInCurrentLevel = calculatePointsInCurrentLevel(requesterUser.totalPoints);
+        await userRepo.save(requesterUser);
+
+        await logRepo.save(
+          logRepo.create({
+            userId: permission.requesterId,
+            type: LogType.POINTS_SPENT,
+            message: `Puntos reducidos: ${permission.template.title}`,
+            pointsChange: -permission.pointsCost,
+            relatedEntityId: permission.id,
+            relatedEntityType: 'Permission',
+          })
+        );
+      }
+
+      await logRepo.save([
+        logRepo.create({
+          userId: permission.requesterId,
+          type: logType,
+          message: approved
+            ? `Permiso aprobado: ${permission.template.title}`
+            : `Permiso rechazado: ${permission.template.title}`,
+          pointsChange: 0,
+          relatedEntityId: permission.id,
+          relatedEntityType: 'Permission',
+        }),
+        logRepo.create({
+          userId: approverId,
+          type: logType,
+          message: approved
+            ? `Aprobaste permiso: ${permission.template.title}`
+            : `Rechazaste permiso: ${permission.template.title}`,
+          relatedEntityId: permission.id,
+          relatedEntityType: 'Permission',
+        }),
+      ]);
     });
-    if (requester?.pushToken) {
-      await this.pushNotificationService.sendPermissionResponseNotification(
-        requester.pushToken,
-        approved,
-        permission.template.title
-      );
+
+    // Non-critical: send push notification outside transaction
+    try {
+      const requester = await this.userRepository.findOne({ where: { id: permission.requesterId } });
+      if (requester?.pushToken) {
+        await this.pushNotificationService.sendPermissionResponseNotification(
+          requester.pushToken,
+          approved,
+          permission.template.title
+        );
+      }
+    } catch (err) {
+      logger.error({ err }, 'Push notification failed after respondToPermission');
     }
 
     return permission;
@@ -269,7 +280,7 @@ export class PermissionsService {
   async updatePermission(
     permissionId: string,
     userId: string,
-    data: Partial<Permission>
+    data: UpdatePermissionData
   ): Promise<Permission> {
     const permission = await this.getPermissionById(permissionId);
 
@@ -281,7 +292,10 @@ export class PermissionsService {
       throw new AppError(400, 'Solo puedes actualizar permisos pendientes');
     }
 
-    Object.assign(permission, data);
+    if (data.requestedDate !== undefined) permission.requestedDate = data.requestedDate;
+    if (data.durationHours !== undefined) permission.durationHours = data.durationHours;
+    if (data.metadata !== undefined) permission.metadata = data.metadata as Record<string, unknown>;
+
     await this.permissionRepository.save(permission);
 
     return permission;

@@ -4,7 +4,7 @@ import { logger } from '../utils/logger';
 export interface PushNotificationPayload {
   title: string;
   body: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 export class PushNotificationService {

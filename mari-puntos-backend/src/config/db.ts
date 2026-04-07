@@ -1,5 +1,22 @@
 import { DataSource } from 'typeorm';
 import { config } from './env';
+
+/**
+ * Strip SSL-related query params from the DATABASE_URL so that pg-connection-string
+ * doesn't emit deprecation warnings about sslmode semantics.
+ * SSL is configured explicitly below via the `ssl` option.
+ */
+function stripSslParams(url: string): string {
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.delete('sslmode');
+    parsed.searchParams.delete('ssl');
+    parsed.searchParams.delete('uselibpqcompat');
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
 import { User } from '../entities/User';
 import { PartnerLink } from '../entities/PartnerLink';
 import { Permission } from '../entities/Permission';

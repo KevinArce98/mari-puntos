@@ -30,10 +30,10 @@ export class Level {
   badgeUrl: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  rewards: Record<string, any>;
+  rewards: Record<string, unknown>;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 
   @CreateDateColumn()
   createdAt: Date;

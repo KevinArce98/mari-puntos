@@ -227,18 +227,15 @@ export class UsersService {
   }
 
   async generateUniquePartnerCode(): Promise<string> {
-    let code: string;
-    let exists = true;
-
-    while (exists) {
-      code = generatePartnerCode();
+    const MAX_ATTEMPTS = 10;
+    for (let i = 0; i < MAX_ATTEMPTS; i++) {
+      const code = generatePartnerCode();
       const existingUser = await this.userRepository.findOne({
         where: { partnerCode: code },
       });
-      exists = !!existingUser;
+      if (!existingUser) return code;
     }
-
-    return code!;
+    throw new AppError(500, 'No se pudo generar un código único. Intenta de nuevo.');
   }
 
   async deactivateUser(userId: string): Promise<void> {

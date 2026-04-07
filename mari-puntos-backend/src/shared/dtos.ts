@@ -238,7 +238,7 @@ export interface PermissionTemplateDTO {
   isSystemTemplate: boolean;
   isActive: boolean;
   partnerLinkId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
@@ -257,7 +257,7 @@ export interface PermissionDTO {
   pointsCost?: number;
   responseMessage?: string;
   respondedAt?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
   template?: PermissionTemplateDTO;
@@ -285,7 +285,7 @@ export interface CreatePermissionDTO {
   templateId: string;
   requestedDate: string;
   durationHours: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**

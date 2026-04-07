@@ -54,7 +54,7 @@ export class Permission {
   responseMessage: string | null;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
 
   @CreateDateColumn()
   createdAt: Date;
