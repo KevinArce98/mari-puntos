@@ -71,8 +71,6 @@ export default function ProfileScreen() {
     try {
       await updateProfile(data);
 
-      await refetch();
-
       Toast.show({
         type: 'success',
         text1: 'Perfil actualizado',

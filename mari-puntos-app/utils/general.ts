@@ -1,24 +1,31 @@
 import { colors } from '@/theme';
+import { ActionStatus, PermissionStatus } from '@/types';
 
 // Status colors use fixed brand colors (not theme-dependent)
 const c = colors.light;
 
-export const getStatusText = (status: string) => {
+export const getStatusText = (status: ActionStatus | PermissionStatus | string): string => {
   switch (status) {
-    case 'approved':
+    case ActionStatus.APPROVED:
+    case PermissionStatus.APPROVED:
       return 'Aprobado';
-    case 'rejected':
+    case ActionStatus.REJECTED:
+    case PermissionStatus.REJECTED:
       return 'Rechazado';
+    case PermissionStatus.EXPIRED:
+      return 'Expirado';
     default:
       return 'Pendiente';
   }
 };
 
-export const getStatusColor = (status: string) => {
+export const getStatusColor = (status: ActionStatus | PermissionStatus | string): string => {
   switch (status) {
-    case 'approved':
+    case ActionStatus.APPROVED:
+    case PermissionStatus.APPROVED:
       return c.success;
-    case 'rejected':
+    case ActionStatus.REJECTED:
+    case PermissionStatus.REJECTED:
       return c.error;
     default:
       return c.warning;

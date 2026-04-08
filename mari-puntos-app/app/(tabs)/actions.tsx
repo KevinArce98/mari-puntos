@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -42,14 +42,25 @@ export default function ActionsScreen() {
   const [page, setPage] = React.useState(1);
   const [loadingMore, setLoadingMore] = React.useState(false);
 
+  const [selectedStatus, setSelectedStatus] = useState<ActionStatus | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
   useFocusEffect(
     useCallback(() => {
       if (!user) return;
       setPage(1);
-      refetchMyActions({ page: 1, limit: 20 });
+      refetchMyActions({ page: 1, limit: 20, status: selectedStatus ?? undefined });
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user])
   );
+
+  useEffect(() => {
+    if (!user) return;
+    setPage(1);
+    refetchMyActions({ page: 1, limit: 20, status: selectedStatus ?? undefined });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStatus]);
 
   const handleLoadMore = async () => {
     if (loadingMore || !myActionsPagination) return;
@@ -58,20 +69,11 @@ export default function ActionsScreen() {
     setLoadingMore(true);
     setPage(nextPage);
     try {
-      await refetchMyActions({ page: nextPage, limit: 20 }, true);
+      await refetchMyActions({ page: nextPage, limit: 20, status: selectedStatus ?? undefined }, true);
     } finally {
       setLoadingMore(false);
     }
   };
-
-  const [selectedStatus, setSelectedStatus] = useState<ActionStatus | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const filteredActions = myActions.filter((action) => {
-    if (!selectedStatus) return true;
-    return action.status === selectedStatus;
-  });
 
   const handleCreateAction = async (data: CreateActionFormData) => {
     try {
@@ -158,7 +160,7 @@ export default function ActionsScreen() {
       </View>
 
       <LegendList
-        data={filteredActions}
+        data={myActions}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <ActionItemCard action={item} showStatus />}
         contentContainerStyle={styles.scrollContent}

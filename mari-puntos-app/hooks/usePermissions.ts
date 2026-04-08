@@ -29,7 +29,7 @@ export const usePermissions = () => {
       logger.error('Failed to fetch partner permissions in usePermissions hook', error);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user?.id]);
 
   const handleRequestPermission = async (data: CreatePermissionRequest) => {
     await createPermission(data);
@@ -55,7 +55,7 @@ export const usePermissions = () => {
   };
 
   const handleCancelPermission = async (permissionId: string) => {
-    await clearPermissions();
+    await usePermissionsStore.getState().cancelPermission(permissionId);
   };
 
   return {

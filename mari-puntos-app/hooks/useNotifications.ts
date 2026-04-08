@@ -112,7 +112,7 @@ export function useNotifications() {
     // Listener para notificaciones recibidas mientras la app está abierta
     notificationListener.current = Notifications.addNotificationReceivedListener(
       async (notification) => {
-        setNotifications((prev) => [notification, ...prev]);
+        setNotifications((prev) => [notification, ...prev].slice(0, 20));
       }
     );
 

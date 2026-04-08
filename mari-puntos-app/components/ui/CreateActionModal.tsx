@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -48,7 +48,6 @@ export function CreateActionModal({
   onSubmit,
 }: CreateActionModalProps) {
   const themeColors = useThemedColors();
-  const [loading, setLoading] = useState(false);
 
   const {
     control,
@@ -65,15 +64,12 @@ export function CreateActionModal({
   });
 
   const onSubmitForm = async (data: CreateActionFormData) => {
-    setLoading(true);
     try {
       await onSubmit(data);
       reset();
       onClose();
-    } catch (error) {
-      console.error('Error creating action:', error);
-    } finally {
-      setLoading(false);
+    } catch {
+      // errors are handled by the caller (Toast)
     }
   };
 
@@ -202,14 +198,14 @@ export function CreateActionModal({
                 variant="outline"
                 onPress={handleClose}
                 style={styles.actionButton}
-                disabled={loading}
+                disabled={isSubmitting}
               />
               <Button
                 title="Crear"
                 onPress={handleSubmit(onSubmitForm)}
                 style={styles.actionButton}
                 disabled={isSubmitting}
-                loading={loading}
+                loading={isSubmitting}
               />
             </View>
           </View>

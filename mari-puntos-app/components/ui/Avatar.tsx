@@ -1,7 +1,8 @@
 import { borderRadius, typography } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import React from 'react';
-import { Image, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
+import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 interface AvatarProps {
   imageUri?: string;
@@ -38,7 +39,7 @@ export const Avatar: React.FC<AvatarProps> = ({
         style={[styles.container, sizeStyles, { backgroundColor: themeColors.gray[200] }]}
       >
         {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.image} />
+          <ExpoImage source={{ uri: imageUri }} style={styles.image} contentFit="cover" />
         ) : (
           <Text
             style={[

@@ -30,7 +30,7 @@ export const useActions = () => {
       logger.error('Failed to fetch partner actions in useActions hook', error);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user?.id]);
 
   const handleCreateAction = async (data: CreateActionRequest) => {
     await createAction(data);

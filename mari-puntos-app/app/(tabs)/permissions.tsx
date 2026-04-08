@@ -99,8 +99,8 @@ export default function PermissionsScreen() {
               <Ionicons name="add-circle" size={32} color={themeColors.white} />
             </View>
             <View style={styles.quickActionText}>
-              <Text style={styles.quickActionTitle}>Nueva solicitud</Text>
-              <Text style={styles.quickActionSubtitle}>
+              <Text style={[styles.quickActionTitle, { color: themeColors.white }]}>Nueva solicitud</Text>
+              <Text style={[styles.quickActionSubtitle, { color: themeColors.white }]}>
                 Pide permiso a tu pareja para una actividad
               </Text>
             </View>
@@ -289,12 +289,10 @@ const styles = StyleSheet.create({
   },
   quickActionTitle: {
     ...typography.styles.h4,
-    color: colors.light.white,
     marginBottom: spacing.xs / 2,
   },
   quickActionSubtitle: {
     ...typography.styles.caption,
-    color: colors.light.white,
     opacity: 0.9,
   },
   section: {
