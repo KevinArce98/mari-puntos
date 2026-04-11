@@ -6,11 +6,12 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, Badge, Button } from '@/components/ui';
-import { colors, typography, spacing, borderRadius } from '@/theme';
+import { typography, spacing, borderRadius } from '@/theme';
 import { ResponseMessageFormData } from '@/validators/action.schema';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,6 +31,7 @@ export default function PermissionsScreen() {
     pendingCount,
     respondToPermission,
     refetch,
+    isLoading,
   } = usePermissions();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
@@ -78,6 +80,24 @@ export default function PermissionsScreen() {
     }
   };
 
+  if (isLoading && myPermissions.length === 0 && pendingPermissions.length === 0) {
+    return (
+      <View
+        style={[
+          styles.container,
+          {
+            paddingTop: insets.top,
+            backgroundColor: themeColors.background,
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+        ]}
+      >
+        <ActivityIndicator size="large" color={themeColors.primary} />
+      </View>
+    );
+  }
+
   return (
     <View
       style={[
@@ -89,24 +109,24 @@ export default function PermissionsScreen() {
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Quick Action */}
-        {myPermissions.length > 0 && (
-          <TouchableOpacity
-            style={[styles.quickActionCard, { backgroundColor: themeColors.primary }]}
-            onPress={() => router.push('/permissions/request')}
-          >
-            <View style={styles.quickActionIcon}>
-              <Ionicons name="add-circle" size={32} color={themeColors.white} />
-            </View>
-            <View style={styles.quickActionText}>
-              <Text style={[styles.quickActionTitle, { color: themeColors.white }]}>Nueva solicitud</Text>
-              <Text style={[styles.quickActionSubtitle, { color: themeColors.white }]}>
-                Pide permiso a tu pareja para una actividad
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={24} color={themeColors.white} />
-          </TouchableOpacity>
-        )}
+        {/* Quick Action — always visible */}
+        <TouchableOpacity
+          style={[styles.quickActionCard, { backgroundColor: themeColors.primary }]}
+          onPress={() => router.push('/permissions/request')}
+        >
+          <View style={styles.quickActionIcon}>
+            <Ionicons name="add-circle" size={32} color={themeColors.white} />
+          </View>
+          <View style={styles.quickActionText}>
+            <Text style={[styles.quickActionTitle, { color: themeColors.white }]}>
+              Nueva solicitud
+            </Text>
+            <Text style={[styles.quickActionSubtitle, { color: themeColors.white }]}>
+              Pide permiso a tu pareja para una actividad
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={24} color={themeColors.white} />
+        </TouchableOpacity>
 
         {/* Pending Approvals */}
         {pendingCount > 0 && (

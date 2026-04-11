@@ -1,6 +1,7 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/haptic-tab';
 import { shadows } from '@/theme';
@@ -10,6 +11,7 @@ export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const { hasPartner } = useUser();
   const colors = useThemedColors();
+  const router = useRouter();
 
   return (
     <Tabs
@@ -47,13 +49,37 @@ export default function TabLayout() {
         options={{
           href: hasPartner ? '/actions' : null,
           title: 'Acciones',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'checkmark-done-circle' : 'checkmark-done-circle-outline'}
-              size={24}
-              color={color}
-            />
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            hasPartner ? (
+              <Ionicons
+                name={focused ? 'checkmark-done-circle' : 'checkmark-done-circle-outline'}
+                size={24}
+                color={color}
+              />
+            ) : (
+              <View>
+                <Ionicons
+                  name="checkmark-done-circle-outline"
+                  size={24}
+                  color={colors.gray[300]}
+                />
+                <Ionicons
+                  name="lock-closed"
+                  size={10}
+                  color={colors.gray[400]}
+                  style={{ position: 'absolute', right: -2, bottom: -2 }}
+                />
+              </View>
+            ),
+          tabBarButton: hasPartner
+            ? undefined
+            : (props) => (
+                <TouchableOpacity
+                  {...(props as any)}
+                  onPress={() => router.push('/link-partner')}
+                  style={props.style}
+                />
+              ),
         }}
       />
       <Tabs.Screen
@@ -61,13 +87,33 @@ export default function TabLayout() {
         options={{
           href: hasPartner ? '/permissions' : null,
           title: 'Permisos',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'hand-right' : 'hand-right-outline'}
-              size={24}
-              color={color}
-            />
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            hasPartner ? (
+              <Ionicons
+                name={focused ? 'hand-right' : 'hand-right-outline'}
+                size={24}
+                color={color}
+              />
+            ) : (
+              <View>
+                <Ionicons name="hand-right-outline" size={24} color={colors.gray[300]} />
+                <Ionicons
+                  name="lock-closed"
+                  size={10}
+                  color={colors.gray[400]}
+                  style={{ position: 'absolute', right: -2, bottom: -2 }}
+                />
+              </View>
+            ),
+          tabBarButton: hasPartner
+            ? undefined
+            : (props) => (
+                <TouchableOpacity
+                  {...(props as any)}
+                  onPress={() => router.push('/link-partner')}
+                  style={props.style}
+                />
+              ),
         }}
       />
       <Tabs.Screen

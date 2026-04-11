@@ -154,7 +154,7 @@ export default function ProfileScreen() {
                 {myPoints.toLocaleString()}
               </Text>
               <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-                Points
+                Puntos
               </Text>
             </View>
             {/* TODO: Enable levels and rewards */}
@@ -216,7 +216,9 @@ export default function ProfileScreen() {
                 style={[styles.partnerStatus, { backgroundColor: `${colors.success}15` }]}
               >
                 <View style={[styles.statusDot, { backgroundColor: colors.success }]} />
-                <Text style={[styles.statusText, { color: colors.success }]}>Linked</Text>
+                <Text style={[styles.statusText, { color: colors.success }]}>
+                  Vinculado
+                </Text>
               </View>
             </View>
           </Card>

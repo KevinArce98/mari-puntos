@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Action, ActionCategory, ActionStatus } from '@/types';
-import { colors, spacing, typography, borderRadius } from '@/theme';
+import { spacing, typography, borderRadius } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import { formatDateWithTime } from '@/utils/dateUtils';
 import { Card } from './Card';
@@ -13,45 +13,46 @@ interface ActionItemCardProps {
   showStatus?: boolean;
 }
 
-const CATEGORY_CONFIG: Record<
-  ActionCategory,
-  { icon: keyof typeof Ionicons.glyphMap; color: string }
-> = {
-  [ActionCategory.HOUSEHOLD]: { icon: 'home', color: colors.light.primary },
-  [ActionCategory.CHILDCARE]: { icon: 'people', color: '#FF6B9D' },
-  [ActionCategory.ERRANDS]: { icon: 'cart', color: '#FFA94D' },
-  [ActionCategory.ROMANTIC]: { icon: 'heart', color: '#FF4757' },
-  [ActionCategory.PERSONAL_GROWTH]: { icon: 'trending-up', color: '#6C5CE7' },
-  [ActionCategory.OTHER]: { icon: 'ellipsis-horizontal', color: colors.light.gray[500] },
-};
-
-const STATUS_CONFIG: Record<
-  ActionStatus,
-  { label: string; color: string; bgColor: string }
-> = {
-  [ActionStatus.PENDING]: {
-    label: 'Pendiente',
-    color: colors.light.warning,
-    bgColor: `${colors.light.warning}15`,
-  },
-  [ActionStatus.APPROVED]: {
-    label: 'Aprobada',
-    color: colors.light.success,
-    bgColor: `${colors.light.success}15`,
-  },
-  [ActionStatus.REJECTED]: {
-    label: 'Rechazada',
-    color: colors.light.error,
-    bgColor: `${colors.light.error}15`,
-  },
-};
-
 export function ActionItemCard({
   action,
   onPress,
   showStatus = true,
 }: ActionItemCardProps) {
   const themeColors = useThemedColors();
+
+  const CATEGORY_CONFIG: Record<
+    ActionCategory,
+    { icon: keyof typeof Ionicons.glyphMap; color: string }
+  > = {
+    [ActionCategory.HOUSEHOLD]: { icon: 'home', color: themeColors.primary },
+    [ActionCategory.CHILDCARE]: { icon: 'people', color: '#FF6B9D' },
+    [ActionCategory.ERRANDS]: { icon: 'cart', color: '#FFA94D' },
+    [ActionCategory.ROMANTIC]: { icon: 'heart', color: '#FF4757' },
+    [ActionCategory.PERSONAL_GROWTH]: { icon: 'trending-up', color: '#6C5CE7' },
+    [ActionCategory.OTHER]: { icon: 'ellipsis-horizontal', color: themeColors.gray[500] },
+  };
+
+  const STATUS_CONFIG: Record<
+    ActionStatus,
+    { label: string; color: string; bgColor: string }
+  > = {
+    [ActionStatus.PENDING]: {
+      label: 'Pendiente',
+      color: themeColors.warning,
+      bgColor: `${themeColors.warning}15`,
+    },
+    [ActionStatus.APPROVED]: {
+      label: 'Aprobada',
+      color: themeColors.success,
+      bgColor: `${themeColors.success}15`,
+    },
+    [ActionStatus.REJECTED]: {
+      label: 'Rechazada',
+      color: themeColors.error,
+      bgColor: `${themeColors.error}15`,
+    },
+  };
+
   const categoryConfig = CATEGORY_CONFIG[action.category];
   const statusConfig = STATUS_CONFIG[action.status];
 

@@ -75,6 +75,9 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
         {/* Show requester's available points */}
         {permission.status === 'pending' && permission.requester && (
           <View style={[styles.pointsInfo, { backgroundColor: colors.gray[50] }]}>
+            <Text style={[styles.pointsInfoLabel, { color: colors.text.secondary }]}>
+              Puntos disponibles:
+            </Text>
             <Text style={[styles.pointsInfoValue, { color: colors.primary }]}>
               {requesterPoints} pts
             </Text>
@@ -165,15 +168,16 @@ const styles = StyleSheet.create({
   },
   pointsInfo: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
     alignItems: 'center',
+    gap: spacing.xs,
     borderRadius: 8,
     padding: spacing.sm,
     marginTop: spacing.sm,
     marginBottom: spacing.xs,
   },
   pointsInfoLabel: {
-    ...typography.styles.bodyMedium,
+    ...typography.styles.caption,
   },
   pointsInfoValue: {
     ...typography.styles.bodyMedium,

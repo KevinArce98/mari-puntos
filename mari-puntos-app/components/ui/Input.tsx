@@ -34,6 +34,7 @@ export const Input: React.FC<InputProps> = ({
 }) => {
   const colors = useThemedColors();
   const [isSecure, setIsSecure] = useState(secureTextEntry);
+  const [isFocused, setIsFocused] = useState(false);
 
   const toggleSecure = () => {
     setIsSecure(!isSecure);
@@ -49,7 +50,8 @@ export const Input: React.FC<InputProps> = ({
         style={[
           styles.inputContainer,
           { backgroundColor: colors.gray[100], borderColor: colors.gray[300] },
-          error && { borderColor: colors.error },
+          isFocused && { borderColor: colors.primary, borderWidth: 2 },
+          error && { borderColor: colors.error, borderWidth: 1 },
         ]}
       >
         {leftIcon && (
@@ -70,6 +72,14 @@ export const Input: React.FC<InputProps> = ({
           ]}
           placeholderTextColor={colors.gray[500]}
           secureTextEntry={isSecure}
+          onFocus={(e) => {
+            setIsFocused(true);
+            props.onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setIsFocused(false);
+            props.onBlur?.(e);
+          }}
           {...props}
         />
 

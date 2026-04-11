@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   size_sm: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    minHeight: 36,
+    minHeight: 44,
   },
   size_md: {
     paddingVertical: spacing.md - 2,

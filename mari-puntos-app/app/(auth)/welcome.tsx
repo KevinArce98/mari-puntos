@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -60,11 +60,6 @@ export default function WelcomeScreen() {
   const [currentStep, setCurrentStep] = useState(0);
   const flatListRef = useRef<FlatList<OnboardingStep>>(null);
 
-  // Mark as not first time when component mounts
-  useEffect(() => {
-    markAsNotFirstTime();
-  }, [markAsNotFirstTime]);
-
   const isLastStep = currentStep === ONBOARDING_STEPS.length - 1;
 
   const scrollToStep = (index: number) => {
@@ -79,6 +74,7 @@ export default function WelcomeScreen() {
   };
 
   const handleSkip = () => {
+    markAsNotFirstTime();
     scrollToStep(ONBOARDING_STEPS.length - 1);
   };
 
@@ -179,13 +175,19 @@ export default function WelcomeScreen() {
           <>
             <Button
               title="Crear Cuenta"
-              onPress={() => router.push('/(auth)/register')}
+              onPress={() => {
+                markAsNotFirstTime();
+                router.push('/(auth)/register');
+              }}
               fullWidth
               size="lg"
             />
             <Button
               title="¿Ya tienes una cuenta? Inicia sesión"
-              onPress={() => router.push('/(auth)/login')}
+              onPress={() => {
+                markAsNotFirstTime();
+                router.push('/(auth)/login');
+              }}
               variant="ghost"
               fullWidth
             />

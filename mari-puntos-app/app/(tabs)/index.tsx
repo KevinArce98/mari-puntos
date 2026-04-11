@@ -191,6 +191,11 @@ export default function HomeScreen() {
                 <Text style={[styles.emptyHistoryText, { color: colors.text.primary }]}>
                   No hay actividad reciente
                 </Text>
+                <TouchableOpacity onPress={() => setShowCreateActionModal(true)}>
+                  <Text style={[{ color: colors.primary }, styles.emptyHistoryCta]}>
+                    Registra tu primera acción
+                  </Text>
+                </TouchableOpacity>
               </View>
             ) : (
               pointsHistory
@@ -290,6 +295,11 @@ const styles = StyleSheet.create({
     ...typography.styles.bodyLarge,
     marginTop: spacing.md,
     textAlign: 'center',
+  },
+  emptyHistoryCta: {
+    ...typography.styles.bodyMedium,
+    marginTop: spacing.md,
+    fontWeight: '600',
   },
   // No partner state
   noPartnerCard: {
