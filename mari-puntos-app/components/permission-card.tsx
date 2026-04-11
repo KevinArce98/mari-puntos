@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { Badge, Button, Card, ResponseModal } from './ui';
 import { spacing, typography } from '@/theme';
 import { useThemedColors } from '@/hooks';
@@ -20,6 +20,7 @@ interface Props {
 
 export function PermissionCard({ permission, handleRespond, loading }: Props) {
   const colors = useThemedColors();
+  const colorScheme = useColorScheme();
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleApprove = async (data: ResponseMessageFormData) => {
@@ -108,7 +109,7 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
               label={getStatusText(permission.status)}
               variant="primary"
               size="sm"
-              style={{ backgroundColor: getStatusColor(permission.status) }}
+              style={{ backgroundColor: getStatusColor(permission.status, colorScheme) }}
             />
           </View>
         )}

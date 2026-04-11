@@ -58,14 +58,16 @@ export const usePermissions = () => {
     await usePermissionsStore.getState().cancelPermission(permissionId);
   };
 
+  const pendingPermissions =
+    partnerPermissions?.filter((p) => p.status === 'pending') ?? [];
+
   return {
     myPermissions,
     partnerPermissions,
     isLoading,
     error,
-    pendingCount: (partnerPermissions?.filter((p) => p.status === 'pending') ?? [])
-      .length,
-    pendingPermissions: partnerPermissions?.filter((p) => p.status === 'pending') ?? [],
+    pendingCount: pendingPermissions.length,
+    pendingPermissions,
     requestPermission: handleRequestPermission,
     updatePermission: handleUpdatePermission,
     respondToPermission: handleRespondToPermission,

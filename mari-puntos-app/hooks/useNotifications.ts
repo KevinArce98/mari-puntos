@@ -214,10 +214,10 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
       }
       token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
     } catch (error) {
-      console.error('Error getting push token:', error);
+      logger.error('Error getting push token', error as Error);
     }
   } else {
-    console.log('Las notificaciones push solo funcionan en dispositivos físicos');
+    logger.info('Las notificaciones push solo funcionan en dispositivos físicos');
   }
 
   return token;

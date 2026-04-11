@@ -7,6 +7,7 @@ import {
   RefreshControl,
   TouchableOpacity,
   ActivityIndicator,
+  useColorScheme,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,6 +24,7 @@ export default function PermissionsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const themeColors = useThemedColors();
+  const colorScheme = useColorScheme();
   const { user } = useUser();
   const {
     myPermissions,
@@ -113,6 +115,8 @@ export default function PermissionsScreen() {
         <TouchableOpacity
           style={[styles.quickActionCard, { backgroundColor: themeColors.primary }]}
           onPress={() => router.push('/permissions/request')}
+          accessibilityRole="button"
+          accessibilityLabel="Nueva solicitud de permiso"
         >
           <View style={styles.quickActionIcon}>
             <Ionicons name="add-circle" size={32} color={themeColors.white} />
@@ -149,22 +153,20 @@ export default function PermissionsScreen() {
         )}
 
         {/* Approved or Rejected Permissions */}
-        {partnerPermissions.filter((p) => p.status !== 'pending').length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                Solicitudes respondidas
-              </Text>
-              <Badge
-                label={partnerPermissions
-                  .filter((p) => p.status !== 'pending')
-                  .length.toString()}
-                variant="info"
-              />
-            </View>
-            {partnerPermissions
-              .filter((p) => p.status !== 'pending')
-              .map((permission) => (
+        {(() => {
+          const respondedPermissions = partnerPermissions.filter(
+            (p) => p.status !== 'pending'
+          );
+          if (respondedPermissions.length === 0) return null;
+          return (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                  Solicitudes respondidas
+                </Text>
+                <Badge label={respondedPermissions.length.toString()} variant="info" />
+              </View>
+              {respondedPermissions.map((permission) => (
                 <PermissionCard
                   key={permission.id}
                   permission={permission}
@@ -172,8 +174,9 @@ export default function PermissionsScreen() {
                   loading={loading}
                 />
               ))}
-          </View>
-        )}
+            </View>
+          );
+        })()}
 
         {/* My Permissions */}
         <View style={styles.section}>
@@ -208,7 +211,9 @@ export default function PermissionsScreen() {
                     label={getStatusText(permission.status)}
                     variant="primary"
                     size="sm"
-                    style={{ backgroundColor: getStatusColor(permission.status) }}
+                    style={{
+                      backgroundColor: getStatusColor(permission.status, colorScheme),
+                    }}
                   />
                 </View>
                 {permission.template?.description && (

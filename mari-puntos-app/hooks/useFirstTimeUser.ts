@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
+import logger from '@/utils/logger';
 
 const FIRST_TIME_KEY = '@mari_puntos_first_time_user';
 
@@ -20,7 +21,7 @@ export function useFirstTimeUser() {
       const hasSeenWelcome = await AsyncStorage.getItem(FIRST_TIME_KEY);
       setIsFirstTime(hasSeenWelcome === null);
     } catch (error) {
-      console.error('Error checking first time user:', error);
+      logger.error('Error checking first time user', error as Error);
       setIsFirstTime(false);
     } finally {
       setIsLoading(false);
@@ -32,7 +33,7 @@ export function useFirstTimeUser() {
       await AsyncStorage.setItem(FIRST_TIME_KEY, 'false');
       setIsFirstTime(false);
     } catch (error) {
-      console.error('Error marking user as not first time:', error);
+      logger.error('Error marking user as not first time', error as Error);
     }
   };
 

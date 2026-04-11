@@ -107,23 +107,23 @@ class ApiService {
     this.getToken = null;
   }
 
-  // Generic HTTP methods
-  async get<T>(url: string, params?: any): Promise<T> {
+  // Generic HTTP methods — typed on both response (T) and request payload/params (P)
+  async get<T, P = unknown>(url: string, params?: P): Promise<T> {
     const response = await this.api.get<T>(url, { params });
     return response.data;
   }
 
-  async post<T>(url: string, data?: any): Promise<T> {
+  async post<T, D = unknown>(url: string, data?: D): Promise<T> {
     const response = await this.api.post<T>(url, data);
     return response.data;
   }
 
-  async put<T>(url: string, data?: any): Promise<T> {
+  async put<T, D = unknown>(url: string, data?: D): Promise<T> {
     const response = await this.api.put<T>(url, data);
     return response.data;
   }
 
-  async patch<T>(url: string, data?: any): Promise<T> {
+  async patch<T, D = unknown>(url: string, data?: D): Promise<T> {
     const response = await this.api.patch<T>(url, data);
     return response.data;
   }

@@ -8,9 +8,9 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
-  Image,
   Alert,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,6 +26,7 @@ import {
   updateProfileSchema,
   type UpdateProfileFormData,
 } from '@/validators/profile.schema';
+import logger from '@/utils/logger';
 
 interface EditProfileModalProps {
   visible: boolean;
@@ -106,7 +107,7 @@ export function EditProfileModal({
       setSelectedImage(null);
       onClose();
     } catch (error) {
-      console.error('Error updating profile:', error);
+      logger.error('Error updating profile', error as Error);
     } finally {
       setLoading(false);
     }
@@ -150,8 +151,9 @@ export function EditProfileModal({
                 <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
                   {displayImage ? (
                     <Image
-                      source={{ uri: displayImage }}
+                      source={displayImage}
                       style={[styles.avatar, { backgroundColor: themeColors.gray[200] }]}
+                      contentFit="cover"
                     />
                   ) : (
                     <View

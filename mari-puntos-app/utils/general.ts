@@ -1,10 +1,9 @@
 import { colors } from '@/theme';
 import { ActionStatus, PermissionStatus } from '@/types';
 
-// Status colors use fixed brand colors (not theme-dependent)
-const c = colors.light;
-
-export const getStatusText = (status: ActionStatus | PermissionStatus | string): string => {
+export const getStatusText = (
+  status: ActionStatus | PermissionStatus | string
+): string => {
   switch (status) {
     case ActionStatus.APPROVED:
     case PermissionStatus.APPROVED:
@@ -19,7 +18,11 @@ export const getStatusText = (status: ActionStatus | PermissionStatus | string):
   }
 };
 
-export const getStatusColor = (status: ActionStatus | PermissionStatus | string): string => {
+export const getStatusColor = (
+  status: ActionStatus | PermissionStatus | string,
+  scheme?: string | null
+): string => {
+  const c = scheme === 'dark' ? colors.dark : colors.light;
   switch (status) {
     case ActionStatus.APPROVED:
     case PermissionStatus.APPROVED:

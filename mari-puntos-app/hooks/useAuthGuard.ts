@@ -2,6 +2,7 @@ import { Href, useRouter, useRootNavigationState } from 'expo-router';
 import { useEffect } from 'react';
 
 import { useUserStore } from '@/stores';
+import logger from '@/utils/logger';
 
 import { useClerkAuth } from './useClerkAuth';
 
@@ -59,7 +60,7 @@ export function useAuthGuard(options: UseAuthGuardOptions = {}) {
 
     // Check if profile is required and exists
     if (requireProfile && !user && !checkClerkOnly) {
-      console.warn('User is authenticated but profile not found in database');
+      logger.warn('User is authenticated but profile not found in database');
       // You could redirect to a profile creation page here
       // router.replace('/(auth)/create-profile');
     }

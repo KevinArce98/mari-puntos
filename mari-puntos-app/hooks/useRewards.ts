@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { useRewardsStore } from '@/stores';
+import { useRewardsStore, useUserStore } from '@/stores';
 import { CreateRewardRequest, GetRewardsParams } from '@/types';
+import logger from '@/utils/logger';
 
 export const useRewards = () => {
   const {
@@ -13,10 +14,14 @@ export const useRewards = () => {
     createReward,
     redeemReward,
   } = useRewardsStore();
+  const { user } = useUserStore();
 
   useEffect(() => {
-    fetchAvailableRewards().catch(console.error);
-  }, []);
+    if (!user) return;
+    fetchAvailableRewards().catch((error) => {
+      logger.error('Failed to fetch available rewards', error);
+    });
+  }, [user?.id]);
 
   const handleCreateReward = async (data: CreateRewardRequest) => {
     await createReward(data);

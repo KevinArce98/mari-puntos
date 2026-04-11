@@ -1,7 +1,8 @@
 import { colors, spacing, typography } from '@/theme';
 import { useThemedColors } from '@/hooks';
 import React, { useEffect } from 'react';
-import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 
 export function LoadingScreen() {
   const themeColors = useThemedColors();
@@ -61,42 +62,32 @@ export function LoadingScreen() {
           },
         ]}
       >
-        {/* Animated Logo */}
-        <Animated.View
-          style={[
-            styles.logoContainer,
-            {
-              transform: [{ scale: pulseValue }],
-            },
-          ]}
-        >
-          <Image
-            source={require('@/assets/images/icon.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </Animated.View>
+        {/* Animated Logo + Spinner stacked in a relative wrapper */}
+        <View style={styles.logoWrapper}>
+          <Animated.View style={{ transform: [{ scale: pulseValue }] }}>
+            <Image
+              source={require('@/assets/images/icon.png')}
+              style={styles.logo}
+              contentFit="contain"
+            />
+          </Animated.View>
 
-        {/* Spinning Circle */}
-        <Animated.View
-          style={[
-            styles.spinnerContainer,
-            {
-              transform: [{ rotate: spin }],
-            },
-          ]}
-        >
-          <View
-            style={[
-              styles.spinner,
-              {
-                borderColor: themeColors.gray[200],
-                borderTopColor: themeColors.primary,
-                borderRightColor: themeColors.primary,
-              },
-            ]}
-          />
-        </Animated.View>
+          {/* Spinning Circle — absolute, centered on the logo */}
+          <Animated.View
+            style={[styles.spinnerContainer, { transform: [{ rotate: spin }] }]}
+          >
+            <View
+              style={[
+                styles.spinner,
+                {
+                  borderColor: themeColors.gray[200],
+                  borderTopColor: themeColors.primary,
+                  borderRightColor: themeColors.primary,
+                },
+              ]}
+            />
+          </Animated.View>
+        </View>
 
         {/* App Name */}
         <Text style={[styles.appName, { color: themeColors.primary }]}>MariPuntos</Text>
@@ -151,9 +142,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoContainer: {
+  logoWrapper: {
     marginBottom: spacing['4xl'],
     position: 'relative',
+    width: 140,
+    height: 140,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logo: {
     width: 120,
@@ -167,9 +162,10 @@ const styles = StyleSheet.create({
   },
   spinnerContainer: {
     position: 'absolute',
-    top: 150,
-    width: 50,
-    height: 50,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
   },

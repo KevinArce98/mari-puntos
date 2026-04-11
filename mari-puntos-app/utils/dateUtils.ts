@@ -14,7 +14,9 @@ dayjs.extend(timezone);
 dayjs.extend(relativeTime);
 dayjs.locale('es');
 
-// Costa Rica timezone (UTC-6)
+// App timezone — currently fixed to Costa Rica (UTC-6) since the product targets CR.
+// If multi-region support is needed in the future, replace with:
+//   const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const TIMEZONE = 'America/Costa_Rica';
 
 /**

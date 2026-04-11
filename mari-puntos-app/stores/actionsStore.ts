@@ -43,7 +43,7 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
   partnerActionsPagination: null,
 
   fetchMyActions: async (params, append = false) => {
-    set((s) => ({ isLoadingMyActions: true, isLoading: true || s.isLoadingPartnerActions, error: null }));
+    set((s) => ({ isLoadingMyActions: true, isLoading: true, error: null }));
     try {
       const response = await actionsService.getMyActions(params);
       set((state) => ({
@@ -52,28 +52,44 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
         isLoadingMyActions: false,
         isLoading: state.isLoadingPartnerActions || state.isMutating,
       }));
-      logger.debug('My actions fetched successfully', { count: response.data.length, params });
+      logger.debug('My actions fetched successfully', {
+        count: response.data.length,
+        params,
+      });
     } catch (error: any) {
       logger.error('Failed to fetch my actions', error, { params });
-      set((s) => ({ error: error.error || 'Failed to fetch actions', isLoadingMyActions: false, isLoading: s.isLoadingPartnerActions || s.isMutating }));
+      set((s) => ({
+        error: error.error || 'Failed to fetch actions',
+        isLoadingMyActions: false,
+        isLoading: s.isLoadingPartnerActions || s.isMutating,
+      }));
       throw error;
     }
   },
 
   fetchPartnerActions: async (params, append = false) => {
-    set((s) => ({ isLoadingPartnerActions: true, isLoading: s.isLoadingMyActions || true, error: null }));
+    set((s) => ({ isLoadingPartnerActions: true, isLoading: true, error: null }));
     try {
       const response = await actionsService.getPartnerActions(params);
       set((state) => ({
-        partnerActions: append ? [...state.partnerActions, ...response.data] : response.data,
+        partnerActions: append
+          ? [...state.partnerActions, ...response.data]
+          : response.data,
         partnerActionsPagination: response.pagination ?? null,
         isLoadingPartnerActions: false,
         isLoading: state.isLoadingMyActions || state.isMutating,
       }));
-      logger.debug('Partner actions fetched successfully', { count: response.data.length, params });
+      logger.debug('Partner actions fetched successfully', {
+        count: response.data.length,
+        params,
+      });
     } catch (error: any) {
       logger.error('Failed to fetch partner actions', error, { params });
-      set((s) => ({ error: error.error || 'Failed to fetch partner actions', isLoadingPartnerActions: false, isLoading: s.isLoadingMyActions || s.isMutating }));
+      set((s) => ({
+        error: error.error || 'Failed to fetch partner actions',
+        isLoadingPartnerActions: false,
+        isLoading: s.isLoadingMyActions || s.isMutating,
+      }));
       throw error;
     }
   },
@@ -84,10 +100,17 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
       await actionsService.createAction(data);
       logger.info('Action created successfully', { title: data.title });
       await get().fetchMyActions({ status: ActionStatus.PENDING });
-      set((s) => ({ isMutating: false, isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions }));
+      set((s) => ({
+        isMutating: false,
+        isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,
+      }));
     } catch (error: any) {
       logger.error('Failed to create action', error, { data });
-      set((s) => ({ error: error.error || 'Failed to create action', isMutating: false, isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions }));
+      set((s) => ({
+        error: error.error || 'Failed to create action',
+        isMutating: false,
+        isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,
+      }));
       throw error;
     }
   },
@@ -98,10 +121,17 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
       await actionsService.approveAction(actionId, { pointsAwarded });
       logger.info('Action approved successfully', { actionId, pointsAwarded });
       await get().fetchPartnerActions({ status: ActionStatus.PENDING });
-      set((s) => ({ isMutating: false, isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions }));
+      set((s) => ({
+        isMutating: false,
+        isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,
+      }));
     } catch (error: any) {
       logger.error('Failed to approve action', error, { actionId, pointsAwarded });
-      set((s) => ({ error: error.error || 'Failed to approve action', isMutating: false, isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions }));
+      set((s) => ({
+        error: error.error || 'Failed to approve action',
+        isMutating: false,
+        isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,
+      }));
       throw error;
     }
   },
@@ -112,10 +142,17 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
       await actionsService.rejectAction(actionId, { rejectionReason });
       logger.info('Action rejected successfully', { actionId, rejectionReason });
       await get().fetchPartnerActions({ status: ActionStatus.PENDING });
-      set((s) => ({ isMutating: false, isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions }));
+      set((s) => ({
+        isMutating: false,
+        isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,
+      }));
     } catch (error: any) {
       logger.error('Failed to reject action', error, { actionId, rejectionReason });
-      set((s) => ({ error: error.error || 'Failed to reject action', isMutating: false, isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions }));
+      set((s) => ({
+        error: error.error || 'Failed to reject action',
+        isMutating: false,
+        isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,
+      }));
       throw error;
     }
   },

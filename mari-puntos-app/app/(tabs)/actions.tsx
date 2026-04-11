@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -45,10 +45,13 @@ export default function ActionsScreen() {
   const [selectedStatus, setSelectedStatus] = useState<ActionStatus | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  // Prevents selectedStatus useEffect from firing before the first useFocusEffect
+  const hasFocusedRef = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
       if (!user) return;
+      hasFocusedRef.current = true;
       setPage(1);
       refetchMyActions({ page: 1, limit: 20, status: selectedStatus ?? undefined });
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -56,6 +59,7 @@ export default function ActionsScreen() {
   );
 
   useEffect(() => {
+    if (!hasFocusedRef.current) return; // skip initial mount — useFocusEffect handles it
     if (!user) return;
     setPage(1);
     refetchMyActions({ page: 1, limit: 20, status: selectedStatus ?? undefined });
@@ -69,7 +73,10 @@ export default function ActionsScreen() {
     setLoadingMore(true);
     setPage(nextPage);
     try {
-      await refetchMyActions({ page: nextPage, limit: 20, status: selectedStatus ?? undefined }, true);
+      await refetchMyActions(
+        { page: nextPage, limit: 20, status: selectedStatus ?? undefined },
+        true
+      );
     } finally {
       setLoadingMore(false);
     }
@@ -120,6 +127,8 @@ export default function ActionsScreen() {
         <TouchableOpacity
           onPress={() => router.push('/actions/review')}
           style={styles.reviewButton}
+          accessibilityRole="button"
+          accessibilityLabel={`Revisar acciones pendientes${pendingPartnerCount > 0 ? `, ${pendingPartnerCount} pendientes` : ''}`}
         >
           <Ionicons name="checkmark-circle-outline" size={24} color={colors.primary} />
           {pendingPartnerCount > 0 && (
@@ -222,6 +231,8 @@ export default function ActionsScreen() {
         style={[styles.fab, { backgroundColor: colors.primary }]}
         onPress={() => setShowCreateModal(true)}
         activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel="Crear nueva acción"
       >
         <Ionicons name="add" size={28} color={colors.text.white} />
       </TouchableOpacity>

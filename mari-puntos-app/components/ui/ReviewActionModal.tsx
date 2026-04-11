@@ -21,6 +21,7 @@ import {
   type ReviewActionFormData,
 } from '@/validators/action.schema';
 import { formatDateWithTime } from '@/utils';
+import logger from '@/utils/logger';
 
 interface ReviewActionModalProps {
   visible: boolean;
@@ -51,12 +52,7 @@ export function ReviewActionModal({
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'review' | 'reject'>('review');
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { isSubmitting },
-  } = useForm<ReviewActionFormData>({
+  const { control, handleSubmit, reset } = useForm<ReviewActionFormData>({
     resolver: zodResolver(reviewActionSchema),
     defaultValues: {
       points: 100,
@@ -72,7 +68,7 @@ export function ReviewActionModal({
       await onApprove(action.id, points);
       resetAndClose();
     } catch (error) {
-      console.error('Error approving action:', error);
+      logger.error('Error approving action', error as Error, { actionId: action.id });
     } finally {
       setLoading(false);
     }
@@ -86,7 +82,7 @@ export function ReviewActionModal({
       await onReject(action.id, data.rejectionReason.trim());
       resetAndClose();
     } catch (error) {
-      console.error('Error rejecting action:', error);
+      logger.error('Error rejecting action', error as Error, { actionId: action.id });
     } finally {
       setLoading(false);
     }
@@ -286,7 +282,7 @@ export function ReviewActionModal({
                   title="Confirmar Rechazo"
                   onPress={handleSubmit(onSubmitReject)}
                   style={[styles.actionButton, { backgroundColor: themeColors.error }]}
-                  disabled={isSubmitting}
+                  disabled={loading}
                   loading={loading}
                 />
               </>

@@ -4,7 +4,7 @@ import { DefaultTheme, DarkTheme, ThemeProvider } from '@react-navigation/native
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +13,33 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNotifications } from '@/hooks/useNotifications';
 import * as Sentry from '@sentry/react-native';
 import logger from '@/utils/logger';
+
+// Route-level error boundary — catches React render errors that Sentry.wrap cannot catch
+export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
+  logger.error('Render error caught by ErrorBoundary', error);
+  return (
+    <View style={errorBoundaryStyles.container}>
+      <Text style={errorBoundaryStyles.title}>Algo salió mal</Text>
+      <Text style={errorBoundaryStyles.message}>{error.message}</Text>
+      <TouchableOpacity style={errorBoundaryStyles.button} onPress={retry}>
+        <Text style={errorBoundaryStyles.buttonText}>Reintentar</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const errorBoundaryStyles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
+  message: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 24 },
+  button: {
+    backgroundColor: '#24C6B1',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  buttonText: { color: '#fff', fontWeight: '600' },
+});
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
@@ -45,7 +72,10 @@ logger.info('Sentry initialized', {
   environment: __DEV__ ? 'development' : 'production',
 });
 
-const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
+const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+if (!CLERK_PUBLISHABLE_KEY) {
+  throw new Error('Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY environment variable');
+}
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();

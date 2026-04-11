@@ -7,6 +7,19 @@ import { useThemedColors } from '@/hooks';
 import { formatDateWithTime } from '@/utils/dateUtils';
 import { Card } from './Card';
 
+// Static data outside the component — no theme dependency
+const CATEGORY_ICON: Record<
+  ActionCategory,
+  { icon: keyof typeof Ionicons.glyphMap; hardcodedColor?: string }
+> = {
+  [ActionCategory.HOUSEHOLD]: { icon: 'home' },
+  [ActionCategory.CHILDCARE]: { icon: 'people', hardcodedColor: '#FF6B9D' },
+  [ActionCategory.ERRANDS]: { icon: 'cart', hardcodedColor: '#FFA94D' },
+  [ActionCategory.ROMANTIC]: { icon: 'heart', hardcodedColor: '#FF4757' },
+  [ActionCategory.PERSONAL_GROWTH]: { icon: 'trending-up', hardcodedColor: '#6C5CE7' },
+  [ActionCategory.OTHER]: { icon: 'ellipsis-horizontal' },
+};
+
 interface ActionItemCardProps {
   action: Action;
   onPress?: () => void;
@@ -20,17 +33,13 @@ export function ActionItemCard({
 }: ActionItemCardProps) {
   const themeColors = useThemedColors();
 
-  const CATEGORY_CONFIG: Record<
-    ActionCategory,
-    { icon: keyof typeof Ionicons.glyphMap; color: string }
-  > = {
-    [ActionCategory.HOUSEHOLD]: { icon: 'home', color: themeColors.primary },
-    [ActionCategory.CHILDCARE]: { icon: 'people', color: '#FF6B9D' },
-    [ActionCategory.ERRANDS]: { icon: 'cart', color: '#FFA94D' },
-    [ActionCategory.ROMANTIC]: { icon: 'heart', color: '#FF4757' },
-    [ActionCategory.PERSONAL_GROWTH]: { icon: 'trending-up', color: '#6C5CE7' },
-    [ActionCategory.OTHER]: { icon: 'ellipsis-horizontal', color: themeColors.gray[500] },
-  };
+  const categoryEntry = CATEGORY_ICON[action.category];
+  const categoryColor =
+    categoryEntry.hardcodedColor ??
+    (action.category === ActionCategory.OTHER
+      ? themeColors.gray[500]
+      : themeColors.primary);
+  const CATEGORY_CONFIG = { icon: categoryEntry.icon, color: categoryColor };
 
   const STATUS_CONFIG: Record<
     ActionStatus,
@@ -53,23 +62,32 @@ export function ActionItemCard({
     },
   };
 
-  const categoryConfig = CATEGORY_CONFIG[action.category];
   const statusConfig = STATUS_CONFIG[action.status];
 
   const formattedDate = formatDateWithTime(action.createdAt);
 
   return (
     <Card style={styles.card}>
-      <TouchableOpacity onPress={onPress} disabled={!onPress} style={styles.touchable}>
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={!onPress}
+        style={styles.touchable}
+        accessibilityRole={onPress ? 'button' : undefined}
+        accessibilityLabel={`${action.title}, ${statusConfig.label}`}
+      >
         <View style={styles.row}>
           {/* Icon */}
           <View
             style={[
               styles.iconContainer,
-              { backgroundColor: `${categoryConfig.color}15` },
+              { backgroundColor: `${CATEGORY_CONFIG.color}15` },
             ]}
           >
-            <Ionicons name={categoryConfig.icon} size={24} color={categoryConfig.color} />
+            <Ionicons
+              name={CATEGORY_CONFIG.icon}
+              size={24}
+              color={CATEGORY_CONFIG.color}
+            />
           </View>
 
           {/* Content */}

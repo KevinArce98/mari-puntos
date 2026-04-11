@@ -18,6 +18,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
+const SUPPORT_EMAIL = 'soporte@maripuntos.com';
+
 export default function ProfileScreen() {
   const colors = useThemedColors();
   const router = useRouter();
@@ -274,7 +276,7 @@ export default function ProfileScreen() {
               rightIcon="chevron-forward"
               onPress={() =>
                 Linking.openURL(
-                  'mailto:arias9068@gmail.com?subject=Ayuda%20con%20MariPuntos'
+                  `mailto:${SUPPORT_EMAIL}?subject=Ayuda%20con%20MariPuntos`
                 )
               }
             />
