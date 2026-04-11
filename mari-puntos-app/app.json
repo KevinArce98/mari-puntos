@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "maripuntosapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "owner": "kevinarce98",
     "description": "Gamifica los permisos en tu relación de pareja. Gana puntos por acciones, solicita permisos, canjea recompensas y desbloquea logros junto a tu pareja.",
     "primaryColor": "#E6F4FE",
@@ -27,7 +26,6 @@
     },
     "android": {
       "icon": "./assets/images/icon.png",
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": true,
       "package": "com.maripuntos.app",
       "versionCode": 1,
