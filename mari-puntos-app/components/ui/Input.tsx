@@ -50,8 +50,8 @@ export const Input: React.FC<InputProps> = ({
         style={[
           styles.inputContainer,
           { backgroundColor: colors.gray[100], borderColor: colors.gray[300] },
-          isFocused && { borderColor: colors.primary, borderWidth: 2 },
-          error && { borderColor: colors.error, borderWidth: 1 },
+          isFocused && { borderColor: colors.primary },
+          error && { borderColor: colors.error },
         ]}
       >
         {leftIcon && (
@@ -64,6 +64,7 @@ export const Input: React.FC<InputProps> = ({
         )}
 
         <TextInput
+          {...props}
           style={[
             styles.input,
             { color: colors.text.primary },
@@ -80,7 +81,6 @@ export const Input: React.FC<InputProps> = ({
             setIsFocused(false);
             props.onBlur?.(e);
           }}
-          {...props}
         />
 
         {secureTextEntry && (
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
+    borderWidth: 2,
   },
   input: {
     lineHeight: 16,

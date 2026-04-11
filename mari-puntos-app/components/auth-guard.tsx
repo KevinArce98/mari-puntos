@@ -1,5 +1,5 @@
-import { Redirect, useSegments, useRootNavigationState } from 'expo-router';
-import React from 'react';
+import { useRouter, useSegments, useRootNavigationState } from 'expo-router';
+import React, { useEffect } from 'react';
 import { LoadingScreen } from '@/components/loading-screen';
 import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
@@ -11,78 +11,63 @@ interface AuthGuardProps {
 }
 
 /**
- * AuthGuard component to protect routes and ensure user is authenticated
- * Redirects to login if user is not signed in or if user profile doesn't exist
+ * AuthGuard component to protect routes and ensure user is authenticated.
+ * Uses useEffect + router.replace instead of <Redirect> to avoid synchronous
+ * navigation state updates during React Fabric layout effects, which caused
+ * "Maximum update depth exceeded" errors on reload.
  */
 export function AuthGuard({ children }: AuthGuardProps) {
   const { isLoaded, isSignedIn } = useClerkAuth();
-  const { user, isLoading: isUserLoading } = useUserStore();
+  const { user, isLoading: isUserLoading, isProfileReady } = useUserStore();
   const { isFirstTime, isLoading: isFirstTimeLoading } = useFirstTimeUser();
   const segments = useSegments();
   const navigationState = useRootNavigationState();
   const { signUp, isLoaded: signUpLoaded } = useSignUp();
+  const router = useRouter();
 
-  // Show loading screen while checking authentication, first time status, and navigation readiness
-  if (
+  const waitingForProfile = isLoaded && isSignedIn && !isProfileReady;
+
+  const isStillLoading =
     !navigationState?.key ||
     !isLoaded ||
     !signUpLoaded ||
     isUserLoading ||
-    isFirstTimeLoading
-  ) {
-    return <LoadingScreen />;
-  }
+    isFirstTimeLoading ||
+    waitingForProfile;
 
   const inAuthGroup = segments[0] === '(auth)';
   const inVerifyEmail = segments[1] === 'verify-email';
   const inLinkPartner = segments[0] === 'link-partner';
 
-  // If we're in the onboarding flow (verify-email or link-partner), don't interfere - let the flow complete
-  if (inVerifyEmail || inLinkPartner) {
-    return <>{children}</>;
-  }
-
-  // Check if user is in the middle of email verification process
-  if (signUp && signUp.status === 'missing_requirements') {
-    const emailAddress = signUp.emailAddress;
-    // User needs to verify their email
-    if (!inVerifyEmail && emailAddress) {
-      return (
-        <Redirect
-          href={{ pathname: '/(auth)/verify-email', params: { email: emailAddress } }}
-        />
-      );
+  // Compute redirect target synchronously so we can show loading screen
+  // while the useEffect fires, preventing content flash.
+  let navTarget: string | null = null;
+  if (!isStillLoading && !inVerifyEmail && !inLinkPartner) {
+    if (signUp?.status === 'missing_requirements' && signUp.emailAddress) {
+      navTarget = `/(auth)/verify-email?email=${encodeURIComponent(signUp.emailAddress)}`;
+    } else if (isSignedIn) {
+      if (!user && !inAuthGroup) navTarget = '/(auth)/login';
+      else if (inAuthGroup && user) navTarget = '/(tabs)';
+    } else if (!inAuthGroup) {
+      navTarget = isFirstTime ? '/(auth)/welcome' : '/(auth)/login';
     }
   }
 
-  // User is signed in
-  if (isSignedIn) {
-    // Wait for user profile to load before making decisions
-    if (isUserLoading) {
-      return <LoadingScreen />;
+  useEffect(() => {
+    if (!navTarget) return;
+    if (signUp?.status === 'missing_requirements' && signUp.emailAddress) {
+      router.replace({
+        pathname: '/(auth)/verify-email',
+        params: { email: signUp.emailAddress },
+      } as any);
+    } else {
+      router.replace(navTarget as any);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navTarget]);
 
-    // Check if user profile exists in database
-    if (!user && !inAuthGroup) {
-      // Profile doesn't exist - redirect to login
-      return <Redirect href="/(auth)/login" />;
-    }
-
-    // Redirect away from auth pages if already signed in with valid profile
-    if (inAuthGroup && user) {
-      return <Redirect href="/(tabs)" />;
-    }
-  } else {
-    // User is not signed in
-    if (!inAuthGroup) {
-      // First time user: show welcome screen
-      if (isFirstTime) {
-        return <Redirect href="/(auth)/welcome" />;
-      } else {
-        // Returning user: go directly to login
-        return <Redirect href="/(auth)/login" />;
-      }
-    }
+  if (isStillLoading || navTarget !== null) {
+    return <LoadingScreen />;
   }
 
   return <>{children}</>;

@@ -47,7 +47,6 @@ export default function TabLayout() {
       <Tabs.Screen
         name="actions"
         options={{
-          href: hasPartner ? '/actions' : null,
           title: 'Acciones',
           tabBarIcon: ({ color, focused }) =>
             hasPartner ? (
@@ -85,7 +84,6 @@ export default function TabLayout() {
       <Tabs.Screen
         name="permissions"
         options={{
-          href: hasPartner ? '/permissions' : null,
           title: 'Permisos',
           tabBarIcon: ({ color, focused }) =>
             hasPartner ? (

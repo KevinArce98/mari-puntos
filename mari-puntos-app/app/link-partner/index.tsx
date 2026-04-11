@@ -1,5 +1,7 @@
 import { Button, Card, CodeInput } from '@/components/ui';
 import { useUser, useThemedColors } from '@/hooks';
+import { useUserStore } from '@/stores';
+import { userService } from '@/services';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -25,13 +27,7 @@ import logger from '@/utils/logger';
 export default function LinkPartnerScreen() {
   const themeColors = useThemedColors();
   const router = useRouter();
-  const {
-    joinPartnerLink,
-    createPartnerLink,
-    getPartnerLinkCode,
-    fetchPartnerInfo,
-    refetch,
-  } = useUser();
+  const { joinPartnerLink, createPartnerLink, getPartnerLinkCode } = useUser();
 
   const [generatedCode, setGeneratedCode] = useState('');
   const [generating, setGenerating] = useState(false);
@@ -147,12 +143,15 @@ export default function LinkPartnerScreen() {
   const handleRefreshLink = async () => {
     setRefreshing(true);
     try {
-      // Check if partner has joined by fetching partner info
-      const partnerInfo = await fetchPartnerInfo();
+      // Fetch silently — avoid setting isLoading in store to prevent AuthGuard navigator unmount
+      const [user, partnerInfo] = await Promise.all([
+        userService.getProfile(),
+        userService.getPartnerInfo().catch(() => null),
+      ]);
 
       if (partnerInfo) {
-        // Partner has joined successfully - refresh user profile
-        await refetch();
+        // Update store silently
+        useUserStore.setState({ user, partnerInfo });
 
         Toast.show({
           type: 'success',

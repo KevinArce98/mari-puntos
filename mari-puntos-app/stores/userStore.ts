@@ -14,6 +14,7 @@ interface UserState {
   stats: UserStats | null;
   partnerInfo: PartnerInfo | null;
   isLoading: boolean;
+  isProfileReady: boolean;
   error: string | null;
 
   // Actions
@@ -36,6 +37,7 @@ export const useUserStore = create<UserState>((set, get) => ({
   stats: null,
   partnerInfo: null,
   isLoading: false,
+  isProfileReady: false,
   error: null,
 
   setUser: (user) => set({ user }),
@@ -46,11 +48,15 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const user = await userService.getProfile();
-      set({ user, isLoading: false });
+      set({ user, isLoading: false, isProfileReady: true });
       logger.debug('User profile fetched successfully', { userId: user.id });
     } catch (error: any) {
       logger.error('Failed to fetch user profile', error, { errorMessage: error.error });
-      set({ error: error.error || 'Failed to fetch profile', isLoading: false });
+      set({
+        error: error.error || 'Failed to fetch profile',
+        isLoading: false,
+        isProfileReady: true,
+      });
       throw error;
     }
   },
@@ -127,17 +133,19 @@ export const useUserStore = create<UserState>((set, get) => ({
   },
 
   joinPartnerLink: async (linkCode: string) => {
-    set({ isLoading: true, error: null });
+    set({ error: null });
     try {
       await userService.joinPartnerLink({ linkCode });
       logger.info('Successfully joined partner link', { linkCode });
-      // Refetch user and partner info
-      await get().fetchProfile();
-      await get().fetchPartnerInfo();
-      set({ isLoading: false });
+      // Fetch silently — don't set isLoading to avoid unmounting the navigator in AuthGuard
+      const [user, partnerInfo] = await Promise.all([
+        userService.getProfile(),
+        userService.getPartnerInfo().catch(() => null),
+      ]);
+      set({ user, partnerInfo });
     } catch (error: any) {
       logger.error('Failed to join partner link', error, { linkCode });
-      set({ error: error.error || 'Failed to join partner link', isLoading: false });
+      set({ error: error.error || 'Failed to join partner link' });
       throw error;
     }
   },
@@ -157,5 +165,12 @@ export const useUserStore = create<UserState>((set, get) => ({
     }
   },
 
-  clearUser: () => set({ user: null, stats: null, partnerInfo: null, error: null }),
+  clearUser: () =>
+    set({
+      user: null,
+      stats: null,
+      partnerInfo: null,
+      error: null,
+      isProfileReady: false,
+    }),
 }));
