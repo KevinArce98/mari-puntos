@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { rewardsService } from '@/services';
 import { Reward, CreateRewardRequest, GetRewardsParams } from '@/types';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 interface RewardsState {
   allRewards: Reward[];
@@ -27,8 +28,8 @@ export const useRewardsStore = create<RewardsState>((set, get) => ({
     try {
       const response = await rewardsService.getRewards(params);
       set({ allRewards: response.data, isLoading: false });
-    } catch (error: any) {
-      set({ error: error.error || 'Failed to fetch rewards', isLoading: false });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error), isLoading: false });
       throw error;
     }
   },
@@ -38,11 +39,8 @@ export const useRewardsStore = create<RewardsState>((set, get) => ({
     try {
       const rewards = await rewardsService.getAvailableRewards();
       set({ availableRewards: rewards, isLoading: false });
-    } catch (error: any) {
-      set({
-        error: error.error || 'Failed to fetch available rewards',
-        isLoading: false,
-      });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error), isLoading: false });
       throw error;
     }
   },
@@ -54,8 +52,8 @@ export const useRewardsStore = create<RewardsState>((set, get) => ({
       // Refetch all rewards
       await get().fetchAllRewards();
       set({ isLoading: false });
-    } catch (error: any) {
-      set({ error: error.error || 'Failed to create reward', isLoading: false });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error), isLoading: false });
       throw error;
     }
   },
@@ -67,8 +65,8 @@ export const useRewardsStore = create<RewardsState>((set, get) => ({
       // Refetch available rewards
       await get().fetchAvailableRewards();
       set({ isLoading: false });
-    } catch (error: any) {
-      set({ error: error.error || 'Failed to redeem reward', isLoading: false });
+    } catch (error: unknown) {
+      set({ error: getErrorMessage(error), isLoading: false });
       throw error;
     }
   },

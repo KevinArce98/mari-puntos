@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   },
   pointsInfoValue: {
     ...typography.styles.bodyMedium,
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   pointsInsufficient: {},
   warningContainer: {

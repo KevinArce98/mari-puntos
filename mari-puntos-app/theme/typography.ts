@@ -47,7 +47,7 @@ export const typography = {
     } as TextStyle,
 
     h3: {
-      fontSize: 18,
+      fontSize: 16,
       fontFamily: 'PlusJakartaSans-SemiBold',
       lineHeight: 22,
     } as TextStyle,

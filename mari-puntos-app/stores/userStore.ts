@@ -8,6 +8,7 @@ import {
 } from '@/types';
 import { create } from 'zustand';
 import logger from '@/utils/logger';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 interface UserState {
   user: User | null;
@@ -50,10 +51,10 @@ export const useUserStore = create<UserState>((set, get) => ({
       const user = await userService.getProfile();
       set({ user, isLoading: false, isProfileReady: true });
       logger.debug('User profile fetched successfully', { userId: user.id });
-    } catch (error: any) {
-      logger.error('Failed to fetch user profile', error, { errorMessage: error.error });
+    } catch (error: unknown) {
+      logger.error('Failed to fetch user profile', error as Error);
       set({
-        error: error.error || 'Failed to fetch profile',
+        error: getErrorMessage(error),
         isLoading: false,
         isProfileReady: true,
       });
@@ -66,8 +67,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       const stats = await userService.getStats();
       set({ stats });
       logger.debug('User stats fetched successfully', { totalPoints: stats.totalPoints });
-    } catch (error: any) {
-      logger.error('Failed to fetch user stats', error);
+    } catch (error: unknown) {
+      logger.error('Failed to fetch user stats', error as Error);
     }
   },
 
@@ -77,8 +78,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       set({ partnerInfo });
       logger.debug('Partner info fetched successfully', { hasPartner: !!partnerInfo });
       return partnerInfo;
-    } catch (error: any) {
-      logger.error('Failed to fetch partner info', error);
+    } catch (error: unknown) {
+      logger.error('Failed to fetch partner info', error as Error);
       set({ partnerInfo: null });
       return null;
     }
@@ -90,9 +91,9 @@ export const useUserStore = create<UserState>((set, get) => ({
       const updatedUser = await userService.updateProfile(data);
       set({ user: updatedUser, isLoading: false });
       logger.info('User profile updated successfully', { userId: updatedUser.id });
-    } catch (error: any) {
-      logger.error('Failed to update user profile', error, { data });
-      set({ error: error.error || 'Failed to update profile', isLoading: false });
+    } catch (error: unknown) {
+      logger.error('Failed to update user profile', error as Error, { data });
+      set({ error: getErrorMessage(error), isLoading: false });
       throw error;
     }
   },
@@ -102,8 +103,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       const updatedUser = await userService.updatePushToken(pushToken);
       set({ user: updatedUser });
       logger.info('Push token updated successfully');
-    } catch (error: any) {
-      logger.error('Failed to update push token', error);
+    } catch (error: unknown) {
+      logger.error('Failed to update push token', error as Error);
       throw error;
     }
   },
@@ -114,9 +115,9 @@ export const useUserStore = create<UserState>((set, get) => ({
       const response = await userService.createPartnerLink();
       logger.info('Partner link created successfully', { linkCode: response.linkCode });
       return response.linkCode;
-    } catch (error: any) {
-      logger.error('Failed to create partner link', error);
-      set({ error: error.error || 'Failed to create partner link', isLoading: false });
+    } catch (error: unknown) {
+      logger.error('Failed to create partner link', error as Error);
+      set({ error: getErrorMessage(error), isLoading: false });
       throw error;
     }
   },
@@ -126,8 +127,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       const response = await userService.getPartnerLinkCode();
       logger.debug('Partner link code fetched successfully');
       return response;
-    } catch (error: any) {
-      logger.error('Failed to fetch partner link code', error);
+    } catch (error: unknown) {
+      logger.error('Failed to fetch partner link code', error as Error);
       return null;
     }
   },
@@ -143,9 +144,9 @@ export const useUserStore = create<UserState>((set, get) => ({
         userService.getPartnerInfo().catch(() => null),
       ]);
       set({ user, partnerInfo });
-    } catch (error: any) {
-      logger.error('Failed to join partner link', error, { linkCode });
-      set({ error: error.error || 'Failed to join partner link' });
+    } catch (error: unknown) {
+      logger.error('Failed to join partner link', error as Error, { linkCode });
+      set({ error: getErrorMessage(error) });
       throw error;
     }
   },
@@ -158,9 +159,9 @@ export const useUserStore = create<UserState>((set, get) => ({
       // Refetch user profile and clear partner info
       await get().fetchProfile();
       set({ partnerInfo: null, isLoading: false });
-    } catch (error: any) {
-      logger.error('Failed to unlink partner', error);
-      set({ error: error.error || 'Failed to unlink partner', isLoading: false });
+    } catch (error: unknown) {
+      logger.error('Failed to unlink partner', error as Error);
+      set({ error: getErrorMessage(error), isLoading: false });
       throw error;
     }
   },

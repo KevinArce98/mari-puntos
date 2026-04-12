@@ -57,14 +57,14 @@ export const Avatar: React.FC<AvatarProps> = ({
           style={[
             styles.levelBadge,
             {
-              width: levelBadgeSize,
+              minWidth: levelBadgeSize,
               height: levelBadgeSize,
               backgroundColor: themeColors.primary,
               borderColor: themeColors.white,
             },
           ]}
         >
-          <Text style={[styles.levelText, { color: themeColors.white }]}>
+          <Text numberOfLines={1} style={[styles.levelText, { color: themeColors.white }]}>
             Lvl {level}
           </Text>
         </View>
@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
+    paddingHorizontal: 3,
   },
   levelText: {
     fontSize: 8,

@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   permissionTitle: {
     ...typography.styles.bodyLarge,
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   inputContainer: {
     marginBottom: spacing.xl,
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     ...typography.styles.body,
     marginBottom: spacing.sm,
-    fontWeight: '500',
+    fontFamily: 'PlusJakartaSans-Medium',
   },
   textArea: {
     ...typography.styles.body,

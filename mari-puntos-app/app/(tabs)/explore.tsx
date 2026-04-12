@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   vsText: {
     ...typography.styles.bodyMedium,
     color: colors.light.white,
-    fontWeight: 'bold',
+    fontFamily: 'PlusJakartaSans-Bold',
   },
   progressContainer: { marginTop: spacing.sm },
   progressBar: {
@@ -337,13 +337,13 @@ const styles = StyleSheet.create({
   medal: { fontSize: 20 },
   rankNumber: {
     ...typography.styles.bodyMedium,
-    fontWeight: 'bold',
+    fontFamily: 'PlusJakartaSans-Bold',
   },
   entryInfo: { flex: 1 },
   entryName: { ...typography.styles.bodyMedium },
   entryLevel: { ...typography.styles.caption, marginTop: 2 },
   entryPoints: {
     ...typography.styles.bodyMedium,
-    fontWeight: 'bold',
+    fontFamily: 'PlusJakartaSans-Bold',
   },
 });

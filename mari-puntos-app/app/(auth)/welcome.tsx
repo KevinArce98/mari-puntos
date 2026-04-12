@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   },
   skipText: {
     ...typography.styles.body,
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   flatList: {
     flex: 1,

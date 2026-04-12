@@ -4,8 +4,16 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { useRouter, useRootNavigationState } from 'expo-router';
+import type { Href } from 'expo-router';
 import { useUserStore } from '@/stores';
 import logger from '@/utils/logger';
+
+const NOTIFICATION_ROUTES = {
+  permissions: '/(tabs)/permissions' as Href,
+  actionsReview: '/actions/review' as Href,
+  actions: '/(tabs)/actions' as Href,
+  home: '/(tabs)/' as Href,
+} as const;
 
 Notifications.setNotificationHandler({
   handleNotification: async () =>
@@ -44,32 +52,31 @@ export function useNotifications() {
     (data: NotificationData) => {
       const hasPartner = !!useUserStore.getState().partnerInfo?.id;
 
-      // Navigate based on notification type
-      let route: string;
+      let route: Href;
       switch (data.type) {
         case 'permission_requested':
         case 'permission_response':
           if (!hasPartner) {
-            logger.warn('Skipping navigation to /permissions — user has no partner');
-            router.push('/');
+            logger.warn('Skipping navigation to permissions — user has no partner');
+            router.push(NOTIFICATION_ROUTES.home);
             return;
           }
-          route = '/permissions';
+          route = NOTIFICATION_ROUTES.permissions;
           break;
         case 'action_created':
           if (!hasPartner) {
-            logger.warn('Skipping navigation to /actions/review — user has no partner');
-            router.push('/');
+            logger.warn('Skipping navigation to actions/review — user has no partner');
+            router.push(NOTIFICATION_ROUTES.home);
             return;
           }
-          route = '/actions/review';
+          route = NOTIFICATION_ROUTES.actionsReview;
           break;
         case 'action_approved':
         case 'action_rejected':
-          route = '/actions';
+          route = NOTIFICATION_ROUTES.actions;
           break;
         case 'partner_linked':
-          route = '/';
+          route = NOTIFICATION_ROUTES.home;
           break;
         default:
           logger.warn('Unknown notification type:', data.type);
@@ -77,7 +84,7 @@ export function useNotifications() {
       }
 
       logger.info('Navigating to:', route);
-      router.push(route as any);
+      router.push(route);
     },
     [router]
   );
@@ -158,7 +165,6 @@ export function useNotifications() {
         logger.error('Error reading last notification response:', err as Error);
       });
     // Run once after navigation is ready (rootNavigationState.key is stable after init)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rootNavigationState?.key]);
 
   // Navegar cuando la navegación esté lista y haya una notificación pendiente

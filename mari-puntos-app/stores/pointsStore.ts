@@ -7,6 +7,7 @@ import {
   GetLeaderboardParams,
 } from '@/types';
 import logger from '@/utils/logger';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 interface PointsState {
   pointsHistory: PointsLog[];
@@ -52,9 +53,9 @@ export const usePointsStore = create<PointsState>((set) => ({
         append,
         params,
       });
-    } catch (error: any) {
-      logger.error('Failed to fetch points history', error, { params, append });
-      set({ error: error.error || 'Failed to fetch points history', isLoading: false });
+    } catch (error: unknown) {
+      logger.error('Failed to fetch points history', error as Error, { params, append });
+      set({ error: getErrorMessage(error), isLoading: false });
       throw error;
     }
   },
@@ -68,9 +69,9 @@ export const usePointsStore = create<PointsState>((set) => ({
         count: leaderboard.length,
         params,
       });
-    } catch (error: any) {
-      logger.error('Failed to fetch leaderboard', error, { params });
-      set({ error: error.error || 'Failed to fetch leaderboard', isLoading: false });
+    } catch (error: unknown) {
+      logger.error('Failed to fetch leaderboard', error as Error, { params });
+      set({ error: getErrorMessage(error), isLoading: false });
       throw error;
     }
   },

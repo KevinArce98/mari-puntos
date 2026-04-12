@@ -62,6 +62,14 @@ export const colors = {
       positive: '#24C6B1', // Turquoise
       negative: '#EF4444', // Red
     },
+
+    // Action category icon colors
+    actionCategory: {
+      childcare: '#FF6B9D',
+      errands: '#FFA94D',
+      romantic: '#FF4757',
+      personalGrowth: '#6C5CE7',
+    },
   },
 
   dark: {
@@ -118,6 +126,14 @@ export const colors = {
     points: {
       positive: '#24C6B1',
       negative: '#EF4444',
+    },
+
+    // Action category icon colors
+    actionCategory: {
+      childcare: '#FF6B9D',
+      errands: '#FFA94D',
+      romantic: '#FF4757',
+      personalGrowth: '#6C5CE7',
     },
   },
 };

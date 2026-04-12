@@ -5,12 +5,14 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import { Platform, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { borderRadius, colors, spacing, typography } from '@/theme';
 import 'react-native-reanimated';
 import * as Updates from 'expo-updates';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthGuard } from '@/components';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { Appearance } from 'react-native';
 import { useNotifications } from '@/hooks/useNotifications';
 import * as Sentry from '@sentry/react-native';
 import logger from '@/utils/logger';
@@ -30,16 +32,26 @@ export function ErrorBoundary({ error, retry }: { error: Error; retry: () => voi
 }
 
 const errorBoundaryStyles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
-  message: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 24 },
-  button: {
-    backgroundColor: '#24C6B1',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
   },
-  buttonText: { color: '#fff', fontWeight: '600' },
+  title: { ...typography.styles.h2, marginBottom: spacing.sm },
+  message: {
+    ...typography.styles.body,
+    color: colors.light.text.secondary,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  button: {
+    backgroundColor: colors.light.primary,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+  },
+  buttonText: { ...typography.styles.button, color: colors.light.text.white },
 });
 
 Sentry.init({
@@ -79,7 +91,7 @@ if (!CLERK_PUBLISHABLE_KEY) {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme() ?? Appearance.getColorScheme();
   const insets = useSafeAreaInsets();
 
   useNotifications();

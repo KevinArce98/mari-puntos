@@ -257,7 +257,11 @@ const styles = StyleSheet.create({
     ...typography.styles.h3,
   },
   closeButton: {
-    padding: spacing.xs,
+    padding: spacing.sm,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   section: {
     padding: spacing.lg,
@@ -301,7 +305,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   categoryLabelSelected: {
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   actions: {
     flexDirection: 'row',

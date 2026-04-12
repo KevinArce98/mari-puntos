@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   emptyHistoryCta: {
     ...typography.styles.bodyMedium,
     marginTop: spacing.md,
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   // No partner state
   noPartnerCard: {

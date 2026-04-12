@@ -178,7 +178,7 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
                   { color: themeColors.text.secondary },
                   selectedIcon === icon.name && {
                     color: themeColors.primary,
-                    fontWeight: '600',
+                    fontFamily: 'PlusJakartaSans-SemiBold',
                   },
                 ]}
                 numberOfLines={2}

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { actionsService } from '@/services';
 import { Action, CreateActionRequest, GetActionsParams, ActionStatus } from '@/types';
 import logger from '@/utils/logger';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 interface PaginationMeta {
   page: number;
@@ -56,10 +57,10 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
         count: response.data.length,
         params,
       });
-    } catch (error: any) {
-      logger.error('Failed to fetch my actions', error, { params });
+    } catch (error: unknown) {
+      logger.error('Failed to fetch my actions', error as Error, { params });
       set((s) => ({
-        error: error.error || 'Failed to fetch actions',
+        error: getErrorMessage(error),
         isLoadingMyActions: false,
         isLoading: s.isLoadingPartnerActions || s.isMutating,
       }));
@@ -83,10 +84,10 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
         count: response.data.length,
         params,
       });
-    } catch (error: any) {
-      logger.error('Failed to fetch partner actions', error, { params });
+    } catch (error: unknown) {
+      logger.error('Failed to fetch partner actions', error as Error, { params });
       set((s) => ({
-        error: error.error || 'Failed to fetch partner actions',
+        error: getErrorMessage(error),
         isLoadingPartnerActions: false,
         isLoading: s.isLoadingMyActions || s.isMutating,
       }));
@@ -104,10 +105,10 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
         isMutating: false,
         isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,
       }));
-    } catch (error: any) {
-      logger.error('Failed to create action', error, { data });
+    } catch (error: unknown) {
+      logger.error('Failed to create action', error as Error, { data });
       set((s) => ({
-        error: error.error || 'Failed to create action',
+        error: getErrorMessage(error),
         isMutating: false,
         isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,
       }));
@@ -125,10 +126,13 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
         isMutating: false,
         isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,
       }));
-    } catch (error: any) {
-      logger.error('Failed to approve action', error, { actionId, pointsAwarded });
+    } catch (error: unknown) {
+      logger.error('Failed to approve action', error as Error, {
+        actionId,
+        pointsAwarded,
+      });
       set((s) => ({
-        error: error.error || 'Failed to approve action',
+        error: getErrorMessage(error),
         isMutating: false,
         isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,
       }));
@@ -146,10 +150,13 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
         isMutating: false,
         isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,
       }));
-    } catch (error: any) {
-      logger.error('Failed to reject action', error, { actionId, rejectionReason });
+    } catch (error: unknown) {
+      logger.error('Failed to reject action', error as Error, {
+        actionId,
+        rejectionReason,
+      });
       set((s) => ({
-        error: error.error || 'Failed to reject action',
+        error: getErrorMessage(error),
         isMutating: false,
         isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,
       }));

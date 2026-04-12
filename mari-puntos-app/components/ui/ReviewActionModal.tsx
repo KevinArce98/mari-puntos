@@ -317,7 +317,11 @@ const styles = StyleSheet.create({
     ...typography.styles.h3,
   },
   closeButton: {
-    padding: spacing.xs,
+    padding: spacing.sm,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     maxHeight: 500,
@@ -333,7 +337,7 @@ const styles = StyleSheet.create({
   },
   actionCategory: {
     ...typography.styles.caption,
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans-SemiBold',
     marginBottom: spacing.sm,
   },
   actionDescription: {
@@ -366,7 +370,7 @@ const styles = StyleSheet.create({
   },
   pointsValue: {
     ...typography.styles.h3,
-    fontWeight: 'bold',
+    fontFamily: 'PlusJakartaSans-Bold',
   },
   slider: {
     width: '100%',
@@ -404,7 +408,7 @@ const styles = StyleSheet.create({
     ...typography.styles.bodyMedium,
   },
   suggestedButtonTextActive: {
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   textArea: {
     ...typography.styles.body,

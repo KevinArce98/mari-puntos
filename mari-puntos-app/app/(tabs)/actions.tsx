@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   badgeText: {
     ...typography.styles.caption,
     fontSize: 10,
-    fontWeight: 'bold',
+    fontFamily: 'PlusJakartaSans-Bold',
   },
   statsCard: {
     flexDirection: 'row',

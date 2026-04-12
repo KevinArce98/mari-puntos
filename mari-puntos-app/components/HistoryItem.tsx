@@ -45,7 +45,12 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({
   const iconContainerSize = compact ? 40 : 48;
 
   return (
-    <View style={[styles.container, showBorder && styles.borderBottom]}>
+    <View
+      style={[
+        styles.container,
+        showBorder && { borderBottomWidth: 1, borderBottomColor: colors.gray[200] },
+      ]}
+    >
       <View
         style={[
           styles.iconContainer,
@@ -106,7 +111,6 @@ const styles = StyleSheet.create({
   },
   borderBottom: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(128, 128, 128, 0.2)',
   },
   iconContainer: {
     borderRadius: borderRadius.lg,

@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   headerBadgeText: {
     ...typography.styles.caption,
     fontSize: 12,
-    fontWeight: 'bold',
+    fontFamily: 'PlusJakartaSans-Bold',
   },
   statsCard: {
     flexDirection: 'row',

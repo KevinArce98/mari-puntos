@@ -7,16 +7,21 @@ import { useThemedColors } from '@/hooks';
 import { formatDateWithTime } from '@/utils/dateUtils';
 import { Card } from './Card';
 
-// Static data outside the component — no theme dependency
 const CATEGORY_ICON: Record<
   ActionCategory,
-  { icon: keyof typeof Ionicons.glyphMap; hardcodedColor?: string }
+  {
+    icon: keyof typeof Ionicons.glyphMap;
+    categoryKey?: 'childcare' | 'errands' | 'romantic' | 'personalGrowth';
+  }
 > = {
   [ActionCategory.HOUSEHOLD]: { icon: 'home' },
-  [ActionCategory.CHILDCARE]: { icon: 'people', hardcodedColor: '#FF6B9D' },
-  [ActionCategory.ERRANDS]: { icon: 'cart', hardcodedColor: '#FFA94D' },
-  [ActionCategory.ROMANTIC]: { icon: 'heart', hardcodedColor: '#FF4757' },
-  [ActionCategory.PERSONAL_GROWTH]: { icon: 'trending-up', hardcodedColor: '#6C5CE7' },
+  [ActionCategory.CHILDCARE]: { icon: 'people', categoryKey: 'childcare' },
+  [ActionCategory.ERRANDS]: { icon: 'cart', categoryKey: 'errands' },
+  [ActionCategory.ROMANTIC]: { icon: 'heart', categoryKey: 'romantic' },
+  [ActionCategory.PERSONAL_GROWTH]: {
+    icon: 'trending-up',
+    categoryKey: 'personalGrowth',
+  },
   [ActionCategory.OTHER]: { icon: 'ellipsis-horizontal' },
 };
 
@@ -34,11 +39,11 @@ export function ActionItemCard({
   const themeColors = useThemedColors();
 
   const categoryEntry = CATEGORY_ICON[action.category];
-  const categoryColor =
-    categoryEntry.hardcodedColor ??
-    (action.category === ActionCategory.OTHER
+  const categoryColor = categoryEntry.categoryKey
+    ? themeColors.actionCategory[categoryEntry.categoryKey]
+    : action.category === ActionCategory.OTHER
       ? themeColors.gray[500]
-      : themeColors.primary);
+      : themeColors.primary;
   const CATEGORY_CONFIG = { icon: categoryEntry.icon, color: categoryColor };
 
   const STATUS_CONFIG: Record<
@@ -192,7 +197,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     ...typography.styles.caption,
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   description: {
     ...typography.styles.caption,
@@ -213,7 +218,7 @@ const styles = StyleSheet.create({
   },
   pointsText: {
     ...typography.styles.caption,
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   rejectionReason: {
     ...typography.styles.caption,

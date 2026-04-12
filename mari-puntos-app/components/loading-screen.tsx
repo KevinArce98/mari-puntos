@@ -1,7 +1,14 @@
 import { colors, spacing, typography } from '@/theme';
 import { useThemedColors } from '@/hooks';
-import React, { useEffect } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  AccessibilityInfo,
+  Animated,
+  Easing,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Image } from 'expo-image';
 
 export function LoadingScreen() {
@@ -9,8 +16,24 @@ export function LoadingScreen() {
   const spinValue = React.useRef(new Animated.Value(0)).current;
   const pulseValue = React.useRef(new Animated.Value(1)).current;
   const fadeValue = React.useRef(new Animated.Value(0)).current;
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then(setReduceMotion)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    // Fade in always runs (not motion-heavy)
+    Animated.timing(fadeValue, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+
+    if (reduceMotion) return;
+
     // Rotation animation
     Animated.loop(
       Animated.timing(spinValue, {
@@ -21,11 +44,11 @@ export function LoadingScreen() {
       })
     ).start();
 
-    // Pulse animation
+    // Subtle pulse animation (1.05x — not jarring)
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseValue, {
-          toValue: 1.2,
+          toValue: 1.05,
           duration: 1000,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
@@ -38,14 +61,7 @@ export function LoadingScreen() {
         }),
       ])
     ).start();
-
-    // Fade in animation
-    Animated.timing(fadeValue, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-  }, [spinValue, pulseValue, fadeValue]);
+  }, [spinValue, pulseValue, fadeValue, reduceMotion]);
 
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
@@ -179,7 +195,6 @@ const styles = StyleSheet.create({
     ...typography.styles.h1,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
-    fontWeight: 'bold',
   },
   loadingText: {
     ...typography.styles.body,

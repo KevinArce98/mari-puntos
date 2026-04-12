@@ -8,6 +8,7 @@ import {
 } from '@/types';
 import { useUserStore } from './userStore';
 import logger from '@/utils/logger';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 interface PermissionsState {
   myPermissions: Permission[];
@@ -59,10 +60,10 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
         count: response.data.length,
         params,
       });
-    } catch (error: any) {
-      logger.error('Failed to fetch my permissions', error, { params });
+    } catch (error: unknown) {
+      logger.error('Failed to fetch my permissions', error as Error, { params });
       set((s) => ({
-        error: error.error || 'Failed to fetch permissions',
+        error: getErrorMessage(error),
         isLoadingMyPermissions: false,
         isLoading: s.isLoadingPartnerPermissions || s.isMutating,
       }));
@@ -83,10 +84,10 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
         count: response.data.length,
         params,
       });
-    } catch (error: any) {
-      logger.error('Failed to fetch partner permissions', error, { params });
+    } catch (error: unknown) {
+      logger.error('Failed to fetch partner permissions', error as Error, { params });
       set((s) => ({
-        error: error.error || 'Failed to fetch partner permissions',
+        error: getErrorMessage(error),
         isLoadingPartnerPermissions: false,
         isLoading: s.isLoadingMyPermissions || s.isMutating,
       }));
@@ -104,10 +105,10 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
         isMutating: false,
         isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
       }));
-    } catch (error: any) {
-      logger.error('Failed to create permission', error, { data });
+    } catch (error: unknown) {
+      logger.error('Failed to create permission', error as Error, { data });
       set((s) => ({
-        error: error.error || 'Failed to create permission',
+        error: getErrorMessage(error),
         isMutating: false,
         isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
       }));
@@ -125,10 +126,10 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
         isMutating: false,
         isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
       }));
-    } catch (error: any) {
-      logger.error('Failed to update permission', error, { permissionId, data });
+    } catch (error: unknown) {
+      logger.error('Failed to update permission', error as Error, { permissionId, data });
       set((s) => ({
-        error: error.error || 'Failed to update permission',
+        error: getErrorMessage(error),
         isMutating: false,
         isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
       }));
@@ -151,10 +152,10 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
         isMutating: false,
         isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
       }));
-    } catch (error: any) {
-      logger.error('Failed to respond to permission', error, { permissionId });
+    } catch (error: unknown) {
+      logger.error('Failed to respond to permission', error as Error, { permissionId });
       set((s) => ({
-        error: error.error || 'Failed to respond to permission',
+        error: getErrorMessage(error),
         isMutating: false,
         isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
       }));
@@ -171,10 +172,10 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
         isMutating: false,
         isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
       }));
-    } catch (error: any) {
-      logger.error('Failed to cancel permission', error, { permissionId });
+    } catch (error: unknown) {
+      logger.error('Failed to cancel permission', error as Error, { permissionId });
       set((s) => ({
-        error: error.error || 'Failed to cancel permission',
+        error: getErrorMessage(error),
         isMutating: false,
         isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
       }));
