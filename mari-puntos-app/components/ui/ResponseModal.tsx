@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Keyboard,
   Modal,
@@ -41,6 +41,22 @@ export function ResponseModal({
   loading = false,
 }: ResponseModalProps) {
   const themeColors = useThemedColors();
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const show = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardOffset(e.endCoordinates.height);
+    });
+    const hide = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardOffset(0);
+    });
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
   const { control, handleSubmit, reset } = useForm<ResponseMessageFormData>({
     resolver: zodResolver(responseMessageSchema),
     defaultValues: {
@@ -72,8 +88,8 @@ export function ResponseModal({
       onRequestClose={handleClose}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.overlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={[styles.overlay, { paddingBottom: keyboardOffset }]}
       >
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={handleClose}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

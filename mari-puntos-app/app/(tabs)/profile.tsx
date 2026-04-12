@@ -1,4 +1,11 @@
-import { Avatar, Button, Card, EditProfileModal, ListItem } from '@/components/ui';
+import {
+  Avatar,
+  Button,
+  Card,
+  EditProfileModal,
+  ListItem,
+  ProgressBar,
+} from '@/components/ui';
 import { usePoints, useUser, useThemedColors } from '@/hooks';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { useAuth } from '@clerk/clerk-expo';
@@ -25,9 +32,8 @@ export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signOut } = useAuth();
-  const { user, partnerInfo, hasPartner, unlinkPartner, updateProfile, refetch } =
-    useUser();
-  const { myPoints } = usePoints();
+  const { user, partnerInfo, hasPartner, unlinkPartner, updateProfile } = useUser();
+  const { myPoints, myLevel, progressToNextLevel, pointsToNextLevel } = usePoints();
   const [loading, setLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
@@ -131,7 +137,7 @@ export default function ProfileScreen() {
               name={user?.firstName}
               size="xl"
               showLevel
-              // level={myLevel} TODO: Enable levels
+              level={myLevel}
             />
             <View style={styles.profileInfo}>
               <Text style={[styles.profileName, { color: colors.text.primary }]}>
@@ -159,34 +165,30 @@ export default function ProfileScreen() {
                 Puntos
               </Text>
             </View>
-            {/* TODO: Enable levels and rewards */}
-            {/* <View style={styles.statDivider} />
+            <View style={[styles.statDivider, { backgroundColor: colors.gray[200] }]} />
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{myLevel}</Text>
-              <Text style={styles.statLabel}>Level</Text>
+              <Text style={[styles.statValue, { color: colors.primary }]}>{myLevel}</Text>
+              <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
+                Nivel
+              </Text>
             </View>
-            <View style={styles.statDivider} />
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>12</Text>
-              <Text style={styles.statLabel}>Rewards</Text>
-            </View> */}
           </View>
 
-          {/* TODO: Level Progress */}
-          {/* <View style={styles.levelProgress}>
+          <View style={styles.levelProgress}>
             <View style={styles.levelProgressHeader}>
-              <Text style={styles.levelLabel}>Level {myLevel}</Text>
-              <Text style={styles.levelLabel}>Level {myLevel + 1}</Text>
+              <Text style={[styles.levelLabel, { color: colors.text.secondary }]}>
+                Nivel {myLevel}
+              </Text>
+              <Text style={[styles.levelLabel, { color: colors.text.secondary }]}>
+                {pointsToNextLevel} pts para nivel {myLevel + 1}
+              </Text>
             </View>
             <ProgressBar
               progress={progressToNextLevel}
               color={colors.accent}
-              height={10}
+              height={8}
             />
-            <Text style={styles.levelProgressText}>
-              {Math.round(progressToNextLevel)}% to next level
-            </Text>
-          </View> */}
+          </View>
         </Card>
 
         {/* Partner Section */}

@@ -1,4 +1,5 @@
 import {
+  Achievement,
   ApiResponse,
   CreatePartnerLinkResponse,
   CreateUserRequest,
@@ -54,6 +55,12 @@ class UserService {
    */
   async getStats(): Promise<UserStats> {
     const response = await apiService.get<ApiResponse<UserStats>>('/users/stats');
+    return response.data;
+  }
+
+  async getAchievements(): Promise<Achievement[]> {
+    const response =
+      await apiService.get<ApiResponse<Achievement[]>>('/users/achievements');
     return response.data;
   }
 

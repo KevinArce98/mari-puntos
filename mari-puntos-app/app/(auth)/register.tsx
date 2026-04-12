@@ -115,7 +115,7 @@ export default function RegisterScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: themeColors.background }]}
-      behavior="height"
+      behavior="padding"
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView

@@ -10,7 +10,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import {
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -162,7 +161,7 @@ export default function VerifyEmailScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: themeColors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior="padding"
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView

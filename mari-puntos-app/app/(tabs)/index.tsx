@@ -24,7 +24,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user, hasPartner, refetch: refetchUser } = useUser();
-  const { myPoints, pointsHistory, fetchHistory } = usePoints();
+  const { myPoints, myLevel, pointsHistory, fetchHistory } = usePoints();
   const { createAction } = useActions();
   const [refreshing, setRefreshing] = React.useState(false);
   const [showCreateActionModal, setShowCreateActionModal] = React.useState(false);
@@ -132,7 +132,7 @@ export default function HomeScreen() {
               name={user?.firstName}
               size="lg"
               showLevel
-              // level={myLevel} TODO: enable level when ready
+              level={myLevel}
             />
             <View style={styles.greetingContainer}>
               <Text style={[styles.greeting, { color: colors.text.primary }]}>

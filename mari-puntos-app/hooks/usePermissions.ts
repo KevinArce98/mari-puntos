@@ -19,15 +19,18 @@ export const usePermissions = () => {
   const { user } = useUserStore();
 
   useEffect(() => {
-    // Only fetch permissions if user is loaded (ensures token is available)
     if (!user) return;
 
-    fetchMyPermissions().catch((error) => {
-      logger.error('Failed to fetch my permissions in usePermissions hook', error);
-    });
-    fetchPartnerPermissions().catch((error) => {
-      logger.error('Failed to fetch partner permissions in usePermissions hook', error);
-    });
+    // Guard: skip if already loading (prevents double-fetch from multiple consumers)
+    const store = usePermissionsStore.getState();
+    if (!store.isLoading) {
+      fetchMyPermissions().catch((error) => {
+        logger.error('Failed to fetch my permissions in usePermissions hook', error);
+      });
+      fetchPartnerPermissions().catch((error) => {
+        logger.error('Failed to fetch partner permissions in usePermissions hook', error);
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
@@ -72,9 +75,8 @@ export const usePermissions = () => {
     updatePermission: handleUpdatePermission,
     respondToPermission: handleRespondToPermission,
     cancelPermission: handleCancelPermission,
-    refetch: () => {
-      fetchMyPermissions();
-      fetchPartnerPermissions();
+    refetch: async () => {
+      await Promise.all([fetchMyPermissions(), fetchPartnerPermissions()]);
     },
   };
 };

@@ -3,9 +3,10 @@ import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { DefaultTheme, DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import 'react-native-reanimated';
+import * as Updates from 'expo-updates';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthGuard } from '@/components';
@@ -82,6 +83,21 @@ function RootLayoutNav() {
   const insets = useSafeAreaInsets();
 
   useNotifications();
+
+  // Check for OTA updates on foreground — ensures critical patches reach users
+  // without waiting for next cold start (only runs in production EAS builds)
+  useEffect(() => {
+    if (__DEV__) return;
+    Updates.checkForUpdateAsync()
+      .then(({ isAvailable }) => {
+        if (isAvailable) {
+          return Updates.fetchUpdateAsync().then(() => Updates.reloadAsync());
+        }
+      })
+      .catch((err) => {
+        logger.warn('OTA update check failed', err as Error);
+      });
+  }, []);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

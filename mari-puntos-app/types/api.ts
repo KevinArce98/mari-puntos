@@ -78,6 +78,30 @@ export enum RewardCategory {
   OTHER = 'other',
 }
 
+export enum AchievementType {
+  POINTS_MILESTONE = 'points_milestone',
+  LEVEL_MILESTONE = 'level_milestone',
+  ACTIONS_COMPLETED = 'actions_completed',
+  PERMISSIONS_GRANTED = 'permissions_granted',
+  STREAK = 'streak',
+  SPECIAL = 'special',
+}
+
+export interface Achievement {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  type: AchievementType;
+  iconUrl?: string;
+  pointsReward?: number;
+  isUnlocked: boolean;
+  unlockedAt?: string;
+  requiredValue?: number;
+  currentProgress: number;
+  createdAt: string;
+}
+
 export enum LogType {
   POINTS_EARNED = 'points_earned',
   POINTS_SPENT = 'points_spent',

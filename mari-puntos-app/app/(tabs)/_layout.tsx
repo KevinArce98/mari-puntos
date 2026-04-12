@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity, View } from 'react-native';
@@ -12,6 +12,17 @@ export default function TabLayout() {
   const { hasPartner } = useUser();
   const colors = useThemedColors();
   const router = useRouter();
+
+  const lockedTabButton = useCallback(
+    (props: any) => (
+      <TouchableOpacity
+        {...props}
+        onPress={() => router.push('/link-partner')}
+        style={props.style}
+      />
+    ),
+    [router]
+  );
 
   return (
     <Tabs
@@ -70,15 +81,7 @@ export default function TabLayout() {
                 />
               </View>
             ),
-          tabBarButton: hasPartner
-            ? undefined
-            : (props) => (
-                <TouchableOpacity
-                  {...(props as any)}
-                  onPress={() => router.push('/link-partner')}
-                  style={props.style}
-                />
-              ),
+          tabBarButton: hasPartner ? undefined : lockedTabButton,
         }}
       />
       <Tabs.Screen
@@ -103,38 +106,43 @@ export default function TabLayout() {
                 />
               </View>
             ),
-          tabBarButton: hasPartner
-            ? undefined
-            : (props) => (
-                <TouchableOpacity
-                  {...(props as any)}
-                  onPress={() => router.push('/link-partner')}
-                  style={props.style}
-                />
-              ),
+          tabBarButton: hasPartner ? undefined : lockedTabButton,
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          href: null, // TODO: Add functionality later, this option hides the tab
           title: 'Ranking',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'stats-chart' : 'stats-chart-outline'}
-              size={24}
-              color={color}
-            />
-          ),
+          tabBarIcon: ({ color, focused }) =>
+            hasPartner ? (
+              <Ionicons
+                name={focused ? 'stats-chart' : 'stats-chart-outline'}
+                size={24}
+                color={color}
+              />
+            ) : (
+              <View>
+                <Ionicons name="stats-chart-outline" size={24} color={colors.gray[300]} />
+                <Ionicons
+                  name="lock-closed"
+                  size={10}
+                  color={colors.gray[400]}
+                  style={{ position: 'absolute', right: -2, bottom: -2 }}
+                />
+              </View>
+            ),
         }}
       />
       <Tabs.Screen
         name="achievements"
         options={{
-          href: null, // TODO: Add functionality later, this option hides the tab
           title: 'Logros',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'gift' : 'gift-outline'} size={24} color={color} />
+            <Ionicons
+              name={focused ? 'trophy' : 'trophy-outline'}
+              size={24}
+              color={color}
+            />
           ),
         }}
       />

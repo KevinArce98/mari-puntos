@@ -1,16 +1,142 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Alert,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Card, Badge } from '@/components/ui';
+import { useRewards, useThemedColors, useUser } from '@/hooks';
+import { spacing, typography, borderRadius } from '@/theme';
+import { Reward, RewardCategory } from '@/types';
+import Toast from 'react-native-toast-message';
 
-import { useThemedColors } from '@/hooks';
-import { spacing, typography } from '@/theme';
+const CATEGORY_LABELS: Record<RewardCategory, string> = {
+  [RewardCategory.PERSONAL_TIME]: 'Tiempo personal',
+  [RewardCategory.ENTERTAINMENT]: 'Entretenimiento',
+  [RewardCategory.GIFTS]: 'Regalos',
+  [RewardCategory.EXPERIENCES]: 'Experiencias',
+  [RewardCategory.PRIVILEGES]: 'Privilegios',
+  [RewardCategory.OTHER]: 'Otro',
+};
 
 export default function RewardsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colors = useThemedColors();
+  const { user } = useUser();
+  const { availableRewards, isLoading, error, redeemReward, refetchAvailable } =
+    useRewards();
+  const [refreshing, setRefreshing] = useState(false);
+  const [redeeming, setRedeeming] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchAvailable();
+    }, [refetchAvailable])
+  );
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetchAvailable();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleRedeem = (reward: Reward) => {
+    Alert.alert(
+      'Canjear recompensa',
+      `¿Deseas canjear "${reward.title}" por ${reward.pointsCost} puntos?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Canjear',
+          style: 'destructive',
+          onPress: async () => {
+            setRedeeming(reward.id);
+            try {
+              await redeemReward(reward.id);
+              Toast.show({
+                type: 'success',
+                text1: '¡Recompensa canjeada!',
+                text2: `Disfrutá tu ${reward.title}`,
+              });
+              await refetchAvailable();
+            } catch {
+              Toast.show({ type: 'error', text1: 'Error al canjear la recompensa' });
+            } finally {
+              setRedeeming(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const renderReward = (reward: Reward) => {
+    const isRedeeming = redeeming === reward.id;
+    const canAfford = (user?.totalPoints ?? 0) >= reward.pointsCost;
+
+    return (
+      <Card key={reward.id} style={styles.rewardCard}>
+        <View style={styles.rewardHeader}>
+          <View style={styles.rewardInfo}>
+            <Text style={[styles.rewardTitle, { color: colors.text.primary }]}>
+              {reward.title}
+            </Text>
+            {reward.description ? (
+              <Text style={[styles.rewardDescription, { color: colors.text.secondary }]}>
+                {reward.description}
+              </Text>
+            ) : null}
+          </View>
+          <View style={styles.rewardMeta}>
+            <Text style={[styles.pointsCost, { color: colors.primary }]}>
+              {reward.pointsCost}
+            </Text>
+            <Text style={[styles.pointsLabel, { color: colors.text.secondary }]}>
+              pts
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.rewardFooter}>
+          <Badge
+            label={CATEGORY_LABELS[reward.category] ?? reward.category}
+            variant="primary"
+            size="sm"
+          />
+          <TouchableOpacity
+            style={[
+              styles.redeemButton,
+              {
+                backgroundColor: canAfford ? colors.primary : colors.gray[300],
+              },
+            ]}
+            onPress={() => handleRedeem(reward)}
+            disabled={!canAfford || isRedeeming}
+          >
+            {isRedeeming ? (
+              <ActivityIndicator size="small" color={colors.white} />
+            ) : (
+              <Text style={[styles.redeemButtonText, { color: colors.white }]}>
+                {canAfford ? 'Canjear' : 'Sin puntos'}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </Card>
+    );
+  };
 
   return (
     <View
@@ -30,22 +156,48 @@ export default function RewardsScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Coming Soon */}
-      <View style={styles.content}>
-        <Ionicons name="gift-outline" size={72} color={colors.gray[300]} />
-        <Text style={[styles.title, { color: colors.text.primary }]}>Próximamente</Text>
-        <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
-          Las recompensas estarán disponibles pronto. ¡Sigue acumulando puntos!
-        </Text>
-      </View>
+      {/* Points balance */}
+      {user && (
+        <View style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
+          <Text style={[styles.balanceLabel, { color: colors.white }]}>Tus puntos</Text>
+          <Text style={[styles.balanceValue, { color: colors.white }]}>
+            {user.totalPoints}
+          </Text>
+        </View>
+      )}
+
+      {isLoading && !refreshing ? (
+        <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
+      ) : error ? (
+        <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
+      ) : (
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+        >
+          {availableRewards.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="gift-outline" size={64} color={colors.gray[300]} />
+              <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
+                Sin recompensas disponibles
+              </Text>
+              <Text style={[styles.emptySubtitle, { color: colors.text.secondary }]}>
+                ¡Sigue acumulando puntos para desbloquear recompensas!
+              </Text>
+            </View>
+          ) : (
+            availableRewards.map(renderReward)
+          )}
+        </ScrollView>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -60,24 +212,59 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: -spacing.sm,
   },
-  headerTitle: {
-    ...typography.styles.h3,
-  },
-  content: {
-    flex: 1,
+  headerTitle: { ...typography.styles.h3 },
+  balanceCard: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing['2xl'],
   },
-  title: {
-    ...typography.styles.h2,
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-    textAlign: 'center',
-  },
-  subtitle: {
+  balanceLabel: { ...typography.styles.caption },
+  balanceValue: { ...typography.styles.h1 },
+  loader: { marginTop: spacing.xl },
+  errorText: {
     ...typography.styles.body,
     textAlign: 'center',
-    lineHeight: 22,
+    marginTop: spacing.xl,
+    marginHorizontal: spacing.lg,
   },
+  scrollContent: { padding: spacing.lg },
+  rewardCard: { marginBottom: spacing.md },
+  rewardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.md,
+  },
+  rewardInfo: { flex: 1, marginRight: spacing.md },
+  rewardTitle: { ...typography.styles.h4, marginBottom: spacing.xs },
+  rewardDescription: { ...typography.styles.caption },
+  rewardMeta: { alignItems: 'center' },
+  pointsCost: { ...typography.styles.h2 },
+  pointsLabel: { ...typography.styles.small },
+  rewardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  redeemButton: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    minWidth: 90,
+    alignItems: 'center',
+  },
+  redeemButtonText: { ...typography.styles.bodyMedium },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing['2xl'],
+    paddingHorizontal: spacing.xl,
+  },
+  emptyTitle: {
+    ...typography.styles.h3,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  emptySubtitle: { ...typography.styles.body, textAlign: 'center', lineHeight: 22 },
 });

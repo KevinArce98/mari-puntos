@@ -3,6 +3,7 @@ export * from './usePoints';
 export * from './usePermissions';
 export * from './useActions';
 export * from './useRewards';
+export * from './useAchievements';
 export * from './useColorScheme';
 export * from './useThemeColor';
 export * from './useThemedColors';

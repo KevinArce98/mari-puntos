@@ -8,6 +8,8 @@ export const useActions = () => {
     myActions,
     partnerActions,
     isLoading,
+    isLoadingMyActions,
+    isLoadingPartnerActions,
     error,
     myActionsPagination,
     partnerActionsPagination,
@@ -20,15 +22,21 @@ export const useActions = () => {
   const { user } = useUserStore();
 
   useEffect(() => {
-    // Only fetch actions if user is loaded (ensures token is available)
     if (!user) return;
 
-    fetchMyActions().catch((error) => {
-      logger.error('Failed to fetch my actions in useActions hook', error);
-    });
-    fetchPartnerActions().catch((error) => {
-      logger.error('Failed to fetch partner actions in useActions hook', error);
-    });
+    // Guard: skip if a fetch is already in flight (prevents double-fetch from
+    // multiple consumers of this hook mounting simultaneously)
+    const store = useActionsStore.getState();
+    if (!store.isLoadingMyActions) {
+      fetchMyActions().catch((error) => {
+        logger.error('Failed to fetch my actions in useActions hook', error);
+      });
+    }
+    if (!store.isLoadingPartnerActions) {
+      fetchPartnerActions().catch((error) => {
+        logger.error('Failed to fetch partner actions in useActions hook', error);
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 

@@ -4,7 +4,6 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -93,7 +92,7 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: themeColors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior="padding"
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView

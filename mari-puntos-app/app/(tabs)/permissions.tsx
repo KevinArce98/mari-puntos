@@ -7,8 +7,8 @@ import {
   RefreshControl,
   TouchableOpacity,
   ActivityIndicator,
-  useColorScheme,
 } from 'react-native';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, Badge, Button } from '@/components/ui';

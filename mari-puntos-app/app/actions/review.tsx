@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -47,14 +47,18 @@ export default function ReviewActionsScreen() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const filteredActions = partnerActions.filter((action) => {
-    if (!selectedStatus) return true;
-    return action.status === selectedStatus;
-  });
+  const filteredActions = useMemo(
+    () =>
+      partnerActions.filter(
+        (action) => !selectedStatus || action.status === selectedStatus
+      ),
+    [partnerActions, selectedStatus]
+  );
 
-  const pendingCount = partnerActions.filter(
-    (a) => a.status === ActionStatus.PENDING
-  ).length;
+  const pendingCount = useMemo(
+    () => partnerActions.filter((a) => a.status === ActionStatus.PENDING).length,
+    [partnerActions]
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);

@@ -31,7 +31,6 @@ export interface NotificationData {
 
 export function useNotifications() {
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
-  const [notifications, setNotifications] = useState<Notifications.Notification[]>([]);
   const [pendingNotificationData, setPendingNotificationData] =
     useState<NotificationData | null>(null);
   const notificationListener = useRef<Notifications.EventSubscription | null>(null);
@@ -111,8 +110,8 @@ export function useNotifications() {
   useEffect(() => {
     // Listener para notificaciones recibidas mientras la app está abierta
     notificationListener.current = Notifications.addNotificationReceivedListener(
-      async (notification) => {
-        setNotifications((prev) => [notification, ...prev].slice(0, 20));
+      (_notification) => {
+        // No-op: we only need to navigate on tap (response), not on receive
       }
     );
 
@@ -138,6 +137,29 @@ export function useNotifications() {
       }
     };
   }, []);
+
+  // Handle notification tap from killed state (cold start).
+  // addNotificationResponseReceivedListener only fires for background/foreground taps.
+  // For killed-state taps, iOS/Android delivers via getLastNotificationResponseAsync on boot.
+  useEffect(() => {
+    if (!rootNavigationState?.key) return;
+
+    Notifications.getLastNotificationResponseAsync()
+      .then((response) => {
+        if (!response) return;
+        const data = response.notification.request.content
+          .data as unknown as NotificationData;
+        if (data?.type) {
+          logger.info('Cold-start notification tap:', data.type);
+          setPendingNotificationData(data);
+        }
+      })
+      .catch((err) => {
+        logger.error('Error reading last notification response:', err as Error);
+      });
+    // Run once after navigation is ready (rootNavigationState.key is stable after init)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rootNavigationState?.key]);
 
   // Navegar cuando la navegación esté lista y haya una notificación pendiente
   useEffect(() => {
@@ -169,7 +191,6 @@ export function useNotifications() {
 
   return {
     expoPushToken,
-    notifications,
   };
 }
 
@@ -183,23 +204,29 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
+      name: 'Notificaciones',
+      description: 'Notificaciones de MariPuntos: acciones, permisos y recompensas',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#FF231F7C',
+      lightColor: '#24C6B1',
     });
   }
 
   if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
+    // Type varies across Expo SDK versions — cast to avoid version-specific TS errors
+    type PermsResult = { granted?: boolean; status?: string };
+    const existingPerms =
+      (await Notifications.getPermissionsAsync()) as unknown as PermsResult;
+    const isGranted = (p: PermsResult) => p.granted === true || p.status === 'granted';
+    let finalGranted = isGranted(existingPerms);
 
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
+    if (!finalGranted) {
+      const requestedPerms =
+        (await Notifications.requestPermissionsAsync()) as unknown as PermsResult;
+      finalGranted = isGranted(requestedPerms);
     }
 
-    if (finalStatus !== 'granted') {
+    if (!finalGranted) {
       handleRegistrationError(
         'Error: No se concedieron permisos para notificaciones push.'
       );

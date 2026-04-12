@@ -5,8 +5,7 @@ import { colors } from '@/theme/colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 export function useThemedColors() {
-  const colorScheme = useColorScheme() ?? 'light';
-
-  // Return the appropriate color palette based on the theme
-  return colors[colorScheme] || colors.light;
+  const scheme = useColorScheme();
+  const colorScheme: 'light' | 'dark' = scheme === 'dark' ? 'dark' : 'light';
+  return colors[colorScheme];
 }

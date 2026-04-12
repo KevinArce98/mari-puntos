@@ -17,22 +17,16 @@ export default function HistoryScreen() {
   const { pointsHistory, fetchHistory, isLoading, paginationMeta } = usePoints();
   const [refreshing, setRefreshing] = React.useState(false);
   const [page, setPage] = React.useState(1);
-  const [hasMore, setHasMore] = React.useState(true);
   const [loadingMore, setLoadingMore] = React.useState(false);
   const [initialized, setInitialized] = React.useState(false);
 
-  // Update hasMore when paginationMeta changes
-  React.useEffect(() => {
-    if (paginationMeta) {
-      setHasMore(paginationMeta.page < paginationMeta.totalPages);
-    }
-  }, [paginationMeta]);
+  // Derive hasMore directly from store — no effect lag
+  const hasMore = paginationMeta ? paginationMeta.page < paginationMeta.totalPages : true;
 
   const loadHistory = async (pageNum: number, isRefresh = false) => {
     if (isRefresh) {
       setRefreshing(true);
       setPage(1);
-      setHasMore(true);
     } else {
       setLoadingMore(true);
     }

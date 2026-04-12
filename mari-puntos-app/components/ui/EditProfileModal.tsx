@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   ScrollView,
   Platform,
   Alert,
+  Keyboard,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -48,6 +49,21 @@ export function EditProfileModal({
   const themeColors = useThemedColors();
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const show = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardOffset(e.endCoordinates.height);
+    });
+    const hide = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardOffset(0);
+    });
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
   const {
     control,
@@ -130,8 +146,8 @@ export function EditProfileModal({
     >
       <View style={styles.overlay}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={[styles.keyboardAvoidingView, { paddingBottom: keyboardOffset }]}
         >
           <View style={[styles.container, { backgroundColor: themeColors.gray[100] }]}>
             <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>

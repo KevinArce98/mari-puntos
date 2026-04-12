@@ -13,8 +13,8 @@ import {
   TouchableWithoutFeedback,
   View,
   ActivityIndicator,
-  useColorScheme,
 } from 'react-native';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Button, Card, TextAreaWithCounter } from '@/components/ui';
@@ -28,7 +28,7 @@ import logger from '@/utils/logger';
 
 export default function RequestPermissionScreen() {
   const themeColors = useThemedColors();
-  const colorScheme = useColorScheme() ?? 'light';
+  const colorScheme: 'light' | 'dark' = useColorScheme() === 'dark' ? 'dark' : 'light';
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useUser();
@@ -219,11 +219,7 @@ export default function RequestPermissionScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
+      <KeyboardAvoidingView style={styles.keyboardView} behavior="padding">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}

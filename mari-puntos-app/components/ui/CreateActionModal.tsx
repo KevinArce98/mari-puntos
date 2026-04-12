@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
@@ -48,6 +49,21 @@ export function CreateActionModal({
   onSubmit,
 }: CreateActionModalProps) {
   const themeColors = useThemedColors();
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const show = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardOffset(e.endCoordinates.height);
+    });
+    const hide = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardOffset(0);
+    });
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
   const {
     control,
@@ -87,8 +103,8 @@ export function CreateActionModal({
     >
       <View style={styles.overlay}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={[styles.keyboardAvoidingView, { paddingBottom: keyboardOffset }]}
         >
           <View style={[styles.container, { backgroundColor: themeColors.gray[100] }]}>
             {/* Header */}
