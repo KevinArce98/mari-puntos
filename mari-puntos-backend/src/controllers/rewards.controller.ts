@@ -141,12 +141,13 @@ export class RewardsController {
    */
   updateReward = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      const userId = req.userId!;
       const { id } = req.params;
       const data = updateRewardSchema.parse(req.body);
 
-      logger.info({ message: 'Updating reward', rewardId: id, updateData: data });
+      logger.info({ message: 'Updating reward', rewardId: id, userId, updateData: data });
 
-      const reward = await this.rewardsService.updateReward(id, data);
+      const reward = await this.rewardsService.updateReward(userId, id, data);
 
       logger.info({ message: 'Reward updated successfully', rewardId: id });
 
@@ -163,11 +164,12 @@ export class RewardsController {
    */
   deleteReward = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      const userId = req.userId!;
       const { id } = req.params;
 
-      logger.info({ message: 'Deleting reward', rewardId: id });
+      logger.info({ message: 'Deleting reward', rewardId: id, userId });
 
-      await this.rewardsService.deleteReward(id);
+      await this.rewardsService.deleteReward(userId, id);
 
       logger.info({ message: 'Reward deleted successfully', rewardId: id });
 

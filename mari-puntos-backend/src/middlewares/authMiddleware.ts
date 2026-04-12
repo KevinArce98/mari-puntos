@@ -3,9 +3,16 @@ import { AppDataSource } from '../config/db';
 import { User } from '../entities/User';
 import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
 import jwt from 'jsonwebtoken';
+import { LRUCache } from 'lru-cache';
 import { config } from '../config/env';
 import { sendError } from '../utils/response';
 import { logger } from '../utils/logger';
+
+/** LRU cache: clerkId → { userId, isActive }. TTL 5 min. Max 500 entries. */
+const userCache = new LRUCache<string, { userId: string; isActive: boolean }>({
+  max: 500,
+  ttl: 1000 * 60 * 5, // 5 minutes
+});
 
 export interface AuthRequest extends Request {
   userId?: string;
@@ -18,7 +25,10 @@ export interface AuthRequest extends Request {
  * Returns the decoded payload or throws if invalid.
  */
 function verifyClerkJWT(token: string): jwt.JwtPayload {
-  const options = { algorithms: ['RS256'] as jwt.Algorithm[] };
+  const options: jwt.VerifyOptions = {
+    algorithms: ['RS256'],
+    issuer: config.clerk.issuer,
+  };
   const decoded = jwt.verify(token, config.clerk.publicKey, options) as jwt.JwtPayload;
 
   if (!decoded.exp || !decoded.nbf) {
@@ -73,26 +83,33 @@ export const authMiddleware = async (
 
     const clerkId = decoded.sub as string;
 
-    // Find user in database
-    const userRepository = AppDataSource.getRepository(User);
-    const user = await userRepository.findOne({ where: { clerkId } });
+    // Check cache first to avoid DB lookup on every request
+    let cached = userCache.get(clerkId);
+    if (!cached) {
+      const userRepository = AppDataSource.getRepository(User);
+      const user = await userRepository.findOne({ where: { clerkId } });
 
-    if (!user) {
-      sendError(res, 'Usuario no encontrado. Por favor crea un perfil primero.', 404);
-      return;
+      if (!user) {
+        sendError(res, 'Usuario no encontrado. Por favor crea un perfil primero.', 404);
+        return;
+      }
+
+      cached = { userId: user.id, isActive: user.isActive };
+      userCache.set(clerkId, cached);
+      req.user = user;
     }
 
-    if (!user.isActive) {
+    if (!cached.isActive) {
+      userCache.delete(clerkId); // Evict deactivated users immediately
       sendError(res, 'La cuenta está desactivada', 403);
       return;
     }
 
     // Attach user context to request
-    req.userId = user.id;
+    req.userId = cached.userId;
     req.clerkId = clerkId;
-    req.user = user;
 
-    logger.debug({ message: 'User authenticated successfully', userId: user.id, clerkId });
+    logger.debug({ message: 'User authenticated successfully', userId: cached.userId, clerkId });
 
     next();
   } catch (error) {

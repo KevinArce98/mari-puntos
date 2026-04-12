@@ -16,146 +16,156 @@ export class PartnerService {
   async createPartnerLink(userId: string): Promise<PartnerLink> {
     logger.info({ message: 'Creating partner link', userId });
 
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    return await AppDataSource.transaction(async (manager) => {
+      const userRepo = manager.getRepository(User);
+      const partnerLinkRepo = manager.getRepository(PartnerLink);
 
-    if (!user) {
-      logger.error({ message: 'User not found for partner link creation', userId });
-      throw new AppError(404, 'Usuario no encontrado');
-    }
+      // Lock user row to serialize concurrent create attempts
+      const user = await userRepo.findOne({
+        where: { id: userId },
+        lock: { mode: 'pessimistic_write' },
+      });
 
-    // Check if user already has an active or pending partner link
-    const existingLink = await this.partnerLinkRepository.findOne({
-      where: [{ user1Id: userId }, { user2Id: userId }],
+      if (!user) {
+        logger.error({ message: 'User not found for partner link creation', userId });
+        throw new AppError(404, 'Usuario no encontrado');
+      }
+
+      // Check for any existing link (active or pending) under the lock
+      const existingLink = await partnerLinkRepo.findOne({
+        where: [{ user1Id: userId }, { user2Id: userId }],
+      });
+
+      if (existingLink) {
+        logger.warn({ message: 'User already has an active or pending partner link', userId });
+        throw new AppError(400, 'El usuario ya tiene un enlace de pareja');
+      }
+
+      // Generate unique link code (uses default repo — independent lookup is fine)
+      const linkCode = await this.generateUniqueLinkCode();
+
+      if (!user.partnerCode) {
+        user.partnerCode = await this.generateUniquePartnerCode();
+        await userRepo.save(user);
+      }
+
+      const partnerLink = partnerLinkRepo.create({
+        linkCode,
+        user1Id: userId,
+        status: PartnerLinkStatus.PENDING,
+      });
+
+      const saved = await partnerLinkRepo.save(partnerLink);
+      logger.info({ message: 'Partner link created successfully', userId, partnerLinkId: saved.id });
+      return saved;
     });
-
-    if (existingLink) {
-      logger.warn({ message: 'User already has an active or pending partner link', userId });
-      throw new AppError(400, 'El usuario ya tiene un enlace de pareja');
-    }
-
-    // Generate unique link code
-    const linkCode = await this.generateUniqueLinkCode();
-
-    // Generate partner code if not exists
-    if (!user.partnerCode) {
-      user.partnerCode = await this.generateUniquePartnerCode();
-    }
-
-    await this.userRepository.save(user);
-
-    // Create partner link
-    const partnerLink = this.partnerLinkRepository.create({
-      linkCode,
-      user1Id: userId,
-      status: PartnerLinkStatus.PENDING,
-    });
-
-    await this.partnerLinkRepository.save(partnerLink);
-    logger.info({ message: 'Partner link created successfully', userId, partnerLinkId: partnerLink.id });
-
-    return partnerLink;
   }
 
   async joinPartnerLink(userId: string, linkCode: string): Promise<PartnerLink> {
     logger.info({ message: 'Joining partner link', userId, linkCode });
 
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    // Execute transaction with pessimistic locks to prevent race conditions
+    // where two users could simultaneously join the same link code.
+    const { savedPartnerLink, joiningUser, creatorPushToken } = await AppDataSource.transaction(
+      async (manager) => {
+        const userRepo = manager.getRepository(User);
+        const partnerLinkRepo = manager.getRepository(PartnerLink);
 
-    if (!user) {
-      logger.error({ message: 'User not found for joining partner link', userId });
-      throw new AppError(404, 'Usuario no encontrado');
-    }
+        // Lock the joining user row first (by stable order: joining user, then link)
+        const user = await userRepo.findOne({
+          where: { id: userId },
+          lock: { mode: 'pessimistic_write' },
+        });
 
-    // Check if user already has an active or pending partner link
-    const existingLink = await this.partnerLinkRepository.findOne({
-      where: [{ user1Id: userId }, { user2Id: userId }],
-    });
+        if (!user) {
+          throw new AppError(404, 'Usuario no encontrado');
+        }
 
-    if (existingLink) {
-      logger.warn({ message: 'User already has an active or pending partner link', userId });
-      throw new AppError(400, 'El usuario ya tiene un enlace de pareja');
-    }
+        // Check if joining user already has a link
+        const existingLink = await partnerLinkRepo.findOne({
+          where: [{ user1Id: userId }, { user2Id: userId }],
+        });
 
-    // Find partner link by code
-    const partnerLink = await this.partnerLinkRepository.findOne({
-      where: { linkCode },
-      relations: ['user1', 'user2'],
-    });
+        if (existingLink) {
+          throw new AppError(400, 'El usuario ya tiene un enlace de pareja');
+        }
 
-    if (!partnerLink) {
-      logger.warn({ message: 'Partner link not found', linkCode });
-      throw new AppError(404, 'Enlace de pareja no encontrado');
-    }
+        // Lock the partner link row to prevent double-join race
+        const partnerLink = await partnerLinkRepo.findOne({
+          where: { linkCode },
+          lock: { mode: 'pessimistic_write' },
+        });
 
-    // Get user1 with pushToken
-    const user1 = await this.userRepository.findOne({
-      where: { id: partnerLink.user1Id },
-    });
+        if (!partnerLink) {
+          throw new AppError(404, 'Enlace de pareja no encontrado');
+        }
 
-    if (!user1) {
-      logger.error({ message: 'Creator user not found for partner link', partnerLinkId: partnerLink.id });
-      throw new AppError(404, 'Usuario creador del enlace no encontrado');
-    }
+        if (partnerLink.user1Id === userId) {
+          throw new AppError(400, 'No puedes unirte a tu propio enlace de pareja');
+        }
 
-    // Validate that user is not trying to join their own link
-    if (partnerLink.user1Id === userId) {
-      logger.warn({ message: 'User trying to join own partner link', userId, linkCode });
-      throw new AppError(400, 'No puedes unirte a tu propio enlace de pareja');
-    }
+        if (partnerLink.status !== PartnerLinkStatus.PENDING) {
+          throw new AppError(400, 'El enlace de pareja no está disponible');
+        }
 
-    if (partnerLink.status !== PartnerLinkStatus.PENDING) {
-      logger.warn({ message: 'Partner link not available', linkCode, status: partnerLink.status });
-      throw new AppError(400, 'El enlace de pareja no está disponible');
-    }
+        if (!partnerLink.user1Id || partnerLink.user2Id) {
+          throw new AppError(400, 'Estado de enlace de pareja inválido');
+        }
 
-    // Add user as second partner
-    if (partnerLink.user1Id && !partnerLink.user2Id) {
-      partnerLink.user2Id = userId;
-    } else {
-      logger.error({ message: 'Invalid partner link state', partnerLinkId: partnerLink.id });
-      throw new AppError(400, 'Estado de enlace de pareja inválido');
-    }
+        // Load creator (user1) for notification
+        const user1 = await userRepo.findOne({ where: { id: partnerLink.user1Id } });
+        if (!user1) {
+          throw new AppError(404, 'Usuario creador del enlace no encontrado');
+        }
 
-    // Generate partner code if not exists
-    if (!user.partnerCode) {
-      user.partnerCode = await this.generateUniquePartnerCode();
-    }
+        // Mutate inside the transaction
+        partnerLink.user2Id = userId;
+        partnerLink.status = PartnerLinkStatus.ACTIVE;
+        partnerLink.linkedAt = getNowUTC6();
 
-    partnerLink.status = PartnerLinkStatus.ACTIVE;
-    partnerLink.linkedAt = getNowUTC6();
+        if (!user.partnerCode) {
+          user.partnerCode = await this.generateUniquePartnerCode();
+        }
 
-    await this.userRepository.save(user);
-    const savedPartnerLink = await this.partnerLinkRepository.save(partnerLink);
-    logger.info({ message: 'Partner link activated', user1Id: savedPartnerLink.user1Id, user2Id: partnerLink.user2Id });
+        await userRepo.save(user);
+        const saved = await partnerLinkRepo.save(partnerLink);
 
-    // Create logs for both users
-    await this.logRepository.save([
-      this.logRepository.create({
-        userId: savedPartnerLink.user1Id,
-        type: LogType.PARTNER_LINKED,
-        message: 'Vinculado exitosamente con pareja',
-        relatedEntityId: savedPartnerLink.id,
-        relatedEntityType: 'PartnerLink',
-      }),
-      this.logRepository.create({
-        userId,
-        type: LogType.PARTNER_LINKED,
-        message: 'Vinculado exitosamente con pareja',
-        relatedEntityId: savedPartnerLink.id,
-        relatedEntityType: 'PartnerLink',
-      }),
-    ]);
+        // Create link logs for both users in the same transaction
+        const logRepo = manager.getRepository(Log);
+        await logRepo.save([
+          logRepo.create({
+            userId: saved.user1Id,
+            type: LogType.PARTNER_LINKED,
+            message: 'Vinculado exitosamente con pareja',
+            relatedEntityId: saved.id,
+            relatedEntityType: 'PartnerLink',
+          }),
+          logRepo.create({
+            userId,
+            type: LogType.PARTNER_LINKED,
+            message: 'Vinculado exitosamente con pareja',
+            relatedEntityId: saved.id,
+            relatedEntityType: 'PartnerLink',
+          }),
+        ]);
 
-    // Send notification to the partner who created the link
-    if (user1.pushToken) {
+        return {
+          savedPartnerLink: saved,
+          joiningUser: user,
+          creatorPushToken: user1.pushToken,
+        };
+      }
+    );
+
+    // Fire-and-forget notification (outside transaction)
+    if (creatorPushToken) {
       try {
         await this.pushNotificationService.sendPartnerLinkedNotification(
-          user1.pushToken,
-          user.firstName
+          creatorPushToken,
+          joiningUser.firstName
         );
       } catch (error) {
-        logger.error({ message: 'Error sending partner linked notification', error, userId: user1.id });
-        // Don't fail the linking process if notification fails
+        logger.error({ message: 'Error sending partner linked notification', error });
       }
     }
 

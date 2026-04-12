@@ -63,7 +63,7 @@ export class PushNotificationService {
 
     for (const pushToken of pushTokens) {
       if (!Expo.isExpoPushToken(pushToken)) {
-        console.error(`Push token ${pushToken} is not a valid Expo push token`);
+        logger.warn({ pushToken }, 'Invalid Expo push token, skipping');
         continue;
       }
 
@@ -89,13 +89,13 @@ export class PushNotificationService {
           const ticketChunk = await this.expo.sendPushNotificationsAsync(chunk);
           tickets.push(...ticketChunk);
         } catch (error) {
-          console.error('Error sending push notification chunk:', error);
+          logger.error({ err: error }, 'Error sending push notification chunk');
         }
       }
 
-      console.log('Push notifications sent:', tickets.length);
+      logger.info({ count: tickets.length }, 'Push notifications sent');
     } catch (error) {
-      console.error('Error sending push notifications:', error);
+      logger.error({ err: error }, 'Error sending push notifications');
     }
   }
 

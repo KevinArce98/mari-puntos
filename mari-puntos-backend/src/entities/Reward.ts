@@ -70,7 +70,7 @@ export class Reward {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => PartnerLink, { nullable: true })
+  @ManyToOne(() => PartnerLink, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'partnerLinkId' })
   partnerLink: PartnerLink;
 }

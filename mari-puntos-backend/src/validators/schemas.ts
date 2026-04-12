@@ -21,8 +21,8 @@ export const createUserSchema = z.object({
   email: z.email('Invalid email address'),
   firstName: z.string().min(1, 'First name is required').max(100),
   lastName: z.string().min(1, 'Last name is required').max(100),
-  clerkId: z.string().min(1, 'Clerk ID is required').optional(), // Optional in body, comes from auth token
   avatarUrl: z.url('Invalid URL').optional(),
+  // clerkId is intentionally NOT accepted from body — derived from JWT to prevent mass assignment
 });
 
 export const updateUserSchema = z.object({

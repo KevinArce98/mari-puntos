@@ -190,8 +190,36 @@ export class RewardsService {
     });
   }
 
-  async updateReward(rewardId: string, data: UpdateRewardInput): Promise<Reward> {
+  /**
+   * Authorize user for reward mutation (update/delete).
+   * System rewards (isCustom=false) are immutable.
+   * Custom rewards: only members of the same partner link may mutate.
+   */
+  private async authorizeRewardMutation(userId: string, reward: Reward): Promise<void> {
+    if (!reward.isCustom) {
+      throw new AppError(403, 'No puedes modificar recompensas del sistema');
+    }
+
+    if (reward.createdBy === userId) return;
+
+    if (!reward.partnerLinkId) {
+      throw new AppError(403, 'No tienes permiso sobre esta recompensa');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['partnerLinkAsUser1', 'partnerLinkAsUser2'],
+    });
+
+    const partnerLink = user?.partnerLinkAsUser1 || user?.partnerLinkAsUser2;
+    if (!partnerLink || partnerLink.id !== reward.partnerLinkId) {
+      throw new AppError(403, 'No tienes permiso sobre esta recompensa');
+    }
+  }
+
+  async updateReward(userId: string, rewardId: string, data: UpdateRewardInput): Promise<Reward> {
     const reward = await this.getRewardById(rewardId);
+    await this.authorizeRewardMutation(userId, reward);
 
     if (data.title !== undefined) reward.title = data.title;
     if (data.description !== undefined) reward.description = data.description;
@@ -206,8 +234,9 @@ export class RewardsService {
     return reward;
   }
 
-  async deleteReward(rewardId: string): Promise<void> {
+  async deleteReward(userId: string, rewardId: string): Promise<void> {
     const reward = await this.getRewardById(rewardId);
+    await this.authorizeRewardMutation(userId, reward);
 
     if (reward.timesRedeemed > 0) {
       // Don't delete, just deactivate
@@ -219,6 +248,17 @@ export class RewardsService {
   }
 
   async seedDefaultRewards(): Promise<void> {
+    // Use a single count query as fast-path: if any system rewards exist, skip seeding entirely.
+    // System rewards are identified by isCustom=false and no partnerLinkId.
+    const existingCount = await this.rewardRepository.count({
+      where: { isCustom: false },
+    });
+
+    if (existingCount > 0) {
+      logger.debug({ message: 'Default rewards already seeded, skipping' });
+      return;
+    }
+
     const defaultRewards = [
       {
         title: 'Gaming Night (2 hours)',
@@ -262,15 +302,10 @@ export class RewardsService {
       },
     ];
 
-    for (const rewardData of defaultRewards) {
-      const exists = await this.rewardRepository.findOne({
-        where: { title: rewardData.title },
-      });
-
-      if (!exists) {
-        const reward = this.rewardRepository.create(rewardData as DeepPartial<Reward>);
-        await this.rewardRepository.save(reward);
-      }
-    }
+    const rewards = defaultRewards.map((r) =>
+      this.rewardRepository.create(r as DeepPartial<Reward>)
+    );
+    await this.rewardRepository.save(rewards);
+    logger.info({ message: 'Default rewards seeded', count: rewards.length });
   }
 }

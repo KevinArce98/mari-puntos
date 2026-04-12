@@ -1,5 +1,7 @@
 import { AppDataSource } from '../config/db';
 import { User } from '../entities/User';
+import { Achievement } from '../entities/Achievement';
+import { PartnerLinkStatus } from '../entities/PartnerLink';
 import { AppError } from '../middlewares/errorMiddleware';
 import { generatePartnerCode } from '../utils/helpers';
 import { CreateUserInput, UpdateUserInput } from '../validators/schemas';
@@ -31,16 +33,16 @@ export class UsersService {
   /**
    * Create a new user
    */
-  async createUser(data: CreateUserInput): Promise<User> {
-    logger.info({ message: 'Creating user with clerkId', clerkId: data.clerkId });
+  async createUser(clerkId: string, data: CreateUserInput): Promise<User> {
+    logger.info({ message: 'Creating user with clerkId', clerkId });
 
     // Check if user already exists with this clerkId
     const existingUser = await this.userRepository.findOne({
-      where: { clerkId: data.clerkId },
+      where: { clerkId },
     });
 
     if (existingUser) {
-      logger.warn({ message: 'User already exists with clerkId', clerkId: data.clerkId });
+      logger.warn({ message: 'User already exists with clerkId', clerkId });
       throw new AppError(409, 'El usuario ya existe');
     }
 
@@ -56,21 +58,19 @@ export class UsersService {
 
     // Fetch user from Clerk to get the imageUrl
     let avatarUrl: string | undefined = data.avatarUrl;
-    if (data.clerkId) {
-      try {
-        const { clerkClient } = await import('../config/clerk');
-        const clerkUser = await clerkClient.users.getUser(String(data.clerkId));
-        if (clerkUser.imageUrl) {
-          avatarUrl = clerkUser.imageUrl;
-          logger.debug({ message: 'Fetched avatar URL from Clerk', avatarUrl });
-        }
-      } catch (clerkError) {
-        logger.warn({ err: clerkError }, 'Failed to fetch avatar from Clerk, using provided avatarUrl');
+    try {
+      const { clerkClient } = await import('../config/clerk');
+      const clerkUser = await clerkClient.users.getUser(clerkId);
+      if (clerkUser.imageUrl) {
+        avatarUrl = clerkUser.imageUrl;
+        logger.debug({ message: 'Fetched avatar URL from Clerk', avatarUrl });
       }
+    } catch (clerkError) {
+      logger.warn({ err: clerkError }, 'Failed to fetch avatar from Clerk, using provided avatarUrl');
     }
 
     const user = this.userRepository.create({
-      clerkId: String(data.clerkId),
+      clerkId,
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
@@ -177,7 +177,7 @@ export class UsersService {
    */
   private checkHasPartner(user: User): boolean {
     const partnerLink = user.partnerLinkAsUser1 || user.partnerLinkAsUser2;
-    return !!partnerLink && partnerLink.status === 'active';
+    return !!partnerLink && partnerLink.status === PartnerLinkStatus.ACTIVE;
   }
 
   async getUserStats(userId: string): Promise<{
@@ -191,29 +191,14 @@ export class UsersService {
   }> {
     const user = await this.getUserById(userId);
 
-    // Get actions count
-    const actionsCount = await AppDataSource.query(
-      'SELECT COUNT(*) as count FROM actions WHERE "userId" = $1',
-      [userId]
-    );
-
-    // Get approved actions count
-    const approvedActionsCount = await AppDataSource.query(
-      'SELECT COUNT(*) as count FROM actions WHERE "userId" = $1 AND status = $2',
-      [userId, 'approved']
-    );
-
-    // Get permissions count
-    const permissionsCount = await AppDataSource.query(
-      'SELECT COUNT(*) as count FROM permissions WHERE "requesterId" = $1',
-      [userId]
-    );
-
-    // Get achievements count
-    const achievementsCount = await AppDataSource.query(
-      'SELECT COUNT(*) as count FROM achievements WHERE "userId" = $1 AND "isUnlocked" = true',
-      [userId]
-    );
+    // Parallel queries — all fire simultaneously on a single connection slot
+    const [actionsCount, approvedActionsCount, permissionsCount, achievementsCount] =
+      await Promise.all([
+        AppDataSource.query('SELECT COUNT(*) as count FROM actions WHERE "userId" = $1', [userId]),
+        AppDataSource.query('SELECT COUNT(*) as count FROM actions WHERE "userId" = $1 AND status = $2', [userId, 'approved']),
+        AppDataSource.query('SELECT COUNT(*) as count FROM permissions WHERE "requesterId" = $1', [userId]),
+        AppDataSource.query('SELECT COUNT(*) as count FROM achievements WHERE "userId" = $1 AND "isUnlocked" = true', [userId]),
+      ]);
 
     return {
       totalPoints: user.totalPoints,
@@ -224,6 +209,15 @@ export class UsersService {
       permissionsRequested: parseInt(permissionsCount[0].count),
       achievementsUnlocked: parseInt(achievementsCount[0].count),
     };
+  }
+
+  async getUserAchievements(userId: string): Promise<Achievement[]> {
+    await this.getUserById(userId); // validates user exists
+    const achievementRepository = AppDataSource.getRepository(Achievement);
+    return achievementRepository.find({
+      where: { userId },
+      order: { unlockedAt: 'DESC', createdAt: 'DESC' },
+    });
   }
 
   async generateUniquePartnerCode(): Promise<string> {

@@ -74,7 +74,7 @@ export class Action {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, (user) => user.actions)
+  @ManyToOne(() => User, (user) => user.actions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
 }

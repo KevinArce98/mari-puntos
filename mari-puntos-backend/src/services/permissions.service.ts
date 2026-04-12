@@ -6,6 +6,7 @@ import { Log, LogType } from '../entities/Log';
 import { AppError } from '../middlewares/errorMiddleware';
 import { getNowUTC6, calculateLevel, calculatePointsInCurrentLevel } from '../utils/helpers';
 import { PartnerService } from './partner.service';
+import { PointsService } from './points.service';
 import { PushNotificationService } from './push-notification.service';
 import { logger } from '../utils/logger';
 
@@ -28,6 +29,7 @@ export class PermissionsService {
   private userRepository = AppDataSource.getRepository(User);
   private logRepository = AppDataSource.getRepository(Log);
   private partnerService = new PartnerService();
+  private pointsService = new PointsService();
   private pushNotificationService = new PushNotificationService();
 
   async createPermission(
@@ -200,6 +202,9 @@ export class PermissionsService {
       permission.pointsCost = pointsCost;
     }
 
+    // Capture template title before transaction — avoids stale relation after save
+    const templateTitle = permission.template.title;
+
     permission.status = approved ? PermissionStatus.APPROVED : PermissionStatus.REJECTED;
     permission.approverId = approverId;
     permission.respondedAt = getNowUTC6();
@@ -229,7 +234,7 @@ export class PermissionsService {
           logRepo.create({
             userId: permission.requesterId,
             type: LogType.POINTS_SPENT,
-            message: `Puntos reducidos: ${permission.template.title}`,
+            message: `Puntos reducidos: ${templateTitle}`,
             pointsChange: -permission.pointsCost,
             relatedEntityId: permission.id,
             relatedEntityType: 'Permission',
@@ -242,8 +247,8 @@ export class PermissionsService {
           userId: permission.requesterId,
           type: logType,
           message: approved
-            ? `Permiso aprobado: ${permission.template.title}`
-            : `Permiso rechazado: ${permission.template.title}`,
+            ? `Permiso aprobado: ${templateTitle}`
+            : `Permiso rechazado: ${templateTitle}`,
           pointsChange: 0,
           relatedEntityId: permission.id,
           relatedEntityType: 'Permission',
@@ -252,26 +257,35 @@ export class PermissionsService {
           userId: approverId,
           type: logType,
           message: approved
-            ? `Aprobaste permiso: ${permission.template.title}`
-            : `Rechazaste permiso: ${permission.template.title}`,
+            ? `Aprobaste permiso: ${templateTitle}`
+            : `Rechazaste permiso: ${templateTitle}`,
           relatedEntityId: permission.id,
           relatedEntityType: 'Permission',
         }),
       ]);
     });
 
-    // Non-critical: send push notification outside transaction
+    // Non-critical: push notification + achievement check outside transaction
     try {
       const requester = await this.userRepository.findOne({ where: { id: permission.requesterId } });
       if (requester?.pushToken) {
         await this.pushNotificationService.sendPermissionResponseNotification(
           requester.pushToken,
           approved,
-          permission.template.title
+          templateTitle
         );
       }
     } catch (err) {
       logger.error({ err }, 'Push notification failed after respondToPermission');
+    }
+
+    // Check achievements for requester (PERMISSIONS_GRANTED milestone)
+    if (approved && permission.requesterId) {
+      try {
+        await this.pointsService.checkAchievementsForUser(permission.requesterId);
+      } catch (err) {
+        logger.error({ err }, 'Achievement check failed after respondToPermission');
+      }
     }
 
     return permission;

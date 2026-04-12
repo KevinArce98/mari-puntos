@@ -34,22 +34,16 @@ export class UsersController {
     try {
       logger.info({
         message: 'Create profile request',
-        body: req.body,
         clerkId: req.clerkId,
       });
 
       const data = createUserSchema.parse(req.body);
-      logger.debug({ message: 'Schema validation passed', data });
+      logger.debug({ message: 'Schema validation passed' });
 
-      // Get clerkId from request body if provided (during signup flow)
-      // Otherwise get from authenticated token (for already authenticated users)
-      const clerkId = data.clerkId || req.clerkId!;
-      logger.debug({ message: 'Using clerkId', clerkId });
+      // clerkId ALWAYS derived from verified JWT — never trust body
+      const clerkId = req.clerkId!;
 
-      const user = await this.usersService.createUser({
-        ...data,
-        clerkId,
-      });
+      const user = await this.usersService.createUser(clerkId, data);
       logger.info({ message: 'User created successfully', userId: user.id });
 
       sendCreated(res, toUserDTO(user, false), 'Profile created successfully');
@@ -90,6 +84,16 @@ export class UsersController {
     const stats = await this.usersService.getUserStats(userId);
 
     sendSuccess(res, toUserStatsDTO(stats));
+  };
+
+  /**
+   * GET /users/achievements
+   * Get current user's achievements
+   */
+  getAchievements = async (req: AuthRequest, res: Response): Promise<void> => {
+    const userId = req.userId!;
+    const achievements = await this.usersService.getUserAchievements(userId);
+    sendSuccess(res, achievements);
   };
 
   /**

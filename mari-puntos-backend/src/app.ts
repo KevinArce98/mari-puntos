@@ -40,9 +40,12 @@ export const createApp = (): Application => {
     })
   );
 
-  // Body parser middleware with size limits
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  // Body parser middleware — 100kb default; profile update route gets 10mb for base64 image
+  app.use((req, _res, next) => {
+    const isProfileUpdate = req.method === 'PUT' && req.path === '/api/users/profile';
+    express.json({ limit: isProfileUpdate ? '10mb' : '100kb' })(req, _res, next);
+  });
+  app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
   // Logging middleware
   app.use(

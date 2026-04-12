@@ -1,22 +1,7 @@
 import { DataSource } from 'typeorm';
 import { config } from './env';
+import { logger } from '../utils/logger';
 
-/**
- * Strip SSL-related query params from the DATABASE_URL so that pg-connection-string
- * doesn't emit deprecation warnings about sslmode semantics.
- * SSL is configured explicitly below via the `ssl` option.
- */
-function stripSslParams(url: string): string {
-  try {
-    const parsed = new URL(url);
-    parsed.searchParams.delete('sslmode');
-    parsed.searchParams.delete('ssl');
-    parsed.searchParams.delete('uselibpqcompat');
-    return parsed.toString();
-  } catch {
-    return url;
-  }
-}
 import { User } from '../entities/User';
 import { PartnerLink } from '../entities/PartnerLink';
 import { Permission } from '../entities/Permission';
@@ -31,8 +16,16 @@ export const AppDataSource = new DataSource({
   type: 'postgres',
   url: config.database.url,
   ssl: !config.isDevelopment ? { rejectUnauthorized: false } : false,
-  synchronize: false, // Never use synchronize in production
+  synchronize: false,
   logging: config.isDevelopment,
+  // Connection pool config to avoid cold-start latency under load
+  extra: {
+    max: 10, // max pool connections
+    min: 2, // keep warm connections alive
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+    statement_timeout: 30000, // 30s max query time before error
+  },
   entities: !config.isDevelopment
     ? ['dist/entities/**/*.js']
     : [
@@ -55,13 +48,9 @@ export const AppDataSource = new DataSource({
 export const initializeDatabase = async (): Promise<void> => {
   try {
     await AppDataSource.initialize();
-    console.log('✅ Database connection established');
-
-    if (config.isDevelopment) {
-      console.log('📊 Running in development mode - synchronize enabled');
-    }
+    logger.info('Database connection established');
   } catch (error) {
-    console.error('❌ Error connecting to database:', error);
+    logger.error({ err: error }, 'Error connecting to database');
     throw error;
   }
 };
@@ -69,9 +58,9 @@ export const initializeDatabase = async (): Promise<void> => {
 export const closeDatabase = async (): Promise<void> => {
   try {
     await AppDataSource.destroy();
-    console.log('✅ Database connection closed');
+    logger.info('Database connection closed');
   } catch (error) {
-    console.error('❌ Error closing database connection:', error);
+    logger.error({ err: error }, 'Error closing database connection');
     throw error;
   }
 };

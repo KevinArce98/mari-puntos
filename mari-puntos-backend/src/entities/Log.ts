@@ -58,7 +58,7 @@ export class Log {
   createdAt: Date;
 
   // Relations
-  @ManyToOne(() => User, (user) => user.logs)
+  @ManyToOne(() => User, (user) => user.logs, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
 }

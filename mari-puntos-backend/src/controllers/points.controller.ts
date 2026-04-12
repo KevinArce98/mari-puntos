@@ -48,14 +48,15 @@ export class PointsController {
    */
   getLeaderboard = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      const userId = req.userId!;
       const limit = Math.min(
         parseInt(req.query.limit as string) || 10,
         50
       );
 
-      logger.debug({ message: 'Getting points leaderboard', limit });
+      logger.debug({ message: 'Getting points leaderboard', userId, limit });
 
-      const users = await this.pointsService.getLeaderboard(limit);
+      const users = await this.pointsService.getLeaderboard(userId, limit);
 
       logger.debug({ message: 'Points leaderboard retrieved', count: users.length });
 

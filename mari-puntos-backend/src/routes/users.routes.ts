@@ -195,6 +195,7 @@ router.put('/profile', authMiddleware, asyncHandler(usersController.updateProfil
  *         description: Unauthorized
  */
 router.get('/stats', authMiddleware, asyncHandler(usersController.getStats));
+router.get('/achievements', authMiddleware, asyncHandler(usersController.getAchievements));
 
 /**
  * @swagger

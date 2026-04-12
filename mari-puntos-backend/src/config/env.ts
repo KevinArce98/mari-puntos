@@ -14,6 +14,7 @@ const envSchema = z.object({
   CLERK_SECRET_KEY: z.string().min(1, 'CLERK_SECRET_KEY is required'),
   CLERK_PUBLISHABLE_KEY: z.string().min(1, 'CLERK_PUBLISHABLE_KEY is required'),
   CLERK_PEM_PUBLIC_KEY: z.string().min(1, 'CLERK_PEM_PUBLIC_KEY is required'),
+  CLERK_ISSUER: z.string().min(1, 'CLERK_ISSUER is required'), // e.g. https://<your-instance>.clerk.accounts.dev
   
   // App
   PARTNER_CODE_LENGTH: z.string().default('6'),
@@ -49,6 +50,7 @@ export const config = {
     secretKey: env.CLERK_SECRET_KEY,
     publishableKey: env.CLERK_PUBLISHABLE_KEY,
     publicKey: env.CLERK_PEM_PUBLIC_KEY,
+    issuer: env.CLERK_ISSUER,
   },
   app: {
     partnerCodeLength: parseInt(env.PARTNER_CODE_LENGTH, 10),
