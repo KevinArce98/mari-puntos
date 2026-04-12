@@ -29,6 +29,7 @@
       "predictiveBackGestureEnabled": true,
       "package": "com.maripuntos.app",
       "versionCode": 1,
+      "googleServicesFile": "./android/app/google-services.json",
       "permissions": [
         "INTERNET",
         "VIBRATE",
