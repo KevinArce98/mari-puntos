@@ -36,7 +36,7 @@ export const sendTestNotificationSchema = z.object({
   pushToken: z.string().min(1, 'Push token is required'),
   title: z.string().min(1, 'Title is required').optional(),
   body: z.string().min(1, 'Body is required').optional(),
-  data: z.record(z.string(), z.any()).optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
 });
 
 // ============================================================================
@@ -99,7 +99,7 @@ export const createPermissionSchema = z.object({
   templateId: z.uuid('Invalid template ID'),
   requestedDate: z.iso.datetime({ message: 'Invalid date format' }),
   durationHours: z.number().min(0.5).max(168), // Min 0.5 hours, Max 1 week
-  metadata: z.record(z.any(), z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const respondPermissionSchema = z.object({
@@ -111,7 +111,7 @@ export const respondPermissionSchema = z.object({
 export const updatePermissionSchema = z.object({
   requestedDate: z.iso.datetime({ message: 'Invalid date format' }).optional(),
   durationHours: z.number().min(0.5).max(168).optional(),
-  metadata: z.record(z.any(), z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 // ============================================================================

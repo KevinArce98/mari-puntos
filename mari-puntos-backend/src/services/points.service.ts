@@ -6,6 +6,13 @@ import { AppError } from '../middlewares/errorMiddleware';
 import { calculateLevel, calculatePointsInCurrentLevel, getNowUTC6 } from '../utils/helpers';
 import { In } from 'typeorm';
 import { logger } from '../utils/logger';
+import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const TIMEZONE = 'America/Costa_Rica';
 
 export class PointsService {
   private userRepository = AppDataSource.getRepository(User);
@@ -325,10 +332,8 @@ export class PointsService {
   private computeStreak(descDays: string[]): number {
     if (descDays.length === 0) return 0;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().slice(0, 10);
-    const yesterdayStr = new Date(today.getTime() - 86400000).toISOString().slice(0, 10);
+    const todayStr = dayjs().tz(TIMEZONE).format('YYYY-MM-DD');
+    const yesterdayStr = dayjs().tz(TIMEZONE).subtract(1, 'day').format('YYYY-MM-DD');
 
     // Streak must include today or yesterday
     if (descDays[0] !== todayStr && descDays[0] !== yesterdayStr) return 0;
