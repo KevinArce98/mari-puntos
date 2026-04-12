@@ -31,7 +31,8 @@
       "versionCode": 1,
       "permissions": [
         "INTERNET",
-        "VIBRATE"
+        "VIBRATE",
+        "POST_NOTIFICATIONS"
       ]
     },
     "web": {

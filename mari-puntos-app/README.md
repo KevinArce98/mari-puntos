@@ -49,6 +49,7 @@ MariPuntos es una aplicación móvil innovadora que transforma la dinámica de p
 - npm o yarn
 - Expo CLI
 - Cuenta de Clerk (para autenticación)
+- Proyecto Firebase con app Android configurada (para notificaciones push)
 
 ### Instalación
 
@@ -66,6 +67,30 @@ cp .env.example .env
 
 # 4. Iniciar la aplicación
 npm start
+```
+
+### Configuración de notificaciones push (Android)
+
+Las notificaciones push en Android requieren Firebase Cloud Messaging (FCM).
+
+**Paso 1 — Obtener `google-services.json`:**
+1. Ve a [console.firebase.google.com](https://console.firebase.google.com)
+2. Selecciona el proyecto `maripuntos-9cac2` (o créalo si no existe)
+3. Configuración (⚙️) → Tus apps → Android (`com.maripuntos.app`)
+4. Descarga `google-services.json`
+
+**Paso 2 — Colocar el archivo:**
+```
+android/app/google-services.json
+```
+
+> Este archivo no se incluye en el repositorio por seguridad. Sin él, el registro de push tokens fallará en Android con el error `Default FirebaseApp is not initialized`.
+
+**Paso 3 — Rebuild nativo:**
+```bash
+npx expo run:android
+# o con EAS
+eas build --platform android
 ```
 
 Para instrucciones detalladas, consulta [SETUP.md](./SETUP.md)
