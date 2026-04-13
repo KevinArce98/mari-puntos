@@ -218,7 +218,9 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
     });
   }
 
-  if (Device.isDevice) {
+  const canRegister = Device.isDevice || Platform.OS === 'android';
+
+  if (canRegister) {
     // Type varies across Expo SDK versions — cast to avoid version-specific TS errors
     type PermsResult = { granted?: boolean; status?: string };
     const existingPerms =
@@ -250,7 +252,7 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
       logger.error('Error getting push token', error as Error);
     }
   } else {
-    logger.info('Las notificaciones push solo funcionan en dispositivos físicos');
+    logger.info('Push notifications not supported on iOS simulator');
   }
 
   return token;

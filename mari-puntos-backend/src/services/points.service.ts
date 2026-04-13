@@ -129,30 +129,11 @@ export class PointsService {
   }
 
   /**
-   * Returns leaderboard scoped to the requesting user's couple (user + partner only).
-   * App is couple-scoped — exposing all users' points would violate data isolation.
+   * Returns global leaderboard across all active users, ordered by total points.
    */
-  async getLeaderboard(requestingUserId: string, limit: number = 10): Promise<User[]> {
-    // Find the active partner link to get both user IDs
-    const partnerLinkRepo = AppDataSource.getRepository(
-      (await import('../entities/PartnerLink')).PartnerLink
-    );
-    const { PartnerLinkStatus } = await import('../entities/PartnerLink');
-
-    const partnerLink = await partnerLinkRepo.findOne({
-      where: [
-        { user1Id: requestingUserId, status: PartnerLinkStatus.ACTIVE },
-        { user2Id: requestingUserId, status: PartnerLinkStatus.ACTIVE },
-      ],
-    });
-
-    // If no partner, only show the requesting user
-    const coupleMemberIds = partnerLink
-      ? [partnerLink.user1Id, partnerLink.user2Id]
-      : [requestingUserId];
-
+  async getLeaderboard(_requestingUserId: string, limit: number = 10): Promise<User[]> {
     return await this.userRepository.find({
-      where: coupleMemberIds.map((id) => ({ id, isActive: true })),
+      where: { isActive: true },
       order: { totalPoints: 'DESC' },
       take: limit,
       select: ['id', 'firstName', 'lastName', 'avatarUrl', 'totalPoints', 'currentLevel'],

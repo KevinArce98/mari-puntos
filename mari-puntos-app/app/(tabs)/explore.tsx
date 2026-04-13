@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,41 +24,13 @@ export default function RankingScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (hasPartner) {
-        fetchLeaderboard({ limit: 10 });
-      }
-    }, [hasPartner, fetchLeaderboard])
+      fetchLeaderboard({ limit: 10 });
+    }, [fetchLeaderboard])
   );
 
   const totalPoints = myPoints + partnerPoints;
   const myPercentage = totalPoints > 0 ? (myPoints / totalPoints) * 100 : 50;
   const userWinning = myPoints >= partnerPoints;
-
-  if (!hasPartner) {
-    return (
-      <View
-        style={[
-          styles.container,
-          { backgroundColor: themeColors.background, paddingTop: insets.top },
-        ]}
-      >
-        <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
-            Ranking
-          </Text>
-        </View>
-        <View style={styles.lockedContainer}>
-          <Ionicons name="lock-closed" size={48} color={themeColors.gray[300]} />
-          <Text style={[styles.lockedTitle, { color: themeColors.text.primary }]}>
-            Conecta con tu pareja
-          </Text>
-          <Text style={[styles.lockedSubtitle, { color: themeColors.text.secondary }]}>
-            El ranking estará disponible cuando estés vinculado con tu pareja
-          </Text>
-        </View>
-      </View>
-    );
-  }
 
   return (
     <View
@@ -79,8 +50,8 @@ export default function RankingScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Competition Card */}
-        <Card style={styles.competitionCard} padding="none">
+        {/* Competition Card — solo visible si hay pareja */}
+        {hasPartner && <Card style={styles.competitionCard} padding="none">
           <LinearGradient
             colors={[themeColors.primary, themeColors.primaryDark]}
             start={{ x: 0, y: 0 }}
@@ -132,7 +103,7 @@ export default function RankingScreen() {
               </View>
             </View>
           </LinearGradient>
-        </Card>
+        </Card>}
 
         {/* Leaderboard */}
         <View style={styles.section}>
@@ -223,23 +194,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   headerTitle: { ...typography.styles.h2 },
-  lockedContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  lockedTitle: {
-    ...typography.styles.h3,
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-    textAlign: 'center',
-  },
-  lockedSubtitle: {
-    ...typography.styles.body,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
   scrollContent: {
     padding: spacing.lg,
     paddingTop: 0,
