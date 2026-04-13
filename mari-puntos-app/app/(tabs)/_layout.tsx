@@ -6,12 +6,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/haptic-tab';
 import { shadows } from '@/theme';
 import { useUser, useThemedColors } from '@/hooks';
+import { useActionsStore, usePermissionsStore } from '@/stores';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const { hasPartner } = useUser();
   const colors = useThemedColors();
   const router = useRouter();
+
+  const pendingActionsCount = useActionsStore(
+    (s) => s.partnerActions.filter((a) => a.status === 'pending').length
+  );
+  const pendingPermissionsCount = usePermissionsStore(
+    (s) => s.partnerPermissions.filter((p) => p.status === 'pending').length
+  );
 
   const lockedTabButton = useCallback(
     (props: any) => (
@@ -82,6 +90,8 @@ export default function TabLayout() {
               </View>
             ),
           tabBarButton: hasPartner ? undefined : lockedTabButton,
+          tabBarBadge: pendingActionsCount > 0 ? pendingActionsCount : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.error, fontSize: 10 },
         }}
       />
       <Tabs.Screen
@@ -107,6 +117,8 @@ export default function TabLayout() {
               </View>
             ),
           tabBarButton: hasPartner ? undefined : lockedTabButton,
+          tabBarBadge: pendingPermissionsCount > 0 ? pendingPermissionsCount : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.error, fontSize: 10 },
         }}
       />
       <Tabs.Screen

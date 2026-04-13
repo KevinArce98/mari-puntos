@@ -14,6 +14,7 @@ export { IconSelector } from './IconSelector';
 export { Input } from './Input';
 export type { InputProps } from './Input';
 export { ListItem } from './ListItem';
+export { NotificationBell } from './NotificationBell';
 export { PointsCard } from './PointsCard';
 export { ProgressBar } from './ProgressBar';
 export { ResponseModal } from './ResponseModal';

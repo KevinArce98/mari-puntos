@@ -1,4 +1,11 @@
-import { ActionCard, Avatar, Card, PointsCard, CreateActionModal } from '@/components/ui';
+import {
+  ActionCard,
+  Avatar,
+  Card,
+  PointsCard,
+  CreateActionModal,
+  NotificationBell,
+} from '@/components/ui';
 import { HistoryItem } from '@/components';
 import { usePoints, useUser, useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
@@ -143,6 +150,7 @@ export default function HomeScreen() {
               </Text>
             </View>
           </View>
+          <NotificationBell />
         </View>
 
         {/* Points Card */}

@@ -118,7 +118,7 @@ export function useNotifications() {
     // Listener para notificaciones recibidas mientras la app está abierta
     notificationListener.current = Notifications.addNotificationReceivedListener(
       (_notification) => {
-        // No-op: we only need to navigate on tap (response), not on receive
+        // Badge count is driven by pending items in actionsStore/permissionsStore
       }
     );
 
