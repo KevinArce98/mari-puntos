@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "200447760849",
+    "project_id": "maripuntos-9cac2",
+    "storage_bucket": "maripuntos-9cac2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:200447760849:android:64cb3f6909cd9354c368f0",
+        "android_client_info": {
+          "package_name": "com.maripuntos.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAnr0ml7OEIXawmSAWYgsv0Kp4DrKWCzTo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
