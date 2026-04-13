@@ -1,5 +1,6 @@
 import { useRouter, useSegments, useRootNavigationState } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
+import * as SplashScreen from 'expo-splash-screen';
 import { LoadingScreen } from '@/components/loading-screen';
 import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
@@ -52,6 +53,17 @@ export function AuthGuard({ children }: AuthGuardProps) {
       navTarget = isFirstTime ? '/(auth)/welcome' : '/(auth)/login';
     }
   }
+
+  // Hide the native splash screen once auth resolution is complete.
+  // This keeps the splash visible during the entire loading phase so the
+  // custom LoadingScreen is never visible to the user.
+  const hasSplashHidden = useRef(false);
+  useEffect(() => {
+    if (!isStillLoading && !hasSplashHidden.current) {
+      hasSplashHidden.current = true;
+      SplashScreen.hideAsync();
+    }
+  }, [isStillLoading]);
 
   useEffect(() => {
     if (!navTarget) return;

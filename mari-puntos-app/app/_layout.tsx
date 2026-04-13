@@ -8,6 +8,7 @@ import { Platform, View, Text, TouchableOpacity, StyleSheet } from 'react-native
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import 'react-native-reanimated';
 import * as Updates from 'expo-updates';
+import * as SplashScreen from 'expo-splash-screen';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthGuard } from '@/components';
@@ -54,6 +55,9 @@ const errorBoundaryStyles = StyleSheet.create({
   buttonText: { ...typography.styles.button, color: colors.light.text.white },
 });
 
+// Keep the native splash screen visible until we explicitly hide it
+SplashScreen.preventAutoHideAsync();
+
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
 
@@ -62,7 +66,7 @@ Sentry.init({
   sendDefaultPii: false,
 
   // Set environment
-  environment: __DEV__ ? 'development' : 'production',
+  environment: process.env.EXPO_PUBLIC_ENV,
 
   // Enable tracing for performance monitoring
   tracesSampleRate: __DEV__ ? 1.0 : 0.2, // 100% in dev, 20% in prod
@@ -82,7 +86,7 @@ Sentry.init({
 
 // Log Sentry initialization
 logger.info('Sentry initialized', {
-  environment: __DEV__ ? 'development' : 'production',
+  environment: process.env.EXPO_PUBLIC_ENV,
 });
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -93,7 +97,6 @@ if (!CLERK_PUBLISHABLE_KEY) {
 function RootLayoutNav() {
   const colorScheme = useColorScheme() ?? Appearance.getColorScheme();
   const insets = useSafeAreaInsets();
-
   useNotifications();
 
   // Check for OTA updates on foreground — ensures critical patches reach users

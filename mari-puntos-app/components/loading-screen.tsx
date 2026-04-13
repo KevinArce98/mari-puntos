@@ -63,11 +63,6 @@ export function LoadingScreen() {
     ).start();
   }, [spinValue, pulseValue, fadeValue, reduceMotion]);
 
-  const spin = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <Animated.View
@@ -85,22 +80,6 @@ export function LoadingScreen() {
               source={require('@/assets/images/icon.png')}
               style={styles.logo}
               contentFit="contain"
-            />
-          </Animated.View>
-
-          {/* Spinning Circle — absolute, centered on the logo */}
-          <Animated.View
-            style={[styles.spinnerContainer, { transform: [{ rotate: spin }] }]}
-          >
-            <View
-              style={[
-                styles.spinner,
-                {
-                  borderColor: themeColors.gray[200],
-                  borderTopColor: themeColors.primary,
-                  borderRightColor: themeColors.primary,
-                },
-              ]}
             />
           </Animated.View>
         </View>
