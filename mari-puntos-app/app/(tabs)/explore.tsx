@@ -51,59 +51,63 @@ export default function RankingScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Competition Card — solo visible si hay pareja */}
-        {hasPartner && <Card style={styles.competitionCard} padding="none">
-          <LinearGradient
-            colors={[themeColors.primary, themeColors.primaryDark]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.competitionGradient}
-          >
-            <Text style={styles.competitionTitle}>
-              {userWinning ? '¡Vas ganando! 🎉' : '¡Sigue así! 💪'}
-            </Text>
+        {hasPartner && (
+          <Card style={styles.competitionCard} padding="none">
+            <LinearGradient
+              colors={[themeColors.primary, themeColors.primaryDark]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.competitionGradient}
+            >
+              <Text style={styles.competitionTitle}>
+                {userWinning ? '¡Vas ganando! 🎉' : '¡Sigue así! 💪'}
+              </Text>
 
-            <View style={styles.vsContainer}>
-              <View style={styles.playerColumn}>
-                <Avatar imageUri={user?.avatarUrl} name={user?.firstName} size="lg" />
-                <Text style={styles.playerName}>{user?.firstName || 'Tú'}</Text>
-                <Text style={styles.playerPoints}>{myPoints.toLocaleString()}</Text>
-                <Text style={styles.playerLevel}>Nivel {myLevel}</Text>
-              </View>
+              <View style={styles.vsContainer}>
+                <View style={styles.playerColumn}>
+                  <Avatar imageUri={user?.avatarUrl} name={user?.firstName} size="lg" />
+                  <Text style={styles.playerName}>{user?.firstName || 'Tú'}</Text>
+                  <Text style={styles.playerPoints}>{myPoints.toLocaleString()}</Text>
+                  <Text style={styles.playerLevel}>Nivel {myLevel}</Text>
+                </View>
 
-              <View style={styles.vsCenter}>
-                <View style={styles.vsBadge}>
-                  <Text style={styles.vsText}>VS</Text>
+                <View style={styles.vsCenter}>
+                  <View style={styles.vsBadge}>
+                    <Text style={styles.vsText}>VS</Text>
+                  </View>
+                </View>
+
+                <View style={styles.playerColumn}>
+                  <Avatar
+                    imageUri={partnerInfo?.partner?.avatarUrl}
+                    name={partnerInfo?.partner?.firstName}
+                    size="lg"
+                  />
+                  <Text style={styles.playerName}>
+                    {partnerInfo?.partner?.firstName || 'Pareja'}
+                  </Text>
+                  <Text style={styles.playerPoints}>
+                    {partnerPoints.toLocaleString()}
+                  </Text>
+                  <Text style={styles.playerLevel}>Nivel {partnerLevel}</Text>
                 </View>
               </View>
 
-              <View style={styles.playerColumn}>
-                <Avatar
-                  imageUri={partnerInfo?.partner?.avatarUrl}
-                  name={partnerInfo?.partner?.firstName}
-                  size="lg"
-                />
-                <Text style={styles.playerName}>
-                  {partnerInfo?.partner?.firstName || 'Pareja'}
-                </Text>
-                <Text style={styles.playerPoints}>{partnerPoints.toLocaleString()}</Text>
-                <Text style={styles.playerLevel}>Nivel {partnerLevel}</Text>
+              {/* Progress Bar */}
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, { width: `${myPercentage}%` }]} />
+                </View>
+                <View style={styles.progressLabels}>
+                  <Text style={styles.progressLabel}>{Math.round(myPercentage)}%</Text>
+                  <Text style={styles.progressLabel}>
+                    {Math.round(100 - myPercentage)}%
+                  </Text>
+                </View>
               </View>
-            </View>
-
-            {/* Progress Bar */}
-            <View style={styles.progressContainer}>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${myPercentage}%` }]} />
-              </View>
-              <View style={styles.progressLabels}>
-                <Text style={styles.progressLabel}>{Math.round(myPercentage)}%</Text>
-                <Text style={styles.progressLabel}>
-                  {Math.round(100 - myPercentage)}%
-                </Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </Card>}
+            </LinearGradient>
+          </Card>
+        )}
 
         {/* Leaderboard */}
         <View style={styles.section}>

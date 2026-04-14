@@ -64,7 +64,10 @@ export const Avatar: React.FC<AvatarProps> = ({
             },
           ]}
         >
-          <Text numberOfLines={1} style={[styles.levelText, { color: themeColors.white }]}>
+          <Text
+            numberOfLines={1}
+            style={[styles.levelText, { color: themeColors.white }]}
+          >
             Lvl {level}
           </Text>
         </View>
