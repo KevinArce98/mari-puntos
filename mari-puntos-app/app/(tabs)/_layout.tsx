@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity, View } from 'react-native';
@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/haptic-tab';
 import { shadows } from '@/theme';
 import { useUser, useThemedColors } from '@/hooks';
+import logger from '@/utils/logger';
 import { useActionsStore, usePermissionsStore } from '@/stores';
 
 export default function TabLayout() {
@@ -20,6 +21,18 @@ export default function TabLayout() {
   const pendingPermissionsCount = usePermissionsStore(
     (s) => s.partnerPermissions.filter((p) => p.status === 'pending').length
   );
+  const fetchPartnerPermissions = usePermissionsStore((s) => s.fetchPartnerPermissions);
+
+  // Pre-fetch partner permissions so the tab badge is available immediately
+  useEffect(() => {
+    if (!hasPartner) return;
+    const store = usePermissionsStore.getState();
+    if (!store.isLoadingPartnerPermissions && store.partnerPermissions.length === 0) {
+      fetchPartnerPermissions().catch((error) => {
+        logger.error('Failed to pre-fetch partner permissions in TabLayout', error);
+      });
+    }
+  }, [hasPartner, fetchPartnerPermissions]);
 
   const lockedTabButton = useCallback(
     (props: any) => (
