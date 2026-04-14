@@ -37,7 +37,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     waitingForProfile;
 
   const inAuthGroup = segments[0] === '(auth)';
-  const inVerifyEmail = segments[1] === 'verify-email';
+  const inVerifyEmail = (segments as string[])[1] === 'verify-email';
   const inLinkPartner = segments[0] === 'link-partner';
 
   // Compute redirect target synchronously so we can show loading screen
