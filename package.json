@@ -2,6 +2,11 @@
   "name": "mari-puntos",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "mari-puntos-app",
+    "mari-puntos-backend",
+    "mari-puntos-website"
+  ],
   "scripts": {
     "prepare": "husky"
   },
