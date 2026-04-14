@@ -1,13 +1,14 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import morgan from 'morgan';
+import pinoHttp from 'pino-http';
 import swaggerUi from 'swagger-ui-express';
 import { config } from './config/env';
 import { swaggerSpec } from './config/swagger';
 import routes from './routes';
 import { errorMiddleware, notFoundMiddleware } from './middlewares/errorMiddleware';
 import { rateLimitMiddleware } from './middlewares/rateLimitMiddleware';
+import { httpLogger } from './utils/logger';
 
 export const createApp = (): Application => {
   const app = express();
@@ -39,21 +40,35 @@ export const createApp = (): Application => {
     })
   );
 
-  // Body parser middleware with size limits
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  // Body parser middleware — 100kb default; profile update route gets 10mb for base64 image
+  app.use((req, _res, next) => {
+    const isProfileUpdate = req.method === 'PUT' && req.path === '/api/users/profile';
+    express.json({ limit: isProfileUpdate ? '10mb' : '100kb' })(req, _res, next);
+  });
+  app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
   // Logging middleware
-  if (config.isDevelopment) {
-    app.use(morgan('dev'));
-  } else {
-    // Use combined format but don't log sensitive headers
-    app.use(
-      morgan('combined', {
-        skip: (_req, res) => res.statusCode < 400, // Only log errors in production
-      })
-    );
-  }
+  app.use(
+    pinoHttp({
+      logger: httpLogger,
+      // Loggear solo errores en producción, todo en desarrollo
+      autoLogging: config.isDevelopment
+        ? true
+        : {
+            ignore: (req) => req.url?.includes('/health') || req.method === 'OPTIONS',
+          },
+      customLogLevel: (_req, res, err) => {
+        if (res.statusCode >= 400 && err) return 'error';
+        if (res.statusCode >= 400) return 'warn';
+        return 'info';
+      },
+      customSuccessMessage: (req, res) => {
+        if (res.statusCode >= 400) return `${req.method} ${req.url} - ${res.statusCode}`;
+        return `${req.method} ${req.url} - ${res.statusCode}`;
+      },
+      customErrorMessage: (req, res, err) => `${req.method} ${req.url} - ${res.statusCode} - ${err?.message || 'Unknown error'}`,
+    })
+  );
 
   // Rate limiting (apply to all routes)
   app.use(rateLimitMiddleware);

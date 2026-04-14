@@ -1,13 +1,39 @@
 import { colors, spacing, typography } from '@/theme';
-import React, { useEffect } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { useThemedColors } from '@/hooks';
+import React, { useEffect, useState } from 'react';
+import {
+  AccessibilityInfo,
+  Animated,
+  Easing,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { Image } from 'expo-image';
 
 export function LoadingScreen() {
+  const themeColors = useThemedColors();
   const spinValue = React.useRef(new Animated.Value(0)).current;
   const pulseValue = React.useRef(new Animated.Value(1)).current;
   const fadeValue = React.useRef(new Animated.Value(0)).current;
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then(setReduceMotion)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    // Fade in always runs (not motion-heavy)
+    Animated.timing(fadeValue, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+
+    if (reduceMotion) return;
+
     // Rotation animation
     Animated.loop(
       Animated.timing(spinValue, {
@@ -18,11 +44,11 @@ export function LoadingScreen() {
       })
     ).start();
 
-    // Pulse animation
+    // Subtle pulse animation (1.05x — not jarring)
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseValue, {
-          toValue: 1.2,
+          toValue: 1.05,
           duration: 1000,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
@@ -35,22 +61,10 @@ export function LoadingScreen() {
         }),
       ])
     ).start();
-
-    // Fade in animation
-    Animated.timing(fadeValue, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-  }, [spinValue, pulseValue, fadeValue]);
-
-  const spin = spinValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+  }, [spinValue, pulseValue, fadeValue, reduceMotion]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <Animated.View
         style={[
           styles.content,
@@ -59,35 +73,24 @@ export function LoadingScreen() {
           },
         ]}
       >
-        {/* Animated Logo */}
-        <Animated.View
-          style={[
-            styles.logoContainer,
-            {
-              transform: [{ scale: pulseValue }],
-            },
-          ]}
-        >
-          <Text style={styles.logo}>💑</Text>
-        </Animated.View>
-
-        {/* Spinning Circle */}
-        <Animated.View
-          style={[
-            styles.spinnerContainer,
-            {
-              transform: [{ rotate: spin }],
-            },
-          ]}
-        >
-          <View style={styles.spinner} />
-        </Animated.View>
+        {/* Animated Logo + Spinner stacked in a relative wrapper */}
+        <View style={styles.logoWrapper}>
+          <Animated.View style={{ transform: [{ scale: pulseValue }] }}>
+            <Image
+              source={require('@/assets/images/icon.png')}
+              style={styles.logo}
+              contentFit="contain"
+            />
+          </Animated.View>
+        </View>
 
         {/* App Name */}
-        <Text style={styles.appName}>MariPuntos</Text>
-        
+        <Text style={[styles.appName, { color: themeColors.primary }]}>MariPuntos</Text>
+
         {/* Loading Text */}
-        <Text style={styles.loadingText}>Cargando...</Text>
+        <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>
+          Cargando...
+        </Text>
 
         {/* Animated Dots */}
         <View style={styles.dotsContainer}>
@@ -127,7 +130,6 @@ function AnimatedDot({ delay }: { delay: number }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -135,19 +137,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoContainer: {
+  logoWrapper: {
     marginBottom: spacing['4xl'],
     position: 'relative',
+    width: 140,
+    height: 140,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logo: {
-    fontSize: 100,
-    textAlign: 'center',
+    width: 120,
+    height: 120,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
   },
   spinnerContainer: {
     position: 'absolute',
-    top: 150,
-    width: 50,
-    height: 50,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -156,20 +169,14 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 60,
     borderWidth: 4,
-    borderColor: colors.gray[200],
-    borderTopColor: colors.primary,
-    borderRightColor: colors.primary,
   },
   appName: {
     ...typography.styles.h1,
-    color: colors.primary,
     marginTop: spacing.xl,
     marginBottom: spacing.md,
-    fontWeight: 'bold',
   },
   loadingText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     marginBottom: spacing.md,
   },
   dotsContainer: {
@@ -181,6 +188,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.light.primary,
   },
 });

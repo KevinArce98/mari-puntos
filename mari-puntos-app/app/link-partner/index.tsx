@@ -1,5 +1,7 @@
 import { Button, Card, CodeInput } from '@/components/ui';
-import { useUser } from '@/hooks';
+import { useUser, useThemedColors } from '@/hooks';
+import { useUserStore } from '@/stores';
+import { userService } from '@/services';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -8,29 +10,42 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { linkPartnerSchema, LinkPartnerFormData } from '@/validators';
+import logger from '@/utils/logger';
 
 export default function LinkPartnerScreen() {
+  const themeColors = useThemedColors();
   const router = useRouter();
-  const {
-    joinPartnerLink,
-    createPartnerLink,
-    getPartnerLinkCode,
-    fetchPartnerInfo,
-    refetch,
-  } = useUser();
+  const { joinPartnerLink, createPartnerLink, getPartnerLinkCode } = useUser();
 
-  const [partnerCode, setPartnerCode] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
-  const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [loadingExistingCode, setLoadingExistingCode] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const form = useForm<LinkPartnerFormData>({
+    resolver: zodResolver(linkPartnerSchema),
+    defaultValues: {
+      partnerCode: '',
+    },
+  });
+
+  const {
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+  } = form;
 
   // Load existing partner link code on mount
   useEffect(() => {
@@ -39,15 +54,19 @@ export default function LinkPartnerScreen() {
         const existingLink = await getPartnerLinkCode();
         if (existingLink && existingLink.status === 'pending') {
           setGeneratedCode(existingLink.linkCode);
+          logger.debug('Existing partner link code loaded', {
+            linkCode: existingLink.linkCode,
+          });
         }
       } catch (error) {
-        console.error('Error loading existing code:', error);
+        logger.error('Error loading existing partner link code', error as Error);
       } finally {
         setLoadingExistingCode(false);
       }
     };
 
     loadExistingCode();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleGenerateCode = async () => {
@@ -55,12 +74,14 @@ export default function LinkPartnerScreen() {
     try {
       const code = await createPartnerLink();
       setGeneratedCode(code);
+      logger.info('Partner link code generated successfully', { code });
       Toast.show({
         type: 'success',
         text1: '¡Código generado!',
         text2: 'Comparte este código con tu pareja',
       });
     } catch (error) {
+      logger.error('Failed to generate partner link code', error as Error);
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -84,19 +105,21 @@ export default function LinkPartnerScreen() {
     }
   };
 
-  const handleLinkAccounts = async () => {
-    if (partnerCode.length !== 6) {
+  const onSubmit = async (data: LinkPartnerFormData) => {
+    // Validar que no intente unirse a su propio código
+    if (generatedCode && data.partnerCode.toUpperCase() === generatedCode.toUpperCase()) {
+      logger.warn('User attempted to join their own partner code');
       Toast.show({
         type: 'error',
-        text1: 'Código inválido',
-        text2: 'Por favor ingresa un código de 6 caracteres',
+        text1: 'Error',
+        text2: 'No puedes unirte a tu propio código',
       });
       return;
     }
 
-    setLoading(true);
     try {
-      await joinPartnerLink(partnerCode);
+      await joinPartnerLink(data.partnerCode);
+      logger.info('Successfully joined partner link', { partnerCode: data.partnerCode });
       Toast.show({
         type: 'success',
         text1: '¡Vinculado!',
@@ -104,6 +127,9 @@ export default function LinkPartnerScreen() {
       });
       router.replace('/(tabs)');
     } catch (error) {
+      logger.error('Failed to join partner link', error as Error, {
+        partnerCode: data.partnerCode,
+      });
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -111,20 +137,21 @@ export default function LinkPartnerScreen() {
           ? (error as any).error
           : 'Código inválido o expirado',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleRefreshLink = async () => {
     setRefreshing(true);
     try {
-      // Check if partner has joined by fetching partner info
-      const partnerInfo = await fetchPartnerInfo();
+      // Fetch silently — avoid setting isLoading in store to prevent AuthGuard navigator unmount
+      const [user, partnerInfo] = await Promise.all([
+        userService.getProfile(),
+        userService.getPartnerInfo().catch(() => null),
+      ]);
 
       if (partnerInfo) {
-        // Partner has joined successfully - refresh user profile
-        await refetch();
+        // Update store silently
+        useUserStore.setState({ user, partnerInfo });
 
         Toast.show({
           type: 'success',
@@ -143,7 +170,7 @@ export default function LinkPartnerScreen() {
           text2: 'Tu pareja aún no ha ingresado el código',
         });
       }
-    } catch (error) {
+    } catch {
       Toast.show({
         type: 'info',
         text1: 'Esperando conexión',
@@ -155,96 +182,141 @@ export default function LinkPartnerScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        {/* Puzzle Illustration */}
-        <View style={styles.illustrationContainer}>
-          <View style={styles.puzzleIcon}>
-            <Ionicons name="extension-puzzle" size={80} color={colors.primary} />
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Puzzle Illustration */}
+          <View style={styles.illustrationContainer}>
+            <Ionicons
+              name="extension-puzzle-outline"
+              size={80}
+              color={themeColors.primary}
+            />
           </View>
-        </View>
 
-        {/* Title */}
-        <Text style={styles.title}>¡Conectémonos!</Text>
-        <Text style={styles.subtitle}>
-          Conéctate con tu pareja para comenzar tu viaje en MariPuntos juntos
-        </Text>
+          {/* Title */}
+          <Text style={[styles.title, { color: themeColors.text.primary }]}>
+            ¡Conectémonos!
+          </Text>
+          <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
+            Conéctate con tu pareja para comenzar tu viaje en MariPuntos juntos
+          </Text>
 
-        {/* Your Unique Code Section */}
-        <Card style={styles.codeSection}>
-          <Text style={styles.sectionLabel}>Tu código único</Text>
+          {/* Your Unique Code Section */}
+          <Card style={styles.codeSection}>
+            <Text style={[styles.sectionLabel, { color: themeColors.text.secondary }]}>
+              Tu código único
+            </Text>
 
-          {loadingExistingCode ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={styles.loadingText}>Verificando código...</Text>
-            </View>
-          ) : generatedCode ? (
-            <View style={styles.generatedCodeContainer}>
-              <Text style={styles.generatedCode}>{generatedCode}</Text>
-              <TouchableOpacity style={styles.copyButton} onPress={handleCopyCode}>
-                <Ionicons name="copy-outline" size={20} color={colors.primary} />
-                <Text style={styles.copyText}>Copiar código</Text>
-              </TouchableOpacity>
+            {loadingExistingCode ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color={themeColors.primary} />
+                <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>
+                  Verificando código...
+                </Text>
+              </View>
+            ) : generatedCode ? (
+              <View style={styles.generatedCodeContainer}>
+                <Text style={[styles.generatedCode, { color: themeColors.primary }]}>
+                  {generatedCode}
+                </Text>
+                <TouchableOpacity style={styles.copyButton} onPress={handleCopyCode}>
+                  <Ionicons name="copy-outline" size={20} color={themeColors.primary} />
+                  <Text style={[styles.copyText, { color: themeColors.primary }]}>
+                    Copiar código
+                  </Text>
+                </TouchableOpacity>
 
-              {/* Refresh button */}
+                {/* Refresh button */}
+                <Button
+                  title="Verificar vinculación"
+                  onPress={handleRefreshLink}
+                  loading={refreshing}
+                  variant="outline"
+                  fullWidth
+                  icon="refresh-outline"
+                  style={styles.refreshButton}
+                />
+                <Text style={[styles.refreshHint, { color: themeColors.text.secondary }]}>
+                  Toca aquí después de que tu pareja ingrese el código
+                </Text>
+              </View>
+            ) : (
               <Button
-                title="Verificar vinculación"
-                onPress={handleRefreshLink}
-                loading={refreshing}
+                title="Generar código"
+                onPress={handleGenerateCode}
+                loading={generating}
                 variant="outline"
                 fullWidth
                 icon="refresh-outline"
-                style={styles.refreshButton}
               />
-              <Text style={styles.refreshHint}>
-                Toca aquí después de que tu pareja ingrese el código
-              </Text>
-            </View>
-          ) : (
-            <Button
-              title="Generar código"
-              onPress={handleGenerateCode}
-              loading={generating}
-              variant="outline"
-              fullWidth
-              icon="refresh-outline"
+            )}
+          </Card>
+
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View
+              style={[styles.dividerLine, { backgroundColor: themeColors.gray[300] }]}
             />
-          )}
-        </Card>
+            <Text style={[styles.dividerText, { color: themeColors.text.secondary }]}>
+              O
+            </Text>
+            <View
+              style={[styles.dividerLine, { backgroundColor: themeColors.gray[300] }]}
+            />
+          </View>
 
-        {/* Divider */}
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR</Text>
-          <View style={styles.dividerLine} />
-        </View>
+          {/* Enter Partner Code Section */}
+          <Card style={styles.codeSection}>
+            <Text style={[styles.sectionLabel, { color: themeColors.text.secondary }]}>
+              Ingresa el código de tu pareja
+            </Text>
+            <Controller
+              control={control}
+              name="partnerCode"
+              render={({ field: { onChange, value } }) => (
+                <CodeInput
+                  value={value}
+                  onChangeText={onChange}
+                  length={6}
+                  error={!!errors.partnerCode}
+                />
+              )}
+            />
+            {errors.partnerCode && (
+              <Text style={styles.errorText}>{errors.partnerCode.message}</Text>
+            )}
+          </Card>
 
-        {/* Enter Partner Code Section */}
-        <Card style={styles.codeSection}>
-          <Text style={styles.sectionLabel}>Ingresa el código de tu pareja</Text>
-          <CodeInput value={partnerCode} onChangeText={setPartnerCode} length={6} />
-        </Card>
+          {/* Link Button */}
+          <Button
+            title="Vincular cuentas"
+            onPress={handleSubmit(onSubmit)}
+            loading={isSubmitting}
+            fullWidth
+            style={styles.linkButton}
+            icon="link"
+          />
 
-        {/* Link Button */}
-        <Button
-          title="Vincular cuentas"
-          onPress={handleLinkAccounts}
-          loading={loading}
-          fullWidth
-          disabled={partnerCode.length !== 6}
-          style={styles.linkButton}
-          icon="link"
-        />
-
-        {/* Skip Link */}
-        <TouchableOpacity
-          style={styles.skipButton}
-          onPress={() => router.replace('/(tabs)')}
-        >
-          <Text style={styles.skipText}>Regresar</Text>
-        </TouchableOpacity>
-      </View>
+          {/* Skip Link */}
+          <TouchableOpacity
+            style={styles.skipButton}
+            onPress={() => router.replace('/(tabs)')}
+          >
+            <Text style={[styles.skipText, { color: themeColors.text.secondary }]}>
+              Regresar
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -252,10 +324,12 @@ export default function LinkPartnerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
-  content: {
+  keyboardView: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     padding: spacing.lg,
     justifyContent: 'center',
   },
@@ -267,19 +341,16 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: borderRadius.full,
-    backgroundColor: `${colors.primary}15`,
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     ...typography.styles.h1,
-    color: colors.text.primary,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   subtitle: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.xl,
     paddingHorizontal: spacing.md,
@@ -289,7 +360,6 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     ...typography.styles.bodyMedium,
-    color: colors.text.secondary,
     marginBottom: spacing.md,
     textAlign: 'center',
   },
@@ -298,7 +368,6 @@ const styles = StyleSheet.create({
   },
   generatedCode: {
     ...typography.styles.h1,
-    color: colors.primary,
     letterSpacing: 8,
     marginBottom: spacing.md,
   },
@@ -309,7 +378,6 @@ const styles = StyleSheet.create({
   },
   copyText: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
   divider: {
     flexDirection: 'row',
@@ -319,11 +387,9 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.gray[300],
   },
   dividerText: {
     ...typography.styles.bodyMedium,
-    color: colors.text.secondary,
     marginHorizontal: spacing.md,
   },
   linkButton: {
@@ -336,7 +402,6 @@ const styles = StyleSheet.create({
   },
   skipText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -347,15 +412,19 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
   },
   refreshButton: {
     marginTop: spacing.lg,
   },
   refreshHint: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     textAlign: 'center',
     marginTop: spacing.sm,
+  },
+  errorText: {
+    ...typography.styles.caption,
+    color: colors.light.error,
+    textAlign: 'center',
+    marginTop: spacing.xs,
   },
 });

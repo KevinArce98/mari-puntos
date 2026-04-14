@@ -1,10 +1,17 @@
-import { ActionCard, Avatar, Card, PointsCard } from '@/components/ui';
+import {
+  ActionCard,
+  Avatar,
+  Card,
+  PointsCard,
+  CreateActionModal,
+  NotificationBell,
+} from '@/components/ui';
 import { HistoryItem } from '@/components';
-import { usePoints, useUser } from '@/hooks';
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { usePoints, useUser, useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import React, { useCallback } from 'react';
 import {
   RefreshControl,
   ScrollView,
@@ -14,21 +21,28 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import logger from '@/utils/logger';
+import Toast from 'react-native-toast-message';
+import { useActions } from '@/hooks/useActions';
+import { CreateActionFormData } from '@/validators/action.schema';
 
 export default function HomeScreen() {
+  const colors = useThemedColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user, hasPartner, refetch: refetchUser } = useUser();
   const { myPoints, myLevel, pointsHistory, fetchHistory } = usePoints();
+  const { createAction } = useActions();
   const [refreshing, setRefreshing] = React.useState(false);
+  const [showCreateActionModal, setShowCreateActionModal] = React.useState(false);
 
-  // Load history on mount
-  React.useEffect(() => {
-    if (hasPartner) {
+  useFocusEffect(
+    useCallback(() => {
+      if (!user || !hasPartner) return;
       fetchHistory({ limit: 3 });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasPartner]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user, hasPartner])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -38,16 +52,42 @@ export default function HomeScreen() {
         refetchUser(),
         hasPartner ? fetchHistory({ limit: 3 }) : Promise.resolve(),
       ]);
+      logger.debug('Home screen data refreshed successfully');
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      logger.error('Error refreshing home screen data', error as Error);
     } finally {
       setRefreshing(false);
     }
   };
 
+  const handleCreateAction = async (data: CreateActionFormData) => {
+    try {
+      await createAction(data);
+      setShowCreateActionModal(false);
+      Toast.show({
+        type: 'success',
+        text1: 'Acción Creada',
+        text2: 'Tu acción ha sido enviada para revisión',
+      });
+      // Refresh history to show the new action
+      await fetchHistory({ limit: 3 });
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'No se pudo crear la acción',
+      });
+    }
+  };
+
   if (!hasPartner) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View
+        style={[
+          styles.container,
+          { paddingTop: insets.top, backgroundColor: colors.background },
+        ]}
+      >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           refreshControl={
@@ -58,16 +98,20 @@ export default function HomeScreen() {
             <View style={styles.noPartnerIcon}>
               <Ionicons name="people-outline" size={64} color={colors.primary} />
             </View>
-            <Text style={styles.noPartnerTitle}>Link Your Partner!</Text>
-            <Text style={styles.noPartnerText}>
-              Connect with your partner to start earning and spending MariPuntos together
+            <Text style={[styles.noPartnerTitle, { color: colors.text.primary }]}>
+              ¡Vincula a tu Pareja!
+            </Text>
+            <Text style={[styles.noPartnerText, { color: colors.text.secondary }]}>
+              Conéctate con tu pareja para empezar a ganar y gastar MariPuntos juntos
             </Text>
             <TouchableOpacity
-              style={styles.linkButton}
+              style={[styles.linkButton, { backgroundColor: colors.primary }]}
               onPress={() => router.push('/link-partner')}
             >
-              <Ionicons name="link" size={20} color={colors.white} />
-              <Text style={styles.linkButtonText}>Link Now</Text>
+              <Ionicons name="link" size={20} color={colors.text.white} />
+              <Text style={[styles.linkButtonText, { color: colors.text.white }]}>
+                Vincular Ahora
+              </Text>
             </TouchableOpacity>
           </Card>
         </ScrollView>
@@ -76,7 +120,12 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: colors.background },
+      ]}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -90,23 +139,18 @@ export default function HomeScreen() {
               name={user?.firstName}
               size="lg"
               showLevel
-              // level={myLevel} TODO: enable level when ready
+              level={myLevel}
             />
             <View style={styles.greetingContainer}>
-              <Text style={styles.greeting}>
+              <Text style={[styles.greeting, { color: colors.text.primary }]}>
                 Hola, {user?.firstName?.split(' ')[0] || 'there'}! 👋
               </Text>
-              <Text style={styles.subtitle}>Vamos a ganar algunos puntos hoy!</Text>
+              <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
+                Vamos a ganar algunos puntos hoy!
+              </Text>
             </View>
           </View>
-          {/* TODO: enable notifications */}
-          {/* <TouchableOpacity style={styles.notificationButton}>
-            <Ionicons
-              name="notifications-outline"
-              size={24}
-              color={colors.text.primary}
-            />
-          </TouchableOpacity> */}
+          <NotificationBell />
         </View>
 
         {/* Points Card */}
@@ -114,7 +158,9 @@ export default function HomeScreen() {
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+            Acciones Rápidas
+          </Text>
           <View style={styles.actionsContainer}>
             <ActionCard
               title="Solicitar Permiso"
@@ -129,7 +175,7 @@ export default function HomeScreen() {
               subtitle="Registrar una actividad para ganar puntos"
               icon="add-circle-outline"
               iconBackgroundColor={colors.primary}
-              onPress={() => router.push('/actions')}
+              onPress={() => setShowCreateActionModal(true)}
               style={styles.actionCard}
             />
           </View>
@@ -138,9 +184,11 @@ export default function HomeScreen() {
         {/* Recent History */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Historial Reciente</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+              Historial Reciente
+            </Text>
             <TouchableOpacity onPress={() => router.push('/history')}>
-              <Text style={styles.seeAllText}>Ver Todo</Text>
+              <Text style={[styles.seeAllText, { color: colors.primary }]}>Ver Todo</Text>
             </TouchableOpacity>
           </View>
 
@@ -148,7 +196,14 @@ export default function HomeScreen() {
             {pointsHistory.length === 0 ? (
               <View style={styles.emptyHistoryContainer}>
                 <Ionicons name="time-outline" size={48} color={colors.text.secondary} />
-                <Text style={styles.emptyHistoryText}>No hay actividad reciente</Text>
+                <Text style={[styles.emptyHistoryText, { color: colors.text.primary }]}>
+                  No hay actividad reciente
+                </Text>
+                <TouchableOpacity onPress={() => setShowCreateActionModal(true)}>
+                  <Text style={[{ color: colors.primary }, styles.emptyHistoryCta]}>
+                    Registra tu primera acción
+                  </Text>
+                </TouchableOpacity>
               </View>
             ) : (
               pointsHistory
@@ -165,6 +220,13 @@ export default function HomeScreen() {
           </Card>
         </View>
       </ScrollView>
+
+      {/* Create Action Modal */}
+      <CreateActionModal
+        visible={showCreateActionModal}
+        onClose={() => setShowCreateActionModal(false)}
+        onSubmit={handleCreateAction}
+      />
     </View>
   );
 }
@@ -172,7 +234,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollContent: {
     padding: spacing.lg,
@@ -193,18 +254,15 @@ const styles = StyleSheet.create({
   },
   greeting: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   subtitle: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: 2,
   },
   notificationButton: {
     width: 44,
     height: 44,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -222,12 +280,10 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.md,
   },
   seeAllText: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
   actionsContainer: {
     gap: spacing.sm,
@@ -245,9 +301,13 @@ const styles = StyleSheet.create({
   },
   emptyHistoryText: {
     ...typography.styles.bodyLarge,
-    color: colors.text.primary,
     marginTop: spacing.md,
     textAlign: 'center',
+  },
+  emptyHistoryCta: {
+    ...typography.styles.bodyMedium,
+    marginTop: spacing.md,
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   // No partner state
   noPartnerCard: {
@@ -258,28 +318,23 @@ const styles = StyleSheet.create({
   noPartnerIcon: {
     width: 100,
     height: 100,
-    borderRadius: borderRadius.full,
-    backgroundColor: `${colors.primary}15`,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.lg,
   },
   noPartnerTitle: {
     ...typography.styles.h2,
-    color: colors.text.primary,
     marginBottom: spacing.sm,
     textAlign: 'center',
   },
   noPartnerText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.xl,
   },
   linkButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primary,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.xl,
@@ -287,6 +342,5 @@ const styles = StyleSheet.create({
   },
   linkButtonText: {
     ...typography.styles.button,
-    color: colors.white,
   },
 });

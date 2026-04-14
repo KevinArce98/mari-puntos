@@ -1,26 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Modal,
   TouchableOpacity,
+  KeyboardAvoidingView,
   ScrollView,
-  TextInput,
+  Platform,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { ActionCategory } from '@/types';
-import { colors, spacing, typography, borderRadius } from '@/theme';
+import { spacing, typography, borderRadius } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import { Button } from './Button';
+import { ControlledInput } from './ControlledInput';
+import { TextAreaWithCounter } from './TextAreaWithCounter';
+import {
+  createActionSchema,
+  type CreateActionFormData,
+} from '@/validators/action.schema';
 
 interface CreateActionModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (data: {
-    title: string;
-    description?: string;
-    category: ActionCategory;
-  }) => Promise<void>;
+  onSubmit: (data: CreateActionFormData) => Promise<void>;
 }
 
 const CATEGORIES: {
@@ -41,40 +48,49 @@ export function CreateActionModal({
   onClose,
   onSubmit,
 }: CreateActionModalProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<ActionCategory>(
-    ActionCategory.HOUSEHOLD
-  );
-  const [loading, setLoading] = useState(false);
+  const themeColors = useThemedColors();
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
-  const handleSubmit = async () => {
-    if (!title.trim()) return;
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const show = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardOffset(e.endCoordinates.height);
+    });
+    const hide = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardOffset(0);
+    });
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
-    setLoading(true);
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<CreateActionFormData>({
+    resolver: zodResolver(createActionSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      category: ActionCategory.HOUSEHOLD,
+    },
+  });
+
+  const onSubmitForm = async (data: CreateActionFormData) => {
     try {
-      await onSubmit({
-        title: title.trim(),
-        description: description.trim() || undefined,
-        category: selectedCategory,
-      });
-
-      // Reset form
-      setTitle('');
-      setDescription('');
-      setSelectedCategory(ActionCategory.HOUSEHOLD);
+      await onSubmit(data);
+      reset();
       onClose();
-    } catch (error) {
-      console.error('Error creating action:', error);
-    } finally {
-      setLoading(false);
+    } catch {
+      // errors are handled by the caller (Toast)
     }
   };
 
   const handleClose = () => {
-    setTitle('');
-    setDescription('');
-    setSelectedCategory(ActionCategory.HOUSEHOLD);
+    reset();
     onClose();
   };
 
@@ -86,100 +102,130 @@ export function CreateActionModal({
       onRequestClose={handleClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.container}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Crear Acción</Text>
-            <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={colors.text.primary} />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Title Input */}
-            <View style={styles.section}>
-              <Text style={styles.label}>Título *</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Ej: Preparé la cena"
-                placeholderTextColor={colors.gray[400]}
-                value={title}
-                onChangeText={setTitle}
-                maxLength={100}
-              />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={[styles.keyboardAvoidingView, { paddingBottom: keyboardOffset }]}
+        >
+          <View style={[styles.container, { backgroundColor: themeColors.gray[100] }]}>
+            {/* Header */}
+            <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
+              <Text style={[styles.title, { color: themeColors.text.primary }]}>
+                Crear Acción
+              </Text>
+              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color={themeColors.text.primary} />
+              </TouchableOpacity>
             </View>
 
-            {/* Description Input */}
-            <View style={styles.section}>
-              <Text style={styles.label}>Descripción (opcional)</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder="Agrega detalles sobre lo que hiciste..."
-                placeholderTextColor={colors.gray[400]}
-                value={description}
-                onChangeText={setDescription}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-                maxLength={500}
-              />
-            </View>
-
-            {/* Category Selection */}
-            <View style={styles.section}>
-              <Text style={styles.label}>Categoría *</Text>
-              <View style={styles.categoriesGrid}>
-                {CATEGORIES.map((category) => (
-                  <TouchableOpacity
-                    key={category.value}
-                    style={[
-                      styles.categoryCard,
-                      selectedCategory === category.value && styles.categoryCardSelected,
-                    ]}
-                    onPress={() => setSelectedCategory(category.value)}
-                  >
-                    <Ionicons
-                      name={category.icon}
-                      size={24}
-                      color={
-                        selectedCategory === category.value
-                          ? colors.primary
-                          : colors.gray[400]
-                      }
-                    />
-                    <Text
-                      style={[
-                        styles.categoryLabel,
-                        selectedCategory === category.value &&
-                          styles.categoryLabelSelected,
-                      ]}
-                    >
-                      {category.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Title Input */}
+              <View style={styles.section}>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>
+                  Título *
+                </Text>
+                <ControlledInput
+                  control={control}
+                  name="title"
+                  placeholder="Ej: Preparé la cena"
+                  maxLength={100}
+                />
               </View>
-            </View>
-          </ScrollView>
 
-          {/* Actions */}
-          <View style={styles.actions}>
-            <Button
-              title="Cancelar"
-              variant="outline"
-              onPress={handleClose}
-              style={styles.actionButton}
-              disabled={loading}
-            />
-            <Button
-              title="Crear"
-              onPress={handleSubmit}
-              style={styles.actionButton}
-              disabled={!title.trim() || loading}
-              loading={loading}
-            />
+              {/* Description Input */}
+              <View style={styles.section}>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>
+                  Descripción (opcional)
+                </Text>
+                <Controller
+                  control={control}
+                  name="description"
+                  render={({ field: { onChange, value } }) => (
+                    <TextAreaWithCounter
+                      placeholder="Agrega detalles sobre lo que hiciste..."
+                      value={value ?? ''}
+                      onChangeText={onChange}
+                      numberOfLines={4}
+                      textAlignVertical="top"
+                      maxLength={500}
+                    />
+                  )}
+                />
+              </View>
+
+              {/* Category Selection */}
+              <View style={styles.section}>
+                <Text style={[styles.label, { color: themeColors.text.primary }]}>
+                  Categoría *
+                </Text>
+                <Controller
+                  control={control}
+                  name="category"
+                  render={({ field: { onChange, value } }) => (
+                    <View style={styles.categoriesGrid}>
+                      {CATEGORIES.map((category) => (
+                        <TouchableOpacity
+                          key={category.value}
+                          style={[
+                            styles.categoryCard,
+                            { backgroundColor: themeColors.gray[100] },
+                            value === category.value && [
+                              styles.categoryCardSelected,
+                              {
+                                backgroundColor: `${themeColors.primary}10`,
+                                borderColor: themeColors.primary,
+                              },
+                            ],
+                          ]}
+                          onPress={() => onChange(category.value)}
+                        >
+                          <Ionicons
+                            name={category.icon}
+                            size={24}
+                            color={
+                              value === category.value
+                                ? themeColors.primary
+                                : themeColors.gray[400]
+                            }
+                          />
+                          <Text
+                            style={[
+                              styles.categoryLabel,
+                              { color: themeColors.gray[600] },
+                              value === category.value && [
+                                styles.categoryLabelSelected,
+                                { color: themeColors.primary },
+                              ],
+                            ]}
+                          >
+                            {category.label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                />
+              </View>
+            </ScrollView>
+
+            {/* Actions */}
+            <View style={styles.actions}>
+              <Button
+                title="Cancelar"
+                variant="outline"
+                onPress={handleClose}
+                style={styles.actionButton}
+                disabled={isSubmitting}
+              />
+              <Button
+                title="Crear"
+                onPress={handleSubmit(onSubmitForm)}
+                style={styles.actionButton}
+                disabled={isSubmitting}
+                loading={isSubmitting}
+              />
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
@@ -189,10 +235,12 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
     justifyContent: 'flex-end',
   },
   container: {
-    backgroundColor: colors.white,
     borderTopLeftRadius: borderRadius['2xl'],
     borderTopRightRadius: borderRadius['2xl'],
     maxHeight: '90%',
@@ -204,14 +252,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
   },
   title: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   closeButton: {
-    padding: spacing.xs,
+    padding: spacing.sm,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   section: {
     padding: spacing.lg,
@@ -219,13 +269,10 @@ const styles = StyleSheet.create({
   },
   label: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   input: {
     ...typography.styles.body,
-    color: colors.text.primary,
-    backgroundColor: colors.gray[100],
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -242,8 +289,7 @@ const styles = StyleSheet.create({
   },
   categoryCard: {
     width: '31%',
-    aspectRatio: 1,
-    backgroundColor: colors.gray[100],
+    height: 80,
     borderRadius: borderRadius.lg,
     borderWidth: 2,
     borderColor: 'transparent',
@@ -252,17 +298,14 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   categoryCardSelected: {
-    backgroundColor: `${colors.primary}10`,
-    borderColor: colors.primary,
+    borderWidth: 2,
   },
   categoryLabel: {
     ...typography.styles.caption,
-    color: colors.gray[600],
     textAlign: 'center',
   },
   categoryLabelSelected: {
-    color: colors.primary,
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   actions: {
     flexDirection: 'row',

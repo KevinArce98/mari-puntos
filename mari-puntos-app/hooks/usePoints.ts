@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useUser } from './useUser';
 import { usePointsStore } from '@/stores';
 import { GetPointsHistoryParams, GetLeaderboardParams } from '@/types';
@@ -22,13 +23,16 @@ export const usePoints = () => {
   const partnerLevel = partnerInfo?.partner?.currentLevel || 1;
 
   // Calculate points needed for next level (100 points per level)
-  const getPointsForNextLevel = (currentLevel: number) => {
-    return currentLevel * 100;
-  };
+  const getPointsForNextLevel = (currentLevel: number) => currentLevel * 100;
 
-  const pointsToNextLevel = getPointsForNextLevel(myLevel) - myPointsInCurrentLevel;
-  const progressToNextLevel =
-    (myPointsInCurrentLevel / getPointsForNextLevel(myLevel)) * 100;
+  const pointsToNextLevel = useMemo(
+    () => getPointsForNextLevel(myLevel) - myPointsInCurrentLevel,
+    [myLevel, myPointsInCurrentLevel]
+  );
+  const progressToNextLevel = useMemo(
+    () => (myPointsInCurrentLevel / getPointsForNextLevel(myLevel)) * 100,
+    [myLevel, myPointsInCurrentLevel]
+  );
 
   const loadHistory = async (params?: GetPointsHistoryParams, append = false) => {
     await fetchPointsHistory(params, append);

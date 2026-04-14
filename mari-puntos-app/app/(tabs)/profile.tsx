@@ -1,12 +1,21 @@
-import { Avatar, Button, Card, ListItem } from '@/components/ui';
-import { usePoints, useUser } from '@/hooks';
-import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import {
+  Avatar,
+  Button,
+  Card,
+  EditProfileModal,
+  ListItem,
+  ProgressBar,
+} from '@/components/ui';
+import { usePoints, useUser, useThemedColors } from '@/hooks';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import React, { useState } from 'react';
 import {
   Alert,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,13 +25,17 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
+const SUPPORT_EMAIL = 'soporte@maripuntos.com';
+
 export default function ProfileScreen() {
+  const colors = useThemedColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signOut } = useAuth();
-  const { user, partnerInfo, hasPartner, unlinkPartner } = useUser();
-  const { myPoints } = usePoints();
+  const { user, partnerInfo, hasPartner, unlinkPartner, updateProfile } = useUser();
+  const { myPoints, myLevel, progressToNextLevel, pointsToNextLevel } = usePoints();
   const [loading, setLoading] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const handleUnlinkPartner = () => {
     Alert.alert(
@@ -57,6 +70,31 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleEditProfile = async (data: {
+    firstName?: string;
+    lastName?: string;
+    profileImage?: string;
+  }) => {
+    setLoading(true);
+    try {
+      await updateProfile(data);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Perfil actualizado',
+        text2: 'Tu perfil se ha actualizado correctamente',
+      });
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'No se pudo actualizar el perfil',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignOut = () => {
     Alert.alert('Cerrar sesión', '¿Estás seguro de que deseas cerrar sesión?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -65,17 +103,21 @@ export default function ProfileScreen() {
         style: 'destructive',
         onPress: async () => {
           await signOut();
-          router.replace('/(auth)/login');
         },
       },
     ]);
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: colors.background },
+      ]}
+    >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Perfil</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Perfil</Text>
 
         {/* TODO: Configuración funcitonality */}
         {/* <TouchableOpacity style={styles.settingsButton}>
@@ -95,61 +137,67 @@ export default function ProfileScreen() {
               name={user?.firstName}
               size="xl"
               showLevel
-              // level={myLevel} TODO: Enable levels
+              level={myLevel}
             />
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>
+              <Text style={[styles.profileName, { color: colors.text.primary }]}>
                 {user?.firstName} {user?.lastName}
               </Text>
-              <Text style={styles.profileEmail}>{user?.email}</Text>
+              <Text style={[styles.profileEmail, { color: colors.text.secondary }]}>
+                {user?.email}
+              </Text>
             </View>
-            {/* TODO: Edit Profile functionality */}
-            {/* <TouchableOpacity style={styles.editButton}>
+            <TouchableOpacity
+              style={[styles.editButton, { backgroundColor: `${colors.primary}15` }]}
+              onPress={() => setShowEditModal(true)}
+            >
               <Ionicons name="pencil" size={16} color={colors.primary} />
-            </TouchableOpacity> */}
+            </TouchableOpacity>
           </View>
 
           {/* Stats Row */}
-          <View style={styles.statsRow}>
+          <View style={[styles.statsRow, { borderColor: colors.gray[100] }]}>
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{myPoints.toLocaleString()}</Text>
-              <Text style={styles.statLabel}>Points</Text>
+              <Text style={[styles.statValue, { color: colors.primary }]}>
+                {myPoints.toLocaleString()}
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
+                Puntos
+              </Text>
             </View>
-            {/* TODO: Enable levels and rewards */}
-            {/* <View style={styles.statDivider} />
+            <View style={[styles.statDivider, { backgroundColor: colors.gray[200] }]} />
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{myLevel}</Text>
-              <Text style={styles.statLabel}>Level</Text>
+              <Text style={[styles.statValue, { color: colors.primary }]}>{myLevel}</Text>
+              <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
+                Nivel
+              </Text>
             </View>
-            <View style={styles.statDivider} />
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>12</Text>
-              <Text style={styles.statLabel}>Rewards</Text>
-            </View> */}
           </View>
 
-          {/* TODO: Level Progress */}
-          {/* <View style={styles.levelProgress}>
+          <View style={styles.levelProgress}>
             <View style={styles.levelProgressHeader}>
-              <Text style={styles.levelLabel}>Level {myLevel}</Text>
-              <Text style={styles.levelLabel}>Level {myLevel + 1}</Text>
+              <Text style={[styles.levelLabel, { color: colors.text.secondary }]}>
+                Nivel {myLevel}
+              </Text>
+              <Text style={[styles.levelLabel, { color: colors.text.secondary }]}>
+                {pointsToNextLevel} pts para nivel {myLevel + 1}
+              </Text>
             </View>
             <ProgressBar
               progress={progressToNextLevel}
               color={colors.accent}
-              height={10}
+              height={8}
             />
-            <Text style={styles.levelProgressText}>
-              {Math.round(progressToNextLevel)}% to next level
-            </Text>
-          </View> */}
+          </View>
         </Card>
 
         {/* Partner Section */}
         {hasPartner && partnerInfo ? (
           <Card style={styles.partnerCard}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Tu Pareja</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+                Tu Pareja
+              </Text>
               <TouchableOpacity onPress={handleUnlinkPartner} disabled={loading}>
                 <Ionicons name="unlink" size={18} color={colors.error} />
               </TouchableOpacity>
@@ -161,24 +209,34 @@ export default function ProfileScreen() {
                 size="md"
               />
               <View style={styles.partnerDetails}>
-                <Text style={styles.partnerName}>{partnerInfo.partner.firstName}</Text>
-                <Text style={styles.partnerPoints}>
+                <Text style={[styles.partnerName, { color: colors.text.primary }]}>
+                  {partnerInfo.partner.firstName}
+                </Text>
+                <Text style={[styles.partnerPoints, { color: colors.primary }]}>
                   {partnerInfo.partner.totalPoints?.toLocaleString() || 0} MariPuntos
                 </Text>
               </View>
-              <View style={styles.partnerStatus}>
-                <View style={styles.statusDot} />
-                <Text style={styles.statusText}>Linked</Text>
+              <View
+                style={[styles.partnerStatus, { backgroundColor: `${colors.success}15` }]}
+              >
+                <View style={[styles.statusDot, { backgroundColor: colors.success }]} />
+                <Text style={[styles.statusText, { color: colors.success }]}>
+                  Vinculado
+                </Text>
               </View>
             </View>
           </Card>
         ) : (
           <Card style={styles.noPartnerCard}>
-            <View style={styles.noPartnerIcon}>
+            <View
+              style={[styles.noPartnerIcon, { backgroundColor: `${colors.primary}15` }]}
+            >
               <Ionicons name="people-outline" size={32} color={colors.primary} />
             </View>
-            <Text style={styles.noPartnerTitle}>No Hay Pareja Vinculada</Text>
-            <Text style={styles.noPartnerText}>
+            <Text style={[styles.noPartnerTitle, { color: colors.text.primary }]}>
+              No Hay Pareja Vinculada
+            </Text>
+            <Text style={[styles.noPartnerText, { color: colors.text.secondary }]}>
               Conéctate con tu pareja para comenzar a ganar puntos juntos
             </Text>
             <Button
@@ -192,31 +250,37 @@ export default function ProfileScreen() {
 
         {/* Menu Options */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Configuración</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+            Configuración
+          </Text>
           <Card padding="none" style={styles.menuCard}>
-            {/* <ListItem
-              title="Edit Profile"
-              leftIcon="person-outline"
-              rightIcon="chevron-forward"
-              onPress={() => {}}
-            /> */}
-            {/* <ListItem
-              title="Notifications"
+            <ListItem
+              title="Notificaciones"
               leftIcon="notifications-outline"
               rightIcon="chevron-forward"
-              onPress={() => {}}
-            /> */}
+              onPress={() => Linking.openSettings()}
+            />
+            <ListItem
+              title="Cambiar contraseña"
+              leftIcon="lock-closed-outline"
+              rightIcon="chevron-forward"
+              onPress={() => router.push('/profile/change-password')}
+            />
             <ListItem
               title="Privacidad"
               leftIcon="shield-outline"
               rightIcon="chevron-forward"
-              onPress={() => {}}
+              onPress={() => Linking.openURL('https://maripuntos.com/privacidad')}
             />
             <ListItem
               title="Ayuda y Soporte"
               leftIcon="help-circle-outline"
               rightIcon="chevron-forward"
-              onPress={() => {}}
+              onPress={() =>
+                Linking.openURL(
+                  `mailto:${SUPPORT_EMAIL}?subject=Ayuda%20con%20MariPuntos`
+                )
+              }
             />
           </Card>
         </View>
@@ -231,11 +295,19 @@ export default function ProfileScreen() {
           icon="log-out-outline"
         />
 
-        <Text style={styles.footer}>
-          MariPuntos v1.0.0{'\n'}
-          Hecho con 💑 para parejas
+        <Text style={[styles.footer, { color: colors.text.light }]}>
+          MariPuntos v{Constants.expoConfig?.version || '1.0.0'}
         </Text>
       </ScrollView>
+
+      <EditProfileModal
+        visible={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSubmit={handleEditProfile}
+        currentFirstName={user?.firstName}
+        currentLastName={user?.lastName}
+        currentAvatarUrl={user?.avatarUrl}
+      />
     </View>
   );
 }
@@ -243,7 +315,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -254,13 +325,11 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.styles.h2,
-    color: colors.text.primary,
   },
   settingsButton: {
     width: 44,
     height: 44,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     ...shadows.sm,
@@ -284,18 +353,15 @@ const styles = StyleSheet.create({
   },
   profileName: {
     ...typography.styles.h3,
-    color: colors.text.primary,
     marginBottom: 2,
   },
   profileEmail: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
   },
   editButton: {
     width: 36,
     height: 36,
     borderRadius: borderRadius.full,
-    backgroundColor: `${colors.primary}15`,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -305,7 +371,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: colors.gray[100],
     marginBottom: spacing.md,
   },
   stat: {
@@ -314,16 +379,13 @@ const styles = StyleSheet.create({
   },
   statValue: {
     ...typography.styles.h3,
-    color: colors.primary,
     marginBottom: 2,
   },
   statLabel: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
   },
   statDivider: {
     width: 1,
-    backgroundColor: colors.gray[200],
   },
   levelProgress: {
     marginTop: spacing.sm,
@@ -335,11 +397,9 @@ const styles = StyleSheet.create({
   },
   levelLabel: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
   },
   levelProgressText: {
     ...typography.styles.caption,
-    color: colors.accent,
     textAlign: 'center',
     marginTop: spacing.sm,
   },
@@ -362,17 +422,14 @@ const styles = StyleSheet.create({
   },
   partnerName: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
     marginBottom: 2,
   },
   partnerPoints: {
     ...typography.styles.caption,
-    color: colors.primary,
   },
   partnerStatus: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: `${colors.success}15`,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
@@ -381,12 +438,10 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.success,
     marginRight: spacing.xs,
   },
   statusText: {
     ...typography.styles.small,
-    color: colors.success,
   },
   noPartnerCard: {
     alignItems: 'center',
@@ -396,19 +451,16 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: borderRadius.full,
-    backgroundColor: `${colors.primary}15`,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.md,
   },
   noPartnerTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   noPartnerText: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.md,
   },
@@ -417,7 +469,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.md,
   },
   menuCard: {
@@ -429,7 +480,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     ...typography.styles.small,
-    color: colors.text.light,
     textAlign: 'center',
     lineHeight: 18,
   },

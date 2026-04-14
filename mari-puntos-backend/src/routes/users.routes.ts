@@ -195,6 +195,7 @@ router.put('/profile', authMiddleware, asyncHandler(usersController.updateProfil
  *         description: Unauthorized
  */
 router.get('/stats', authMiddleware, asyncHandler(usersController.getStats));
+router.get('/achievements', authMiddleware, asyncHandler(usersController.getAchievements));
 
 /**
  * @swagger
@@ -226,6 +227,65 @@ router.post(
   '/deactivate',
   authMiddleware,
   asyncHandler(usersController.deactivateAccount)
+);
+
+/**
+ * @swagger
+ * /users/test-notification:
+ *   post:
+ *     summary: Send a test push notification
+ *     description: Send a test push notification to verify the push token works. You can customize the notification content or use defaults.
+ *     tags: [Users]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - pushToken
+ *             properties:
+ *               pushToken:
+ *                 type: string
+ *                 description: Expo push token to test
+ *                 example: ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]
+ *               title:
+ *                 type: string
+ *                 description: Notification title (optional, defaults to test title)
+ *                 example: 🎉 Acción aprobada
+ *               body:
+ *                 type: string
+ *                 description: Notification body (optional, defaults to test body)
+ *                 example: Tu acción ha sido aprobada. +10 puntos
+ *               data:
+ *                 type: object
+ *                 description: Custom data payload for the notification (optional, defaults to test data)
+ *                 example: {"type": "action_approved", "pointsAwarded": 10}
+ *     responses:
+ *       200:
+ *         description: Test notification sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Test notification sent successfully
+ *       400:
+ *         description: Invalid push token or validation error
+ *       401:
+ *         description: Unauthorized
+ */
+router.post(
+  '/test-notification',
+  authMiddleware,
+  asyncHandler(usersController.sendTestNotification)
 );
 
 export default router;

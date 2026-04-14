@@ -21,7 +21,7 @@ export class User {
   @Column({ unique: true })
   clerkId: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column({ nullable: true })
@@ -47,6 +47,9 @@ export class User {
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
+
+  @Column({ nullable: true })
+  pushToken: string;
 
   @CreateDateColumn()
   createdAt: Date;

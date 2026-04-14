@@ -1,8 +1,11 @@
 import { AppDataSource } from '../config/db';
 import { User } from '../entities/User';
+import { Achievement } from '../entities/Achievement';
+import { PartnerLinkStatus } from '../entities/PartnerLink';
 import { AppError } from '../middlewares/errorMiddleware';
 import { generatePartnerCode } from '../utils/helpers';
 import { CreateUserInput, UpdateUserInput } from '../validators/schemas';
+import { logger } from '../utils/logger';
 
 export class UsersService {
   private userRepository = AppDataSource.getRepository(User);
@@ -30,48 +33,131 @@ export class UsersService {
   /**
    * Create a new user
    */
-  async createUser(data: CreateUserInput): Promise<User> {
+  async createUser(clerkId: string, data: CreateUserInput): Promise<User> {
+    logger.info({ message: 'Creating user with clerkId', clerkId });
+
     // Check if user already exists with this clerkId
-    const existingUser = await this.userRepository.findOne({ 
-      where: { clerkId: data.clerkId } 
+    const existingUser = await this.userRepository.findOne({
+      where: { clerkId },
     });
 
     if (existingUser) {
+      logger.warn({ message: 'User already exists with clerkId', clerkId });
       throw new AppError(409, 'El usuario ya existe');
     }
 
     // Check if email is already in use
-    const emailInUse = await this.userRepository.findOne({ 
-      where: { email: data.email } 
+    const emailInUse = await this.userRepository.findOne({
+      where: { email: data.email },
     });
 
     if (emailInUse) {
+      logger.warn({ message: 'Email already in use', email: data.email });
       throw new AppError(409, 'El correo electrónico ya está en uso');
     }
 
+    // Fetch user from Clerk to get the imageUrl
+    let avatarUrl: string | undefined = data.avatarUrl;
+    try {
+      const { clerkClient } = await import('../config/clerk');
+      const clerkUser = await clerkClient.users.getUser(clerkId);
+      if (clerkUser.imageUrl) {
+        avatarUrl = clerkUser.imageUrl;
+        logger.debug({ message: 'Fetched avatar URL from Clerk', avatarUrl });
+      }
+    } catch (clerkError) {
+      logger.warn({ err: clerkError }, 'Failed to fetch avatar from Clerk, using provided avatarUrl');
+    }
+
     const user = this.userRepository.create({
-      clerkId: data.clerkId,
+      clerkId,
       email: data.email,
       firstName: data.firstName,
       lastName: data.lastName,
-      avatarUrl: data.avatarUrl,
+      avatarUrl,
     });
 
-    return this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+    logger.info({ message: 'User created successfully with id', userId: savedUser.id });
+
+    return savedUser;
   }
 
   /**
    * Update user profile - returns user and hasPartner flag
+   * Also updates Clerk profile if firstName, lastName, or profileImage are provided
    */
-  async updateUser(userId: string, data: UpdateUserInput): Promise<{ user: User; hasPartner: boolean }> {
+  async updateUser(
+    userId: string,
+    data: UpdateUserInput
+  ): Promise<{ user: User; hasPartner: boolean }> {
+    logger.debug({ message: 'Updating user', userId });
+
     const user = await this.getUserById(userId);
 
+    // Update Clerk profile if needed
+    if (
+      data.firstName !== undefined ||
+      data.lastName !== undefined ||
+      data.profileImage !== undefined
+    ) {
+      try {
+        const { clerkClient } = await import('../config/clerk');
+
+        // Update profile image in Clerk if provided
+        if (data.profileImage) {
+          logger.debug({ message: 'Updating profile image in Clerk', userId });
+
+          // Convert base64 to Blob for Clerk API
+          const base64Data = data.profileImage.replace(/^data:image\/\w+;base64,/, '');
+          const buffer = Buffer.from(base64Data, 'base64');
+          const blob = new Blob([buffer], { type: 'image/jpeg' });
+
+          await clerkClient.users.updateUserProfileImage(user.clerkId, {
+            file: blob as File,
+          });
+        }
+
+        // Update firstName/lastName in Clerk if provided
+        if (data.firstName !== undefined || data.lastName !== undefined) {
+          logger.debug({ message: 'Updating user name in Clerk', userId });
+          await clerkClient.users.updateUser(user.clerkId, {
+            firstName: data.firstName,
+            lastName: data.lastName,
+          });
+        }
+
+        logger.info({ message: 'Clerk profile updated successfully', userId });
+
+        // Fetch updated user from Clerk to get the new imageUrl
+        const clerkUser = await clerkClient.users.getUser(user.clerkId);
+        if (clerkUser.imageUrl) {
+          user.avatarUrl = clerkUser.imageUrl;
+          logger.debug({
+            message: 'Synced avatar URL from Clerk',
+            avatarUrl: clerkUser.imageUrl,
+          });
+        }
+      } catch (clerkError) {
+        logger.error({ err: clerkError, userId }, 'Failed to update Clerk profile');
+        const errorMessage =
+          clerkError instanceof Error ? clerkError.message : 'Unknown error';
+        throw new Error(`Failed to update profile in Clerk: ${errorMessage}`, {
+          cause: clerkError,
+        });
+      }
+    }
+
+    // Update local database
     if (data.firstName !== undefined) user.firstName = data.firstName;
     if (data.lastName !== undefined) user.lastName = data.lastName;
+    if (data.pushToken !== undefined) user.pushToken = data.pushToken;
 
     await this.userRepository.save(user);
 
     const hasPartner = this.checkHasPartner(user);
+
+    logger.debug({ message: 'User updated successfully', userId });
 
     return { user, hasPartner };
   }
@@ -91,7 +177,7 @@ export class UsersService {
    */
   private checkHasPartner(user: User): boolean {
     const partnerLink = user.partnerLinkAsUser1 || user.partnerLinkAsUser2;
-    return !!partnerLink && partnerLink.status === 'active';
+    return !!partnerLink && partnerLink.status === PartnerLinkStatus.ACTIVE;
   }
 
   async getUserStats(userId: string): Promise<{
@@ -105,29 +191,14 @@ export class UsersService {
   }> {
     const user = await this.getUserById(userId);
 
-    // Get actions count
-    const actionsCount = await AppDataSource.query(
-      'SELECT COUNT(*) as count FROM actions WHERE "userId" = $1',
-      [userId]
-    );
-
-    // Get approved actions count
-    const approvedActionsCount = await AppDataSource.query(
-      'SELECT COUNT(*) as count FROM actions WHERE "userId" = $1 AND status = $2',
-      [userId, 'approved']
-    );
-
-    // Get permissions count
-    const permissionsCount = await AppDataSource.query(
-      'SELECT COUNT(*) as count FROM permissions WHERE "requesterId" = $1',
-      [userId]
-    );
-
-    // Get achievements count
-    const achievementsCount = await AppDataSource.query(
-      'SELECT COUNT(*) as count FROM achievements WHERE "userId" = $1 AND "isUnlocked" = true',
-      [userId]
-    );
+    // Parallel queries — all fire simultaneously on a single connection slot
+    const [actionsCount, approvedActionsCount, permissionsCount, achievementsCount] =
+      await Promise.all([
+        AppDataSource.query('SELECT COUNT(*) as count FROM actions WHERE "userId" = $1', [userId]),
+        AppDataSource.query('SELECT COUNT(*) as count FROM actions WHERE "userId" = $1 AND status = $2', [userId, 'approved']),
+        AppDataSource.query('SELECT COUNT(*) as count FROM permissions WHERE "requesterId" = $1', [userId]),
+        AppDataSource.query('SELECT COUNT(*) as count FROM achievements WHERE "userId" = $1 AND "isUnlocked" = true', [userId]),
+      ]);
 
     return {
       totalPoints: user.totalPoints,
@@ -140,19 +211,25 @@ export class UsersService {
     };
   }
 
-  async generateUniquePartnerCode(): Promise<string> {
-    let code: string;
-    let exists = true;
+  async getUserAchievements(userId: string): Promise<Achievement[]> {
+    await this.getUserById(userId); // validates user exists
+    const achievementRepository = AppDataSource.getRepository(Achievement);
+    return achievementRepository.find({
+      where: { userId },
+      order: { unlockedAt: 'DESC', createdAt: 'DESC' },
+    });
+  }
 
-    while (exists) {
-      code = generatePartnerCode();
+  async generateUniquePartnerCode(): Promise<string> {
+    const MAX_ATTEMPTS = 10;
+    for (let i = 0; i < MAX_ATTEMPTS; i++) {
+      const code = generatePartnerCode();
       const existingUser = await this.userRepository.findOne({
         where: { partnerCode: code },
       });
-      exists = !!existingUser;
+      if (!existingUser) return code;
     }
-
-    return code!;
+    throw new AppError(500, 'No se pudo generar un código único. Intenta de nuevo.');
   }
 
   async deactivateUser(userId: string): Promise<void> {

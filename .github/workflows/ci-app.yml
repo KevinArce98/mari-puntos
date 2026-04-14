@@ -1,0 +1,44 @@
+name: CI - Mobile App
+
+on:
+  pull_request:
+    paths:
+      - 'mari-puntos-app/**'
+      - '.github/workflows/ci-app.yml'
+
+defaults:
+  run:
+    working-directory: mari-puntos-app
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & TypeCheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Yarn
+        run: corepack enable && corepack prepare yarn@1.22.22 --activate
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: mari-puntos-app/node_modules
+          key: ${{ runner.os }}-yarn-app-${{ hashFiles('mari-puntos-app/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-app-
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: TypeCheck
+        run: npx tsc --noEmit

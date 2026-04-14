@@ -1,5 +1,3 @@
-// filepath: /Users/kevinarias/Projects/mari-puntos-backend/src/utils/mappers.ts
-
 /**
  * Mapper functions to convert DB entities to API DTOs
  * These ensure we never leak raw DB models to the frontend
@@ -174,6 +172,7 @@ export function toPermissionDTO(permission: Permission): PermissionDTO {
       lastName: permission.requester.lastName,
       email: permission.requester.email,
       avatarUrl: permission.requester.avatarUrl || undefined,
+      totalPoints: permission.requester.totalPoints,
     } : undefined,
     approver: permission.approver ? {
       id: permission.approver.id,

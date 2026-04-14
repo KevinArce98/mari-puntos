@@ -1,18 +1,20 @@
 import { AppDataSource } from '../config/db';
+import { calculateLevel, calculatePointsInCurrentLevel } from '../utils/helpers';
+import { DeepPartial } from 'typeorm';
 import { Reward, RewardCategory } from '../entities/Reward';
 import { User } from '../entities/User';
 import { Log, LogType } from '../entities/Log';
 import { AppError } from '../middlewares/errorMiddleware';
-import { PointsService } from './points.service';
 import { CreateRewardInput, UpdateRewardInput } from '../validators/schemas';
+import { logger } from '../utils/logger';
 
 export class RewardsService {
   private rewardRepository = AppDataSource.getRepository(Reward);
   private userRepository = AppDataSource.getRepository(User);
-  private logRepository = AppDataSource.getRepository(Log);
-  private pointsService = new PointsService();
 
   async createReward(userId: string, data: CreateRewardInput): Promise<Reward> {
+    logger.info({ message: 'Creating reward', userId, rewardData: data });
+
     // Get user's partner link
     const user = await this.userRepository.findOne({
       where: { id: userId },
@@ -20,6 +22,7 @@ export class RewardsService {
     });
 
     if (!user) {
+      logger.warn({ message: 'User not found for reward creation', userId });
       throw new AppError(404, 'Usuario no encontrado');
     }
 
@@ -39,9 +42,10 @@ export class RewardsService {
       isCustom: true,
     });
 
-    await this.rewardRepository.save(reward);
+    const savedReward = await this.rewardRepository.save(reward);
+    logger.info({ message: 'Reward created successfully', userId, rewardId: savedReward.id });
 
-    return reward;
+    return savedReward;
   }
 
   async getRewardById(rewardId: string): Promise<Reward> {
@@ -142,52 +146,80 @@ export class RewardsService {
   }
 
   async redeemReward(userId: string, rewardId: string): Promise<void> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-
-    if (!user) {
-      throw new AppError(404, 'Usuario no encontrado');
-    }
-
     const reward = await this.getRewardById(rewardId);
 
     if (!reward.isActive) {
       throw new AppError(400, 'La recompensa no está activa');
     }
 
-    if (user.totalPoints < reward.pointsCost) {
-      throw new AppError(400, 'Puntos insuficientes');
-    }
+    await AppDataSource.transaction(async (manager) => {
+      const userRepo = manager.getRepository(User);
+      const rewardRepo = manager.getRepository(Reward);
+      const logRepo = manager.getRepository(Log);
 
-    if (reward.requiredLevel && user.currentLevel < reward.requiredLevel) {
-      throw new AppError(400, 'No cumples con el nivel requerido');
-    }
+      // Pessimistic lock to prevent concurrent redeem races
+      const user = await userRepo.findOne({
+        where: { id: userId },
+        lock: { mode: 'pessimistic_write' },
+      });
 
-    // Deduct points
-    await this.pointsService.deductPoints(
-      userId,
-      reward.pointsCost,
-      `Recompensa canjeada: ${reward.title}`
-    );
+      if (!user) throw new AppError(404, 'Usuario no encontrado');
+      if (user.totalPoints < reward.pointsCost) throw new AppError(400, 'Puntos insuficientes');
+      if (reward.requiredLevel && user.currentLevel < reward.requiredLevel) {
+        throw new AppError(400, 'No cumples con el nivel requerido');
+      }
 
-    // Update reward stats
-    reward.timesRedeemed += 1;
-    await this.rewardRepository.save(reward);
+      user.totalPoints -= reward.pointsCost;
+      user.currentLevel = calculateLevel(user.totalPoints);
+      user.pointsInCurrentLevel = calculatePointsInCurrentLevel(user.totalPoints);
+      await userRepo.save(user);
 
-    // Create log
-    await this.logRepository.save(
-      this.logRepository.create({
-        userId,
-        type: LogType.REWARD_REDEEMED,
-        message: `Recompensa canjeada: ${reward.title}`,
-        pointsChange: -reward.pointsCost,
-        relatedEntityId: reward.id,
-        relatedEntityType: 'Reward',
-      })
-    );
+      reward.timesRedeemed += 1;
+      await rewardRepo.save(reward);
+
+      await logRepo.save(
+        logRepo.create({
+          userId,
+          type: LogType.REWARD_REDEEMED,
+          message: `Recompensa canjeada: ${reward.title}`,
+          pointsChange: -reward.pointsCost,
+          relatedEntityId: reward.id,
+          relatedEntityType: 'Reward',
+        })
+      );
+    });
   }
 
-  async updateReward(rewardId: string, data: UpdateRewardInput): Promise<Reward> {
+  /**
+   * Authorize user for reward mutation (update/delete).
+   * System rewards (isCustom=false) are immutable.
+   * Custom rewards: only members of the same partner link may mutate.
+   */
+  private async authorizeRewardMutation(userId: string, reward: Reward): Promise<void> {
+    if (!reward.isCustom) {
+      throw new AppError(403, 'No puedes modificar recompensas del sistema');
+    }
+
+    if (reward.createdBy === userId) return;
+
+    if (!reward.partnerLinkId) {
+      throw new AppError(403, 'No tienes permiso sobre esta recompensa');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['partnerLinkAsUser1', 'partnerLinkAsUser2'],
+    });
+
+    const partnerLink = user?.partnerLinkAsUser1 || user?.partnerLinkAsUser2;
+    if (!partnerLink || partnerLink.id !== reward.partnerLinkId) {
+      throw new AppError(403, 'No tienes permiso sobre esta recompensa');
+    }
+  }
+
+  async updateReward(userId: string, rewardId: string, data: UpdateRewardInput): Promise<Reward> {
     const reward = await this.getRewardById(rewardId);
+    await this.authorizeRewardMutation(userId, reward);
 
     if (data.title !== undefined) reward.title = data.title;
     if (data.description !== undefined) reward.description = data.description;
@@ -202,8 +234,9 @@ export class RewardsService {
     return reward;
   }
 
-  async deleteReward(rewardId: string): Promise<void> {
+  async deleteReward(userId: string, rewardId: string): Promise<void> {
     const reward = await this.getRewardById(rewardId);
+    await this.authorizeRewardMutation(userId, reward);
 
     if (reward.timesRedeemed > 0) {
       // Don't delete, just deactivate
@@ -215,6 +248,17 @@ export class RewardsService {
   }
 
   async seedDefaultRewards(): Promise<void> {
+    // Use a single count query as fast-path: if any system rewards exist, skip seeding entirely.
+    // System rewards are identified by isCustom=false and no partnerLinkId.
+    const existingCount = await this.rewardRepository.count({
+      where: { isCustom: false },
+    });
+
+    if (existingCount > 0) {
+      logger.debug({ message: 'Default rewards already seeded, skipping' });
+      return;
+    }
+
     const defaultRewards = [
       {
         title: 'Gaming Night (2 hours)',
@@ -258,15 +302,10 @@ export class RewardsService {
       },
     ];
 
-    for (const rewardData of defaultRewards) {
-      const exists = await this.rewardRepository.findOne({
-        where: { title: rewardData.title },
-      });
-
-      if (!exists) {
-        const reward = this.rewardRepository.create(rewardData as any);
-        await this.rewardRepository.save(reward);
-      }
-    }
+    const rewards = defaultRewards.map((r) =>
+      this.rewardRepository.create(r as DeepPartial<Reward>)
+    );
+    await this.rewardRepository.save(rewards);
+    logger.info({ message: 'Default rewards seeded', count: rewards.length });
   }
 }

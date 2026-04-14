@@ -1,0 +1,68 @@
+name: CD - App Build & Submit
+
+on:
+  push:
+    tags:
+      - 'mari-puntos-app@*'
+
+defaults:
+  run:
+    working-directory: mari-puntos-app
+
+jobs:
+  build-ios:
+    name: Build iOS (Production)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install Yarn
+        run: corepack enable && corepack prepare yarn@1.22.22 --activate
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build iOS
+        run: eas build --platform ios --profile production --non-interactive
+
+      - name: Submit to App Store
+        run: eas submit --platform ios --latest --non-interactive
+
+  build-android:
+    name: Build Android (Production)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install Yarn
+        run: corepack enable && corepack prepare yarn@1.22.22 --activate
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build Android
+        run: eas build --platform android --profile production --non-interactive

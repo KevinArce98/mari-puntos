@@ -21,6 +21,7 @@ export enum LogType {
   ACTION_REJECTED = 'action_rejected',
   REWARD_REDEEMED = 'reward_redeemed',
   PARTNER_LINKED = 'partner_linked',
+  PARTNER_UNLINKED = 'partner_unlinked',
   OTHER = 'other',
 }
 
@@ -51,13 +52,13 @@ export class Log {
   relatedEntityType: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 
   @CreateDateColumn()
   createdAt: Date;
 
   // Relations
-  @ManyToOne(() => User, (user) => user.logs)
+  @ManyToOne(() => User, (user) => user.logs, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
 }

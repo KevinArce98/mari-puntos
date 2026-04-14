@@ -283,6 +283,57 @@ router.post('/:id/respond', authMiddleware, asyncHandler(permissionsController.r
  *       404:
  *         description: Permission not found
  */
+router.patch('/:id', authMiddleware, asyncHandler(permissionsController.updatePermission));
+
+/**
+ * @swagger
+ * /permissions/{id}:
+ *   delete:
+ *     summary: Delete/cancel a pending permission request
+ *     description: Delete a permission request. Only pending permissions can be deleted.
+ *     tags: [Permissions]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Permission deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     success:
+ *                       type: boolean
+ *                       example: true
+ *                 message:
+ *                   type: string
+ *                   example: Permission deleted successfully
+ *       400:
+ *         description: Permission cannot be deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Only owner can delete permission
+ *       404:
+ *         description: Permission not found
+ */
 router.delete('/:id', authMiddleware, asyncHandler(permissionsController.deletePermission));
 
 export default router;

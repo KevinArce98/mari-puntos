@@ -1,60 +1,96 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { Badge, Button, Card, ResponseModal } from './ui';
-import { colors, spacing, typography } from '@/theme';
+import { spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import { Permission } from '@/types';
-import {
-  formatDate,
-  formatDateOnly,
-  getStatusColor,
-  getStatusText,
-} from '@/utils/general';
+import { getStatusColor, getStatusText } from '@/utils/general';
 import { useState } from 'react';
+import { ResponseMessageFormData } from '@/validators/action.schema';
+import { formatDateOnly, formatDateWithTime } from '@/utils';
 
 interface Props {
   permission: Permission;
   handleRespond: (
     permissionId: string,
     approved: boolean,
-    message: string
+    data: ResponseMessageFormData
   ) => Promise<void>;
   loading: string | null;
 }
 
 export function PermissionCard({ permission, handleRespond, loading }: Props) {
+  const colors = useThemedColors();
+  const colorScheme = useColorScheme();
   const [modalVisible, setModalVisible] = useState(false);
 
-  const handleApprove = async (message: string) => {
-    await handleRespond(permission.id, true, message);
+  const handleApprove = async (data: ResponseMessageFormData) => {
+    await handleRespond(permission.id, true, data);
     setModalVisible(false);
   };
 
-  const handleReject = async (message: string) => {
-    await handleRespond(permission.id, false, message);
+  const handleReject = async (data: ResponseMessageFormData) => {
+    await handleRespond(permission.id, false, data);
     setModalVisible(false);
   };
+
+  const requesterPoints = permission.requester?.totalPoints ?? 0;
+  const displayPointsCost = permission.pointsCost ?? 0;
+  const hasInsufficientPoints =
+    permission.status === 'pending' &&
+    displayPointsCost > 0 &&
+    requesterPoints < displayPointsCost;
 
   return (
     <>
       <Card key={permission.id} style={styles.permissionCard}>
         <View style={styles.permissionHeader}>
-          <Text style={styles.permissionName}>
-            {permission.template?.title || 'Permiso sin título'}
+          <Text style={[styles.permissionName, { color: colors.text.primary }]}>
+            {permission.template?.title || 'Solicitud sin título'}
           </Text>
-          <Text style={styles.permissionPoints}>{permission.pointsCost} pts</Text>
+          {displayPointsCost > 0 && (
+            <Text style={[styles.permissionPoints, { color: colors.primary }]}>
+              {displayPointsCost} pts
+            </Text>
+          )}
         </View>
-        <Text style={styles.permissionDate}>
-          Fecha solicitada: {formatDate(permission.requestedDate)}
+        <Text style={[styles.permissionDate, { color: colors.text.secondary }]}>
+          Fecha solicitada: {formatDateWithTime(permission.requestedDate)}
         </Text>
-        <Text style={styles.permissionDate}>
+        <Text style={[styles.permissionDate, { color: colors.text.secondary }]}>
           Duración: {permission.durationHours} horas
         </Text>
         {permission.template?.description && (
-          <Text style={styles.permissionMessage}>{permission.template.description}</Text>
+          <Text
+            style={[
+              styles.permissionMessage,
+              { color: colors.text.primary, borderLeftColor: colors.primary },
+            ]}
+          >
+            {permission.template.description}
+          </Text>
         )}
-        <Text style={styles.permissionFrom}>
+        <Text style={[styles.permissionFrom, { color: colors.text.secondary }]}>
           De: {permission.requester?.firstName} {permission.requester?.lastName}
         </Text>
-        <Text style={styles.permissionFrom}>
+
+        {/* Show requester's available points */}
+        {permission.status === 'pending' && permission.requester && (
+          <View style={[styles.pointsInfo, { backgroundColor: colors.gray[50] }]}>
+            <Text style={[styles.pointsInfoLabel, { color: colors.text.secondary }]}>
+              Puntos disponibles:
+            </Text>
+            <Text style={[styles.pointsInfoValue, { color: colors.primary }]}>
+              {requesterPoints} pts
+            </Text>
+            {hasInsufficientPoints && (
+              <Text style={[styles.warningText, { color: colors.error }]}>
+                ⚠️ Tu pareja no tiene suficientes puntos para esta solicitud
+              </Text>
+            )}
+          </View>
+        )}
+
+        <Text style={[styles.permissionFrom, { color: colors.text.secondary }]}>
           Fecha creación: {formatDateOnly(permission.createdAt)}
         </Text>
         {permission.status === 'pending' ? (
@@ -64,6 +100,7 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
               onPress={() => setModalVisible(true)}
               size="sm"
               style={styles.actionButton}
+              disabled={hasInsufficientPoints}
             />
           </View>
         ) : (
@@ -72,7 +109,7 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
               label={getStatusText(permission.status)}
               variant="primary"
               size="sm"
-              style={{ backgroundColor: getStatusColor(permission.status) }}
+              style={{ backgroundColor: getStatusColor(permission.status, colorScheme) }}
             />
           </View>
         )}
@@ -102,26 +139,21 @@ const styles = StyleSheet.create({
   },
   permissionName: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     flex: 1,
   },
   permissionPoints: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
   permissionFrom: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginBottom: spacing.xs,
   },
   permissionMessage: {
     ...typography.styles.body,
-    color: colors.text.primary,
     fontStyle: 'italic',
     marginBottom: spacing.sm,
     paddingLeft: spacing.md,
     borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
   },
   permissionDate: {
     ...typography.styles.body,
@@ -134,5 +166,33 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
+  },
+  pointsInfo: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: spacing.xs,
+    borderRadius: 8,
+    padding: spacing.sm,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  pointsInfoLabel: {
+    ...typography.styles.caption,
+  },
+  pointsInfoValue: {
+    ...typography.styles.bodyMedium,
+    fontFamily: 'PlusJakartaSans-SemiBold',
+  },
+  pointsInsufficient: {},
+  warningContainer: {
+    borderRadius: 8,
+    padding: spacing.sm,
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  warningText: {
+    ...typography.styles.caption,
+    textAlign: 'center',
   },
 });

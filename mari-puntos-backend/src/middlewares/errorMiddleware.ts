@@ -3,6 +3,7 @@ import { ZodError } from 'zod';
 import { config } from '../config/env';
 import { sendError, sendNotFound, sendInternalError } from '../utils/response';
 import { ErrorCode, ErrorCodeToHttpStatus } from '../shared/constants';
+import { logger } from '../utils/logger';
 
 /**
  * Custom application error
@@ -41,16 +42,14 @@ export const errorMiddleware = (
   res: Response,
   _next: NextFunction
 ): void => {
-  // Log error details only in development
-  if (config.isDevelopment) {
-    console.error('Error:', err);
+  const logPayload = config.isDevelopment
+    ? { err }
+    : { name: err.name, message: err.message };
+
+  if (err instanceof AppError && err.statusCode < 500) {
+    logger.warn(logPayload, 'Client error');
   } else {
-    // In production, log only safe information
-    console.error('Error occurred:', {
-      name: err.name,
-      message: err.message,
-      stack: err instanceof AppError ? undefined : err.stack,
-    });
+    logger.error(logPayload, 'Unhandled error');
   }
 
   // Zod validation errors - format as { success: false, error: string, details: [] }
@@ -111,7 +110,7 @@ export const notFoundMiddleware = (
  * Async handler wrapper to catch errors in async route handlers
  */
 export const asyncHandler = (
-  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>
+  fn: (req: Request, res: Response, next: NextFunction) => Promise<void>
 ) => {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);

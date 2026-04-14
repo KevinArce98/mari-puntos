@@ -1,5 +1,5 @@
-// filepath: /Users/kevinarias/Projects/mari-puntos-app/components/ui/PointsCard.tsx
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { borderRadius, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
@@ -18,11 +18,17 @@ export const PointsCard: React.FC<PointsCardProps> = ({
   style,
   variant = 'default',
 }) => {
+  const colors = useThemedColors();
+
   if (variant === 'compact') {
     return (
-      <View style={[styles.compactContainer, style]}>
+      <View
+        style={[styles.compactContainer, { backgroundColor: colors.gray[100] }, style]}
+      >
         <Ionicons name="trophy" size={20} color={colors.accent} />
-        <Text style={styles.compactPoints}>{points.toLocaleString()}</Text>
+        <Text style={[styles.compactPoints, { color: colors.text.primary }]}>
+          {points.toLocaleString()}
+        </Text>
       </View>
     );
   }
@@ -39,7 +45,9 @@ export const PointsCard: React.FC<PointsCardProps> = ({
       </View>
       <View style={styles.content}>
         <Text style={styles.label}>{label}</Text>
-        <Text style={styles.points}>{points.toLocaleString()}</Text>
+        <Text style={[styles.points, { color: colors.text.white }]}>
+          {points.toLocaleString()}
+        </Text>
         <Text style={styles.unit}>MariPuntos</Text>
       </View>
     </LinearGradient>
@@ -72,7 +80,6 @@ const styles = StyleSheet.create({
   },
   points: {
     ...typography.styles.pointsMedium,
-    color: colors.white,
     lineHeight: 52,
   },
   unit: {
@@ -83,7 +90,6 @@ const styles = StyleSheet.create({
   compactContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
@@ -91,6 +97,5 @@ const styles = StyleSheet.create({
   },
   compactPoints: {
     ...typography.styles.h4,
-    color: colors.text.primary,
   },
 });

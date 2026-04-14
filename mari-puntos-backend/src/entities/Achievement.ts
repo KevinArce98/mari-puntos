@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Unique,
 } from 'typeorm';
 import { User } from './User';
 
@@ -19,6 +20,7 @@ export enum AchievementType {
 }
 
 @Entity('achievements')
+@Unique('UQ_achievement_user_type_value', ['userId', 'type', 'requiredValue'])
 export class Achievement {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -60,7 +62,7 @@ export class Achievement {
   currentProgress: number;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -69,7 +71,7 @@ export class Achievement {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, (user) => user.achievements)
+  @ManyToOne(() => User, (user) => user.achievements, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
 }

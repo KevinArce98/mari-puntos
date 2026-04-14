@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { config } from '../config/env';
+import { sendError } from '../utils/response';
 
 interface RateLimitStore {
   [key: string]: {
@@ -62,11 +63,9 @@ export const rateLimitMiddleware = (
 
   // Check if limit exceeded
   if (store[ip].count > maxRequests) {
-    res.status(429).json({
-      success: false,
-      error: 'Demasiadas solicitudes. Por favor intenta más tarde.',
-      retryAfter: Math.ceil((store[ip].resetTime - now) / 1000),
-    });
+    const retryAfterSeconds = Math.ceil((store[ip].resetTime - now) / 1000);
+    res.setHeader('Retry-After', retryAfterSeconds.toString());
+    sendError(res, 'Demasiadas solicitudes. Por favor intenta más tarde.', 429);
     return;
   }
 

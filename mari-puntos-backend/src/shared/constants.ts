@@ -1,5 +1,3 @@
-// filepath: /Users/kevinarias/Projects/mari-puntos-backend/src/shared/constants.ts
-
 /**
  * Shared constants and enums for MariPuntos API
  * ⚠️ These MUST match the frontend types exactly - frontend is source of truth
@@ -100,6 +98,7 @@ export const LogType = {
   ACTION_REJECTED: 'action_rejected',
   REWARD_REDEEMED: 'reward_redeemed',
   PARTNER_LINKED: 'partner_linked',
+  PARTNER_UNLINKED: 'partner_unlinked',
   OTHER: 'other',
 } as const;
 

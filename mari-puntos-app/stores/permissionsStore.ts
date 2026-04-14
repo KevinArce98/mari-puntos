@@ -6,10 +6,17 @@ import {
   GetPermissionsParams,
   PermissionStatus,
 } from '@/types';
+import { useUserStore } from './userStore';
+import logger from '@/utils/logger';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 interface PermissionsState {
   myPermissions: Permission[];
   partnerPermissions: Permission[];
+  isLoadingMyPermissions: boolean;
+  isLoadingPartnerPermissions: boolean;
+  isMutating: boolean;
+  /** Combined loading flag for backwards compatibility */
   isLoading: boolean;
   error: string | null;
 
@@ -17,10 +24,15 @@ interface PermissionsState {
   fetchMyPermissions: (params?: GetPermissionsParams) => Promise<void>;
   fetchPartnerPermissions: (params?: GetPermissionsParams) => Promise<void>;
   createPermission: (data: CreatePermissionRequest) => Promise<void>;
+  updatePermission: (
+    permissionId: string,
+    data: Partial<CreatePermissionRequest>
+  ) => Promise<void>;
   respondToPermission: (
     permissionId: string,
     approved: boolean,
-    responseMessage?: string
+    responseMessage?: string,
+    pointsCost?: number
   ) => Promise<void>;
   cancelPermission: (permissionId: string) => Promise<void>;
   clearPermissions: () => void;
@@ -29,72 +41,144 @@ interface PermissionsState {
 export const usePermissionsStore = create<PermissionsState>((set, get) => ({
   myPermissions: [],
   partnerPermissions: [],
+  isLoadingMyPermissions: false,
+  isLoadingPartnerPermissions: false,
+  isMutating: false,
   isLoading: false,
   error: null,
 
   fetchMyPermissions: async (params) => {
-    set({ isLoading: true, error: null });
+    set((s) => ({ isLoadingMyPermissions: true, isLoading: true, error: null }));
     try {
       const response = await permissionsService.getMyPermissions(params);
-      set({ myPermissions: response.data, isLoading: false });
-    } catch (error: any) {
-      set({ error: error.error || 'Failed to fetch permissions', isLoading: false });
+      set((s) => ({
+        myPermissions: response.data,
+        isLoadingMyPermissions: false,
+        isLoading: s.isLoadingPartnerPermissions || s.isMutating,
+      }));
+      logger.debug('My permissions fetched successfully', {
+        count: response.data.length,
+        params,
+      });
+    } catch (error: unknown) {
+      logger.error('Failed to fetch my permissions', error as Error, { params });
+      set((s) => ({
+        error: getErrorMessage(error),
+        isLoadingMyPermissions: false,
+        isLoading: s.isLoadingPartnerPermissions || s.isMutating,
+      }));
       throw error;
     }
   },
 
   fetchPartnerPermissions: async (params) => {
-    set({ isLoading: true, error: null });
+    set((s) => ({ isLoadingPartnerPermissions: true, isLoading: true, error: null }));
     try {
       const response = await permissionsService.getPartnerPermissions(params);
-      set({ partnerPermissions: response.data, isLoading: false });
-    } catch (error: any) {
-      set({
-        error: error.error || 'Failed to fetch partner permissions',
-        isLoading: false,
+      set((s) => ({
+        partnerPermissions: response.data,
+        isLoadingPartnerPermissions: false,
+        isLoading: s.isLoadingMyPermissions || s.isMutating,
+      }));
+      logger.debug('Partner permissions fetched successfully', {
+        count: response.data.length,
+        params,
       });
+    } catch (error: unknown) {
+      logger.error('Failed to fetch partner permissions', error as Error, { params });
+      set((s) => ({
+        error: getErrorMessage(error),
+        isLoadingPartnerPermissions: false,
+        isLoading: s.isLoadingMyPermissions || s.isMutating,
+      }));
       throw error;
     }
   },
 
   createPermission: async (data) => {
-    set({ isLoading: true, error: null });
+    set({ isMutating: true, isLoading: true, error: null });
     try {
       await permissionsService.createPermission(data);
-      // Refetch my permissions
+      logger.info('Permission created successfully', { templateId: data.templateId });
       await get().fetchMyPermissions({ status: PermissionStatus.PENDING });
-      set({ isLoading: false });
-    } catch (error: any) {
-      set({ error: error.error || 'Failed to create permission', isLoading: false });
+      set((s) => ({
+        isMutating: false,
+        isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
+      }));
+    } catch (error: unknown) {
+      logger.error('Failed to create permission', error as Error, { data });
+      set((s) => ({
+        error: getErrorMessage(error),
+        isMutating: false,
+        isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
+      }));
       throw error;
     }
   },
 
-  respondToPermission: async (permissionId, approved, responseMessage) => {
-    set({ isLoading: true, error: null });
+  updatePermission: async (permissionId, data) => {
+    set({ isMutating: true, isLoading: true, error: null });
+    try {
+      await permissionsService.updatePermission(permissionId, data);
+      logger.info('Permission updated successfully', { permissionId });
+      await get().fetchMyPermissions();
+      set((s) => ({
+        isMutating: false,
+        isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
+      }));
+    } catch (error: unknown) {
+      logger.error('Failed to update permission', error as Error, { permissionId, data });
+      set((s) => ({
+        error: getErrorMessage(error),
+        isMutating: false,
+        isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
+      }));
+      throw error;
+    }
+  },
+
+  respondToPermission: async (permissionId, approved, responseMessage, pointsCost) => {
+    set({ isMutating: true, isLoading: true, error: null });
     try {
       await permissionsService.respondToPermission(permissionId, {
         approved,
         responseMessage,
+        pointsCost,
       });
-      // Refetch partner permissions
       await get().fetchPartnerPermissions({ status: PermissionStatus.PENDING });
-      set({ isLoading: false });
-    } catch (error: any) {
-      set({ error: error.error || 'Failed to respond to permission', isLoading: false });
+      // Update partner info to refresh points (use getState() to avoid circular import)
+      await useUserStore.getState().fetchPartnerInfo();
+      set((s) => ({
+        isMutating: false,
+        isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
+      }));
+    } catch (error: unknown) {
+      logger.error('Failed to respond to permission', error as Error, { permissionId });
+      set((s) => ({
+        error: getErrorMessage(error),
+        isMutating: false,
+        isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
+      }));
       throw error;
     }
   },
 
   cancelPermission: async (permissionId: string) => {
-    set({ isLoading: true, error: null });
+    set({ isMutating: true, isLoading: true, error: null });
     try {
       await permissionsService.cancelPermission(permissionId);
-      // Refetch my permissions
       await get().fetchMyPermissions({ status: PermissionStatus.PENDING });
-      set({ isLoading: false });
-    } catch (error: any) {
-      set({ error: error.error || 'Failed to cancel permission', isLoading: false });
+      set((s) => ({
+        isMutating: false,
+        isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
+      }));
+    } catch (error: unknown) {
+      logger.error('Failed to cancel permission', error as Error, { permissionId });
+      set((s) => ({
+        error: getErrorMessage(error),
+        isMutating: false,
+        isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
+      }));
       throw error;
     }
   },

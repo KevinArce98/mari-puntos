@@ -1,14 +1,36 @@
+import React, { useCallback } from 'react';
+import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { HapticTab } from '@/components/haptic-tab';
-import { borderRadius, colors, shadows } from '@/theme';
+import { shadows } from '@/theme';
+import { useUser, useThemedColors } from '@/hooks';
+import { useActionsStore, usePermissionsStore } from '@/stores';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { hasPartner } = useUser();
+  const colors = useThemedColors();
+  const router = useRouter();
+
+  const pendingActionsCount = useActionsStore(
+    (s) => s.partnerActions.filter((a) => a.status === 'pending').length
+  );
+  const pendingPermissionsCount = usePermissionsStore(
+    (s) => s.partnerPermissions.filter((p) => p.status === 'pending').length
+  );
+
+  const lockedTabButton = useCallback(
+    (props: any) => (
+      <TouchableOpacity
+        {...props}
+        onPress={() => router.push('/link-partner')}
+        style={props.style}
+      />
+    ),
+    [router]
+  );
 
   return (
     <Tabs
@@ -18,7 +40,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          backgroundColor: colors.white,
+          backgroundColor: colors.gray[100],
           borderTopWidth: 0,
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom,
@@ -27,7 +49,7 @@ export default function TabLayout() {
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '500',
+          fontFamily: 'PlusJakartaSans-Medium',
           marginTop: 2,
         },
       }}
@@ -42,38 +64,91 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="actions"
         options={{
-          href: null, // TODO: Add functionality later, this option hides the tab
-          title: 'Ranking',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'stats-chart' : 'stats-chart-outline'}
-              size={24}
-              color={color}
-            />
-          ),
+          title: 'Acciones',
+          tabBarIcon: ({ color, focused }) =>
+            hasPartner ? (
+              <Ionicons
+                name={focused ? 'checkmark-done-circle' : 'checkmark-done-circle-outline'}
+                size={24}
+                color={color}
+              />
+            ) : (
+              <View>
+                <Ionicons
+                  name="checkmark-done-circle-outline"
+                  size={24}
+                  color={colors.gray[300]}
+                />
+                <Ionicons
+                  name="lock-closed"
+                  size={10}
+                  color={colors.gray[400]}
+                  style={{ position: 'absolute', right: -2, bottom: -2 }}
+                />
+              </View>
+            ),
+          tabBarButton: hasPartner ? undefined : lockedTabButton,
+          tabBarBadge: pendingActionsCount > 0 ? pendingActionsCount : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.error, fontSize: 10 },
         }}
       />
       <Tabs.Screen
         name="permissions"
         options={{
-          title: '',
-          tabBarIcon: ({ focused }) => (
-            <View style={styles.centerButton}>
-              <Ionicons name="add" size={28} color={colors.white} />
-            </View>
-          ),
+          title: 'Permisos',
+          tabBarIcon: ({ color, focused }) =>
+            hasPartner ? (
+              <Ionicons
+                name={focused ? 'hand-right' : 'hand-right-outline'}
+                size={24}
+                color={color}
+              />
+            ) : (
+              <View>
+                <Ionicons name="hand-right-outline" size={24} color={colors.gray[300]} />
+                <Ionicons
+                  name="lock-closed"
+                  size={10}
+                  color={colors.gray[400]}
+                  style={{ position: 'absolute', right: -2, bottom: -2 }}
+                />
+              </View>
+            ),
+          tabBarButton: hasPartner ? undefined : lockedTabButton,
+          tabBarBadge: pendingPermissionsCount > 0 ? pendingPermissionsCount : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.error, fontSize: 10 },
+        }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{
+          title: 'Ranking',
+          tabBarIcon: ({ color, focused }) =>
+            hasPartner ? (
+              <Ionicons
+                name={focused ? 'stats-chart' : 'stats-chart-outline'}
+                size={24}
+                color={color}
+              />
+            ) : (
+              <View>
+                <Ionicons name="stats-chart-outline" size={24} color={colors.gray[300]} />
+                <Ionicons
+                  name="lock-closed"
+                  size={10}
+                  color={colors.gray[400]}
+                  style={{ position: 'absolute', right: -2, bottom: -2 }}
+                />
+              </View>
+            ),
         }}
       />
       <Tabs.Screen
         name="achievements"
         options={{
-          href: null, // TODO: Add functionality later, this option hides the tab
-          title: 'Logros',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'gift' : 'gift-outline'} size={24} color={color} />
-          ),
+          href: null,
         }}
       />
       <Tabs.Screen
@@ -92,16 +167,3 @@ export default function TabLayout() {
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  centerButton: {
-    width: 56,
-    height: 56,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: -20,
-    ...shadows.lg,
-  },
-});

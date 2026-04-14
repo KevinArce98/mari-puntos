@@ -61,7 +61,7 @@ export class Reward {
   timesRedeemed: number;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -70,7 +70,7 @@ export class Reward {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => PartnerLink, { nullable: true })
+  @ManyToOne(() => PartnerLink, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'partnerLinkId' })
   partnerLink: PartnerLink;
 }

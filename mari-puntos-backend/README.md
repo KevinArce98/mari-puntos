@@ -312,9 +312,66 @@ pnpm format
 1. **Error Handling**: All errors are centralized through error middleware
 2. **Validation**: All inputs validated with Zod schemas
 3. **Security**: Helmet for security headers, CORS configured
-4. **Logging**: Morgan for HTTP request logging
+4. **Logging**: Pino for structured logging with pretty output in development - **FULLY IMPLEMENTED** across all controllers, services, middlewares, and server startup
 5. **Type Safety**: Full TypeScript coverage
 6. **Architecture**: Clean separation of concerns (routes → controllers → services → entities)
+
+## 📊 Logging
+
+The application uses **Pino** for structured logging throughout the entire codebase.
+
+### Features
+- **Structured Logging**: All logs are JSON objects for easy parsing and analysis
+- **Pretty Output**: Human-readable logs in development with colors and formatting
+- **HTTP Request Logging**: Automatic logging of all HTTP requests with response times
+- **Error Tracking**: Comprehensive error logging with stack traces
+- **Performance**: High-performance logging that doesn't block the event loop
+
+### Log Levels
+- `debug`: Detailed information for development
+- `info`: General information about application operation
+- `warn`: Warning messages for potential issues
+- `error`: Error messages for failures
+
+### Usage in Code
+```typescript
+import { logger } from '../utils/logger';
+
+// Log information
+logger.info({ message: 'User created', userId: '123' });
+
+// Log errors
+logger.error({ err: error }, 'Failed to create user');
+
+// Log debug information
+logger.debug({ message: 'Processing request', data });
+```
+
+### Log Output
+**Development** (with pino-pretty):
+```
+[2024-01-15 10:30:45] INFO: User created
+    userId: "123"
+[2024-01-15 10:30:46] ERROR: Failed to create user
+    err: {
+      "message": "Validation failed",
+      "stack": "..."
+    }
+```
+
+**Production** (JSON):
+```json
+{"level":30,"time":1705312245000,"msg":"User created","userId":"123","pid":1234,"hostname":"server"}
+```
+
+### Coverage
+Logging is **FULLY IMPLEMENTED** across:
+- **Server startup/shutdown**: Database initialization, server start, graceful shutdown
+- **HTTP requests**: Automatic logging via pino-http middleware
+- **Authentication**: JWT verification, user attachment
+- **All controllers**: Request handling, success/error responses (7 controllers)
+- **All services**: Business logic operations, database interactions (7 services)
+- **Error handling**: Centralized error logging with context
 
 ## 🤝 Contributing
 

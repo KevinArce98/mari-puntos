@@ -137,6 +137,21 @@ class PermissionsService {
   }
 
   /**
+   * Update permission (only pending)
+   * PATCH /permissions/:id
+   */
+  async updatePermission(
+    permissionId: string,
+    data: Partial<CreatePermissionRequest>
+  ): Promise<Permission> {
+    const response = await apiService.patch<ApiResponse<Permission>>(
+      `/permissions/${permissionId}`,
+      data
+    );
+    return response.data;
+  }
+
+  /**
    * Cancel permission (Husband only)
    * DELETE /permissions/:id
    */

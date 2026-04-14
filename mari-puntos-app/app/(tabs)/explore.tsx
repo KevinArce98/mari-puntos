@@ -1,206 +1,190 @@
-import { Ionicons } from '@expo/vector-icons';
+import React, { useCallback } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
 
-import { Avatar, Card, Chip, ProgressBar } from '@/components/ui';
-import { usePoints, useUser } from '@/hooks';
+import { Avatar, Card } from '@/components/ui';
+import { usePoints, useThemedColors, useUser } from '@/hooks';
 import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
-
-const TIME_PERIODS = ['This Week', 'This Month', 'All Time'];
 
 export default function RankingScreen() {
   const insets = useSafeAreaInsets();
-  const { user, partnerInfo } = useUser();
-  const { myPoints, partnerPoints } = usePoints();
-  const [selectedPeriod, setSelectedPeriod] = useState('This Week');
+  const themeColors = useThemedColors();
+  const { user, partnerInfo, hasPartner } = useUser();
+  const {
+    myPoints,
+    partnerPoints,
+    myLevel,
+    partnerLevel,
+    leaderboard,
+    isLoading,
+    fetchLeaderboard,
+  } = usePoints();
 
-  // Calculate who's winning
-  const userWinning = myPoints >= partnerPoints;
+  useFocusEffect(
+    useCallback(() => {
+      fetchLeaderboard({ limit: 10 });
+    }, [fetchLeaderboard])
+  );
+
   const totalPoints = myPoints + partnerPoints;
   const myPercentage = totalPoints > 0 ? (myPoints / totalPoints) * 100 : 50;
-
-  // Mock weekly stats
-  const weeklyStats = {
-    actionsCompleted: 12,
-    pointsEarned: 245,
-    streak: 5,
-  };
+  const userWinning = myPoints >= partnerPoints;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: themeColors.background, paddingTop: insets.top },
+      ]}
+    >
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Ranking</Text>
-        <TouchableOpacity style={styles.historyButton}>
-          <Ionicons name="time-outline" size={24} color={colors.text.primary} />
-        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
+          Ranking
+        </Text>
       </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Time Period Filter */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.periodContainer}
-          contentContainerStyle={styles.periodContent}
-        >
-          {TIME_PERIODS.map((period) => (
-            <Chip
-              key={period}
-              label={period}
-              selected={selectedPeriod === period}
-              onPress={() => setSelectedPeriod(period)}
+        {/* Competition Card — solo visible si hay pareja */}
+        {hasPartner && (
+          <Card style={styles.competitionCard} padding="none">
+            <LinearGradient
+              colors={[themeColors.primary, themeColors.primaryDark]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.competitionGradient}
+            >
+              <Text style={styles.competitionTitle}>
+                {userWinning ? '¡Vas ganando! 🎉' : '¡Sigue así! 💪'}
+              </Text>
+
+              <View style={styles.vsContainer}>
+                <View style={styles.playerColumn}>
+                  <Avatar imageUri={user?.avatarUrl} name={user?.firstName} size="lg" />
+                  <Text style={styles.playerName}>{user?.firstName || 'Tú'}</Text>
+                  <Text style={styles.playerPoints}>{myPoints.toLocaleString()}</Text>
+                  <Text style={styles.playerLevel}>Nivel {myLevel}</Text>
+                </View>
+
+                <View style={styles.vsCenter}>
+                  <View style={styles.vsBadge}>
+                    <Text style={styles.vsText}>VS</Text>
+                  </View>
+                </View>
+
+                <View style={styles.playerColumn}>
+                  <Avatar
+                    imageUri={partnerInfo?.partner?.avatarUrl}
+                    name={partnerInfo?.partner?.firstName}
+                    size="lg"
+                  />
+                  <Text style={styles.playerName}>
+                    {partnerInfo?.partner?.firstName || 'Pareja'}
+                  </Text>
+                  <Text style={styles.playerPoints}>
+                    {partnerPoints.toLocaleString()}
+                  </Text>
+                  <Text style={styles.playerLevel}>Nivel {partnerLevel}</Text>
+                </View>
+              </View>
+
+              {/* Progress Bar */}
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, { width: `${myPercentage}%` }]} />
+                </View>
+                <View style={styles.progressLabels}>
+                  <Text style={styles.progressLabel}>{Math.round(myPercentage)}%</Text>
+                  <Text style={styles.progressLabel}>
+                    {Math.round(100 - myPercentage)}%
+                  </Text>
+                </View>
+              </View>
+            </LinearGradient>
+          </Card>
+        )}
+
+        {/* Leaderboard */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+            Tabla de posiciones
+          </Text>
+
+          {isLoading ? (
+            <ActivityIndicator
+              size="small"
+              color={themeColors.primary}
+              style={styles.loader}
             />
-          ))}
-        </ScrollView>
-
-        {/* Competition Card */}
-        <Card style={styles.competitionCard} padding="none">
-          <LinearGradient
-            colors={[colors.primary, colors.primaryDark]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.competitionGradient}
-          >
-            <Text style={styles.competitionTitle}>
-              {userWinning ? "You're Winning! 🎉" : 'Keep Going! 💪'}
-            </Text>
-
-            {/* VS Display */}
-            <View style={styles.vsContainer}>
-              <View style={styles.playerColumn}>
-                <Avatar imageUri={user?.avatarUrl} name={user?.firstName} size="lg" />
-                <Text style={styles.playerName}>{user?.firstName || 'You'}</Text>
-                <Text style={styles.playerPoints}>{myPoints.toLocaleString()}</Text>
-              </View>
-
-              <View style={styles.vsCenter}>
-                <View style={styles.vsBadge}>
-                  <Text style={styles.vsText}>VS</Text>
-                </View>
-              </View>
-
-              <View style={styles.playerColumn}>
-                <Avatar
-                  imageUri={partnerInfo?.partner?.avatarUrl}
-                  name={partnerInfo?.partner?.firstName}
-                  size="lg"
-                />
-                <Text style={styles.playerName}>
-                  {partnerInfo?.partner?.firstName || 'Partner'}
-                </Text>
-                <Text style={styles.playerPoints}>{partnerPoints.toLocaleString()}</Text>
-              </View>
-            </View>
-
-            {/* Progress Bar */}
-            <View style={styles.progressContainer}>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${myPercentage}%` }]} />
-              </View>
-              <View style={styles.progressLabels}>
-                <Text style={styles.progressLabel}>{Math.round(myPercentage)}%</Text>
-                <Text style={styles.progressLabel}>
-                  {Math.round(100 - myPercentage)}%
-                </Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </Card>
-
-        {/* Weekly Stats */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Stats</Text>
-          <View style={styles.statsGrid}>
-            <Card style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: `${colors.primary}15` }]}>
-                <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.statValue}>{weeklyStats.actionsCompleted}</Text>
-              <Text style={styles.statLabel}>Actions</Text>
+          ) : leaderboard.length === 0 ? (
+            <Card>
+              <Text style={[styles.emptyText, { color: themeColors.text.secondary }]}>
+                No hay datos disponibles
+              </Text>
             </Card>
+          ) : (
+            <Card padding="none" style={styles.leaderboardCard}>
+              {leaderboard.map((entry, index) => {
+                const isMe = entry.id === user?.id;
+                const medal =
+                  index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : null;
 
-            <Card style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: `${colors.accent}15` }]}>
-                <Ionicons name="trophy" size={24} color={colors.accent} />
-              </View>
-              <Text style={styles.statValue}>{weeklyStats.pointsEarned}</Text>
-              <Text style={styles.statLabel}>Points</Text>
+                return (
+                  <View
+                    key={entry.id}
+                    style={[
+                      styles.leaderboardItem,
+                      isMe && { backgroundColor: `${themeColors.primary}10` },
+                      index < leaderboard.length - 1 && {
+                        borderBottomWidth: 1,
+                        borderBottomColor: themeColors.gray[100],
+                      },
+                    ]}
+                  >
+                    <View style={styles.rankContainer}>
+                      {medal ? (
+                        <Text style={styles.medal}>{medal}</Text>
+                      ) : (
+                        <Text
+                          style={[
+                            styles.rankNumber,
+                            { color: themeColors.text.secondary },
+                          ]}
+                        >
+                          {index + 1}
+                        </Text>
+                      )}
+                    </View>
+
+                    <Avatar imageUri={entry.avatarUrl} name={entry.firstName} size="sm" />
+
+                    <View style={styles.entryInfo}>
+                      <Text
+                        style={[styles.entryName, { color: themeColors.text.primary }]}
+                      >
+                        {entry.firstName} {entry.lastName}
+                        {isMe ? ' (Tú)' : ''}
+                      </Text>
+                      <Text
+                        style={[styles.entryLevel, { color: themeColors.text.secondary }]}
+                      >
+                        Nivel {entry.currentLevel}
+                      </Text>
+                    </View>
+
+                    <Text style={[styles.entryPoints, { color: themeColors.primary }]}>
+                      {entry.totalPoints.toLocaleString()} pts
+                    </Text>
+                  </View>
+                );
+              })}
             </Card>
-
-            <Card style={styles.statCard}>
-              <View style={[styles.statIcon, { backgroundColor: `${colors.error}15` }]}>
-                <Ionicons name="flame" size={24} color={colors.error} />
-              </View>
-              <Text style={styles.statValue}>{weeklyStats.streak}</Text>
-              <Text style={styles.statLabel}>Day Streak</Text>
-            </Card>
-          </View>
-        </View>
-
-        {/* Weekly Goal */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Weekly Goal</Text>
-            <Text style={styles.goalProgress}>245 / 500 pts</Text>
-          </View>
-          <Card style={styles.goalCard}>
-            <ProgressBar progress={49} color={colors.accent} height={12} />
-            <Text style={styles.goalText}>
-              Earn 255 more points to reach your weekly goal!
-            </Text>
-          </Card>
-        </View>
-
-        {/* Recent Activity */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <Card padding="none" style={styles.activityCard}>
-            {[
-              {
-                action: 'Washed dishes',
-                points: 15,
-                time: '2h ago',
-                icon: 'water-outline',
-              },
-              {
-                action: 'Made breakfast',
-                points: 20,
-                time: '5h ago',
-                icon: 'restaurant-outline',
-              },
-              {
-                action: 'Cleaned room',
-                points: 25,
-                time: '1d ago',
-                icon: 'home-outline',
-              },
-            ].map((item, index) => (
-              <View
-                key={index}
-                style={[styles.activityItem, index < 2 && styles.activityItemBorder]}
-              >
-                <View
-                  style={[
-                    styles.activityIcon,
-                    { backgroundColor: `${colors.primary}15` },
-                  ]}
-                >
-                  <Ionicons name={item.icon as any} size={20} color={colors.primary} />
-                </View>
-                <View style={styles.activityContent}>
-                  <Text style={styles.activityAction}>{item.action}</Text>
-                  <Text style={styles.activityTime}>{item.time}</Text>
-                </View>
-                <Text style={styles.activityPoints}>+{item.points}</Text>
-              </View>
-            ))}
-          </Card>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -208,52 +192,25 @@ export default function RankingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  container: { flex: 1 },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
-  headerTitle: {
-    ...typography.styles.h2,
-    color: colors.text.primary,
-  },
-  historyButton: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...shadows.sm,
-  },
+  headerTitle: { ...typography.styles.h2 },
   scrollContent: {
     padding: spacing.lg,
     paddingTop: 0,
     paddingBottom: spacing['3xl'],
   },
-  periodContainer: {
-    marginBottom: spacing.lg,
-    marginHorizontal: -spacing.lg,
-  },
-  periodContent: {
-    paddingHorizontal: spacing.lg,
-  },
   competitionCard: {
     marginBottom: spacing.lg,
     overflow: 'hidden',
   },
-  competitionGradient: {
-    padding: spacing.lg,
-  },
+  competitionGradient: { padding: spacing.lg },
   competitionTitle: {
     ...typography.styles.h3,
-    color: colors.white,
+    color: colors.light.white,
     textAlign: 'center',
     marginBottom: spacing.lg,
   },
@@ -263,48 +220,46 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: spacing.lg,
   },
-  playerColumn: {
-    alignItems: 'center',
-    flex: 1,
-  },
+  playerColumn: { alignItems: 'center', flex: 1 },
   playerName: {
     ...typography.styles.bodyMedium,
-    color: colors.white,
+    color: colors.light.white,
     marginTop: spacing.sm,
   },
   playerPoints: {
     ...typography.styles.h3,
-    color: colors.accent,
+    color: colors.light.accent,
     marginTop: spacing.xs,
   },
-  vsCenter: {
-    paddingHorizontal: spacing.md,
+  playerLevel: {
+    ...typography.styles.small,
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: 2,
   },
+  vsCenter: { paddingHorizontal: spacing.md },
   vsBadge: {
     width: 48,
     height: 48,
     borderRadius: borderRadius.full,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   vsText: {
     ...typography.styles.bodyMedium,
-    color: colors.white,
-    fontFamily: typography.fontFamily.bold,
+    color: colors.light.white,
+    fontFamily: 'PlusJakartaSans-Bold',
   },
-  progressContainer: {
-    marginTop: spacing.sm,
-  },
+  progressContainer: { marginTop: spacing.sm },
   progressBar: {
     height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255,255,255,0.3)',
     borderRadius: borderRadius.full,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.accent,
+    backgroundColor: colors.light.accent,
     borderRadius: borderRadius.full,
   },
   progressLabels: {
@@ -314,96 +269,39 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     ...typography.styles.small,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255,255,255,0.8)',
   },
-  section: {
-    marginBottom: spacing.lg,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
+  section: { marginBottom: spacing.lg },
   sectionTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.md,
   },
-  goalProgress: {
-    ...typography.styles.bodyMedium,
-    color: colors.accent,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  statCard: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-  },
-  statIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.full,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  statValue: {
-    ...typography.styles.h3,
-    color: colors.text.primary,
-  },
-  statLabel: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-    marginTop: 2,
-  },
-  goalCard: {
-    marginTop: -spacing.sm,
-  },
-  goalText: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
+  loader: { marginVertical: spacing.lg },
+  emptyText: {
+    ...typography.styles.body,
     textAlign: 'center',
-    marginTop: spacing.md,
   },
-  activityCard: {
-    marginTop: -spacing.sm,
-    overflow: 'hidden',
-  },
-  activityItem: {
+  leaderboardCard: { overflow: 'hidden', ...shadows.sm },
+  leaderboardItem: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
+    gap: spacing.sm,
   },
-  activityItemBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[100],
-  },
-  activityIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.lg,
-    justifyContent: 'center',
+  rankContainer: {
+    width: 28,
     alignItems: 'center',
-    marginRight: spacing.md,
   },
-  activityContent: {
-    flex: 1,
-  },
-  activityAction: {
+  medal: { fontSize: 20 },
+  rankNumber: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
+    fontFamily: 'PlusJakartaSans-Bold',
   },
-  activityTime: {
-    ...typography.styles.caption,
-    color: colors.text.secondary,
-    marginTop: 2,
-  },
-  activityPoints: {
-    ...typography.styles.h4,
-    color: colors.primary,
+  entryInfo: { flex: 1 },
+  entryName: { ...typography.styles.bodyMedium },
+  entryLevel: { ...typography.styles.caption, marginTop: 2 },
+  entryPoints: {
+    ...typography.styles.bodyMedium,
+    fontFamily: 'PlusJakartaSans-Bold',
   },
 });

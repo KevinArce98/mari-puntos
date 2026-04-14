@@ -1,4 +1,5 @@
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { borderRadius, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
@@ -38,9 +39,31 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
 }) => {
+  const colors = useThemedColors();
+
+  const variantStyles = {
+    primary: { backgroundColor: colors.primary },
+    secondary: { backgroundColor: colors.accent },
+    outline: {
+      backgroundColor: 'transparent',
+      borderWidth: 1.5,
+      borderColor: colors.gray[300],
+    },
+    ghost: { backgroundColor: 'transparent' },
+    danger: { backgroundColor: colors.error },
+  };
+
+  const textVariantStyles = {
+    primary: { color: colors.text.white },
+    secondary: { color: colors.text.primary },
+    outline: { color: colors.text.primary },
+    ghost: { color: colors.primary },
+    danger: { color: colors.text.white },
+  };
+
   const buttonStyles = [
     styles.button,
-    styles[variant],
+    variantStyles[variant],
     styles[`size_${size}`],
     fullWidth && styles.fullWidth,
     (disabled || loading) && styles.disabled,
@@ -49,14 +72,14 @@ export const Button: React.FC<ButtonProps> = ({
 
   const textStyles = [
     styles.text,
-    styles[`text_${variant}`],
+    textVariantStyles[variant],
     styles[`textSize_${size}`],
     textStyle,
   ];
 
   const iconColor =
     variant === 'primary' || variant === 'danger'
-      ? colors.white
+      ? colors.text.white
       : variant === 'secondary'
         ? colors.text.primary
         : colors.primary;
@@ -69,11 +92,16 @@ export const Button: React.FC<ButtonProps> = ({
       onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
     >
       {loading ? (
         <ActivityIndicator
           color={
-            variant === 'primary' || variant === 'danger' ? colors.white : colors.primary
+            variant === 'primary' || variant === 'danger'
+              ? colors.text.white
+              : colors.primary
           }
         />
       ) : (
@@ -120,30 +148,11 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
 
-  // Variants
-  primary: {
-    backgroundColor: colors.primary,
-  },
-  secondary: {
-    backgroundColor: colors.accent,
-  },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1.5,
-    borderColor: colors.gray[300],
-  },
-  ghost: {
-    backgroundColor: 'transparent',
-  },
-  danger: {
-    backgroundColor: colors.error,
-  },
-
   // Sizes
   size_sm: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    minHeight: 36,
+    minHeight: 44,
   },
   size_md: {
     paddingVertical: spacing.md - 2,
@@ -167,21 +176,6 @@ const styles = StyleSheet.create({
   // Text styles
   text: {
     ...typography.styles.button,
-  },
-  text_primary: {
-    color: colors.white,
-  },
-  text_secondary: {
-    color: colors.text.primary,
-  },
-  text_outline: {
-    color: colors.text.primary,
-  },
-  text_ghost: {
-    color: colors.primary,
-  },
-  text_danger: {
-    color: colors.white,
   },
 
   // Text sizes

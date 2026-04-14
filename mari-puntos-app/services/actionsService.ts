@@ -40,7 +40,10 @@ class ActionsService {
    * POST /actions/:id/approve
    */
   async approveAction(actionId: string, data: ApproveActionRequest): Promise<Action> {
-    const response = await apiService.post<ApiResponse<Action>>(`/actions/${actionId}/approve`, data);
+    const response = await apiService.post<ApiResponse<Action>>(
+      `/actions/${actionId}/approve`,
+      data
+    );
     return response.data;
   }
 
@@ -49,7 +52,10 @@ class ActionsService {
    * POST /actions/:id/reject
    */
   async rejectAction(actionId: string, data: RejectActionRequest): Promise<Action> {
-    const response = await apiService.post<ApiResponse<Action>>(`/actions/${actionId}/reject`, data);
+    const response = await apiService.post<ApiResponse<Action>>(
+      `/actions/${actionId}/reject`,
+      data
+    );
     return response.data;
   }
 }

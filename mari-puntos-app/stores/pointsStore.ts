@@ -6,6 +6,8 @@ import {
   LeaderboardEntry,
   GetLeaderboardParams,
 } from '@/types';
+import logger from '@/utils/logger';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 interface PointsState {
   pointsHistory: PointsLog[];
@@ -20,7 +22,10 @@ interface PointsState {
   } | null;
 
   // Actions
-  fetchPointsHistory: (params?: GetPointsHistoryParams, append?: boolean) => Promise<void>;
+  fetchPointsHistory: (
+    params?: GetPointsHistoryParams,
+    append?: boolean
+  ) => Promise<void>;
   fetchLeaderboard: (params?: GetLeaderboardParams) => Promise<void>;
   clearPoints: () => void;
 }
@@ -43,8 +48,14 @@ export const usePointsStore = create<PointsState>((set) => ({
         paginationMeta: response.pagination,
         isLoading: false,
       }));
-    } catch (error: any) {
-      set({ error: error.error || 'Failed to fetch points history', isLoading: false });
+      logger.debug('Points history fetched successfully', {
+        count: response.data.length,
+        append,
+        params,
+      });
+    } catch (error: unknown) {
+      logger.error('Failed to fetch points history', error as Error, { params, append });
+      set({ error: getErrorMessage(error), isLoading: false });
       throw error;
     }
   },
@@ -54,8 +65,13 @@ export const usePointsStore = create<PointsState>((set) => ({
     try {
       const leaderboard = await pointsService.getLeaderboard(params);
       set({ leaderboard, isLoading: false });
-    } catch (error: any) {
-      set({ error: error.error || 'Failed to fetch leaderboard', isLoading: false });
+      logger.debug('Leaderboard fetched successfully', {
+        count: leaderboard.length,
+        params,
+      });
+    } catch (error: unknown) {
+      logger.error('Failed to fetch leaderboard', error as Error, { params });
+      set({ error: getErrorMessage(error), isLoading: false });
       throw error;
     }
   },

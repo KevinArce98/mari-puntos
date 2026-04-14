@@ -1,4 +1,5 @@
 import { borderRadius, colors, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, ViewStyle } from 'react-native';
 
@@ -15,17 +16,32 @@ export const Chip: React.FC<ChipProps> = ({
   onPress,
   style,
 }) => {
+  const themeColors = useThemedColors();
+
   return (
     <TouchableOpacity
       style={[
         styles.chip,
-        selected && styles.chipSelected,
+        { backgroundColor: themeColors.gray[100], borderColor: themeColors.gray[200] },
+        selected && {
+          backgroundColor: themeColors.primary,
+          borderColor: themeColors.primary,
+        },
         style,
       ]}
       onPress={onPress}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
     >
-      <Text style={[styles.label, selected && styles.labelSelected]}>
+      <Text
+        style={[
+          styles.label,
+          { color: themeColors.text.primary },
+          selected && { color: colors.light.white },
+        ]}
+      >
         {label}
       </Text>
     </TouchableOpacity>
@@ -37,20 +53,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.gray[200],
     marginRight: spacing.sm,
-  },
-  chipSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
   },
   label: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
-  },
-  labelSelected: {
-    color: colors.white,
   },
 });

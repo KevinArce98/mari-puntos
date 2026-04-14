@@ -1,4 +1,5 @@
 import {
+  Achievement,
   ApiResponse,
   CreatePartnerLinkResponse,
   CreateUserRequest,
@@ -41,11 +42,25 @@ class UserService {
   }
 
   /**
+   * Update push token
+   * PUT /users/profile
+   */
+  async updatePushToken(pushToken: string): Promise<User> {
+    return this.updateProfile({ pushToken });
+  }
+
+  /**
    * Get user statistics
    * GET /users/stats
    */
   async getStats(): Promise<UserStats> {
     const response = await apiService.get<ApiResponse<UserStats>>('/users/stats');
+    return response.data;
+  }
+
+  async getAchievements(): Promise<Achievement[]> {
+    const response =
+      await apiService.get<ApiResponse<Achievement[]>>('/users/achievements');
     return response.data;
   }
 

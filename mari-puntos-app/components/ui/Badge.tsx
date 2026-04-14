@@ -1,4 +1,5 @@
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { borderRadius, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import React from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 
@@ -15,11 +16,26 @@ export const Badge: React.FC<BadgeProps> = ({
   size = 'md',
   style,
 }) => {
+  const c = useThemedColors();
+
+  const variantStyle: Record<
+    BadgeProps['variant'] & string,
+    { bg: string; text: string }
+  > = {
+    primary: { bg: c.primary, text: c.text.white },
+    secondary: { bg: c.accent, text: c.text.primary },
+    success: { bg: c.success, text: c.text.white },
+    error: { bg: c.error, text: c.text.white },
+    warning: { bg: c.warning, text: c.text.primary },
+    info: { bg: c.info, text: c.text.white },
+    points: { bg: c.primary, text: c.text.white },
+  };
+
+  const { bg, text } = variantStyle[variant];
+
   return (
-    <View style={[styles.badge, styles[variant], styles[`size_${size}`], style]}>
-      <Text style={[styles.text, styles[`text_${variant}`], styles[`text_${size}`]]}>
-        {label}
-      </Text>
+    <View style={[styles.badge, styles[`size_${size}`], { backgroundColor: bg }, style]}>
+      <Text style={[styles.text, styles[`text_${size}`], { color: text }]}>{label}</Text>
     </View>
   );
 };
@@ -31,24 +47,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  primary: { backgroundColor: colors.primary },
-  secondary: { backgroundColor: colors.accent },
-  success: { backgroundColor: colors.success },
-  error: { backgroundColor: colors.error },
-  warning: { backgroundColor: colors.warning },
-  info: { backgroundColor: colors.info },
-  points: { backgroundColor: colors.primary },
   size_sm: { paddingVertical: 2, paddingHorizontal: spacing.sm, minWidth: 20 },
   size_md: { paddingVertical: spacing.xs, paddingHorizontal: spacing.md, minWidth: 24 },
   size_lg: { paddingVertical: spacing.sm, paddingHorizontal: spacing.md, minWidth: 32 },
   text: { fontFamily: typography.fontFamily.bold, textAlign: 'center' },
-  text_primary: { color: colors.white },
-  text_secondary: { color: colors.text.primary },
-  text_success: { color: colors.white },
-  text_error: { color: colors.white },
-  text_warning: { color: colors.text.primary },
-  text_info: { color: colors.white },
-  text_points: { color: colors.white },
   text_sm: { fontSize: 10 },
   text_md: { fontSize: typography.fontSize.xs },
   text_lg: { fontSize: typography.fontSize.sm },

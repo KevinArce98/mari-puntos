@@ -2,9 +2,28 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Action, ActionCategory, ActionStatus } from '@/types';
-import { colors, spacing, typography, borderRadius } from '@/theme';
+import { spacing, typography, borderRadius } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import { formatDateWithTime } from '@/utils/dateUtils';
 import { Card } from './Card';
+
+const CATEGORY_ICON: Record<
+  ActionCategory,
+  {
+    icon: keyof typeof Ionicons.glyphMap;
+    categoryKey?: 'childcare' | 'errands' | 'romantic' | 'personalGrowth';
+  }
+> = {
+  [ActionCategory.HOUSEHOLD]: { icon: 'home' },
+  [ActionCategory.CHILDCARE]: { icon: 'people', categoryKey: 'childcare' },
+  [ActionCategory.ERRANDS]: { icon: 'cart', categoryKey: 'errands' },
+  [ActionCategory.ROMANTIC]: { icon: 'heart', categoryKey: 'romantic' },
+  [ActionCategory.PERSONAL_GROWTH]: {
+    icon: 'trending-up',
+    categoryKey: 'personalGrowth',
+  },
+  [ActionCategory.OTHER]: { icon: 'ellipsis-horizontal' },
+};
 
 interface ActionItemCardProps {
   action: Action;
@@ -12,67 +31,77 @@ interface ActionItemCardProps {
   showStatus?: boolean;
 }
 
-const CATEGORY_CONFIG: Record<
-  ActionCategory,
-  { icon: keyof typeof Ionicons.glyphMap; color: string }
-> = {
-  [ActionCategory.HOUSEHOLD]: { icon: 'home', color: colors.primary },
-  [ActionCategory.CHILDCARE]: { icon: 'people', color: '#FF6B9D' },
-  [ActionCategory.ERRANDS]: { icon: 'cart', color: '#FFA94D' },
-  [ActionCategory.ROMANTIC]: { icon: 'heart', color: '#FF4757' },
-  [ActionCategory.PERSONAL_GROWTH]: { icon: 'trending-up', color: '#6C5CE7' },
-  [ActionCategory.OTHER]: { icon: 'ellipsis-horizontal', color: colors.gray[500] },
-};
-
-const STATUS_CONFIG: Record<
-  ActionStatus,
-  { label: string; color: string; bgColor: string }
-> = {
-  [ActionStatus.PENDING]: {
-    label: 'Pendiente',
-    color: colors.warning,
-    bgColor: `${colors.warning}15`,
-  },
-  [ActionStatus.APPROVED]: {
-    label: 'Aprobada',
-    color: colors.success,
-    bgColor: `${colors.success}15`,
-  },
-  [ActionStatus.REJECTED]: {
-    label: 'Rechazada',
-    color: colors.error,
-    bgColor: `${colors.error}15`,
-  },
-};
-
 export function ActionItemCard({
   action,
   onPress,
   showStatus = true,
 }: ActionItemCardProps) {
-  const categoryConfig = CATEGORY_CONFIG[action.category];
+  const themeColors = useThemedColors();
+
+  const categoryEntry = CATEGORY_ICON[action.category];
+  const categoryColor = categoryEntry.categoryKey
+    ? themeColors.actionCategory[categoryEntry.categoryKey]
+    : action.category === ActionCategory.OTHER
+      ? themeColors.gray[500]
+      : themeColors.primary;
+  const CATEGORY_CONFIG = { icon: categoryEntry.icon, color: categoryColor };
+
+  const STATUS_CONFIG: Record<
+    ActionStatus,
+    { label: string; color: string; bgColor: string }
+  > = {
+    [ActionStatus.PENDING]: {
+      label: 'Pendiente',
+      color: themeColors.warning,
+      bgColor: `${themeColors.warning}15`,
+    },
+    [ActionStatus.APPROVED]: {
+      label: 'Aprobada',
+      color: themeColors.success,
+      bgColor: `${themeColors.success}15`,
+    },
+    [ActionStatus.REJECTED]: {
+      label: 'Rechazada',
+      color: themeColors.error,
+      bgColor: `${themeColors.error}15`,
+    },
+  };
+
   const statusConfig = STATUS_CONFIG[action.status];
 
   const formattedDate = formatDateWithTime(action.createdAt);
 
   return (
     <Card style={styles.card}>
-      <TouchableOpacity onPress={onPress} disabled={!onPress} style={styles.touchable}>
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={!onPress}
+        style={styles.touchable}
+        accessibilityRole={onPress ? 'button' : undefined}
+        accessibilityLabel={`${action.title}, ${statusConfig.label}`}
+      >
         <View style={styles.row}>
           {/* Icon */}
           <View
             style={[
               styles.iconContainer,
-              { backgroundColor: `${categoryConfig.color}15` },
+              { backgroundColor: `${CATEGORY_CONFIG.color}15` },
             ]}
           >
-            <Ionicons name={categoryConfig.icon} size={24} color={categoryConfig.color} />
+            <Ionicons
+              name={CATEGORY_CONFIG.icon}
+              size={24}
+              color={CATEGORY_CONFIG.color}
+            />
           </View>
 
           {/* Content */}
           <View style={styles.content}>
             <View style={styles.header}>
-              <Text style={styles.title} numberOfLines={1}>
+              <Text
+                style={[styles.title, { color: themeColors.text.primary }]}
+                numberOfLines={1}
+              >
                 {action.title}
               </Text>
               {showStatus && (
@@ -87,21 +116,31 @@ export function ActionItemCard({
             </View>
 
             {action.description && (
-              <Text style={styles.description} numberOfLines={2}>
+              <Text
+                style={[styles.description, { color: themeColors.text.secondary }]}
+                numberOfLines={2}
+              >
                 {action.description}
               </Text>
             )}
 
             <View style={styles.footer}>
-              <Text style={styles.date}>{formattedDate}</Text>
+              <Text style={[styles.date, { color: themeColors.gray[400] }]}>
+                {formattedDate}
+              </Text>
               {action.status === ActionStatus.APPROVED && (
                 <View style={styles.pointsBadge}>
-                  <Ionicons name="trophy" size={14} color={colors.accent} />
-                  <Text style={styles.pointsText}>+{action.pointsAwarded} pts</Text>
+                  <Ionicons name="trophy" size={14} color={themeColors.accent} />
+                  <Text style={[styles.pointsText, { color: themeColors.accent }]}>
+                    +{action.pointsAwarded} pts
+                  </Text>
                 </View>
               )}
               {action.status === ActionStatus.REJECTED && action.rejectionReason && (
-                <Text style={styles.rejectionReason} numberOfLines={1}>
+                <Text
+                  style={[styles.rejectionReason, { color: themeColors.error }]}
+                  numberOfLines={1}
+                >
                   {action.rejectionReason}
                 </Text>
               )}
@@ -110,7 +149,7 @@ export function ActionItemCard({
 
           {/* Arrow */}
           {onPress && (
-            <Ionicons name="chevron-forward" size={20} color={colors.gray[400]} />
+            <Ionicons name="chevron-forward" size={20} color={themeColors.gray[400]} />
           )}
         </View>
       </TouchableOpacity>
@@ -148,7 +187,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
     flex: 1,
     marginRight: spacing.sm,
   },
@@ -159,11 +197,10 @@ const styles = StyleSheet.create({
   },
   statusText: {
     ...typography.styles.caption,
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   description: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginBottom: spacing.xs,
   },
   footer: {
@@ -173,7 +210,6 @@ const styles = StyleSheet.create({
   },
   date: {
     ...typography.styles.caption,
-    color: colors.gray[400],
   },
   pointsBadge: {
     flexDirection: 'row',
@@ -182,12 +218,10 @@ const styles = StyleSheet.create({
   },
   pointsText: {
     ...typography.styles.caption,
-    color: colors.accent,
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans-SemiBold',
   },
   rejectionReason: {
     ...typography.styles.caption,
-    color: colors.error,
     flex: 1,
   },
 });

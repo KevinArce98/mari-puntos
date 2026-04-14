@@ -8,8 +8,11 @@ import {
   TouchableOpacity,
   View,
   TextInput,
+  Platform,
 } from 'react-native';
 import { colors, spacing, typography, borderRadius, shadows } from '@/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useThemedColors } from '@/hooks';
 
 const ICON_OPTIONS = [
   { name: 'game-controller-outline', label: 'Gaming' },
@@ -76,6 +79,8 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
   onClose,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const insets = useSafeAreaInsets();
+  const themeColors = useThemedColors();
 
   const filteredIcons = ICON_OPTIONS.filter(
     (icon) =>
@@ -90,29 +95,49 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <View style={styles.container}>
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: themeColors.background,
+            paddingTop: Platform.OS !== 'ios' ? insets.top : 0,
+          },
+        ]}
+      >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Seleccionar Icono</Text>
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: themeColors.gray[100],
+              borderBottomColor: themeColors.gray[200],
+            },
+          ]}
+        >
+          <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
+            Seleccionar Icono
+          </Text>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={28} color={colors.text.primary} />
+            <Ionicons name="close" size={28} color={themeColors.text.primary} />
           </TouchableOpacity>
         </View>
 
         {/* Search */}
-        <View style={styles.searchContainer}>
+        <View
+          style={[styles.searchContainer, { backgroundColor: themeColors.gray[100] }]}
+        >
           <Ionicons
             name="search-outline"
             size={20}
-            color={colors.gray[400]}
+            color={themeColors.gray[400]}
             style={styles.searchIcon}
           />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: themeColors.text.primary }]}
             placeholder="Buscar icono..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholderTextColor={colors.gray[400]}
+            placeholderTextColor={themeColors.gray[400]}
           />
         </View>
 
@@ -123,26 +148,38 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
               key={icon.name}
               style={[
                 styles.iconItem,
-                selectedIcon === icon.name && styles.iconItemSelected,
+                selectedIcon === icon.name && {
+                  backgroundColor: themeColors.background,
+                  borderRadius: borderRadius.lg,
+                },
               ]}
               onPress={() => handleSelect(icon.name)}
             >
               <View
                 style={[
                   styles.iconCircle,
-                  selectedIcon === icon.name && styles.iconCircleSelected,
+                  { backgroundColor: themeColors.gray[100] },
+                  selectedIcon === icon.name && { backgroundColor: themeColors.primary },
                 ]}
               >
                 <Ionicons
                   name={icon.name as keyof typeof Ionicons.glyphMap}
                   size={32}
-                  color={selectedIcon === icon.name ? colors.white : colors.text.primary}
+                  color={
+                    selectedIcon === icon.name
+                      ? colors.light.white
+                      : themeColors.text.primary
+                  }
                 />
               </View>
               <Text
                 style={[
                   styles.iconLabel,
-                  selectedIcon === icon.name && styles.iconLabelSelected,
+                  { color: themeColors.text.secondary },
+                  selectedIcon === icon.name && {
+                    color: themeColors.primary,
+                    fontFamily: 'PlusJakartaSans-SemiBold',
+                  },
                 ]}
                 numberOfLines={2}
               >
@@ -159,7 +196,6 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -167,13 +203,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
   },
   headerTitle: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   closeButton: {
     padding: spacing.xs,
@@ -181,7 +214,6 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
     margin: spacing.lg,
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.xl,
@@ -194,7 +226,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: spacing.md,
     ...typography.styles.body,
-    color: colors.text.primary,
   },
   gridContainer: {
     padding: spacing.md,
@@ -210,30 +241,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: spacing.sm,
   },
-  iconItemSelected: {
-    backgroundColor: colors.background,
-    borderRadius: borderRadius.lg,
-  },
   iconCircle: {
     width: 60,
     height: 60,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.gray[100],
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.xs,
   },
-  iconCircleSelected: {
-    backgroundColor: colors.primary,
-  },
   iconLabel: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     textAlign: 'center',
     fontSize: 10,
-  },
-  iconLabelSelected: {
-    color: colors.primary,
-    fontWeight: '600',
   },
 });

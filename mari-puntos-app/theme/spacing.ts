@@ -22,23 +22,38 @@ export const borderRadius = {
 
 export const shadows = {
   none: {
-    boxShadow: '0 0 0 0 transparent',
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
     elevation: 0,
   },
   sm: {
-    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
     elevation: 1,
   },
   md: {
-    boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     elevation: 3,
   },
   lg: {
-    boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.12)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
     elevation: 6,
   },
   xl: {
-    boxShadow: '0 8px 16px 0 rgba(0, 0, 0, 0.15)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
     elevation: 10,
   },
 };

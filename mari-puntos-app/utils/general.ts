@@ -1,31 +1,36 @@
 import { colors } from '@/theme';
-import {
-  formatDateWithTime as formatDateWithTimeUTC6,
-  formatDateOnly as formatDateOnlyUTC6,
-} from './dateUtils';
+import { ActionStatus, PermissionStatus } from '@/types';
 
-export const getStatusText = (status: string) => {
+export const getStatusText = (
+  status: ActionStatus | PermissionStatus | string
+): string => {
   switch (status) {
-    case 'approved':
+    case ActionStatus.APPROVED:
+    case PermissionStatus.APPROVED:
       return 'Aprobado';
-    case 'rejected':
+    case ActionStatus.REJECTED:
+    case PermissionStatus.REJECTED:
       return 'Rechazado';
+    case PermissionStatus.EXPIRED:
+      return 'Expirado';
     default:
       return 'Pendiente';
   }
 };
 
-export const getStatusColor = (status: string) => {
+export const getStatusColor = (
+  status: ActionStatus | PermissionStatus | string,
+  scheme?: string | null
+): string => {
+  const c = scheme === 'dark' ? colors.dark : colors.light;
   switch (status) {
-    case 'approved':
-      return colors.success;
-    case 'rejected':
-      return colors.error;
+    case ActionStatus.APPROVED:
+    case PermissionStatus.APPROVED:
+      return c.success;
+    case ActionStatus.REJECTED:
+    case PermissionStatus.REJECTED:
+      return c.error;
     default:
-      return colors.warning;
+      return c.warning;
   }
 };
-
-export const formatDate = formatDateWithTimeUTC6;
-
-export const formatDateOnly = formatDateOnlyUTC6;

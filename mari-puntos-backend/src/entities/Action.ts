@@ -65,7 +65,7 @@ export class Action {
   rejectionReason: string | null;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -74,7 +74,7 @@ export class Action {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => User, (user) => user.actions)
+  @ManyToOne(() => User, (user) => user.actions, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
 }

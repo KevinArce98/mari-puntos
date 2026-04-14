@@ -1,7 +1,8 @@
-import { Href, useRouter } from 'expo-router';
+import { Href, useRouter, useRootNavigationState } from 'expo-router';
 import { useEffect } from 'react';
 
 import { useUserStore } from '@/stores';
+import logger from '@/utils/logger';
 
 import { useClerkAuth } from './useClerkAuth';
 
@@ -41,10 +42,12 @@ export function useAuthGuard(options: UseAuthGuardOptions = {}) {
   const { isLoaded, isSignedIn } = useClerkAuth();
   const { user, isLoading: isUserLoading } = useUserStore();
   const router = useRouter();
+  const navigationState = useRootNavigationState();
 
   // Determine if user is fully authenticated
   const isAuthenticated = isSignedIn && (!requireProfile || (requireProfile && !!user));
-  const isLoading = !isLoaded || (requireProfile && isUserLoading);
+  const isLoading =
+    !navigationState?.key || !isLoaded || (requireProfile && isUserLoading);
 
   useEffect(() => {
     if (isLoading) return;
@@ -57,7 +60,7 @@ export function useAuthGuard(options: UseAuthGuardOptions = {}) {
 
     // Check if profile is required and exists
     if (requireProfile && !user && !checkClerkOnly) {
-      console.warn('User is authenticated but profile not found in database');
+      logger.warn('User is authenticated but profile not found in database');
       // You could redirect to a profile creation page here
       // router.replace('/(auth)/create-profile');
     }

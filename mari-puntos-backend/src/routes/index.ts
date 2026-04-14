@@ -7,6 +7,7 @@ import permissionTemplatesRoutes from './permission-templates.routes';
 import rewardsRoutes from './rewards.routes';
 import pointsRoutes from './points.routes';
 import { getNowUTC6 } from '../utils/helpers';
+import { AppDataSource } from '../config/db';
 
 const router: Router = Router();
 
@@ -42,6 +43,15 @@ router.get('/health', (_req, res) => {
     message: 'MariPuntos API is running',
     timestamp: getNowUTC6().toISOString(),
   });
+});
+
+router.get('/ready', async (_req, res) => {
+  try {
+    await AppDataSource.query('SELECT 1');
+    res.json({ success: true, message: 'API is ready', timestamp: getNowUTC6().toISOString() });
+  } catch {
+    res.status(503).json({ success: false, message: 'Database not ready' });
+  }
 });
 
 // API routes

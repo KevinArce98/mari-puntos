@@ -78,6 +78,30 @@ export enum RewardCategory {
   OTHER = 'other',
 }
 
+export enum AchievementType {
+  POINTS_MILESTONE = 'points_milestone',
+  LEVEL_MILESTONE = 'level_milestone',
+  ACTIONS_COMPLETED = 'actions_completed',
+  PERMISSIONS_GRANTED = 'permissions_granted',
+  STREAK = 'streak',
+  SPECIAL = 'special',
+}
+
+export interface Achievement {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  type: AchievementType;
+  iconUrl?: string;
+  pointsReward?: number;
+  isUnlocked: boolean;
+  unlockedAt?: string;
+  requiredValue?: number;
+  currentProgress: number;
+  createdAt: string;
+}
+
 export enum LogType {
   POINTS_EARNED = 'points_earned',
   POINTS_SPENT = 'points_spent',
@@ -127,13 +151,15 @@ export interface UserStats {
 export interface UpdateProfileRequest {
   firstName?: string;
   lastName?: string;
+  pushToken?: string;
+  profileImage?: string; // base64 encoded image
 }
 
 export interface CreateUserRequest {
   email: string;
   firstName: string;
   lastName: string;
-  clerkId: string;
+  clerkId?: string; // Optional - comes from auth token on backend
   avatarUrl?: string;
 }
 
@@ -247,7 +273,7 @@ export interface Permission {
   status: PermissionStatus;
   requestedDate: string;
   durationHours: number;
-  pointsCost: number;
+  pointsCost?: number;
   responseMessage?: string;
   respondedAt?: string;
   metadata?: Record<string, any>;
@@ -260,6 +286,7 @@ export interface Permission {
     lastName: string;
     email: string;
     avatarUrl?: string;
+    totalPoints: number;
   };
   approver?: {
     id: string;
@@ -274,7 +301,6 @@ export interface CreatePermissionRequest {
   templateId: string;
   requestedDate: string;
   durationHours: number;
-  pointsCost: number;
   metadata?: Record<string, any>;
 }
 
@@ -295,6 +321,7 @@ export interface GetPermissionTemplatesParams extends PaginationParams {
 export interface RespondPermissionRequest {
   approved: boolean;
   responseMessage?: string;
+  pointsCost?: number; // Required when approving
 }
 
 export interface GetPermissionsParams extends PaginationParams {

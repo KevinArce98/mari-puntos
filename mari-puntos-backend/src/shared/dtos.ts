@@ -1,5 +1,3 @@
-// filepath: /Users/kevinarias/Projects/mari-puntos-backend/src/shared/dtos.ts
-
 /**
  * Data Transfer Objects (DTOs) for MariPuntos API
  * ⚠️ These MUST match the frontend TypeScript interfaces EXACTLY
@@ -240,7 +238,7 @@ export interface PermissionTemplateDTO {
   isSystemTemplate: boolean;
   isActive: boolean;
   partnerLinkId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
@@ -256,10 +254,10 @@ export interface PermissionDTO {
   status: PermissionStatus;
   requestedDate: string;
   durationHours: number;
-  pointsCost: number;
+  pointsCost?: number;
   responseMessage?: string;
   respondedAt?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
   template?: PermissionTemplateDTO;
@@ -269,6 +267,7 @@ export interface PermissionDTO {
     lastName: string;
     email: string;
     avatarUrl?: string;
+    totalPoints: number;
   };
   approver?: {
     id: string;
@@ -286,8 +285,7 @@ export interface CreatePermissionDTO {
   templateId: string;
   requestedDate: string;
   durationHours: number;
-  pointsCost: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -296,6 +294,7 @@ export interface CreatePermissionDTO {
 export interface RespondPermissionDTO {
   approved: boolean;
   responseMessage?: string;
+  pointsCost?: number; // Set by approver when approving
 }
 
 /**

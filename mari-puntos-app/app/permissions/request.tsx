@@ -2,38 +2,40 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
+  Keyboard,
+  KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
   ActivityIndicator,
 } from 'react-native';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Button, Card, Input } from '@/components/ui';
-import { usePermissions } from '@/hooks';
-import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { Button, Card, TextAreaWithCounter } from '@/components/ui';
+import { usePermissions, useThemedColors, useUser } from '@/hooks';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { createUTC6DateTime } from '@/utils/dateUtils';
 import Toast from 'react-native-toast-message';
-import { PermissionTemplate, PermissionCategory } from '@/types';
+import { PermissionTemplate } from '@/types';
 import { permissionsService } from '@/services';
-
-const QUICK_ACTIVITIES = [
-  { id: PermissionCategory.GAMING, label: 'Gaming', icon: 'game-controller-outline' },
-  { id: PermissionCategory.SOCIAL, label: 'Friends', icon: 'people-outline' },
-  { id: PermissionCategory.SPORTS, label: 'Sports', icon: 'football-outline' },
-];
+import logger from '@/utils/logger';
 
 export default function RequestPermissionScreen() {
+  const themeColors = useThemedColors();
+  const colorScheme: 'light' | 'dark' = useColorScheme() === 'dark' ? 'dark' : 'light';
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user } = useUser();
   const { requestPermission } = usePermissions();
 
   const [templates, setTemplates] = useState<PermissionTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
-  const [selectedQuick, setSelectedQuick] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<PermissionTemplate | null>(
     null
   );
@@ -47,29 +49,26 @@ export default function RequestPermissionScreen() {
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showPicker, setShowPicker] = useState<'date' | 'time' | null>(null);
 
-  const estimatedCost = selectedTemplate
-    ? (selectedTemplate.suggestedPointsCost || 0) *
-      (duration / (selectedTemplate.suggestedDurationHours || 1))
-    : 0;
-
   // Load permission templates
   useEffect(() => {
+    if (!user) return;
     loadTemplates();
-  }, []);
+  }, [user]);
 
   // Reload templates when screen comes into focus
   useFocusEffect(
     useCallback(() => {
+      if (!user) return;
       loadTemplates();
-    }, [])
+    }, [user])
   );
 
   const loadTemplates = async () => {
     try {
       setLoadingTemplates(true);
       const result = await permissionsService.getTemplates();
-      console.log('Templates loaded:', result);
       setTemplates(result.data || []);
+      logger.debug('Permission templates loaded', { count: result.data?.length || 0 });
       if (!result.data || result.data.length === 0) {
         Toast.show({
           type: 'info',
@@ -78,7 +77,7 @@ export default function RequestPermissionScreen() {
         });
       }
     } catch (error) {
-      console.error('Error loading templates:', error);
+      logger.error('Failed to load permission templates', error as Error);
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -89,16 +88,20 @@ export default function RequestPermissionScreen() {
     }
   };
 
-  const handleQuickSelect = (category: string) => {
-    setSelectedQuick(category);
-    // Find first template of this category
-    const template = templates.find((t) => t.category === category);
-    if (template) {
-      setSelectedTemplate(template);
-      if (template.suggestedDurationHours) {
-        setDuration(template.suggestedDurationHours);
-      }
-    }
+  // Combine and sort all templates alphabetically
+  const allTemplatesSorted = [...templates].sort((a, b) =>
+    a.title.localeCompare(b.title, 'es')
+  );
+
+  const handleTemplateSelect = (template: PermissionTemplate) => {
+    setSelectedTemplate(template);
+    setShowTemplatePicker(false);
+    const suggestedDuration = template.suggestedDurationHours;
+    setDuration(
+      typeof suggestedDuration === 'number' && suggestedDuration > 0
+        ? suggestedDuration
+        : 2
+    );
   };
 
   const handleRequest = async () => {
@@ -106,7 +109,7 @@ export default function RequestPermissionScreen() {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Por favor selecciona un tipo de permiso',
+        text2: 'Por favor selecciona un tipo de actividad',
       });
       return;
     }
@@ -119,7 +122,6 @@ export default function RequestPermissionScreen() {
         templateId: selectedTemplate.id,
         requestedDate: requestedDateTime.toISOString(),
         durationHours: duration,
-        pointsCost: Math.round(estimatedCost),
         metadata: note.trim() ? { note: note.trim() } : undefined,
       });
 
@@ -142,7 +144,9 @@ export default function RequestPermissionScreen() {
   };
 
   const handleDurationChange = (change: number) => {
-    const newDuration = Math.max(0.5, Math.min(8, duration + change));
+    const currentDuration =
+      typeof duration === 'number' && !isNaN(duration) ? duration : 2;
+    const newDuration = Math.max(0.5, Math.min(8, currentDuration + change));
     setDuration(newDuration);
   };
 
@@ -195,281 +199,376 @@ export default function RequestPermissionScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: themeColors.background,
+          paddingTop: Platform.OS !== 'ios' ? insets.top : 0,
+        },
+      ]}
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
+          <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nuevo Permiso</Text>
+        <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
+          Nueva Solicitud
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {loadingTemplates ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>Cargando plantillas...</Text>
-          </View>
-        ) : (
-          <>
-            {/* Quick Select */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Selección Rápida</Text>
-              <View style={styles.quickSelectRow}>
-                {QUICK_ACTIVITIES.map((activity) => (
-                  <TouchableOpacity
-                    key={activity.id}
-                    style={[
-                      styles.quickSelectItem,
-                      selectedQuick === activity.id && styles.quickSelectItemSelected,
-                    ]}
-                    onPress={() => handleQuickSelect(activity.id)}
-                  >
-                    <Ionicons
-                      name={activity.icon as keyof typeof Ionicons.glyphMap}
-                      size={24}
-                      color={
-                        selectedQuick === activity.id ? colors.white : colors.text.primary
-                      }
-                    />
-                    <Text
+      <KeyboardAvoidingView style={styles.keyboardView} behavior="padding">
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {loadingTemplates ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={themeColors.primary} />
+                <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>
+                  Cargando plantillas...
+                </Text>
+              </View>
+            ) : (
+              <>
+                {/* Activity Type */}
+                <View style={styles.section}>
+                  <View style={styles.sectionHeader}>
+                    <TouchableOpacity
+                      onPress={() => router.push('/permissions/create-template')}
+                      style={styles.addButton}
+                    >
+                      <Ionicons
+                        name="add-circle-outline"
+                        size={20}
+                        color={themeColors.primary}
+                      />
+                      <Text
+                        style={[styles.addButtonText, { color: themeColors.primary }]}
+                      >
+                        Nueva Actividad
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* All Templates Dropdown */}
+                  <View style={styles.allTemplatesSection}>
+                    {showTemplatePicker && (
+                      <Pressable
+                        style={styles.dropdownBackdrop}
+                        onPress={() => setShowTemplatePicker(false)}
+                      />
+                    )}
+                    <TouchableOpacity
                       style={[
-                        styles.quickSelectLabel,
-                        selectedQuick === activity.id && styles.quickSelectLabelSelected,
+                        styles.dropdown,
+                        { backgroundColor: themeColors.gray[100] },
+                      ]}
+                      onPress={() => setShowTemplatePicker(!showTemplatePicker)}
+                    >
+                      {selectedTemplate?.metadata?.icon && (
+                        <View
+                          style={[
+                            styles.dropdownIcon,
+                            { backgroundColor: `${themeColors.primary}15` },
+                          ]}
+                        >
+                          <Ionicons
+                            name={
+                              selectedTemplate.metadata
+                                .icon as keyof typeof Ionicons.glyphMap
+                            }
+                            size={20}
+                            color={themeColors.primary}
+                          />
+                        </View>
+                      )}
+                      <Text
+                        style={[
+                          styles.dropdownText,
+                          { color: themeColors.text.primary },
+                          !selectedTemplate && { color: themeColors.gray[400] },
+                        ]}
+                      >
+                        {selectedTemplate
+                          ? selectedTemplate.title
+                          : 'Selecciona una actividad'}
+                      </Text>
+                      <Ionicons
+                        name={showTemplatePicker ? 'chevron-up' : 'chevron-down'}
+                        size={20}
+                        color={themeColors.gray[400]}
+                      />
+                    </TouchableOpacity>
+
+                    {showTemplatePicker && (
+                      <Card style={styles.dropdownMenu} padding="none">
+                        {allTemplatesSorted.length === 0 ? (
+                          <View style={styles.emptyTemplates}>
+                            <Ionicons
+                              name="information-circle-outline"
+                              size={48}
+                              color={themeColors.gray[400]}
+                            />
+                            <Text
+                              style={[
+                                styles.emptyTemplatesText,
+                                { color: themeColors.text.primary },
+                              ]}
+                            >
+                              No hay actividades disponibles
+                            </Text>
+                          </View>
+                        ) : (
+                          allTemplatesSorted.map((template) => (
+                            <TouchableOpacity
+                              key={template.id}
+                              style={[
+                                styles.dropdownItem,
+                                { borderBottomColor: themeColors.gray[100] },
+                                selectedTemplate?.id === template.id && {
+                                  backgroundColor: `${themeColors.primary}10`,
+                                },
+                              ]}
+                              onPress={() => handleTemplateSelect(template)}
+                            >
+                              {template.metadata?.icon && (
+                                <View
+                                  style={[
+                                    styles.dropdownItemIcon,
+                                    { backgroundColor: `${themeColors.primary}15` },
+                                  ]}
+                                >
+                                  <Ionicons
+                                    name={
+                                      template.metadata
+                                        .icon as keyof typeof Ionicons.glyphMap
+                                    }
+                                    size={24}
+                                    color={themeColors.primary}
+                                  />
+                                </View>
+                              )}
+                              <View style={styles.dropdownItemContent}>
+                                <View style={styles.dropdownItemTitleRow}>
+                                  <Text
+                                    style={[
+                                      styles.dropdownItemText,
+                                      { color: themeColors.text.primary },
+                                    ]}
+                                  >
+                                    {template.title}
+                                  </Text>
+                                  {!template.isSystemTemplate && (
+                                    <Ionicons
+                                      name="star"
+                                      size={16}
+                                      color={themeColors.accent}
+                                      style={styles.customBadge}
+                                    />
+                                  )}
+                                </View>
+                                {template.description && (
+                                  <Text
+                                    style={[
+                                      styles.dropdownItemDescription,
+                                      { color: themeColors.text.secondary },
+                                    ]}
+                                  >
+                                    {template.description}
+                                  </Text>
+                                )}
+                              </View>
+                              {template.suggestedPointsCost && (
+                                <Text
+                                  style={[
+                                    styles.dropdownItemCost,
+                                    { color: themeColors.primary },
+                                  ]}
+                                >
+                                  {template.suggestedPointsCost} pts
+                                  {template.suggestedDurationHours &&
+                                    `/${template.suggestedDurationHours}h`}
+                                </Text>
+                              )}
+                            </TouchableOpacity>
+                          ))
+                        )}
+                      </Card>
+                    )}
+                  </View>
+                </View>
+
+                {/* Date & Time */}
+                <View style={styles.section}>
+                  <Text
+                    style={[styles.sectionTitle, { color: themeColors.text.primary }]}
+                  >
+                    Cuándo
+                  </Text>
+                  <View style={styles.dateTimeRow}>
+                    <TouchableOpacity
+                      style={[
+                        styles.dateTimeButton,
+                        { backgroundColor: themeColors.gray[100] },
+                      ]}
+                      onPress={() =>
+                        setShowPicker((show) => {
+                          return show === 'date' ? null : 'date';
+                        })
+                      }
+                    >
+                      <Ionicons
+                        name="calendar-outline"
+                        size={20}
+                        color={themeColors.primary}
+                      />
+                      <Text
+                        style={[styles.dateTimeText, { color: themeColors.text.primary }]}
+                      >
+                        {formatDate(selectedDate)}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.dateTimeButton,
+                        { backgroundColor: themeColors.gray[100] },
+                      ]}
+                      onPress={() =>
+                        setShowPicker((show) => {
+                          return show === 'time' ? null : 'time';
+                        })
+                      }
+                    >
+                      <Ionicons
+                        name="time-outline"
+                        size={20}
+                        color={themeColors.primary}
+                      />
+                      <Text
+                        style={[styles.dateTimeText, { color: themeColors.text.primary }]}
+                      >
+                        {formatTime(selectedTime)}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {showPicker && (
+                    <View style={styles.calendarContainer}>
+                      <DateTimePicker
+                        value={showPicker === 'time' ? selectedTime : selectedDate}
+                        mode={showPicker}
+                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        onChange={
+                          showPicker === 'time' ? handleTimeChange : handleDateChange
+                        }
+                        minimumDate={showPicker === 'date' ? new Date() : undefined}
+                        locale="es-CR"
+                        textColor={themeColors.text.primary}
+                        themeVariant={colorScheme}
+                      />
+                    </View>
+                  )}
+
+                  {/* iOS Confirm Button */}
+                  {Platform.OS === 'ios' && showPicker && (
+                    <Button
+                      title="Confirmar"
+                      onPress={() => {
+                        setShowPicker(null);
+                      }}
+                      variant="secondary"
+                      style={{ marginTop: spacing.md }}
+                    />
+                  )}
+                </View>
+
+                {/* Duration Control */}
+                <View style={styles.section}>
+                  <View style={styles.durationHeader}>
+                    <Text
+                      style={[styles.sectionTitle, { color: themeColors.text.primary }]}
+                    >
+                      Duración
+                    </Text>
+                    <Text style={[styles.durationValue, { color: themeColors.primary }]}>
+                      {isNaN(duration) ? 0 : duration} horas
+                    </Text>
+                  </View>
+
+                  <View style={styles.durationControl}>
+                    <TouchableOpacity
+                      style={[
+                        styles.durationButton,
+                        { backgroundColor: themeColors.gray[100] },
+                      ]}
+                      onPress={() => handleDurationChange(-0.5)}
+                    >
+                      <Ionicons name="remove" size={24} color={themeColors.primary} />
+                    </TouchableOpacity>
+
+                    <View
+                      style={[
+                        styles.durationTrack,
+                        { backgroundColor: themeColors.gray[200] },
                       ]}
                     >
-                      {activity.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Activity Type */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Tipo de Actividad</Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    router.push('/permissions/create-template');
-                  }}
-                  style={styles.addButton}
-                >
-                  <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-                  <Text style={styles.addButtonText}>Nueva</Text>
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity
-                style={styles.dropdown}
-                onPress={() => setShowTemplatePicker(!showTemplatePicker)}
-              >
-                {selectedTemplate?.metadata?.icon && (
-                  <View style={styles.dropdownIcon}>
-                    <Ionicons
-                      name={
-                        selectedTemplate.metadata.icon as keyof typeof Ionicons.glyphMap
-                      }
-                      size={20}
-                      color={colors.primary}
-                    />
-                  </View>
-                )}
-                <Text
-                  style={[
-                    styles.dropdownText,
-                    !selectedTemplate && styles.dropdownPlaceholder,
-                  ]}
-                >
-                  {selectedTemplate?.title || 'Selecciona una actividad'}
-                </Text>
-                <Ionicons
-                  name={showTemplatePicker ? 'chevron-up' : 'chevron-down'}
-                  size={20}
-                  color={colors.gray[400]}
-                />
-              </TouchableOpacity>
-
-              {showTemplatePicker && (
-                <Card style={styles.dropdownMenu} padding="none">
-                  {templates.length === 0 ? (
-                    <View style={styles.emptyTemplates}>
-                      <Ionicons
-                        name="information-circle-outline"
-                        size={48}
-                        color={colors.gray[400]}
-                      />
-                      <Text style={styles.emptyTemplatesText}>
-                        No hay actividades disponibles
-                      </Text>
-                      <Text style={styles.emptyTemplatesSubtext}>
-                        Las plantillas de actividades se cargan automáticamente
-                      </Text>
-                    </View>
-                  ) : (
-                    templates.map((template) => (
-                      <TouchableOpacity
-                        key={template.id}
+                      <View
                         style={[
-                          styles.dropdownItem,
-                          selectedTemplate?.id === template.id &&
-                            styles.dropdownItemSelected,
+                          styles.durationFill,
+                          { backgroundColor: themeColors.accent },
+                          { width: `${(duration / 8) * 100}%` },
                         ]}
-                        onPress={() => {
-                          setSelectedTemplate(template);
-                          setSelectedQuick(template.category);
-                          if (template.suggestedDurationHours) {
-                            setDuration(template.suggestedDurationHours);
-                          }
-                          setShowTemplatePicker(false);
-                        }}
-                      >
-                        {template.metadata?.icon && (
-                          <View style={styles.dropdownItemIcon}>
-                            <Ionicons
-                              name={
-                                template.metadata.icon as keyof typeof Ionicons.glyphMap
-                              }
-                              size={24}
-                              color={colors.primary}
-                            />
-                          </View>
-                        )}
-                        <View style={styles.dropdownItemContent}>
-                          <Text style={styles.dropdownItemText}>{template.title}</Text>
-                          {template.description && (
-                            <Text style={styles.dropdownItemDescription}>
-                              {template.description}
-                            </Text>
-                          )}
-                        </View>
-                        {template.suggestedPointsCost && (
-                          <Text style={styles.dropdownItemCost}>
-                            {template.suggestedPointsCost} pts
-                            {template.suggestedDurationHours &&
-                              `/${template.suggestedDurationHours}h`}
-                          </Text>
-                        )}
-                      </TouchableOpacity>
-                    ))
-                  )}
-                </Card>
-              )}
-            </View>
+                      />
+                    </View>
 
-            {/* Date & Time */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Cuándo</Text>
-              <View style={styles.dateTimeRow}>
-                <TouchableOpacity
-                  style={styles.dateTimeButton}
-                  onPress={() =>
-                    setShowPicker((show) => {
-                      return show === 'date' ? null : 'date';
-                    })
-                  }
-                >
-                  <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-                  <Text style={styles.dateTimeText}>{formatDate(selectedDate)}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.dateTimeButton}
-                  onPress={() =>
-                    setShowPicker((show) => {
-                      return show === 'time' ? null : 'time';
-                    })
-                  }
-                >
-                  <Ionicons name="time-outline" size={20} color={colors.primary} />
-                  <Text style={styles.dateTimeText}>{formatTime(selectedTime)}</Text>
-                </TouchableOpacity>
-              </View>
-
-              {showPicker && (
-                <View style={styles.calendarContainer}>
-                  <DateTimePicker
-                    value={showPicker === 'time' ? selectedTime : selectedDate}
-                    mode={showPicker}
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={showPicker === 'time' ? handleTimeChange : handleDateChange}
-                    minimumDate={showPicker === 'date' ? new Date() : undefined}
-                    locale="es-CR"
-                  />
-                </View>
-              )}
-
-              {/* iOS Confirm Button */}
-              {Platform.OS === 'ios' && showPicker && (
-                <Button
-                  title="Confirmar"
-                  onPress={() => {
-                    setShowPicker(null);
-                  }}
-                  variant="secondary"
-                  style={{ marginTop: spacing.md }}
-                />
-              )}
-            </View>
-
-            {/* Duration Control */}
-            <View style={styles.section}>
-              <View style={styles.durationHeader}>
-                <Text style={styles.sectionTitle}>Duración</Text>
-                <Text style={styles.durationValue}>{duration} horas</Text>
-              </View>
-
-              <View style={styles.durationControl}>
-                <TouchableOpacity
-                  style={styles.durationButton}
-                  onPress={() => handleDurationChange(-0.5)}
-                >
-                  <Ionicons name="remove" size={24} color={colors.primary} />
-                </TouchableOpacity>
-
-                <View style={styles.durationTrack}>
-                  <View
-                    style={[styles.durationFill, { width: `${(duration / 8) * 100}%` }]}
-                  />
+                    <TouchableOpacity
+                      style={[
+                        styles.durationButton,
+                        { backgroundColor: themeColors.gray[100] },
+                      ]}
+                      onPress={() => handleDurationChange(0.5)}
+                    >
+                      <Ionicons name="add" size={24} color={themeColors.primary} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
-                <TouchableOpacity
-                  style={styles.durationButton}
-                  onPress={() => handleDurationChange(0.5)}
-                >
-                  <Ionicons name="add" size={24} color={colors.primary} />
-                </TouchableOpacity>
-              </View>
-
-              {/* Estimated Cost */}
-              <View style={styles.costCard}>
-                <Text style={styles.costLabel}>Costo Estimado</Text>
-                <Text style={styles.costValue}>{estimatedCost} MariPuntos</Text>
-              </View>
-            </View>
-
-            {/* Optional Note */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Nota (Opcional)</Text>
-              <Input
-                placeholder="Agrega un mensaje para tu pareja..."
-                value={note}
-                onChangeText={setNote}
-                multiline
-                numberOfLines={3}
-                containerStyle={styles.noteInput}
-              />
-            </View>
-          </>
-        )}
-      </ScrollView>
+                {/* Optional Note */}
+                <View style={styles.section}>
+                  <Text
+                    style={[styles.sectionTitle, { color: themeColors.text.primary }]}
+                  >
+                    Nota (Opcional)
+                  </Text>
+                  <TextAreaWithCounter
+                    placeholder="Agrega un mensaje para tu pareja..."
+                    value={note}
+                    onChangeText={setNote}
+                    numberOfLines={3}
+                    maxLength={500}
+                    containerStyle={styles.noteInput}
+                  />
+                </View>
+              </>
+            )}
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
 
       {/* Bottom Button */}
       <View
-        style={[styles.bottomContainer, { paddingBottom: insets.bottom + spacing.md }]}
+        style={[
+          styles.bottomContainer,
+          {
+            backgroundColor: themeColors.background,
+            paddingBottom: insets.bottom + spacing.md,
+          },
+        ]}
       >
         <Button
           title="Enviar Solicitud"
@@ -487,7 +586,9 @@ export default function RequestPermissionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+  },
+  keyboardView: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -505,7 +606,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   scrollContent: {
     padding: spacing.lg,
@@ -516,7 +616,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.md,
   },
   sectionHeader: {
@@ -525,6 +624,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
   },
+  subsectionTitle: {
+    ...typography.styles.bodyMedium,
+    marginBottom: spacing.sm,
+    marginTop: spacing.md,
+  },
+  allTemplatesSection: {
+    zIndex: 10,
+  },
+  dropdownBackdrop: {
+    position: 'absolute',
+    top: -9999,
+    left: -9999,
+    right: -9999,
+    bottom: -9999,
+    zIndex: 9,
+  },
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -532,63 +647,44 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
+  },
+  dropdownItemTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  customBadge: {
+    marginLeft: spacing.xs / 2,
   },
   calendarContainer: {
     alignItems: 'center',
-  },
-  quickSelectRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  quickSelectItem: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.xl,
-    padding: spacing.md,
-    alignItems: 'center',
-    gap: spacing.xs,
-    ...shadows.sm,
-  },
-  quickSelectItemSelected: {
-    backgroundColor: colors.text.primary,
-  },
-  quickSelectLabel: {
-    ...typography.styles.caption,
-    color: colors.text.primary,
-  },
-  quickSelectLabelSelected: {
-    color: colors.white,
   },
   dropdown: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.white,
     borderRadius: borderRadius.xl,
     padding: spacing.md,
+    zIndex: 10,
     ...shadows.sm,
   },
   dropdownIcon: {
     width: 32,
     height: 32,
     borderRadius: borderRadius.full,
-    backgroundColor: `${colors.primary}15`,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
   },
   dropdownText: {
     ...typography.styles.body,
-    color: colors.text.primary,
     flex: 1,
   },
-  dropdownPlaceholder: {
-    color: colors.gray[400],
-  },
+  dropdownPlaceholder: {},
   dropdownMenu: {
     marginTop: spacing.sm,
     overflow: 'hidden',
+    zIndex: 10,
   },
   dropdownItem: {
     flexDirection: 'row',
@@ -596,16 +692,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[100],
   },
-  dropdownItemSelected: {
-    backgroundColor: `${colors.primary}10`,
-  },
+  dropdownItemSelected: {},
   dropdownItemIcon: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.full,
-    backgroundColor: `${colors.primary}15`,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
@@ -616,16 +708,13 @@ const styles = StyleSheet.create({
   },
   dropdownItemText: {
     ...typography.styles.body,
-    color: colors.text.primary,
   },
   dropdownItemDescription: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: spacing.xs,
   },
   dropdownItemCost: {
     ...typography.styles.caption,
-    color: colors.primary,
   },
   emptyTemplates: {
     padding: spacing.xl,
@@ -634,12 +723,10 @@ const styles = StyleSheet.create({
   },
   emptyTemplatesText: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
     textAlign: 'center',
   },
   emptyTemplatesSubtext: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     textAlign: 'center',
   },
   loadingContainer: {
@@ -649,7 +736,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     marginTop: spacing.md,
   },
   dateTimeRow: {
@@ -661,7 +747,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.white,
     borderRadius: borderRadius.xl,
     padding: spacing.md,
     gap: spacing.sm,
@@ -669,7 +754,6 @@ const styles = StyleSheet.create({
   },
   dateTimeText: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
   },
   durationHeader: {
     flexDirection: 'row',
@@ -679,7 +763,6 @@ const styles = StyleSheet.create({
   },
   durationValue: {
     ...typography.styles.h4,
-    color: colors.primary,
   },
   durationControl: {
     flexDirection: 'row',
@@ -690,7 +773,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     ...shadows.sm,
@@ -698,31 +780,12 @@ const styles = StyleSheet.create({
   durationTrack: {
     flex: 1,
     height: 8,
-    backgroundColor: colors.gray[200],
     borderRadius: borderRadius.full,
     overflow: 'hidden',
   },
   durationFill: {
     height: '100%',
-    backgroundColor: colors.accent,
     borderRadius: borderRadius.full,
-  },
-  costCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: `${colors.accent}15`,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    marginTop: spacing.md,
-  },
-  costLabel: {
-    ...typography.styles.bodyMedium,
-    color: colors.text.secondary,
-  },
-  costValue: {
-    ...typography.styles.h4,
-    color: colors.accent,
   },
   noteInput: {
     marginBottom: 0,
@@ -732,7 +795,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.white,
     padding: spacing.lg,
     ...shadows.lg,
   },

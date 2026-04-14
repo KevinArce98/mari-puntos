@@ -1,24 +1,44 @@
 import { useEffect } from 'react';
-import { useActionsStore } from '@/stores';
+import { useActionsStore, useUserStore } from '@/stores';
 import { CreateActionRequest, GetActionsParams } from '@/types';
+import logger from '@/utils/logger';
 
 export const useActions = () => {
   const {
     myActions,
     partnerActions,
     isLoading,
+    isLoadingMyActions,
+    isLoadingPartnerActions,
     error,
+    myActionsPagination,
+    partnerActionsPagination,
     fetchMyActions,
     fetchPartnerActions,
     createAction,
     approveAction,
     rejectAction,
   } = useActionsStore();
+  const { user } = useUserStore();
 
   useEffect(() => {
-    fetchMyActions().catch(console.error);
-    fetchPartnerActions().catch(console.error);
-  }, []);
+    if (!user) return;
+
+    // Guard: skip if a fetch is already in flight (prevents double-fetch from
+    // multiple consumers of this hook mounting simultaneously)
+    const store = useActionsStore.getState();
+    if (!store.isLoadingMyActions) {
+      fetchMyActions().catch((error) => {
+        logger.error('Failed to fetch my actions in useActions hook', error);
+      });
+    }
+    if (!store.isLoadingPartnerActions) {
+      fetchPartnerActions().catch((error) => {
+        logger.error('Failed to fetch partner actions in useActions hook', error);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const handleCreateAction = async (data: CreateActionRequest) => {
     await createAction(data);
@@ -32,8 +52,11 @@ export const useActions = () => {
     await rejectAction(actionId, rejectionReason);
   };
 
-  const fetchPartnerActionsForReview = async (params?: GetActionsParams) => {
-    await fetchPartnerActions(params);
+  const fetchPartnerActionsForReview = async (
+    params?: GetActionsParams,
+    append = false
+  ) => {
+    await fetchPartnerActions(params, append);
   };
 
   return {
@@ -41,6 +64,8 @@ export const useActions = () => {
     partnerActions,
     isLoading,
     error,
+    myActionsPagination,
+    partnerActionsPagination,
     createAction: handleCreateAction,
     approveAction: handleApproveAction,
     rejectAction: handleRejectAction,

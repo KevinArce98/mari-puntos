@@ -1,64 +1,75 @@
-import { useSignIn } from '@clerk/clerk-expo';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
 import {
+  Image,
+  Keyboard,
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useSignIn, isClerkAPIResponseError } from '@clerk/clerk-expo';
+import { handleClerkErrors } from '@/types/clerk-localization';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { Button, Input } from '@/components/ui';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Button, ControlledInput } from '@/components/ui';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import Toast from 'react-native-toast-message';
+import { useThemedColors } from '@/hooks';
+import { loginSchema, type LoginFormData } from '@/validators/auth.schema';
+import logger from '@/utils/logger';
 
 export default function LoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const themeColors = useThemedColors();
   const { signIn, setActive, isLoaded } = useSignIn();
-  // const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
     if (!isLoaded) return;
 
-    if (!email.trim() || !password.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Campos faltantes',
-        text2: 'Por favor ingresa tu correo y contraseña',
-      });
-      return;
-    }
-
-    setLoading(true);
     try {
       const result = await signIn.create({
-        identifier: email,
-        password,
+        identifier: data.email,
+        password: data.password,
       });
 
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
+        logger.info('User logged in successfully', { email: data.email });
         router.replace('/(tabs)');
       }
-    } catch (e) {
+    } catch (error: any) {
+      let errorMessage = 'Correo o contraseña inválidos';
+
+      if (isClerkAPIResponseError(error)) {
+        errorMessage = handleClerkErrors(error.errors);
+      }
+
+      logger.warn('Login failed', { email: data.email, error: errorMessage });
+
       Toast.show({
         type: 'error',
         text1: 'Inicio de sesión fallido',
-        text2: (e as any)?.error ? (e as any).error : 'Correo o contraseña inválidos',
+        text2: errorMessage,
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -80,96 +91,111 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={[styles.container, { backgroundColor: themeColors.background }]}
+      behavior="padding"
     >
-      <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingTop: insets.top + spacing.xl,
-            paddingBottom: insets.bottom + spacing.lg,
-          },
-        ]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Logo */}
-        <View style={styles.logoContainer}>
-          <View style={styles.logoIcon}>
-            <Ionicons name="heart" size={32} color={colors.white} />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: insets.top + spacing.xl,
+              paddingBottom: insets.bottom + spacing.lg,
+            },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Logo */}
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('@/assets/images/icon.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
           </View>
-        </View>
 
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>¡Bienvenido de nuevo!</Text>
-          <Text style={styles.subtitle}>
-            Inicia sesión para continuar ganando puntos con tu pareja
-          </Text>
-        </View>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={[styles.title, { color: themeColors.text.primary }]}>
+              ¡Bienvenido de nuevo!
+            </Text>
+            <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
+              Inicia sesión para continuar ganando puntos con tu pareja
+            </Text>
+          </View>
 
-        {/* Form */}
-        <View style={styles.form}>
-          <Input
-            label="Correo electrónico"
-            placeholder="tucorreo@ejemplo.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            leftIcon="mail-outline"
-          />
+          {/* Form */}
+          <View style={styles.form}>
+            <ControlledInput
+              control={control}
+              name="email"
+              label="Correo electrónico"
+              placeholder="tucorreo@ejemplo.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              leftIcon="mail-outline"
+            />
 
-          <Input
-            label="Contraseña"
-            placeholder="Ingresa tu contraseña"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            leftIcon="lock-closed-outline"
-            rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
-            onRightIconPress={() => setShowPassword(!showPassword)}
-          />
+            <ControlledInput
+              control={control}
+              name="password"
+              label="Contraseña"
+              placeholder="Ingresa tu contraseña"
+              secureTextEntry={!showPassword}
+              leftIcon="lock-closed-outline"
+              rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              onRightIconPress={() => setShowPassword(!showPassword)}
+            />
 
-          {/* <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
-          </TouchableOpacity> */}
+            <TouchableOpacity
+              style={styles.forgotPassword}
+              onPress={() => router.push('/(auth)/forgot-password')}
+            >
+              <Text style={[styles.forgotPasswordText, { color: themeColors.primary }]}>
+                ¿Olvidaste tu contraseña?
+              </Text>
+            </TouchableOpacity>
 
-          <Button
-            title="Iniciar sesión"
-            onPress={handleLogin}
-            loading={loading}
-            fullWidth
-            size="lg"
-          />
-        </View>
+            <Button
+              title="Iniciar sesión"
+              onPress={handleSubmit(onSubmit)}
+              loading={isSubmitting}
+              fullWidth
+              size="lg"
+            />
+          </View>
 
-        {/* Divider */}
-        {/* <View style={styles.divider}>
+          {/* Divider */}
+          {/* <View style={styles.divider}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>or continue with</Text>
           <View style={styles.dividerLine} />
         </View> */}
 
-        {/* Social Login */}
-        {/* <View style={styles.socialButtons}>
+          {/* Social Login */}
+          {/* <View style={styles.socialButtons}>
           <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin}>
-            <Ionicons name="logo-google" size={24} color={colors.text.primary} />
+            <Ionicons name="logo-google" size={24} color={themeColors.text.primary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialButton}>
-            <Ionicons name="logo-apple" size={24} color={colors.text.primary} />
+            <Ionicons name="logo-apple" size={24} color={themeColors.text.primary} />
           </TouchableOpacity>
         </View> */}
 
-        {/* Register Link */}
-        <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>{'¿No tienes una cuenta? '}</Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-            <Text style={styles.registerLink}>Regístrate</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+          {/* Register Link */}
+          <View style={styles.registerContainer}>
+            <Text style={[styles.registerText, { color: themeColors.text.secondary }]}>
+              {'¿No tienes una cuenta? '}
+            </Text>
+            <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+              <Text style={[styles.registerLink, { color: themeColors.primary }]}>
+                Regístrate
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }
@@ -177,23 +203,25 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollContent: {
     flexGrow: 1,
     padding: spacing.lg,
+    justifyContent: 'center',
   },
   logoContainer: {
     alignItems: 'center',
     marginBottom: spacing.xl,
   },
-  logoIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: borderRadius.xl,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
+  logoImage: {
+    width: 120,
+    height: 120,
+    borderRadius: borderRadius.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   header: {
     alignItems: 'center',
@@ -201,12 +229,10 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.h1,
-    color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   subtitle: {
     ...typography.styles.body,
-    color: colors.text.secondary,
     textAlign: 'center',
   },
   form: {
@@ -219,7 +245,6 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
   divider: {
     flexDirection: 'row',
@@ -229,11 +254,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.gray[300],
+    backgroundColor: colors.light.gray[300],
   },
   dividerText: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginHorizontal: spacing.md,
   },
   socialButtons: {
@@ -246,11 +270,11 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: borderRadius.xl,
-    backgroundColor: colors.white,
+    backgroundColor: colors.light.white,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.gray[200],
+    borderColor: colors.light.gray[200],
   },
   registerContainer: {
     flexDirection: 'row',
@@ -259,10 +283,8 @@ const styles = StyleSheet.create({
   },
   registerText: {
     ...typography.styles.body,
-    color: colors.text.secondary,
   },
   registerLink: {
     ...typography.styles.bodyMedium,
-    color: colors.primary,
   },
 });

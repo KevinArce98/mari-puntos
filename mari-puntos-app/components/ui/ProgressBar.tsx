@@ -1,5 +1,5 @@
-// filepath: /Users/kevinarias/Projects/mari-puntos-app/components/ui/ProgressBar.tsx
-import { borderRadius, colors } from '@/theme';
+import { borderRadius } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 
@@ -13,21 +13,24 @@ interface ProgressBarProps {
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   progress,
-  color = colors.primary,
-  backgroundColor = colors.gray[200],
+  color,
+  backgroundColor,
   height = 8,
   style,
 }) => {
+  const themeColors = useThemedColors();
+  const resolvedColor = color ?? themeColors.primary;
+  const resolvedBg = backgroundColor ?? themeColors.gray[200];
   const clampedProgress = Math.min(Math.max(progress, 0), 100);
 
   return (
-    <View style={[styles.container, { height, backgroundColor }, style]}>
+    <View style={[styles.container, { height, backgroundColor: resolvedBg }, style]}>
       <View
         style={[
           styles.fill,
           {
             width: `${clampedProgress}%`,
-            backgroundColor: color,
+            backgroundColor: resolvedColor,
             height,
           },
         ]}

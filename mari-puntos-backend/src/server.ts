@@ -3,57 +3,58 @@ import { createApp } from './app';
 import { config } from './config/env';
 import { initializeDatabase, closeDatabase } from './config/db';
 import { RewardsService } from './services/rewards.service';
+import { logger } from './utils/logger';
 
 const startServer = async () => {
   try {
     // Initialize database
     await initializeDatabase();
-    console.log('✅ Database initialized');
+    logger.info('Database initialized');
 
     // Seed default rewards
     const rewardsService = new RewardsService();
     await rewardsService.seedDefaultRewards();
-    console.log('✅ Default rewards seeded');
+    logger.info('Default rewards seeded');
 
     // Create Express app
     const app = createApp();
 
     // Start server
     const server = app.listen(config.port, () => {
-      console.log('');
-      console.log('🚀 MariPuntos API Server Started');
-      console.log('================================');
-      console.log(`📍 Environment: ${config.nodeEnv}`);
-      console.log(`🌐 Server running on port ${config.port}`);
-      console.log(`🔗 API URL: ${config.host}:${config.port}/api`);
-      console.log(`💚 Health check: ${config.host}:${config.port}/api/health`);
+      logger.info('');
+      logger.info('🚀 MariPuntos API Server Started');
+      logger.info('================================');
+      logger.info(`📍 Environment: ${config.nodeEnv}`);
+      logger.info(`🌐 Server running on port ${config.port}`);
+      logger.info(`🔗 API URL: ${config.host}:${config.port}/api`);
+      logger.info(`💚 Health check: ${config.host}:${config.port}/api/health`);
       if (config.isDevelopment) {
-        console.log(`📚 Swagger docs: ${config.host}:${config.port}/api-docs`);
+        logger.info(`📚 Swagger docs: ${config.host}:${config.port}/api-docs`);
       }
-      console.log('================================');
-      console.log('');
+      logger.info('================================');
+      logger.info('');
     });
 
     // Graceful shutdown
     const gracefulShutdown = async (signal: string) => {
-      console.log(`\n${signal} received. Starting graceful shutdown...`);
+      logger.info(`${signal} received. Starting graceful shutdown...`);
 
       server.close(async () => {
-        console.log('✅ HTTP server closed');
+        logger.info('HTTP server closed');
 
         try {
           await closeDatabase();
-          console.log('✅ Database connection closed');
+          logger.info('Database connection closed');
           process.exit(0);
         } catch (error) {
-          console.error('❌ Error during shutdown:', error);
+          logger.error({ err: error }, 'Error during shutdown');
           process.exit(1);
         }
       });
 
       // Force shutdown after 10 seconds
       setTimeout(() => {
-        console.error('⚠️  Forcing shutdown after timeout');
+        logger.error('Forcing shutdown after timeout');
         process.exit(1);
       }, 10000);
     };
@@ -64,16 +65,16 @@ const startServer = async () => {
 
     // Handle uncaught errors
     process.on('uncaughtException', (error) => {
-      console.error('❌ Uncaught Exception:', error);
+      logger.error({ err: error }, 'Uncaught Exception');
       gracefulShutdown('UNCAUGHT_EXCEPTION');
     });
 
     process.on('unhandledRejection', (reason, promise) => {
-      console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+      logger.error({ promise, reason }, 'Unhandled Rejection at');
       gracefulShutdown('UNHANDLED_REJECTION');
     });
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
+    logger.error({ err: error }, 'Failed to start server');
     process.exit(1);
   }
 };

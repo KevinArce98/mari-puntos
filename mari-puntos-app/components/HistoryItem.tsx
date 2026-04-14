@@ -1,4 +1,5 @@
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { borderRadius, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import { PointsLog } from '@/types';
 import { formatRelativeTime } from '@/utils/dateUtils';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +17,7 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({
   showBorder = false,
   compact = true,
 }) => {
+  const colors = useThemedColors();
   // Get icon based on log type
   const getHistoryIcon = (type: string): keyof typeof Ionicons.glyphMap => {
     if (type.includes('action') || type.includes('earned')) {
@@ -43,7 +45,12 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({
   const iconContainerSize = compact ? 40 : 48;
 
   return (
-    <View style={[styles.container, showBorder && styles.borderBottom]}>
+    <View
+      style={[
+        styles.container,
+        showBorder && { borderBottomWidth: 1, borderBottomColor: colors.gray[200] },
+      ]}
+    >
       <View
         style={[
           styles.iconContainer,
@@ -71,8 +78,10 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({
         />
       </View>
       <View style={styles.content}>
-        <Text style={styles.title}>{item.message}</Text>
-        <Text style={styles.time}>{formatRelativeTime(item.createdAt)}</Text>
+        <Text style={[styles.title, { color: colors.text.primary }]}>{item.message}</Text>
+        <Text style={[styles.time, { color: colors.text.secondary }]}>
+          {formatRelativeTime(item.createdAt)}
+        </Text>
       </View>
       {item.pointsChange !== 0 ? (
         <View style={styles.pointsContainer}>
@@ -87,7 +96,7 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({
             {item.pointsChange >= 0 ? '+' : ''}
             {item.pointsChange}
           </Text>
-          <Text style={styles.pointsLabel}>pts</Text>
+          <Text style={[styles.pointsLabel, { color: colors.text.secondary }]}>pts</Text>
         </View>
       ) : null}
     </View>
@@ -102,7 +111,6 @@ const styles = StyleSheet.create({
   },
   borderBottom: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[100],
   },
   iconContainer: {
     borderRadius: borderRadius.lg,
@@ -115,16 +123,13 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
   },
   time: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: 2,
   },
   date: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: 2,
   },
   points: {
@@ -140,7 +145,6 @@ const styles = StyleSheet.create({
   },
   pointsLabel: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: 2,
   },
 });

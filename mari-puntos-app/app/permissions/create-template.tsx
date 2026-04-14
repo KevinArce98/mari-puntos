@@ -1,13 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Input, IconSelector, Select } from '@/components/ui';
-import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
+import { useThemedColors } from '@/hooks';
 import Toast from 'react-native-toast-message';
 import { PermissionCategory } from '@/types';
 import { permissionsService } from '@/services';
+import logger from '@/utils/logger';
 
 const CATEGORY_OPTIONS = [
   { label: 'Gaming', value: PermissionCategory.GAMING },
@@ -20,6 +32,7 @@ const CATEGORY_OPTIONS = [
 ];
 
 export default function CreateTemplateScreen() {
+  const themeColors = useThemedColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -31,6 +44,20 @@ export default function CreateTemplateScreen() {
   const [selectedIcon, setSelectedIcon] = useState('sparkles-outline');
   const [showIconSelector, setShowIconSelector] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showListener = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, []);
 
   const handleCreate = async () => {
     if (!title.trim()) {
@@ -42,8 +69,8 @@ export default function CreateTemplateScreen() {
       return;
     }
 
-    const duration = parseInt(suggestedDuration);
-    const points = parseInt(suggestedPoints);
+    const duration = parseFloat(suggestedDuration);
+    const points = parseFloat(suggestedPoints);
 
     if (isNaN(duration) || duration <= 0) {
       Toast.show({
@@ -84,7 +111,12 @@ export default function CreateTemplateScreen() {
 
       router.back();
     } catch (error) {
-      console.error('Error creating template:', error);
+      logger.error('Failed to create permission template', error as Error, {
+        title: title.trim(),
+        category,
+        suggestedDurationHours: duration,
+        suggestedPointsCost: points,
+      });
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -96,121 +128,192 @@ export default function CreateTemplateScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: themeColors.background,
+          paddingTop: Platform.OS !== 'ios' ? insets.top : 0,
+        },
+      ]}
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
+          <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nueva Actividad</Text>
+        <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
+          Nueva Actividad
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={{ flex: 1, marginBottom: keyboardHeight + 50 }}
+        behavior="padding"
       >
-        {/* Icon Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Icono</Text>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => setShowIconSelector(true)}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.iconCircle}>
-              <Ionicons
-                name={selectedIcon as keyof typeof Ionicons.glyphMap}
-                size={40}
-                color={colors.primary}
+            {/* Icon Selection */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Icono
+              </Text>
+              <TouchableOpacity
+                style={[styles.iconButton, { backgroundColor: themeColors.gray[100] }]}
+                onPress={() => setShowIconSelector(true)}
+              >
+                <View
+                  style={[
+                    styles.iconCircle,
+                    { backgroundColor: `${themeColors.primary}15` },
+                  ]}
+                >
+                  <Ionicons
+                    name={selectedIcon as keyof typeof Ionicons.glyphMap}
+                    size={40}
+                    color={themeColors.primary}
+                  />
+                </View>
+                <View style={styles.iconButtonContent}>
+                  <Text
+                    style={[styles.iconButtonText, { color: themeColors.text.primary }]}
+                  >
+                    Seleccionar Icono
+                  </Text>
+                  <Text
+                    style={[
+                      styles.iconButtonSubtext,
+                      { color: themeColors.text.secondary },
+                    ]}
+                  >
+                    Personaliza el icono de tu actividad
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={24}
+                  color={themeColors.gray[400]}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Title */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Título *
+              </Text>
+              <Input
+                placeholder="Ej: Noche de Poker, Día de Golf..."
+                value={title}
+                onChangeText={setTitle}
+                maxLength={100}
               />
             </View>
-            <View style={styles.iconButtonContent}>
-              <Text style={styles.iconButtonText}>Seleccionar Icono</Text>
-              <Text style={styles.iconButtonSubtext}>
-                Personaliza el icono de tu actividad
+
+            {/* Description */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Descripción (Opcional)
               </Text>
+              <Input
+                placeholder="Describe la actividad..."
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                numberOfLines={3}
+                maxLength={500}
+              />
             </View>
-            <Ionicons name="chevron-forward" size={24} color={colors.gray[400]} />
-          </TouchableOpacity>
-        </View>
 
-        {/* Title */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Título *</Text>
-          <Input
-            placeholder="Ej: Noche de Poker, Día de Golf..."
-            value={title}
-            onChangeText={setTitle}
-            maxLength={100}
-          />
-        </View>
+            {/* Category */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Categoría
+              </Text>
+              <Select
+                options={CATEGORY_OPTIONS}
+                value={category}
+                onValueChange={(value) => setCategory(value as PermissionCategory)}
+                placeholder="Selecciona una categoría"
+              />
+            </View>
 
-        {/* Description */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Descripción (Opcional)</Text>
-          <Input
-            placeholder="Describe la actividad..."
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            numberOfLines={3}
-            maxLength={500}
-          />
-        </View>
+            {/* Duration & Points */}
+            <View style={styles.row}>
+              <View style={[styles.section, styles.halfWidth]}>
+                <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                  Duración (hrs)
+                </Text>
+                <Input
+                  placeholder="2"
+                  value={suggestedDuration}
+                  onChangeText={setSuggestedDuration}
+                  keyboardType="numeric"
+                />
+              </View>
 
-        {/* Category */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Categoría</Text>
-          <Select
-            options={CATEGORY_OPTIONS}
-            value={category}
-            onValueChange={(value) => setCategory(value as PermissionCategory)}
-            placeholder="Selecciona una categoría"
-          />
-        </View>
+              <View style={[styles.section, styles.halfWidth]}>
+                <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                  Puntos Sugeridos
+                </Text>
+                <Input
+                  placeholder="50"
+                  value={suggestedPoints}
+                  onChangeText={setSuggestedPoints}
+                  keyboardType="numeric"
+                />
+              </View>
+            </View>
 
-        {/* Duration & Points */}
-        <View style={styles.row}>
-          <View style={[styles.section, styles.halfWidth]}>
-            <Text style={styles.sectionTitle}>Duración (hrs)</Text>
-            <Input
-              placeholder="2"
-              value={suggestedDuration}
-              onChangeText={setSuggestedDuration}
-              keyboardType="numeric"
-            />
-          </View>
-
-          <View style={[styles.section, styles.halfWidth]}>
-            <Text style={styles.sectionTitle}>Puntos Sugeridos</Text>
-            <Input
-              placeholder="50"
-              value={suggestedPoints}
-              onChangeText={setSuggestedPoints}
-              keyboardType="numeric"
-            />
-          </View>
-        </View>
-
-        {/* Info Card */}
-        <Card style={styles.infoCard}>
-          <View style={styles.infoIconContainer}>
-            <Ionicons name="information-circle" size={24} color={colors.primary} />
-          </View>
-          <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>Actividad Personalizada</Text>
-            <Text style={styles.infoText}>
-              Esta actividad estará disponible solo para ti y tu pareja. Los valores
-              sugeridos son una guía y pueden modificarse al solicitar el permiso.
-            </Text>
-          </View>
-        </Card>
-      </ScrollView>
+            {/* Info Card */}
+            <Card
+              style={[
+                styles.infoCard,
+                {
+                  backgroundColor:
+                    Platform.OS === 'ios'
+                      ? `${themeColors.primary}08`
+                      : themeColors.white,
+                  borderColor: `${themeColors.primary}20`,
+                },
+              ]}
+            >
+              <View style={styles.infoIconContainer}>
+                <Ionicons
+                  name="information-circle"
+                  size={24}
+                  color={themeColors.primary}
+                />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={[styles.infoTitle, { color: themeColors.text.primary }]}>
+                  Actividad Personalizada
+                </Text>
+                <Text style={[styles.infoText, { color: themeColors.text.secondary }]}>
+                  Esta actividad estará disponible solo para ti y tu pareja. Los valores
+                  sugeridos son una guía y pueden modificarse al solicitar el permiso.
+                </Text>
+              </View>
+            </Card>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
 
       {/* Bottom Button */}
       <View
-        style={[styles.bottomContainer, { paddingBottom: insets.bottom + spacing.md }]}
+        style={[
+          styles.bottomContainer,
+          {
+            backgroundColor: themeColors.background,
+            paddingBottom: insets.bottom + spacing.md,
+            bottom: keyboardHeight,
+          },
+        ]}
       >
         <Button
           title="Crear Actividad"
@@ -236,7 +339,6 @@ export default function CreateTemplateScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -254,7 +356,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.styles.h3,
-    color: colors.text.primary,
   },
   scrollContent: {
     padding: spacing.lg,
@@ -265,13 +366,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.styles.h4,
-    color: colors.text.primary,
     marginBottom: spacing.md,
   },
   iconButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
     borderRadius: borderRadius.xl,
     padding: spacing.md,
     ...shadows.sm,
@@ -280,7 +379,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: borderRadius.full,
-    backgroundColor: `${colors.primary}15`,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
@@ -290,11 +388,9 @@ const styles = StyleSheet.create({
   },
   iconButtonText: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
   },
   iconButtonSubtext: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     marginTop: spacing.xs,
   },
   row: {
@@ -306,9 +402,7 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     flexDirection: 'row',
-    backgroundColor: `${colors.primary}08`,
     borderWidth: 1,
-    borderColor: `${colors.primary}20`,
   },
   infoIconContainer: {
     marginRight: spacing.md,
@@ -318,12 +412,10 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     ...typography.styles.bodyMedium,
-    color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   infoText: {
     ...typography.styles.caption,
-    color: colors.text.secondary,
     lineHeight: 18,
   },
   bottomContainer: {
@@ -331,7 +423,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.white,
     padding: spacing.lg,
     ...shadows.lg,
   },

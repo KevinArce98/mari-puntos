@@ -54,7 +54,7 @@ export class Permission {
   responseMessage: string | null;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -67,11 +67,11 @@ export class Permission {
   @JoinColumn({ name: 'templateId' })
   template: PermissionTemplate;
 
-  @ManyToOne(() => User, (user) => user.permissionsRequested)
+  @ManyToOne(() => User, (user) => user.permissionsRequested, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'requesterId' })
   requester: User;
 
-  @ManyToOne(() => User, (user) => user.permissionsApproved)
+  @ManyToOne(() => User, (user) => user.permissionsApproved, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'approverId' })
   approver: User;
 }
