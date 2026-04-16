@@ -1,18 +1,5 @@
-import {
-  Avatar,
-  Button,
-  Card,
-  EditProfileModal,
-  ListItem,
-  ProgressBar,
-} from '@/components/ui';
-import { usePoints, useUser, useThemedColors } from '@/hooks';
-import { borderRadius, shadows, spacing, typography } from '@/theme';
-import { useAuth } from '@clerk/clerk-expo';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import Constants from 'expo-constants';
 import React, { useState } from 'react';
+
 import {
   Alert,
   Linking,
@@ -22,8 +9,26 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
+import Constants from 'expo-constants';
+import { useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
+import { useAuth } from '@clerk/clerk-expo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+
+import {
+  Avatar,
+  Button,
+  Card,
+  EditProfileModal,
+  ListItem,
+  ProgressBar,
+} from '@/components/ui';
+import { usePoints, useThemedColors, useUser } from '@/hooks';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
 
 const SUPPORT_EMAIL = 'soporte@maripuntos.com';
 

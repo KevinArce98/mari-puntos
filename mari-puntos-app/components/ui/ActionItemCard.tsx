@@ -1,10 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
-import { Action, ActionCategory, ActionStatus } from '@/types';
-import { spacing, typography, borderRadius } from '@/theme';
+
 import { useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
+import { Action, ActionCategory, ActionStatus } from '@/types';
 import { formatDateWithTime } from '@/utils/dateUtils';
+
 import { Card } from './Card';
 
 const CATEGORY_ICON: Record<

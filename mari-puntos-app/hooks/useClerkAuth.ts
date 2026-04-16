@@ -1,7 +1,9 @@
+import { useEffect, useRef } from 'react';
+
+import { useAuth } from '@clerk/clerk-expo';
+
 import { apiService } from '@/services';
 import { useUserStore } from '@/stores';
-import { useAuth } from '@clerk/clerk-expo';
-import { useEffect, useRef } from 'react';
 import logger from '@/utils/logger';
 
 /**

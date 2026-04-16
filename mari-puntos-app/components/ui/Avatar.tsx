@@ -1,8 +1,11 @@
-import { borderRadius, typography } from '@/theme';
-import { useThemedColors } from '@/hooks';
 import React from 'react';
-import { Image as ExpoImage } from 'expo-image';
+
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+
+import { Image as ExpoImage } from 'expo-image';
+
+import { useThemedColors } from '@/hooks';
+import { borderRadius, typography } from '@/theme';
 
 interface AvatarProps {
   imageUri?: string;

@@ -1,5 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import logger from '@/utils/logger';
 
 const FIRST_TIME_KEY = '@mari_puntos_first_time_user';

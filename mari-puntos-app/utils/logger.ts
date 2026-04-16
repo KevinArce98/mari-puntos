@@ -1,5 +1,5 @@
-import { logger, consoleTransport } from 'react-native-logs';
 import * as Sentry from '@sentry/react-native';
+import { consoleTransport, logger } from 'react-native-logs';
 
 /**
  * Logger configuration for the app

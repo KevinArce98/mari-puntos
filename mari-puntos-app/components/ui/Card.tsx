@@ -1,7 +1,9 @@
-import { borderRadius, shadows, spacing } from '@/theme';
-import { useThemedColors } from '@/hooks';
 import React from 'react';
+
 import { StyleSheet, View, ViewStyle } from 'react-native';
+
+import { useThemedColors } from '@/hooks';
+import { borderRadius, shadows, spacing } from '@/theme';
 
 interface CardProps {
   children: React.ReactNode;

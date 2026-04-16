@@ -1,5 +1,7 @@
-import { create } from 'zustand';
 import * as Notifications from 'expo-notifications';
+
+import { create } from 'zustand';
+
 import logger from '@/utils/logger';
 
 type NotificationTab = 'actions' | 'permissions' | 'home';

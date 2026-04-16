@@ -1,12 +1,13 @@
-import { apiService } from './api';
 import {
   ApiResponse,
-  PaginatedResponse,
-  Reward,
   CreateRewardRequest,
   GetRewardsParams,
+  PaginatedResponse,
   RedeemRewardRequest,
+  Reward,
 } from '@/types';
+
+import { apiService } from './api';
 
 class RewardsService {
   /**

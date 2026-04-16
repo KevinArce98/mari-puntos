@@ -1,28 +1,33 @@
-import { Button, ControlledCodeInput } from '@/components/ui';
-import { userService } from '@/services';
-import { spacing, typography } from '@/theme';
-import { useThemedColors } from '@/hooks';
-import { useSignUp, isClerkAPIResponseError } from '@clerk/clerk-expo';
-import logger from '@/utils/logger';
-import { Ionicons } from '@expo/vector-icons';
-import { handleClerkErrors } from '@/types/clerk-localization';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+
 import {
+  BackHandler,
+  Keyboard,
   KeyboardAvoidingView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
-  Keyboard,
   View,
-  BackHandler,
 } from 'react-native';
+
+import { useLocalSearchParams, useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
+import { isClerkAPIResponseError, useSignUp } from '@clerk/clerk-expo';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { verifyEmailSchema, type VerifyEmailFormData } from '@/validators/auth.schema';
+
+import { Button, ControlledCodeInput } from '@/components/ui';
+import { useThemedColors } from '@/hooks';
+import { userService } from '@/services';
+import { spacing, typography } from '@/theme';
+import { handleClerkErrors } from '@/types/clerk-localization';
+import logger from '@/utils/logger';
+import { type VerifyEmailFormData, verifyEmailSchema } from '@/validators/auth.schema';
 
 export default function VerifyEmailScreen() {
   const { signUp, setActive, isLoaded } = useSignUp();

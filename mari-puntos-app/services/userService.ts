@@ -11,6 +11,7 @@ import {
   User,
   UserStats,
 } from '@/types';
+
 import { apiService } from './api';
 
 class UserService {

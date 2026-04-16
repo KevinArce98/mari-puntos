@@ -1,18 +1,23 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
+
 import {
   Dimensions,
   FlatList,
   Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Pressable,
   StyleSheet,
   Text,
   View,
-  Pressable,
 } from 'react-native';
+
+import { useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { Button } from '@/components/ui';
 import { useFirstTimeUser, useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';

@@ -1,7 +1,9 @@
-import { borderRadius, spacing, typography } from '@/theme';
-import { useThemedColors } from '@/hooks';
 import React, { useRef, useState } from 'react';
+
 import { StyleSheet, TextInput, View, ViewStyle } from 'react-native';
+
+import { useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
 
 interface CodeInputProps {
   length?: number;

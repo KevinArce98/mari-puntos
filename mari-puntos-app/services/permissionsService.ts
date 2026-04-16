@@ -1,15 +1,16 @@
-import { apiService } from './api';
 import {
   ApiResponse,
+  CreatePermissionRequest,
+  CreatePermissionTemplateRequest,
+  GetPermissionTemplatesParams,
+  GetPermissionsParams,
   PaginatedResponse,
   Permission,
   PermissionTemplate,
-  CreatePermissionRequest,
-  CreatePermissionTemplateRequest,
   RespondPermissionRequest,
-  GetPermissionsParams,
-  GetPermissionTemplatesParams,
 } from '@/types';
+
+import { apiService } from './api';
 
 class PermissionsService {
   // ============================================

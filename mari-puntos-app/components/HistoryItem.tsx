@@ -1,10 +1,13 @@
-import { borderRadius, spacing, typography } from '@/theme';
+import React from 'react';
+
+import { StyleSheet, Text, View } from 'react-native';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import { useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
 import { PointsLog } from '@/types';
 import { formatRelativeTime } from '@/utils/dateUtils';
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
 
 interface HistoryItemProps {
   item: PointsLog;

@@ -1,8 +1,11 @@
-import { borderRadius, shadows, spacing, typography } from '@/theme';
-import { useThemedColors } from '@/hooks';
-import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
+
 import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+
+import { Ionicons } from '@expo/vector-icons';
+
+import { useThemedColors } from '@/hooks';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
 
 interface ActionCardProps {
   title: string;

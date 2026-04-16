@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
+
 import { usePermissionsStore, useUserStore } from '@/stores';
 import { CreatePermissionRequest, RespondPermissionRequest } from '@/types';
-import { useEffect } from 'react';
 import logger from '@/utils/logger';
 
 export const usePermissions = () => {
@@ -14,7 +15,6 @@ export const usePermissions = () => {
     createPermission,
     updatePermission,
     respondToPermission,
-    clearPermissions,
   } = usePermissionsStore();
   const { user } = useUserStore();
 

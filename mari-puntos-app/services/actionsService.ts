@@ -1,13 +1,14 @@
-import { apiService } from './api';
 import {
-  ApiResponse,
-  PaginatedResponse,
   Action,
-  CreateActionRequest,
+  ApiResponse,
   ApproveActionRequest,
-  RejectActionRequest,
+  CreateActionRequest,
   GetActionsParams,
+  PaginatedResponse,
+  RejectActionRequest,
 } from '@/types';
+
+import { apiService } from './api';
 
 class ActionsService {
   /**

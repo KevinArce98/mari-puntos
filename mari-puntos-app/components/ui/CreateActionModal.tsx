@@ -1,28 +1,33 @@
 import React, { useEffect, useState } from 'react';
+
 import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
   Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
-import { useForm, Controller } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ActionCategory } from '@/types';
-import { spacing, typography, borderRadius } from '@/theme';
+import { Controller, useForm } from 'react-hook-form';
+
 import { useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
+import { ActionCategory } from '@/types';
+import {
+  type CreateActionFormData,
+  createActionSchema,
+} from '@/validators/action.schema';
+
 import { Button } from './Button';
 import { ControlledInput } from './ControlledInput';
 import { TextAreaWithCounter } from './TextAreaWithCounter';
-import {
-  createActionSchema,
-  type CreateActionFormData,
-} from '@/validators/action.schema';
 
 interface CreateActionModalProps {
   visible: boolean;

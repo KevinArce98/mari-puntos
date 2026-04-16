@@ -1,11 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
-import { Card, Badge } from '@/components/ui';
-import { typography, spacing, borderRadius } from '@/theme';
-import { formatDateOnly } from '@/utils/dateUtils';
-import { useAchievements, useThemedColors } from '@/hooks';
+
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { Badge, Card } from '@/components/ui';
+import { useAchievements, useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
 import { Achievement, AchievementType } from '@/types';
+import { formatDateOnly } from '@/utils/dateUtils';
 
 const ACHIEVEMENT_TYPE_LABELS: Record<AchievementType, string> = {
   [AchievementType.POINTS_MILESTONE]: 'Puntos',

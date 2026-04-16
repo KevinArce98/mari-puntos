@@ -1,12 +1,13 @@
-import { apiService } from './api';
 import {
   ApiResponse,
-  PaginatedResponse,
-  PointsLog,
+  GetLeaderboardParams,
   GetPointsHistoryParams,
   LeaderboardEntry,
-  GetLeaderboardParams,
+  PaginatedResponse,
+  PointsLog,
 } from '@/types';
+
+import { apiService } from './api';
 
 class PointsService {
   /**

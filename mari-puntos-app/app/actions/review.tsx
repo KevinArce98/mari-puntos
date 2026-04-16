@@ -1,22 +1,27 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+
 import {
   ActivityIndicator,
+  RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  RefreshControl,
-  ScrollView,
 } from 'react-native';
+
+import { useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import { LegendList } from '@legendapp/list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ActionItemCard, ReviewActionModal, Chip } from '@/components/ui';
+import Toast from 'react-native-toast-message';
+
+import { ActionItemCard, Chip, ReviewActionModal } from '@/components/ui';
 import { useActions, useThemedColors } from '@/hooks';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
-import Toast from 'react-native-toast-message';
-import { ActionStatus, Action } from '@/types';
+import { Action, ActionStatus } from '@/types';
 import logger from '@/utils/logger';
 
 const STATUS_FILTERS = [

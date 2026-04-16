@@ -1,10 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { Platform } from 'react-native';
+
+import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
-import Constants from 'expo-constants';
-import { Platform } from 'react-native';
-import { useRouter, useRootNavigationState } from 'expo-router';
+import { useRootNavigationState, useRouter } from 'expo-router';
 import type { Href } from 'expo-router';
+
 import { useUserStore } from '@/stores';
 import logger from '@/utils/logger';
 

@@ -1,11 +1,14 @@
-import { useRouter } from 'expo-router';
 import React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+
+import { StyleSheet, Text, View } from 'react-native';
+
+import { useRouter } from 'expo-router';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui';
-import { spacing } from '@/theme';
 import { useThemedColors } from '@/hooks';
+import { spacing } from '@/theme';
 
 /**
  * Example of a route-specific auth guard component

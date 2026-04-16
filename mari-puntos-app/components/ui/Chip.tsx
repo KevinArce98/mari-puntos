@@ -1,7 +1,9 @@
-import { borderRadius, colors, spacing, typography } from '@/theme';
-import { useThemedColors } from '@/hooks';
 import React from 'react';
+
 import { StyleSheet, Text, TouchableOpacity, ViewStyle } from 'react-native';
+
+import { useThemedColors } from '@/hooks';
+import { borderRadius, colors, spacing, typography } from '@/theme';
 
 interface ChipProps {
   label: string;

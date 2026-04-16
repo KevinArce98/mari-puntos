@@ -1,6 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -12,13 +11,19 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+
+import { useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Card, Input, IconSelector, Select } from '@/components/ui';
-import { borderRadius, shadows, spacing, typography } from '@/theme';
-import { useThemedColors } from '@/hooks';
 import Toast from 'react-native-toast-message';
-import { PermissionCategory } from '@/types';
+
+import { Button, Card, IconSelector, Input, Select } from '@/components/ui';
+import { useThemedColors } from '@/hooks';
 import { permissionsService } from '@/services';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
+import { PermissionCategory } from '@/types';
 import logger from '@/utils/logger';
 
 const CATEGORY_OPTIONS = [

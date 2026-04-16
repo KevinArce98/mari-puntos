@@ -1,9 +1,13 @@
-import { borderRadius, spacing, typography } from '@/theme';
-import { useThemedColors } from '@/hooks';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
+
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+
+import { LinearGradient } from 'expo-linear-gradient';
+
+import { Ionicons } from '@expo/vector-icons';
+
+import { useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
 
 interface PointsCardProps {
   points: number;

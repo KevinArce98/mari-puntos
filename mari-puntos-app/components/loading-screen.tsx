@@ -1,6 +1,5 @@
-import { colors, spacing, typography } from '@/theme';
-import { useThemedColors } from '@/hooks';
 import React, { useEffect, useState } from 'react';
+
 import {
   AccessibilityInfo,
   Animated,
@@ -9,7 +8,11 @@ import {
   Text,
   View,
 } from 'react-native';
+
 import { Image } from 'expo-image';
+
+import { useThemedColors } from '@/hooks';
+import { colors, spacing, typography } from '@/theme';
 
 export function LoadingScreen() {
   const themeColors = useThemedColors();

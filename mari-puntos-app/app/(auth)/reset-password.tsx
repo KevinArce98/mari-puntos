@@ -1,7 +1,5 @@
-import { useSignIn, isClerkAPIResponseError } from '@clerk/clerk-expo';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { handleClerkErrors } from '@/types/clerk-localization';
 import React, { useState } from 'react';
+
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -12,13 +10,19 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useForm } from 'react-hook-form';
+
+import { useLocalSearchParams, useRouter } from 'expo-router';
+
+import { isClerkAPIResponseError, useSignIn } from '@clerk/clerk-expo';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, ControlledCodeInput, ControlledInput } from '@/components/ui';
-import { spacing, typography } from '@/theme';
-import { useThemedColors } from '@/hooks';
+import { useForm } from 'react-hook-form';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+
+import { Button, ControlledCodeInput, ControlledInput } from '@/components/ui';
+import { useThemedColors } from '@/hooks';
+import { spacing, typography } from '@/theme';
+import { handleClerkErrors } from '@/types/clerk-localization';
 import { resetPasswordSchema } from '@/validators/auth.schema';
 import type { ResetPasswordFormData } from '@/validators/auth.schema';
 import { hasPasswordSymbol } from '@/validators/password.rules';

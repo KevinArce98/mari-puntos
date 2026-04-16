@@ -1,6 +1,7 @@
 import { create } from 'zustand';
+
 import { rewardsService } from '@/services';
-import { Reward, CreateRewardRequest, GetRewardsParams } from '@/types';
+import { CreateRewardRequest, GetRewardsParams, Reward } from '@/types';
 import { getErrorMessage } from '@/utils/errorMessage';
 
 interface RewardsState {

@@ -1,13 +1,18 @@
 import React, { useCallback, useEffect } from 'react';
-import { Tabs, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+
 import { TouchableOpacity, View } from 'react-native';
+
+import { Tabs, useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { HapticTab } from '@/components/haptic-tab';
-import { shadows } from '@/theme';
-import { useUser, useThemedColors } from '@/hooks';
-import logger from '@/utils/logger';
+import { useThemedColors, useUser } from '@/hooks';
 import { useActionsStore, usePermissionsStore } from '@/stores';
+import { shadows } from '@/theme';
+import logger from '@/utils/logger';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+
 import { useRewardsStore, useUserStore } from '@/stores';
 import { CreateRewardRequest, GetRewardsParams } from '@/types';
 import logger from '@/utils/logger';

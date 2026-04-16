@@ -1,13 +1,14 @@
 import { create } from 'zustand';
+
 import { pointsService } from '@/services';
 import {
-  PointsLog,
+  GetLeaderboardParams,
   GetPointsHistoryParams,
   LeaderboardEntry,
-  GetLeaderboardParams,
+  PointsLog,
 } from '@/types';
-import logger from '@/utils/logger';
 import { getErrorMessage } from '@/utils/errorMessage';
+import logger from '@/utils/logger';
 
 interface PointsState {
   pointsHistory: PointsLog[];

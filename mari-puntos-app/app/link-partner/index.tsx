@@ -1,13 +1,5 @@
-import { Button, Card, CodeInput } from '@/components/ui';
-import { useUser, useThemedColors } from '@/hooks';
-import { useUserStore } from '@/stores';
-import { userService } from '@/services';
-import { borderRadius, colors, spacing, typography } from '@/theme';
-import { Ionicons } from '@expo/vector-icons';
-import * as Clipboard from 'expo-clipboard';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useEffect, useState } from 'react';
+
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -18,11 +10,24 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Toast from 'react-native-toast-message';
-import { Controller, useForm } from 'react-hook-form';
+
+import * as Clipboard from 'expo-clipboard';
+import { useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import { zodResolver } from '@hookform/resolvers/zod';
-import { linkPartnerSchema, LinkPartnerFormData } from '@/validators';
+import { Controller, useForm } from 'react-hook-form';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
+
+import { Button, Card, CodeInput } from '@/components/ui';
+import { useThemedColors, useUser } from '@/hooks';
+import { userService } from '@/services';
+import { useUserStore } from '@/stores';
+import { borderRadius, colors, spacing, typography } from '@/theme';
 import logger from '@/utils/logger';
+import { LinkPartnerFormData, linkPartnerSchema } from '@/validators';
 
 export default function LinkPartnerScreen() {
   const themeColors = useThemedColors();

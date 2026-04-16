@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
-import { useUser } from './useUser';
+
 import { usePointsStore } from '@/stores';
-import { GetPointsHistoryParams, GetLeaderboardParams } from '@/types';
+import { GetLeaderboardParams, GetPointsHistoryParams } from '@/types';
+
+import { useUser } from './useUser';
 
 export const usePoints = () => {
   const { user, partnerInfo } = useUser();

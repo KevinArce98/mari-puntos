@@ -1,8 +1,11 @@
 import React from 'react';
-import { TouchableOpacity, View, Text, StyleSheet, ViewStyle } from 'react-native';
+
+import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
-import { typography, spacing, borderRadius } from '@/theme';
+
 import { useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
 
 interface ListItemProps {
   title: string;

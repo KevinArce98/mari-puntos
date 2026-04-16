@@ -1,12 +1,15 @@
-import { StyleSheet, Text, View, useColorScheme } from 'react-native';
-import { Badge, Button, Card, ResponseModal } from './ui';
-import { spacing, typography } from '@/theme';
-import { useThemedColors } from '@/hooks';
-import { Permission } from '@/types';
-import { getStatusColor, getStatusText } from '@/utils/general';
 import { useState } from 'react';
-import { ResponseMessageFormData } from '@/validators/action.schema';
+
+import { StyleSheet, Text, View, useColorScheme } from 'react-native';
+
+import { useThemedColors } from '@/hooks';
+import { spacing, typography } from '@/theme';
+import { Permission } from '@/types';
 import { formatDateOnly, formatDateWithTime } from '@/utils';
+import { getStatusColor, getStatusText } from '@/utils/general';
+import { ResponseMessageFormData } from '@/validators/action.schema';
+
+import { Badge, Button, Card, ResponseModal } from './ui';
 
 interface Props {
   permission: Permission;

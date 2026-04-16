@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
+
 import {
-  View,
-  TextInput,
-  Text,
   StyleSheet,
-  ViewStyle,
+  Text,
+  TextInput,
   TextInputProps,
   TouchableOpacity,
+  View,
+  ViewStyle,
 } from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
-import { typography, spacing, borderRadius } from '@/theme';
+
 import { useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
 
 export interface InputProps extends TextInputProps {
   label?: string;

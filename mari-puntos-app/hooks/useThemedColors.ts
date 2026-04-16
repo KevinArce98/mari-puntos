@@ -1,9 +1,10 @@
 /**
  * Hook to access themed colors based on current color scheme (light/dark)
  */
-import { colors } from '@/theme/colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { Appearance } from 'react-native';
+
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { colors } from '@/theme/colors';
 
 export function useThemedColors() {
   const scheme = useColorScheme() ?? Appearance.getColorScheme();

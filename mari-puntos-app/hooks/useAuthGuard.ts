@@ -1,5 +1,6 @@
-import { Href, useRouter, useRootNavigationState } from 'expo-router';
 import { useEffect } from 'react';
+
+import { Href, useRootNavigationState, useRouter } from 'expo-router';
 
 import { useUserStore } from '@/stores';
 import logger from '@/utils/logger';

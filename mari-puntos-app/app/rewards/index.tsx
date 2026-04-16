@@ -1,22 +1,27 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
+
 import {
   ActivityIndicator,
+  Alert,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Alert,
 } from 'react-native';
+
+import { useFocusEffect, useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Card, Badge } from '@/components/ui';
-import { useRewards, useThemedColors, useUser } from '@/hooks';
-import { spacing, typography, borderRadius } from '@/theme';
-import { Reward, RewardCategory } from '@/types';
 import Toast from 'react-native-toast-message';
+
+import { Badge, Card } from '@/components/ui';
+import { useRewards, useThemedColors, useUser } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
+import { Reward, RewardCategory } from '@/types';
 
 const CATEGORY_LABELS: Record<RewardCategory, string> = {
   [RewardCategory.PERSONAL_TIME]: 'Tiempo personal',

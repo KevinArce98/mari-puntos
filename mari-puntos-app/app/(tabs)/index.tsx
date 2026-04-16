@@ -1,17 +1,5 @@
-import {
-  ActionCard,
-  Avatar,
-  Card,
-  PointsCard,
-  CreateActionModal,
-  NotificationBell,
-} from '@/components/ui';
-import { HistoryItem } from '@/components';
-import { usePoints, useUser, useThemedColors } from '@/hooks';
-import { borderRadius, spacing, typography } from '@/theme';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useFocusEffect } from 'expo-router';
 import React, { useCallback } from 'react';
+
 import {
   RefreshControl,
   ScrollView,
@@ -20,10 +8,27 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
+import { useFocusEffect, useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import logger from '@/utils/logger';
 import Toast from 'react-native-toast-message';
+
+import { HistoryItem } from '@/components';
+import {
+  ActionCard,
+  Avatar,
+  Card,
+  CreateActionModal,
+  NotificationBell,
+  PointsCard,
+} from '@/components/ui';
+import { usePoints, useThemedColors, useUser } from '@/hooks';
 import { useActions } from '@/hooks/useActions';
+import { borderRadius, spacing, typography } from '@/theme';
+import logger from '@/utils/logger';
 import { CreateActionFormData } from '@/validators/action.schema';
 
 export default function HomeScreen() {

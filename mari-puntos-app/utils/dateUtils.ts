@@ -1,12 +1,11 @@
 /**
  * UTC-6 timezone utilities using dayjs for consistent date handling across the app
  */
-
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/es';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 
 // Extend dayjs with plugins
 dayjs.extend(utc);

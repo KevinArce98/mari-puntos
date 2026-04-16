@@ -2,9 +2,8 @@
  * Learn more about light and dark modes:
  * https://docs.expo.dev/guides/color-schemes/
  */
-
-import { colors } from '@/theme/colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { colors } from '@/theme/colors';
 
 /**
  * Permite acceder a cualquier color definido en la paleta extendida para light/dark.
