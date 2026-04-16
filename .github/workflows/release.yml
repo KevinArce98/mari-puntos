@@ -31,11 +31,18 @@ jobs:
         run: npm install
 
       - name: Create Release PR or Tag
+        id: changesets
         uses: changesets/action@v1
         with:
           title: 'chore(repo): version packages'
           commit: 'chore(repo): version packages'
           version: npx changeset version
           publish: npx changeset tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete release branch
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        run: git push origin --delete changeset-release/main || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
