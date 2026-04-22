@@ -24,7 +24,11 @@ Notifications.setNotificationHandler({
       shouldShowBanner: true,
       shouldShowList: true,
       shouldPlaySound: true,
-      shouldSetBadge: true,
+      // Badge count is managed manually via Notifications.setBadgeCountAsync in
+      // NotificationBell — setting this to true would let Expo auto-increment the
+      // OS badge from the notification payload (which has no badge field), causing
+      // it to diverge from the actual pending count.
+      shouldSetBadge: false,
     }) as Notifications.NotificationBehavior,
 });
 
