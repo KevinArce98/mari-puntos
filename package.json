@@ -8,12 +8,13 @@
     "mari-puntos-website"
   ],
   "scripts": {
-    "prepare": "husky"
+    "prepare": "is-ci || husky"
   },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "is-ci": "^4.1.0"
   }
 }
