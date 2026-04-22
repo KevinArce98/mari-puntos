@@ -1,27 +1,32 @@
 import React, { useState } from 'react';
+
 import {
-  View,
-  Text,
-  StyleSheet,
   Modal,
-  TouchableOpacity,
   ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
-import Slider from '@react-native-community/slider';
-import { Action, ActionCategory } from '@/types';
-import { spacing, typography, borderRadius } from '@/theme';
-import { useThemedColors } from '@/hooks';
-import { Button } from './Button';
-import { useForm, Controller } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
-import { TextAreaWithCounter } from './TextAreaWithCounter';
-import {
-  reviewActionSchema,
-  type ReviewActionFormData,
-} from '@/validators/action.schema';
+import Slider from '@react-native-community/slider';
+import { Controller, useForm } from 'react-hook-form';
+
+import { useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
+import { Action, ActionCategory } from '@/types';
 import { formatDateWithTime } from '@/utils';
 import logger from '@/utils/logger';
+import {
+  type ReviewActionFormData,
+  reviewActionSchema,
+} from '@/validators/action.schema';
+
+import { Button } from './Button';
+import { TextAreaWithCounter } from './TextAreaWithCounter';
 
 interface ReviewActionModalProps {
   visible: boolean;

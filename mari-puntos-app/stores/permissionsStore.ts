@@ -1,14 +1,16 @@
 import { create } from 'zustand';
+
 import { permissionsService } from '@/services';
 import {
-  Permission,
   CreatePermissionRequest,
   GetPermissionsParams,
+  Permission,
   PermissionStatus,
 } from '@/types';
-import { useUserStore } from './userStore';
-import logger from '@/utils/logger';
 import { getErrorMessage } from '@/utils/errorMessage';
+import logger from '@/utils/logger';
+
+import { useUserStore } from './userStore';
 
 interface PermissionsState {
   myPermissions: Permission[];

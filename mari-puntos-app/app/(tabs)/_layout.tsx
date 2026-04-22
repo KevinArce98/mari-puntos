@@ -1,13 +1,18 @@
 import React, { useCallback, useEffect } from 'react';
-import { Tabs, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+
 import { TouchableOpacity, View } from 'react-native';
+
+import { Tabs, useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { HapticTab } from '@/components/haptic-tab';
+import { useThemedColors, useUser } from '@/hooks';
+import { useActionsStore, usePermissionsStore, useUserStore } from '@/stores';
 import { shadows } from '@/theme';
-import { useUser, useThemedColors } from '@/hooks';
 import logger from '@/utils/logger';
-import { useActionsStore, usePermissionsStore } from '@/stores';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -15,6 +20,7 @@ export default function TabLayout() {
   const colors = useThemedColors();
   const router = useRouter();
 
+  const userId = useUserStore((s) => s.user?.id);
   const pendingActionsCount = useActionsStore(
     (s) => s.partnerActions.filter((a) => a.status === 'pending').length
   );
@@ -22,17 +28,27 @@ export default function TabLayout() {
     (s) => s.partnerPermissions.filter((p) => p.status === 'pending').length
   );
   const fetchPartnerPermissions = usePermissionsStore((s) => s.fetchPartnerPermissions);
+  const fetchPartnerActions = useActionsStore((s) => s.fetchPartnerActions);
 
-  // Pre-fetch partner permissions so the tab badge is available immediately
+  // Pre-fetch both partner actions and permissions together so both badges
+  // are available at the same time on startup (avoids staggered badge updates).
   useEffect(() => {
-    if (!hasPartner) return;
-    const store = usePermissionsStore.getState();
-    if (!store.isLoadingPartnerPermissions && store.partnerPermissions.length === 0) {
+    if (!userId || !hasPartner) return;
+
+    const permStore = usePermissionsStore.getState();
+    const actStore = useActionsStore.getState();
+
+    if (!permStore.isLoadingPartnerPermissions) {
       fetchPartnerPermissions().catch((error) => {
         logger.error('Failed to pre-fetch partner permissions in TabLayout', error);
       });
     }
-  }, [hasPartner, fetchPartnerPermissions]);
+    if (!actStore.isLoadingPartnerActions) {
+      fetchPartnerActions().catch((error) => {
+        logger.error('Failed to pre-fetch partner actions in TabLayout', error);
+      });
+    }
+  }, [userId, hasPartner, fetchPartnerPermissions, fetchPartnerActions]);
 
   const lockedTabButton = useCallback(
     (props: any) => (

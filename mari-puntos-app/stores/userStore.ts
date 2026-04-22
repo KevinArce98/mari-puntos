@@ -1,3 +1,5 @@
+import { create } from 'zustand';
+
 import { userService } from '@/services';
 import {
   GetPartnerLinkCodeResponse,
@@ -6,9 +8,8 @@ import {
   User,
   UserStats,
 } from '@/types';
-import { create } from 'zustand';
-import logger from '@/utils/logger';
 import { getErrorMessage } from '@/utils/errorMessage';
+import logger from '@/utils/logger';
 
 interface UserState {
   user: User | null;

@@ -1,6 +1,7 @@
+import { useEffect } from 'react';
+
 import { usePermissionsStore, useUserStore } from '@/stores';
 import { CreatePermissionRequest, RespondPermissionRequest } from '@/types';
-import { useEffect } from 'react';
 import logger from '@/utils/logger';
 
 export const usePermissions = () => {
@@ -14,19 +15,21 @@ export const usePermissions = () => {
     createPermission,
     updatePermission,
     respondToPermission,
-    clearPermissions,
   } = usePermissionsStore();
   const { user } = useUserStore();
 
   useEffect(() => {
     if (!user) return;
 
-    // Guard: skip if already loading (prevents double-fetch from multiple consumers)
+    // Guard with specific flags (not combined isLoading) to avoid skipping a fetch
+    // when only one of the two is already in flight (e.g. the TabLayout pre-fetch).
     const store = usePermissionsStore.getState();
-    if (!store.isLoading) {
+    if (!store.isLoadingMyPermissions) {
       fetchMyPermissions().catch((error) => {
         logger.error('Failed to fetch my permissions in usePermissions hook', error);
       });
+    }
+    if (!store.isLoadingPartnerPermissions) {
       fetchPartnerPermissions().catch((error) => {
         logger.error('Failed to fetch partner permissions in usePermissions hook', error);
       });

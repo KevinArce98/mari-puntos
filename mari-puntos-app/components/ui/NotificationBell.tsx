@@ -1,10 +1,14 @@
-import React, { useEffect, useCallback } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useCallback, useEffect } from 'react';
+
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
 import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
-import { useActionsStore, usePermissionsStore } from '@/stores';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import { useThemedColors } from '@/hooks';
+import { useActionsStore, usePermissionsStore } from '@/stores';
 import { borderRadius, typography } from '@/theme';
 import logger from '@/utils/logger';
 

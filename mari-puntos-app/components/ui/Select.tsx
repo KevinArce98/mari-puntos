@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
+
 import {
-  View,
-  Text,
-  StyleSheet,
-  ViewStyle,
-  TouchableOpacity,
-  Modal,
   FlatList,
+  Modal,
   Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
-import { typography, spacing, borderRadius } from '@/theme';
+
 import { useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
 
 export interface SelectOption {
   label: string;

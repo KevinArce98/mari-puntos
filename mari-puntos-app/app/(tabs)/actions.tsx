@@ -1,21 +1,26 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useFocusEffect } from 'expo-router';
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+
 import {
   ActivityIndicator,
+  RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  RefreshControl,
-  ScrollView,
 } from 'react-native';
+
+import { useFocusEffect, useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import { LegendList } from '@legendapp/list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ActionItemCard, CreateActionModal, Chip } from '@/components/ui';
+import Toast from 'react-native-toast-message';
+
+import { ActionItemCard, Chip, CreateActionModal } from '@/components/ui';
 import { useActions, usePoints, useThemedColors, useUser } from '@/hooks';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
-import Toast from 'react-native-toast-message';
 import { ActionStatus } from '@/types';
 import { CreateActionFormData } from '@/validators/action.schema';
 

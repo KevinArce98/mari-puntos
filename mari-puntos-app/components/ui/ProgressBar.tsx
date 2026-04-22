@@ -1,7 +1,9 @@
-import { borderRadius } from '@/theme';
-import { useThemedColors } from '@/hooks';
 import React from 'react';
+
 import { StyleSheet, View, ViewStyle } from 'react-native';
+
+import { useThemedColors } from '@/hooks';
+import { borderRadius } from '@/theme';
 
 interface ProgressBarProps {
   progress: number; // 0 to 100

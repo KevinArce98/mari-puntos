@@ -1,8 +1,11 @@
 import React, { useCallback } from 'react';
-import { LinearGradient } from 'expo-linear-gradient';
+
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from 'expo-router';
+
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar, Card } from '@/components/ui';
 import { usePoints, useThemedColors, useUser } from '@/hooks';

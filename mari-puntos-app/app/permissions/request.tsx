@@ -1,7 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useFocusEffect } from 'expo-router';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+
 import {
+  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -12,18 +12,23 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  ActivityIndicator,
 } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { useFocusEffect, useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
+
 import { Button, Card, TextAreaWithCounter } from '@/components/ui';
 import { usePermissions, useThemedColors, useUser } from '@/hooks';
-import { borderRadius, shadows, spacing, typography } from '@/theme';
-import { createUTC6DateTime } from '@/utils/dateUtils';
-import Toast from 'react-native-toast-message';
-import { PermissionTemplate } from '@/types';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { permissionsService } from '@/services';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
+import { PermissionTemplate } from '@/types';
+import { createUTC6DateTime } from '@/utils/dateUtils';
 import logger from '@/utils/logger';
 
 export default function RequestPermissionScreen() {

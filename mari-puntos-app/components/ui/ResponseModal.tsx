@@ -1,27 +1,32 @@
 import React, { useEffect, useState } from 'react';
+
 import {
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
-  View,
-  Text,
+  Platform,
   StyleSheet,
+  Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  KeyboardAvoidingView,
-  Platform,
+  View,
 } from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
-import { useForm, Controller } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
-import { colors, spacing, typography, borderRadius } from '@/theme';
+import { Controller, useForm } from 'react-hook-form';
+
 import { useThemedColors } from '@/hooks';
-import { Button } from './Button';
-import { Input } from './Input';
+import { borderRadius, colors, spacing, typography } from '@/theme';
 import {
-  responseMessageSchema,
   type ResponseMessageFormData,
+  responseMessageSchema,
 } from '@/validators/action.schema';
+
+import { Button } from './Button';
 import { ControlledInput } from './ControlledInput';
+import { Input } from './Input';
 
 interface ResponseModalProps {
   visible: boolean;

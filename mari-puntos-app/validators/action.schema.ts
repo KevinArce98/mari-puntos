@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { ActionCategory } from '@/types';
 
 export const createActionSchema = z.object({

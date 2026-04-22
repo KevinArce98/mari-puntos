@@ -1,8 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
+
 import { useFocusEffect } from 'expo-router';
-import { Achievement } from '@/types';
+
 import { userService } from '@/services';
 import { useUserStore } from '@/stores';
+import { Achievement } from '@/types';
 import logger from '@/utils/logger';
 
 export const useAchievements = () => {

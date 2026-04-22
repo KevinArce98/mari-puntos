@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useRouter } from 'expo-router';
+
 import {
   Image,
   Keyboard,
@@ -11,17 +11,21 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { useSignIn, isClerkAPIResponseError } from '@clerk/clerk-expo';
-import { handleClerkErrors } from '@/types/clerk-localization';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useForm } from 'react-hook-form';
+
+import { useRouter } from 'expo-router';
+
+import { isClerkAPIResponseError, useSignIn } from '@clerk/clerk-expo';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, ControlledInput } from '@/components/ui';
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { useForm } from 'react-hook-form';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+
+import { Button, ControlledInput } from '@/components/ui';
 import { useThemedColors } from '@/hooks';
-import { loginSchema, type LoginFormData } from '@/validators/auth.schema';
+import { borderRadius, colors, spacing, typography } from '@/theme';
+import { handleClerkErrors } from '@/types/clerk-localization';
 import logger from '@/utils/logger';
+import { type LoginFormData, loginSchema } from '@/validators/auth.schema';
 
 export default function LoginScreen() {
   const router = useRouter();

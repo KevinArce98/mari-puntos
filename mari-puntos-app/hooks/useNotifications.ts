@@ -1,10 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { Platform } from 'react-native';
+
+import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
-import Constants from 'expo-constants';
-import { Platform } from 'react-native';
-import { useRouter, useRootNavigationState } from 'expo-router';
+import { useRootNavigationState, useRouter } from 'expo-router';
 import type { Href } from 'expo-router';
+
 import { useUserStore } from '@/stores';
 import logger from '@/utils/logger';
 
@@ -21,7 +24,11 @@ Notifications.setNotificationHandler({
       shouldShowBanner: true,
       shouldShowList: true,
       shouldPlaySound: true,
-      shouldSetBadge: true,
+      // Badge count is managed manually via Notifications.setBadgeCountAsync in
+      // NotificationBell — setting this to true would let Expo auto-increment the
+      // OS badge from the notification payload (which has no badge field), causing
+      // it to diverge from the actual pending count.
+      shouldSetBadge: false,
     }) as Notifications.NotificationBehavior,
 });
 

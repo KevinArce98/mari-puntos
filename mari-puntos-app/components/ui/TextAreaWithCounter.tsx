@@ -1,8 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Input, InputProps } from './Input';
+
+import { StyleSheet, Text, View } from 'react-native';
+
 import { useThemedColors } from '@/hooks';
-import { typography, spacing } from '@/theme';
+import { spacing, typography } from '@/theme';
+
+import { Input, InputProps } from './Input';
 
 interface TextAreaWithCounterProps extends InputProps {
   maxLength: number;

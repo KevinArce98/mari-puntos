@@ -1,8 +1,9 @@
 import { create } from 'zustand';
+
 import { actionsService } from '@/services';
-import { Action, CreateActionRequest, GetActionsParams, ActionStatus } from '@/types';
-import logger from '@/utils/logger';
+import { Action, ActionStatus, CreateActionRequest, GetActionsParams } from '@/types';
 import { getErrorMessage } from '@/utils/errorMessage';
+import logger from '@/utils/logger';
 
 interface PaginationMeta {
   page: number;

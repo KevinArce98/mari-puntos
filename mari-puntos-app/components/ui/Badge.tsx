@@ -1,7 +1,9 @@
-import { borderRadius, spacing, typography } from '@/theme';
-import { useThemedColors } from '@/hooks';
 import React from 'react';
+
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+
+import { useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
 
 interface BadgeProps {
   label: string | number;

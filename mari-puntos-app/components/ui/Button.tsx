@@ -1,7 +1,5 @@
-import { borderRadius, spacing, typography } from '@/theme';
-import { useThemedColors } from '@/hooks';
-import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
+
 import {
   ActivityIndicator,
   StyleSheet,
@@ -11,6 +9,11 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+
+import { Ionicons } from '@expo/vector-icons';
+
+import { useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
 
 interface ButtonProps {
   title: string;

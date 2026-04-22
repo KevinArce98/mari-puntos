@@ -1,7 +1,10 @@
 import React from 'react';
-import { Control, Controller, FieldPath, FieldValues } from 'react-hook-form';
-import { CodeInput } from './CodeInput';
+
 import { ViewStyle } from 'react-native';
+
+import { Control, Controller, FieldPath, FieldValues } from 'react-hook-form';
+
+import { CodeInput } from './CodeInput';
 
 interface ControlledCodeInputProps<T extends FieldValues> {
   control: Control<T>;

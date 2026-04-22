@@ -1,7 +1,11 @@
 import React, { useMemo } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { Badge, Card, Chip, ProgressBar } from '@/components/ui';
 import { useAchievements, useThemedColors } from '@/hooks';
 import { borderRadius, shadows, spacing, typography } from '@/theme';

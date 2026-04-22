@@ -1,18 +1,22 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
+
 import {
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
-  TextInput,
-  Platform,
 } from 'react-native';
-import { colors, spacing, typography, borderRadius, shadows } from '@/theme';
+
+import { Ionicons } from '@expo/vector-icons';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { useThemedColors } from '@/hooks';
+import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
 
 const ICON_OPTIONS = [
   { name: 'game-controller-outline', label: 'Gaming' },

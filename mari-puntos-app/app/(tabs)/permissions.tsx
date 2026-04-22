@@ -1,24 +1,29 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { useRouter, useFocusEffect } from 'expo-router';
+
+import { useFocusEffect, useRouter } from 'expo-router';
+
 import { Ionicons } from '@expo/vector-icons';
-import { Card, Badge, Button } from '@/components/ui';
-import { typography, spacing, borderRadius } from '@/theme';
-import { ResponseMessageFormData } from '@/validators/action.schema';
-import Toast from 'react-native-toast-message';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
+
 import { PermissionCard } from '@/components';
-import { formatDateOnly, getStatusColor, getStatusText } from '@/utils';
+import { Badge, Button, Card } from '@/components/ui';
 import { usePermissions, useThemedColors, useUser } from '@/hooks';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { borderRadius, spacing, typography } from '@/theme';
+import { formatDateOnly, getStatusColor, getStatusText } from '@/utils';
+import { ResponseMessageFormData } from '@/validators/action.schema';
 
 export default function PermissionsScreen() {
   const router = useRouter();

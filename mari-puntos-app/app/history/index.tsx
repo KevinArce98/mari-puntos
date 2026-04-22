@@ -1,14 +1,19 @@
-import { Card } from '@/components/ui';
+import React from 'react';
+
+import { ActivityIndicator, RefreshControl, StyleSheet, Text, View } from 'react-native';
+
+import { Stack } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
+import { LegendList } from '@legendapp/list';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { HistoryItem } from '@/components';
+import { Card } from '@/components/ui';
 import { usePoints, useThemedColors } from '@/hooks';
 import { spacing, typography } from '@/theme';
 import { PointsLog } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
-import { Stack } from 'expo-router';
-import React from 'react';
-import { ActivityIndicator, RefreshControl, StyleSheet, Text, View } from 'react-native';
-import { LegendList } from '@legendapp/list';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import logger from '@/utils/logger';
 
 export default function HistoryScreen() {

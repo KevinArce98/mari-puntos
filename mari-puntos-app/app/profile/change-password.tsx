@@ -1,8 +1,5 @@
-import { Ionicons } from '@expo/vector-icons';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useUser } from '@clerk/clerk-expo';
-import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
+
 import {
   KeyboardAvoidingView,
   Platform,
@@ -12,10 +9,18 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
+import { useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
+
+import { useUser } from '@clerk/clerk-expo';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import { z } from 'zod';
+
 import { Button } from '@/components/ui';
 import { ControlledInput } from '@/components/ui/ControlledInput';
 import { useThemedColors } from '@/hooks';

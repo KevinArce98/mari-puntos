@@ -1,11 +1,14 @@
-import { useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
+
+import { useRootNavigationState, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+
+import { useSignUp } from '@clerk/clerk-expo';
+
 import { LoadingScreen } from '@/components/loading-screen';
 import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useUserStore } from '@/stores';
-import { useSignUp } from '@clerk/clerk-expo';
 
 interface AuthGuardProps {
   children: React.ReactNode;

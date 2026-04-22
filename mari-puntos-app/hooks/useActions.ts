@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+
 import { useActionsStore, useUserStore } from '@/stores';
 import { CreateActionRequest, GetActionsParams } from '@/types';
 import logger from '@/utils/logger';
@@ -8,8 +9,6 @@ export const useActions = () => {
     myActions,
     partnerActions,
     isLoading,
-    isLoadingMyActions,
-    isLoadingPartnerActions,
     error,
     myActionsPagination,
     partnerActionsPagination,

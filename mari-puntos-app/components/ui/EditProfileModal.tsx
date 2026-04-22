@@ -1,33 +1,39 @@
 import React, { useEffect, useState } from 'react';
+
 import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  ScrollView,
-  Platform,
   Alert,
   Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
   launchImageLibraryAsync,
   requestMediaLibraryPermissionsAsync,
 } from 'expo-image-picker';
-import { spacing, typography, borderRadius } from '@/theme';
+
+import { Ionicons } from '@expo/vector-icons';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+
 import { useThemedColors } from '@/hooks';
+import { borderRadius, spacing, typography } from '@/theme';
+import logger from '@/utils/logger';
+import {
+  type UpdateProfileFormData,
+  updateProfileSchema,
+} from '@/validators/profile.schema';
+
 import { Button } from './Button';
 import { ControlledInput } from './ControlledInput';
-import {
-  updateProfileSchema,
-  type UpdateProfileFormData,
-} from '@/validators/profile.schema';
-import logger from '@/utils/logger';
 
 interface EditProfileModalProps {
   visible: boolean;

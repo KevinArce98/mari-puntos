@@ -1,6 +1,8 @@
-import { ApiError } from '@/types';
-import axios, { AxiosError, AxiosInstance } from 'axios';
 import { Platform } from 'react-native';
+
+import axios, { AxiosError, AxiosInstance } from 'axios';
+
+import { ApiError } from '@/types';
 import logger from '@/utils/logger';
 
 // API Base URL from environment

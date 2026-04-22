@@ -1,21 +1,25 @@
+import React, { useEffect } from 'react';
+
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Appearance } from 'react-native';
+
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import * as Updates from 'expo-updates';
+
 import { ClerkProvider } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
-import { DefaultTheme, DarkTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import React, { useEffect } from 'react';
-import { Platform, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import 'react-native-reanimated';
-import * as Updates from 'expo-updates';
-import * as SplashScreen from 'expo-splash-screen';
-import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
+
 import { AuthGuard } from '@/components';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Appearance } from 'react-native';
 import { useNotifications } from '@/hooks/useNotifications';
-import * as Sentry from '@sentry/react-native';
+import { borderRadius, colors, spacing, typography } from '@/theme';
 import logger from '@/utils/logger';
 
 // Route-level error boundary — catches React render errors that Sentry.wrap cannot catch
