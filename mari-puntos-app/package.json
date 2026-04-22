@@ -23,7 +23,7 @@
     "@react-navigation/elements": "^2.9.14",
     "@react-navigation/native": "^7.1.33",
     "@sentry/react-native": "~7.11.0",
-    "axios": "^1.15.0",
+    "axios": "^1.15.2",
     "dayjs": "^1.11.20",
     "expo": "^55.0.14",
     "expo-auth-session": "~55.0.13",
@@ -68,8 +68,8 @@
     "eslint-config-expo": "~55.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
-    "prettier": "^3.8.2",
-    "typescript": "~5.9.2"
+    "prettier": "^3.8.3",
+    "typescript": "~5.9.3"
   },
   "expo": {
     "install": {
