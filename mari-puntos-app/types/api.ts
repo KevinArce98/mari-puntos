@@ -380,16 +380,3 @@ export interface PointsLog {
 }
 
 export type GetPointsHistoryParams = PaginationParams;
-
-export interface LeaderboardEntry {
-  id: string;
-  firstName: string;
-  lastName: string;
-  avatarUrl?: string;
-  totalPoints: number;
-  currentLevel: number;
-}
-
-export interface GetLeaderboardParams {
-  limit?: number;
-}

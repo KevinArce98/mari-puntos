@@ -153,7 +153,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Ranking',
+          title: 'Duelo',
           tabBarIcon: ({ color, focused }) =>
             hasPartner ? (
               <Ionicons
