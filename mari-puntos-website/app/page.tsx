@@ -1,10 +1,11 @@
-import { BetaSignupForm } from '@/components/beta-signup-form';
 import type { Metadata } from 'next';
+
+import { BetaSignupForm } from '@/components/beta-signup-form';
 
 export const metadata: Metadata = {
   title: 'MariPuntos - Gamifica tu Relación de Pareja',
   description:
-    'Gamifica tu relación con MariPuntos. Solicita permisos, gana puntos por buenas acciones y canjea recompensas en pareja de forma divertida y organizada.',
+    'Gamifica tu relación con MariPuntos. Solicita permisos, gana puntos por buenas acciones y mantén rachas semanales en pareja de forma divertida y organizada.',
   keywords: [
     'relación de pareja',
     'gamificación',
@@ -66,8 +67,8 @@ export default function Home() {
             </h1>
             <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
               MariPuntos es la app que gamifica la dinámica de pareja: solicita permisos,
-              suma puntos por buenas acciones y canjea recompensas en un sistema claro,
-              divertido y sin conflictos.
+              suma puntos por buenas acciones y mantén rachas semanales en un sistema
+              claro, divertido y sin conflictos.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <a
@@ -179,16 +180,22 @@ export default function Home() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"
                     />
                   </svg>
                 </div>
                 <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 text-center">
-                  Gana Recompensas
+                  Mantén la Racha
                 </h3>
                 <p className="text-gray-600 text-center leading-relaxed">
-                  Intercambia tus puntos por recompensas que tú y tu pareja hayan
-                  personalizado
+                  Completen acciones juntos cada semana para construir una racha
+                  imparable. ¡Cuántas semanas seguidas pueden llegar?
                 </p>
               </div>
             </div>
