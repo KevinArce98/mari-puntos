@@ -1,8 +1,8 @@
 import 'reflect-metadata';
+
 import { createApp } from './app';
+import { closeDatabase, initializeDatabase } from './config/db';
 import { config } from './config/env';
-import { initializeDatabase, closeDatabase } from './config/db';
-import { RewardsService } from './services/rewards.service';
 import { logger } from './utils/logger';
 
 const startServer = async () => {
@@ -10,11 +10,6 @@ const startServer = async () => {
     // Initialize database
     await initializeDatabase();
     logger.info('Database initialized');
-
-    // Seed default rewards
-    const rewardsService = new RewardsService();
-    await rewardsService.seedDefaultRewards();
-    logger.info('Default rewards seeded');
 
     // Create Express app
     const app = createApp();

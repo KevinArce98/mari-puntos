@@ -1,99 +1,89 @@
 import crypto from 'crypto';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
+import isoWeek from 'dayjs/plugin/isoWeek';
 import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
+
 import { config } from '../config/env';
 
-// Extend dayjs with plugins
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(isoWeek);
 
-// Costa Rica timezone (UTC-6)
 const TIMEZONE = 'America/Costa_Rica';
 
-/**
- * Get current date/time in UTC-6 timezone
- */
 export const getNowUTC6 = (): Date => {
   return dayjs().tz(TIMEZONE).toDate();
 };
 
-/**
- * Convert any date to UTC-6 timezone
- */
 export const toUTC6 = (date: Date): Date => {
   return dayjs(date).tz(TIMEZONE).toDate();
 };
 
-/**
- * Generate a unique partner code
- */
 export const generatePartnerCode = (): string => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed ambiguous characters
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
-  
   for (let i = 0; i < config.app.partnerCodeLength; i++) {
     const randomIndex = crypto.randomInt(0, chars.length);
     code += chars[randomIndex];
   }
-  
   return code;
 };
 
-/**
- * Calculate level from total points
- */
 export const calculateLevel = (totalPoints: number): number => {
   return Math.floor(totalPoints / config.app.pointsPerLevel) + 1;
 };
 
-/**
- * Calculate points in current level
- */
 export const calculatePointsInCurrentLevel = (totalPoints: number): number => {
   return totalPoints % config.app.pointsPerLevel;
 };
 
-/**
- * Calculate points needed for next level
- */
 export const calculatePointsForNextLevel = (totalPoints: number): number => {
   const pointsInCurrentLevel = calculatePointsInCurrentLevel(totalPoints);
   return config.app.pointsPerLevel - pointsInCurrentLevel;
 };
 
-/**
- * Calculate level progress percentage
- */
 export const calculateLevelProgress = (totalPoints: number): number => {
   const pointsInCurrentLevel = calculatePointsInCurrentLevel(totalPoints);
   return Math.floor((pointsInCurrentLevel / config.app.pointsPerLevel) * 100);
 };
 
-/**
- * Format date to ISO string in UTC-6
- */
 export const formatDate = (date: Date): string => {
   return dayjs(date).tz(TIMEZONE).toISOString();
 };
 
-/**
- * Check if date is expired (using UTC-6 timezone)
- */
 export const isExpired = (date: Date): boolean => {
   return dayjs().tz(TIMEZONE).isAfter(dayjs(date));
 };
 
-/**
- * Add hours to date
- */
 export const addHours = (date: Date, hours: number): Date => {
   return dayjs(date).add(hours, 'hour').toDate();
 };
 
-/**
- * Sanitize user input
- */
 export const sanitizeInput = (input: string): string => {
   return input.trim().replace(/[<>]/g, '');
+};
+
+export const getISOWeekId = (date?: Date): string => {
+  const d = dayjs(date ?? new Date()).tz(TIMEZONE);
+  const year: number = d.isoWeekYear();
+  const week: number = d.isoWeek();
+  return `${year}-W${String(week).padStart(2, '0')}`;
+};
+
+export const getPreviousWeekId = (weekId: string): string => {
+  const [yearStr, weekPart] = weekId.split('-W');
+  let year = parseInt(yearStr, 10);
+  let week = parseInt(weekPart, 10);
+
+  if (week > 1) {
+    return `${year}-W${String(week - 1).padStart(2, '0')}`;
+  }
+
+  // Week 1 → last ISO week of previous year. Dec 28 is always in the final ISO week.
+  year -= 1;
+  week = dayjs(new Date(year, 11, 28))
+    .tz(TIMEZONE)
+    .isoWeek();
+  return `${year}-W${String(week).padStart(2, '0')}`;
 };

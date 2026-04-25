@@ -8,6 +8,7 @@ import { PartnerService } from './partner.service';
 import { PointsService } from './points.service';
 import { CreateActionInput, UpdateActionInput } from '../validators/schemas';
 import { PushNotificationService } from './push-notification.service';
+import { StreakService } from './streak.service';
 import { logger } from '../utils/logger';
 
 export class ActionsService {
@@ -17,6 +18,7 @@ export class ActionsService {
   private partnerService = new PartnerService();
   private pointsService = new PointsService();
   private pushNotificationService = new PushNotificationService();
+  private streakService = new StreakService();
 
   async createAction(userId: string, data: CreateActionInput): Promise<Action> {
     logger.info({ message: 'Creating action', userId, actionData: data });
@@ -51,7 +53,6 @@ export class ActionsService {
       })
     );
 
-    // Fire-and-forget notification
     try {
       const partnerIdForNotif = await this.partnerService.getPartnerId(userId);
       if (partnerIdForNotif) {
@@ -250,7 +251,11 @@ export class ActionsService {
       return lockedAction;
     });
 
-    // Non-critical: check achievements and send notification outside the transaction
+    // Non-critical fire-and-forget: streak, achievements, notification
+    this.streakService.recordAction(action.userId).catch((err) => {
+      logger.error({ err }, 'Streak update failed after approveAction');
+    });
+
     try {
       await this.pointsService.checkAchievementsForUser(action.userId);
     } catch (err) {
