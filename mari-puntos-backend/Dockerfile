@@ -14,6 +14,7 @@ FROM base AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+COPY .env* ./
 RUN pnpm build
 
 # ── production deps only ───────────────────────────────────────────────────────
