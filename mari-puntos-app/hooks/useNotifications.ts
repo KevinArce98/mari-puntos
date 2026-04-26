@@ -8,8 +8,12 @@ import * as Notifications from 'expo-notifications';
 import { useRootNavigationState, useRouter } from 'expo-router';
 import type { Href } from 'expo-router';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { useUserStore } from '@/stores';
 import logger from '@/utils/logger';
+
+const HANDLED_NOTIFICATION_KEY = '@maripuntos/handled-notification-id';
 
 const NOTIFICATION_ROUTES = {
   permissions: '/(tabs)/permissions' as Href,
@@ -137,6 +141,14 @@ export function useNotifications() {
 
         if (data && data.type) {
           logger.info('Notification response received:', data.type);
+          // Mark as handled so the cold-start effect doesn't re-navigate on
+          // the next reload (getLastNotificationResponseAsync keeps returning it).
+          AsyncStorage.setItem(
+            HANDLED_NOTIFICATION_KEY,
+            response.notification.request.identifier
+          ).catch((err) =>
+            logger.error('Error marking notification as handled:', err as Error)
+          );
           setPendingNotificationData(data);
         }
       }
@@ -158,19 +170,30 @@ export function useNotifications() {
   useEffect(() => {
     if (!rootNavigationState?.key) return;
 
-    Notifications.getLastNotificationResponseAsync()
-      .then((response) => {
+    (async () => {
+      try {
+        const response = await Notifications.getLastNotificationResponseAsync();
         if (!response) return;
+
+        const identifier = response.notification.request.identifier;
+        const lastHandledId = await AsyncStorage.getItem(HANDLED_NOTIFICATION_KEY);
+        if (lastHandledId === identifier) {
+          // Already handled on a previous launch — getLastNotificationResponseAsync
+          // keeps returning it until the OS clears it, so guard with our own marker.
+          return;
+        }
+
         const data = response.notification.request.content
           .data as unknown as NotificationData;
         if (data?.type) {
           logger.info('Cold-start notification tap:', data.type);
+          await AsyncStorage.setItem(HANDLED_NOTIFICATION_KEY, identifier);
           setPendingNotificationData(data);
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         logger.error('Error reading last notification response:', err as Error);
-      });
+      }
+    })();
     // Run once after navigation is ready (rootNavigationState.key is stable after init)
   }, [rootNavigationState?.key]);
 
