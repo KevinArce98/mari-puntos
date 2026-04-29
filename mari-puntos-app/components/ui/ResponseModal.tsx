@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useThemedColors } from '@/hooks';
 import { borderRadius, colors, spacing, typography } from '@/theme';
@@ -46,8 +47,17 @@ export function ResponseModal({
   loading = false,
 }: ResponseModalProps) {
   const themeColors = useThemedColors();
+  const insets = useSafeAreaInsets();
+  const [pendingAction, setPendingAction] = useState<'approve' | 'reject' | null>(null);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
+  // Reset which button is spinning whenever the parent finishes its async work.
+  useEffect(() => {
+    if (!loading) setPendingAction(null);
+  }, [loading]);
+
+  // Modal creates its own Android window that doesn't inherit `adjustResize`,
+  // so track the keyboard manually to lift the modal above it.
   useEffect(() => {
     if (Platform.OS !== 'android') return;
     const show = Keyboard.addListener('keyboardDidShow', (e) => {
@@ -71,11 +81,13 @@ export function ResponseModal({
   });
 
   const onSubmitApprove = (data: ResponseMessageFormData) => {
+    setPendingAction('approve');
     onApprove(data);
     reset();
   };
 
   const onSubmitReject = (data: ResponseMessageFormData) => {
+    setPendingAction('reject');
     onReject(data);
     reset();
   };
@@ -90,11 +102,19 @@ export function ResponseModal({
       visible={visible}
       transparent
       animationType="fade"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={handleClose}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={[styles.overlay, { paddingBottom: keyboardOffset }]}
+        style={[
+          styles.overlay,
+          Platform.OS === 'android' && {
+            paddingTop: insets.top,
+            paddingBottom: keyboardOffset > 0 ? keyboardOffset + 20 : insets.bottom,
+          },
+        ]}
       >
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={handleClose}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -183,6 +203,7 @@ export function ResponseModal({
                   onPress={handleSubmit(onSubmitReject)}
                   variant="outline"
                   style={[styles.actionButton, styles.rejectButton]}
+                  loading={pendingAction === 'reject'}
                   disabled={loading}
                 />
                 <Button
@@ -190,6 +211,7 @@ export function ResponseModal({
                   onPress={handleSubmit(onSubmitApprove)}
                   variant="primary"
                   style={styles.actionButton}
+                  loading={pendingAction === 'approve'}
                   disabled={loading}
                 />
               </View>

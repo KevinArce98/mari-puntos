@@ -72,28 +72,13 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
             {permission.template.description}
           </Text>
         )}
-        <Text style={[styles.permissionFrom, { color: colors.text.secondary }]}>
-          De: {permission.requester?.firstName} {permission.requester?.lastName}
-        </Text>
-
-        {/* Show requester's available points */}
-        {permission.status === 'pending' && permission.requester && (
-          <View style={[styles.pointsInfo, { backgroundColor: colors.gray[50] }]}>
-            <Text style={[styles.pointsInfoLabel, { color: colors.text.secondary }]}>
-              Puntos disponibles:
-            </Text>
-            <Text style={[styles.pointsInfoValue, { color: colors.primary }]}>
-              {requesterPoints} pts
-            </Text>
-            {hasInsufficientPoints && (
-              <Text style={[styles.warningText, { color: colors.error }]}>
-                ⚠️ Tu pareja no tiene suficientes puntos para esta solicitud
-              </Text>
-            )}
-          </View>
+        {hasInsufficientPoints && (
+          <Text style={[styles.warningText, { color: colors.error }]}>
+            ⚠️ Tu pareja no tiene suficientes puntos para esta solicitud
+          </Text>
         )}
 
-        <Text style={[styles.permissionFrom, { color: colors.text.secondary }]}>
+        <Text style={[styles.permissionDate, { color: colors.text.secondary }]}>
           Fecha creación: {formatDateOnly(permission.createdAt)}
         </Text>
         {permission.status === 'pending' ? (
@@ -147,10 +132,6 @@ const styles = StyleSheet.create({
   permissionPoints: {
     ...typography.styles.bodyMedium,
   },
-  permissionFrom: {
-    ...typography.styles.caption,
-    marginBottom: spacing.xs,
-  },
   permissionMessage: {
     ...typography.styles.body,
     fontStyle: 'italic',
@@ -170,32 +151,10 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
   },
-  pointsInfo: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: spacing.xs,
-    borderRadius: 8,
-    padding: spacing.sm,
-    marginTop: spacing.sm,
-    marginBottom: spacing.xs,
-  },
-  pointsInfoLabel: {
-    ...typography.styles.caption,
-  },
-  pointsInfoValue: {
-    ...typography.styles.bodyMedium,
-    fontFamily: 'PlusJakartaSans-SemiBold',
-  },
-  pointsInsufficient: {},
-  warningContainer: {
-    borderRadius: 8,
-    padding: spacing.sm,
-    marginTop: spacing.xs,
-    marginBottom: spacing.sm,
-  },
   warningText: {
     ...typography.styles.caption,
     textAlign: 'center',
+    marginTop: spacing.xs,
+    marginBottom: spacing.sm,
   },
 });
