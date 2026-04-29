@@ -241,7 +241,7 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'Notificaciones',
-      description: 'Notificaciones de MariPuntos: acciones, permisos y recompensas',
+      description: 'Notificaciones de MariPuntos: acciones, permisos y rachas',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#24C6B1',

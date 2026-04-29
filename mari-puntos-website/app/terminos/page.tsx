@@ -1,40 +1,48 @@
 import { Metadata } from 'next';
+
 import LegalLayout from '../components/legal-layout';
 
 export const metadata: Metadata = {
   title: 'Términos de Servicio - MariPuntos',
-  description: 'Términos de servicio de MariPuntos - Condiciones de uso de la aplicación.',
+  description:
+    'Términos de servicio de MariPuntos - Condiciones de uso de la aplicación.',
 };
 
 export default function TermsOfService() {
   return (
-    <LegalLayout title="Términos de Servicio de MariPuntos" lastUpdated="27 de enero de 2026">
+    <LegalLayout
+      title="Términos de Servicio de MariPuntos"
+      lastUpdated="28 de abril de 2026"
+    >
       <section className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Aceptación de los Términos</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          1. Aceptación de los Términos
+        </h2>
         <p className="text-gray-700 leading-relaxed">
-          Al descargar, instalar o usar MariPuntos ("la Aplicación"), aceptas estos Términos de Servicio. Si no estás de acuerdo, no uses la Aplicación.
+          Al descargar, instalar o usar MariPuntos (&quot;la Aplicación&quot;), aceptas
+          estos Términos de Servicio. Si no estás de acuerdo, no uses la Aplicación.
         </p>
       </section>
 
       <section className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">2. Descripción del Servicio</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          2. Descripción del Servicio
+        </h2>
         <p className="text-gray-700 leading-relaxed mb-3">
           MariPuntos es una aplicación móvil de gamificación para parejas que permite:
         </p>
         <ul className="list-disc list-inside text-gray-700 space-y-2">
           <li>Ganar puntos por completar acciones</li>
           <li>Solicitar y gestionar permisos</li>
-          <li>Canjear recompensas</li>
-          <li>Desbloquear logros</li>
+          <li>Mantener rachas semanales</li>
+          <li>Subir de nivel y desbloquear logros</li>
           <li>Conectar con tu pareja</li>
         </ul>
       </section>
 
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">3. Elegibilidad</h2>
-        <p className="text-gray-700 leading-relaxed mb-3">
-          Para usar MariPuntos debes:
-        </p>
+        <p className="text-gray-700 leading-relaxed mb-3">Para usar MariPuntos debes:</p>
         <ul className="list-disc list-inside text-gray-700 space-y-2">
           <li>Tener al menos 18 años de edad</li>
           <li>Tener capacidad legal para aceptar estos términos</li>
@@ -44,15 +52,19 @@ export default function TermsOfService() {
 
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">4. Cuenta de Usuario</h2>
-        
-        <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">4.1 Creación de Cuenta</h3>
+
+        <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">
+          4.1 Creación de Cuenta
+        </h3>
         <ul className="list-disc list-inside text-gray-700 space-y-2">
           <li>Debes crear una cuenta proporcionando información precisa</li>
           <li>Eres responsable de mantener la seguridad de tu cuenta</li>
           <li>No puedes compartir tu cuenta con otros</li>
         </ul>
 
-        <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">4.2 Vinculación con Pareja</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">
+          4.2 Vinculación con Pareja
+        </h3>
         <ul className="list-disc list-inside text-gray-700 space-y-2">
           <li>Puedes vincular tu cuenta con una sola pareja a la vez</li>
           <li>Ambas partes deben consentir la vinculación</li>
@@ -62,34 +74,36 @@ export default function TermsOfService() {
 
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">5. Uso Aceptable</h2>
-        <p className="text-gray-700 leading-relaxed mb-3">
-          Te comprometes a NO:
-        </p>
+        <p className="text-gray-700 leading-relaxed mb-3">Te comprometes a NO:</p>
         <ul className="list-disc list-inside text-gray-700 space-y-2">
           <li>Usar la Aplicación para fines ilegales</li>
           <li>Acosar, amenazar o intimidar a otros usuarios</li>
           <li>Intentar acceder a cuentas de otros usuarios</li>
-          <li>Manipular el sistema de puntos o recompensas</li>
+          <li>Manipular el sistema de puntos o niveles</li>
           <li>Compartir contenido inapropiado u ofensivo</li>
           <li>Violar derechos de propiedad intelectual</li>
         </ul>
       </section>
 
       <section className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Puntos y Recompensas</h2>
-        
-        <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">6.1 Sistema de Puntos</h3>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Puntos y Niveles</h2>
+
+        <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">
+          6.1 Sistema de Puntos
+        </h3>
         <ul className="list-disc list-inside text-gray-700 space-y-2">
           <li>Los puntos se otorgan por acciones completadas y aprobadas</li>
           <li>Los puntos no tienen valor monetario</li>
           <li>Los puntos no son transferibles fuera de la Aplicación</li>
         </ul>
 
-        <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">6.2 Recompensas</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">
+          6.2 Niveles y Logros
+        </h3>
         <ul className="list-disc list-inside text-gray-700 space-y-2">
-          <li>Las recompensas son acuerdos entre parejas vinculadas</li>
-          <li>MariPuntos no es responsable del cumplimiento de recompensas</li>
-          <li>Las recompensas personalizadas son responsabilidad de los usuarios</li>
+          <li>Los niveles y logros reflejan la actividad acumulada en la Aplicación</li>
+          <li>Los logros son meramente ilustrativos y no tienen valor monetario</li>
+          <li>MariPuntos puede ajustar los requisitos de niveles en cualquier momento</li>
         </ul>
       </section>
 
@@ -103,7 +117,9 @@ export default function TermsOfService() {
       </section>
 
       <section className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">8. Propiedad Intelectual</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          8. Propiedad Intelectual
+        </h2>
         <ul className="list-disc list-inside text-gray-700 space-y-2">
           <li>MariPuntos y todo su contenido son propiedad de sus creadores</li>
           <li>Los logotipos, marcas y diseños están protegidos</li>
@@ -114,19 +130,28 @@ export default function TermsOfService() {
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">9. Privacidad y Datos</h2>
         <p className="text-gray-700 leading-relaxed">
-          El uso de datos está regido por nuestra <a href="/privacidad" className="text-[#24C6B1] hover:underline">Política de Privacidad</a>. Al usar la Aplicación, aceptas la recopilación y uso de datos según dicha política.
+          El uso de datos está regido por nuestra{' '}
+          <a href="/privacidad" className="text-[#24C6B1] hover:underline">
+            Política de Privacidad
+          </a>
+          . Al usar la Aplicación, aceptas la recopilación y uso de datos según dicha
+          política.
         </p>
       </section>
 
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">10. Terminación</h2>
-        
-        <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">10.1 Por el Usuario</h3>
+
+        <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">
+          10.1 Por el Usuario
+        </h3>
         <p className="text-gray-700 leading-relaxed">
           Puedes eliminar tu cuenta en cualquier momento desde la configuración.
         </p>
 
-        <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">10.2 Por MariPuntos</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-3 mt-6">
+          10.2 Por MariPuntos
+        </h3>
         <p className="text-gray-700 leading-relaxed mb-3">
           Podemos suspender o terminar tu cuenta si:
         </p>
@@ -138,9 +163,12 @@ export default function TermsOfService() {
       </section>
 
       <section className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">11. Limitación de Responsabilidad</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          11. Limitación de Responsabilidad
+        </h2>
         <p className="text-gray-700 leading-relaxed mb-3">
-          MariPuntos se proporciona "tal cual" sin garantías de ningún tipo. No somos responsables de:
+          MariPuntos se proporciona &quot;tal cual&quot; sin garantías de ningún tipo. No
+          somos responsables de:
         </p>
         <ul className="list-disc list-inside text-gray-700 space-y-2">
           <li>Disputas entre parejas</li>
@@ -153,7 +181,8 @@ export default function TermsOfService() {
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">12. Modificaciones</h2>
         <p className="text-gray-700 leading-relaxed mb-3">
-          Podemos modificar estos Términos en cualquier momento. Los cambios significativos serán notificados mediante:
+          Podemos modificar estos Términos en cualquier momento. Los cambios
+          significativos serán notificados mediante:
         </p>
         <ul className="list-disc list-inside text-gray-700 space-y-2">
           <li>Notificación en la Aplicación</li>
@@ -167,7 +196,8 @@ export default function TermsOfService() {
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">13. Ley Aplicable</h2>
         <p className="text-gray-700 leading-relaxed">
-          Estos términos se rigen por las leyes de Costa Rica. Cualquier disputa se resolverá en los tribunales de Costa Rica.
+          Estos términos se rigen por las leyes de Costa Rica. Cualquier disputa se
+          resolverá en los tribunales de Costa Rica.
         </p>
       </section>
 
@@ -177,13 +207,19 @@ export default function TermsOfService() {
           Para preguntas sobre estos Términos:
         </p>
         <ul className="list-none text-gray-700 space-y-2">
-          <li><strong>Email:</strong> arias9068@gmail.com</li>
-          <li><strong>Sitio web:</strong> https://maripuntos.com/soporte</li>
+          <li>
+            <strong>Email:</strong> arias9068@gmail.com
+          </li>
+          <li>
+            <strong>Sitio web:</strong> https://maripuntos.com/soporte
+          </li>
         </ul>
       </section>
 
       <section className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">15. Disposiciones Generales</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          15. Disposiciones Generales
+        </h2>
         <ul className="list-disc list-inside text-gray-700 space-y-2">
           <li>Si alguna disposición es inválida, las demás permanecen en vigor</li>
           <li>La falta de ejercicio de un derecho no constituye renuncia</li>
@@ -193,8 +229,10 @@ export default function TermsOfService() {
 
       <div className="border-t border-gray-300 pt-8 mt-12">
         <p className="text-gray-600">
-          <strong>MariPuntos</strong><br />
-          Costa Rica<br />
+          <strong>MariPuntos</strong>
+          <br />
+          Costa Rica
+          <br />
           arias9068@gmail.com
         </p>
         <p className="text-gray-700 font-semibold mt-4">
