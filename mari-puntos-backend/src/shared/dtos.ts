@@ -3,15 +3,13 @@
  * ⚠️ These MUST match the frontend TypeScript interfaces EXACTLY
  * Frontend is the source of truth - backend adapts to frontend
  */
-
 import { PermissionCategory } from '../entities/PermissionTemplate';
 import {
-  ActionStatus,
   ActionCategory,
-  PermissionStatus,
-  RewardCategory,
-  PartnerLinkStatus,
+  ActionStatus,
   LogType,
+  PartnerLinkStatus,
+  PermissionStatus,
 } from './constants';
 
 // ============================================================================
@@ -302,53 +300,6 @@ export interface RespondPermissionDTO {
  */
 export interface GetPermissionsParamsDTO extends PaginationParams {
   status?: PermissionStatus;
-}
-
-// ============================================================================
-// REWARD DTOs (Matches frontend Reward interfaces exactly)
-// ============================================================================
-
-/**
- * Reward response DTO - matches frontend Reward interface
- */
-export interface RewardDTO {
-  id: string;
-  title: string;
-  description?: string;
-  category: RewardCategory;
-  pointsCost: number;
-  requiredLevel: number;
-  imageUrl?: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * Create reward request - matches frontend CreateRewardRequest
- */
-export interface CreateRewardDTO {
-  title: string;
-  description?: string;
-  category: RewardCategory;
-  pointsCost: number;
-  requiredLevel: number;
-  imageUrl?: string;
-}
-
-/**
- * Redeem reward request - matches frontend RedeemRewardRequest
- */
-export interface RedeemRewardDTO {
-  rewardId: string;
-}
-
-/**
- * Get rewards query params - matches frontend GetRewardsParams
- */
-export interface GetRewardsParamsDTO extends PaginationParams {
-  category?: RewardCategory;
-  isActive?: boolean;
 }
 
 // ============================================================================

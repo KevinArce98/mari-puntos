@@ -7,7 +7,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
     info: {
       title: 'MariPuntos API',
       version: '1.0.0',
-      description: 'Gamified relationship points system API - A professional backend for couples to track actions, award points, manage permissions, and redeem rewards.',
+      description: 'Gamified relationship points system API - A professional backend for couples to track actions, award points, manage permissions.',
       contact: {
         name: 'MariPuntos Team',
         email: 'support@maripuntos.com',
@@ -314,10 +314,6 @@ const swaggerOptions: swaggerJsdoc.Options = {
       {
         name: 'Permissions',
         description: 'Permission request endpoints',
-      },
-      {
-        name: 'Rewards',
-        description: 'Reward management endpoints',
       },
       {
         name: 'Points',

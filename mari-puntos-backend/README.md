@@ -224,7 +224,6 @@ All endpoints require authentication via Clerk token in `Authorization: Bearer <
 
 ### Level
 - Level definitions with point requirements
-- Rewards and badges per level
 
 ### Achievement
 - Milestone-based achievements

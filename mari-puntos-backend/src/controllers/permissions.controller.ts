@@ -116,7 +116,7 @@ export class PermissionsController {
    */
   getPermissionById = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       logger.debug({ message: 'Getting permission by ID', permissionId: id });
 
@@ -138,7 +138,7 @@ export class PermissionsController {
   respondToPermission = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { approved, responseMessage, pointsCost } = respondPermissionSchema.parse(req.body);
 
       logger.info({ message: 'Responding to permission', userId, permissionId: id, approved, pointsCost });
@@ -171,7 +171,7 @@ export class PermissionsController {
   updatePermission = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const { id } = req.params;
+      const id = req.params.id as string;
       const data = updatePermissionSchema.parse(req.body);
 
       // Convert requestedDate string to Date if provided
@@ -200,7 +200,7 @@ export class PermissionsController {
   deletePermission = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       logger.info({ message: 'Deleting permission', userId, permissionId: id });
 

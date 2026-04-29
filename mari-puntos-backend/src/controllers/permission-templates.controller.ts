@@ -104,7 +104,7 @@ export class PermissionTemplatesController {
   getTemplateById = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       logger.debug({
         message: 'Getting permission template by ID',
@@ -174,7 +174,7 @@ export class PermissionTemplatesController {
   updateTemplate = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const { id } = req.params;
+      const id = req.params.id as string;
       const data = updatePermissionTemplateSchema.parse(req.body);
 
       logger.info({
@@ -213,7 +213,7 @@ export class PermissionTemplatesController {
   deleteTemplate = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       logger.info({ message: 'Deleting permission template', userId, templateId: id });
 
