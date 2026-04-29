@@ -44,10 +44,10 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
       'Realiza actividades diarias y gana puntos. Desde tareas del hogar hasta detalles especiales, cada acción cuenta.',
   },
   {
-    icon: 'trophy',
-    title: 'Gana Recompensas',
+    icon: 'flame',
+    title: 'Mantén tu Racha',
     description:
-      'Acumula puntos y canjéalos por recompensas personalizadas. ¡Tú y tu pareja deciden qué premios son más divertidos!',
+      'Completen acciones juntos cada semana para mantener su racha activa. ¡Cuántas semanas seguidas pueden llegar?',
   },
   {
     icon: 'stats-chart',

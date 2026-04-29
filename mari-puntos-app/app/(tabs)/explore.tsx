@@ -1,35 +1,24 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { LinearGradient } from 'expo-linear-gradient';
-import { useFocusEffect } from 'expo-router';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar, Card } from '@/components/ui';
-import { usePoints, useThemedColors, useUser } from '@/hooks';
-import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { useThemedColors, useUser } from '@/hooks';
+import { borderRadius, colors, spacing, typography } from '@/theme';
 
-export default function RankingScreen() {
+export default function CompetitionScreen() {
   const insets = useSafeAreaInsets();
   const themeColors = useThemedColors();
   const { user, partnerInfo, hasPartner } = useUser();
-  const {
-    myPoints,
-    partnerPoints,
-    myLevel,
-    partnerLevel,
-    leaderboard,
-    isLoading,
-    fetchLeaderboard,
-  } = usePoints();
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchLeaderboard({ limit: 10 });
-    }, [fetchLeaderboard])
-  );
+  const myPoints = user?.totalPoints || 0;
+  const myLevel = user?.currentLevel || 1;
+  const partnerPoints = partnerInfo?.partner?.totalPoints || 0;
+  const partnerLevel = partnerInfo?.partner?.currentLevel || 1;
 
   const totalPoints = myPoints + partnerPoints;
   const myPercentage = totalPoints > 0 ? (myPoints / totalPoints) * 100 : 50;
@@ -42,19 +31,14 @@ export default function RankingScreen() {
         { backgroundColor: themeColors.background, paddingTop: insets.top },
       ]}
     >
-      {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
-          Ranking
+          Duelo
         </Text>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Competition Card — solo visible si hay pareja */}
-        {hasPartner && (
+      <View style={styles.content}>
+        {hasPartner ? (
           <Card style={styles.competitionCard} padding="none">
             <LinearGradient
               colors={[themeColors.primary, themeColors.primaryDark]}
@@ -96,7 +80,6 @@ export default function RankingScreen() {
                 </View>
               </View>
 
-              {/* Progress Bar */}
               <View style={styles.progressContainer}>
                 <View style={styles.progressBar}>
                   <View style={[styles.progressFill, { width: `${myPercentage}%` }]} />
@@ -110,86 +93,14 @@ export default function RankingScreen() {
               </View>
             </LinearGradient>
           </Card>
+        ) : (
+          <Card>
+            <Text style={[styles.emptyText, { color: themeColors.text.secondary }]}>
+              Vincula una pareja para ver la competencia
+            </Text>
+          </Card>
         )}
-
-        {/* Leaderboard */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-            Tabla de posiciones
-          </Text>
-
-          {isLoading ? (
-            <ActivityIndicator
-              size="small"
-              color={themeColors.primary}
-              style={styles.loader}
-            />
-          ) : leaderboard.length === 0 ? (
-            <Card>
-              <Text style={[styles.emptyText, { color: themeColors.text.secondary }]}>
-                No hay datos disponibles
-              </Text>
-            </Card>
-          ) : (
-            <Card padding="none" style={styles.leaderboardCard}>
-              {leaderboard.map((entry, index) => {
-                const isMe = entry.id === user?.id;
-                const medal =
-                  index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : null;
-
-                return (
-                  <View
-                    key={entry.id}
-                    style={[
-                      styles.leaderboardItem,
-                      isMe && { backgroundColor: `${themeColors.primary}10` },
-                      index < leaderboard.length - 1 && {
-                        borderBottomWidth: 1,
-                        borderBottomColor: themeColors.gray[100],
-                      },
-                    ]}
-                  >
-                    <View style={styles.rankContainer}>
-                      {medal ? (
-                        <Text style={styles.medal}>{medal}</Text>
-                      ) : (
-                        <Text
-                          style={[
-                            styles.rankNumber,
-                            { color: themeColors.text.secondary },
-                          ]}
-                        >
-                          {index + 1}
-                        </Text>
-                      )}
-                    </View>
-
-                    <Avatar imageUri={entry.avatarUrl} name={entry.firstName} size="sm" />
-
-                    <View style={styles.entryInfo}>
-                      <Text
-                        style={[styles.entryName, { color: themeColors.text.primary }]}
-                      >
-                        {entry.firstName} {entry.lastName}
-                        {isMe ? ' (Tú)' : ''}
-                      </Text>
-                      <Text
-                        style={[styles.entryLevel, { color: themeColors.text.secondary }]}
-                      >
-                        Nivel {entry.currentLevel}
-                      </Text>
-                    </View>
-
-                    <Text style={[styles.entryPoints, { color: themeColors.primary }]}>
-                      {entry.totalPoints.toLocaleString()} pts
-                    </Text>
-                  </View>
-                );
-              })}
-            </Card>
-          )}
-        </View>
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -201,13 +112,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   headerTitle: { ...typography.styles.h2 },
-  scrollContent: {
+  content: {
     padding: spacing.lg,
     paddingTop: 0,
-    paddingBottom: spacing['3xl'],
   },
   competitionCard: {
-    marginBottom: spacing.lg,
     overflow: 'hidden',
   },
   competitionGradient: { padding: spacing.lg },
@@ -274,37 +183,8 @@ const styles = StyleSheet.create({
     ...typography.styles.small,
     color: 'rgba(255,255,255,0.8)',
   },
-  section: { marginBottom: spacing.lg },
-  sectionTitle: {
-    ...typography.styles.h4,
-    marginBottom: spacing.md,
-  },
-  loader: { marginVertical: spacing.lg },
   emptyText: {
     ...typography.styles.body,
     textAlign: 'center',
-  },
-  leaderboardCard: { overflow: 'hidden', ...shadows.sm },
-  leaderboardItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  rankContainer: {
-    width: 28,
-    alignItems: 'center',
-  },
-  medal: { fontSize: 20 },
-  rankNumber: {
-    ...typography.styles.bodyMedium,
-    fontFamily: 'PlusJakartaSans-Bold',
-  },
-  entryInfo: { flex: 1 },
-  entryName: { ...typography.styles.bodyMedium },
-  entryLevel: { ...typography.styles.caption, marginTop: 2 },
-  entryPoints: {
-    ...typography.styles.bodyMedium,
-    fontFamily: 'PlusJakartaSans-Bold',
   },
 });

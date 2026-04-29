@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
@@ -54,14 +55,19 @@ export function CreateActionModal({
   onSubmit,
 }: CreateActionModalProps) {
   const themeColors = useThemedColors();
+  const insets = useSafeAreaInsets();
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
+  // Track the keyboard manually on both platforms so the bottom-sheet sits
+  // above it (Android Modal doesn't inherit adjustResize; iOS gets a smoother
+  // sync via keyboardWillShow than relying on KeyboardAvoidingView padding).
   useEffect(() => {
-    if (Platform.OS !== 'android') return;
-    const show = Keyboard.addListener('keyboardDidShow', (e) => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const show = Keyboard.addListener(showEvent, (e) => {
       setKeyboardOffset(e.endCoordinates.height);
     });
-    const hide = Keyboard.addListener('keyboardDidHide', () => {
+    const hide = Keyboard.addListener(hideEvent, () => {
       setKeyboardOffset(0);
     });
     return () => {
@@ -104,14 +110,30 @@ export function CreateActionModal({
       visible={visible}
       animationType="slide"
       transparent
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={handleClose}
     >
-      <View style={styles.overlay}>
+      <View
+        style={[styles.overlay, Platform.OS === 'android' && { paddingTop: insets.top }]}
+      >
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={[styles.keyboardAvoidingView, { paddingBottom: keyboardOffset }]}
+          style={[
+            styles.keyboardAvoidingView,
+            keyboardOffset > 0 && {
+              paddingBottom: keyboardOffset + (Platform.OS === 'android' ? 20 : 0),
+            },
+          ]}
         >
-          <View style={[styles.container, { backgroundColor: themeColors.gray[100] }]}>
+          <View
+            style={[
+              styles.container,
+              {
+                backgroundColor: themeColors.gray[100],
+                paddingBottom: spacing.xl + (keyboardOffset > 0 ? 0 : insets.bottom),
+              },
+            ]}
+          >
             {/* Header */}
             <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
               <Text style={[styles.title, { color: themeColors.text.primary }]}>
@@ -249,7 +271,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: borderRadius['2xl'],
     borderTopRightRadius: borderRadius['2xl'],
     maxHeight: '90%',
-    paddingBottom: spacing.xl,
   },
   header: {
     flexDirection: 'row',

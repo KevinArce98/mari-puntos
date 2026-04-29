@@ -8,7 +8,7 @@
     "scheme": "maripuntosapp",
     "userInterfaceStyle": "automatic",
     "owner": "kevinarce98",
-    "description": "Gamifica los permisos en tu relación de pareja. Gana puntos por acciones, solicita permisos, canjea recompensas y desbloquea logros junto a tu pareja.",
+    "description": "Gamifica los permisos en tu relación de pareja. Gana puntos por acciones, solicita permisos, mantén rachas semanales y sube de nivel junto a tu pareja.",
     "primaryColor": "#E6F4FE",
     "ios": {
       "supportsTablet": true,
@@ -27,10 +27,15 @@
     "android": {
       "icon": "./assets/images/icon.png",
       "predictiveBackGestureEnabled": true,
+      "softwareKeyboardLayoutMode": "resize",
       "package": "com.maripuntos.app",
       "versionCode": 1,
       "googleServicesFile": "./google-services.json",
-      "permissions": ["INTERNET", "VIBRATE", "POST_NOTIFICATIONS"]
+      "permissions": [
+        "INTERNET",
+        "VIBRATE",
+        "POST_NOTIFICATIONS"
+      ]
     },
     "web": {
       "output": "static",
@@ -80,7 +85,8 @@
         }
       ],
       "@sentry/react-native",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,

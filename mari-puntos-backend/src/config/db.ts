@@ -1,16 +1,15 @@
 import { DataSource } from 'typeorm';
-import { config } from './env';
-import { logger } from '../utils/logger';
 
-import { User } from '../entities/User';
+import { Achievement } from '../entities/Achievement';
+import { Action } from '../entities/Action';
+import { Level } from '../entities/Level';
+import { Log } from '../entities/Log';
 import { PartnerLink } from '../entities/PartnerLink';
 import { Permission } from '../entities/Permission';
 import { PermissionTemplate } from '../entities/PermissionTemplate';
-import { Action } from '../entities/Action';
-import { Reward } from '../entities/Reward';
-import { Log } from '../entities/Log';
-import { Level } from '../entities/Level';
-import { Achievement } from '../entities/Achievement';
+import { User } from '../entities/User';
+import { logger } from '../utils/logger';
+import { config } from './env';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -34,7 +33,6 @@ export const AppDataSource = new DataSource({
         Permission,
         PermissionTemplate,
         Action,
-        Reward,
         Log,
         Level,
         Achievement,

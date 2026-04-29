@@ -1,6 +1,13 @@
 import React from 'react';
 
-import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -16,6 +23,8 @@ interface ListItemProps {
   rightComponent?: React.ReactNode;
   onPress?: () => void;
   style?: ViewStyle;
+  titleStyle?: TextStyle;
+  leftIconColor?: string;
 }
 
 export const ListItem: React.FC<ListItemProps> = ({
@@ -27,6 +36,8 @@ export const ListItem: React.FC<ListItemProps> = ({
   rightComponent,
   onPress,
   style,
+  titleStyle,
+  leftIconColor,
 }) => {
   const colors = useThemedColors();
   const Container = onPress ? TouchableOpacity : View;
@@ -40,12 +51,14 @@ export const ListItem: React.FC<ListItemProps> = ({
       {leftComponent ||
         (leftIcon && (
           <View style={[styles.iconContainer, { backgroundColor: colors.background }]}>
-            <Ionicons name={leftIcon} size={24} color={colors.primary} />
+            <Ionicons name={leftIcon} size={24} color={leftIconColor ?? colors.primary} />
           </View>
         ))}
 
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
+        <Text style={[styles.title, { color: colors.text.primary }, titleStyle]}>
+          {title}
+        </Text>
         {subtitle && (
           <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
             {subtitle}

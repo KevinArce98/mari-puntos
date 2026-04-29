@@ -2,16 +2,15 @@
  * Zod validation schemas for API requests
  * ⚠️ These MUST match the frontend request DTOs exactly
  */
-
 import { z } from 'zod';
+
+import { PermissionCategory } from '../entities/PermissionTemplate';
 import {
   ActionCategory,
   ActionStatus,
-  PermissionStatus,
-  RewardCategory,
   PAGINATION_DEFAULTS,
+  PermissionStatus,
 } from '../shared/constants';
-import { PermissionCategory } from '../entities/PermissionTemplate';
 
 // ============================================================================
 // USER SCHEMAS (Matches frontend CreateUserRequest, UpdateProfileRequest)
@@ -130,51 +129,6 @@ export const createPermissionTemplateSchema = z.object({
 export const updatePermissionTemplateSchema = createPermissionTemplateSchema.partial();
 
 // ============================================================================
-// REWARD SCHEMAS (Matches frontend CreateRewardRequest, RedeemRewardRequest)
-// ============================================================================
-
-export const createRewardSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200),
-  description: z.string().max(1000).optional(),
-  category: z
-    .enum([
-      RewardCategory.PERSONAL_TIME,
-      RewardCategory.ENTERTAINMENT,
-      RewardCategory.GIFTS,
-      RewardCategory.EXPERIENCES,
-      RewardCategory.PRIVILEGES,
-      RewardCategory.OTHER,
-    ])
-    .default(RewardCategory.OTHER),
-  pointsCost: z.number().int().min(0),
-  requiredLevel: z.number().int().min(1).default(1),
-  imageUrl: z.url('Invalid URL').optional(),
-});
-
-export const updateRewardSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  description: z.string().max(1000).optional(),
-  category: z
-    .enum([
-      RewardCategory.PERSONAL_TIME,
-      RewardCategory.ENTERTAINMENT,
-      RewardCategory.GIFTS,
-      RewardCategory.EXPERIENCES,
-      RewardCategory.PRIVILEGES,
-      RewardCategory.OTHER,
-    ])
-    .optional(),
-  pointsCost: z.number().int().min(0).optional(),
-  requiredLevel: z.number().int().min(1).optional(),
-  imageUrl: z.url('Invalid URL').optional(),
-  isActive: z.boolean().optional(),
-});
-
-export const redeemRewardSchema = z.object({
-  rewardId: z.uuid('Invalid reward ID'),
-});
-
-// ============================================================================
 // QUERY SCHEMAS (Matches frontend pagination and filter params)
 // ============================================================================
 
@@ -210,25 +164,6 @@ export const permissionsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(PAGINATION_DEFAULTS.MAX_LIMIT).optional(),
 });
 
-export const rewardsQuerySchema = z.object({
-  category: z
-    .enum([
-      RewardCategory.PERSONAL_TIME,
-      RewardCategory.ENTERTAINMENT,
-      RewardCategory.GIFTS,
-      RewardCategory.EXPERIENCES,
-      RewardCategory.PRIVILEGES,
-      RewardCategory.OTHER,
-    ])
-    .optional(),
-  isActive: z
-    .enum(['true', 'false'])
-    .transform((val) => val === 'true')
-    .optional(),
-  page: z.coerce.number().int().min(1).optional(),
-  limit: z.coerce.number().int().min(1).max(PAGINATION_DEFAULTS.MAX_LIMIT).optional(),
-});
-
 export const leaderboardQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).optional().default(10),
 });
@@ -252,7 +187,4 @@ export type CreatePermissionTemplateInput = z.infer<
 export type UpdatePermissionTemplateInput = z.infer<
   typeof updatePermissionTemplateSchema
 >;
-export type CreateRewardInput = z.infer<typeof createRewardSchema>;
-export type UpdateRewardInput = z.infer<typeof updateRewardSchema>;
-export type RedeemRewardInput = z.infer<typeof redeemRewardSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;

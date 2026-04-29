@@ -48,11 +48,29 @@ export default function RequestPermissionScreen() {
   const [duration, setDuration] = useState(2); // hours
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   // Date & Time pickers state
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showPicker, setShowPicker] = useState<'date' | 'time' | null>(null);
+
+  // Keep the floating bottom button above the keyboard (the button is
+  // absolute-positioned outside KeyboardAvoidingView on both platforms).
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const show = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardOffset(e.endCoordinates.height);
+    });
+    const hide = Keyboard.addListener(hideEvent, () => {
+      setKeyboardOffset(0);
+    });
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
   // Load permission templates
   useEffect(() => {
@@ -571,7 +589,11 @@ export default function RequestPermissionScreen() {
           styles.bottomContainer,
           {
             backgroundColor: themeColors.background,
-            paddingBottom: insets.bottom + spacing.md,
+            paddingBottom: keyboardOffset > 0 ? spacing.md : insets.bottom + spacing.md,
+            bottom:
+              keyboardOffset > 0
+                ? keyboardOffset + (Platform.OS === 'android' ? 20 : 0)
+                : 0,
           },
         ]}
       >

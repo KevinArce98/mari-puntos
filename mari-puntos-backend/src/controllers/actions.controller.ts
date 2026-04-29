@@ -115,7 +115,7 @@ export class ActionsController {
   getActionById = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       logger.debug({ message: 'Getting action by ID', actionId: id, userId });
 
@@ -137,7 +137,7 @@ export class ActionsController {
   updateAction = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const { id } = req.params;
+      const id = req.params.id as string;
       const data = updateActionSchema.parse(req.body);
 
       logger.info({ message: 'Updating action', actionId: id, userId, updateData: data });
@@ -160,7 +160,7 @@ export class ActionsController {
   approveAction = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { pointsAwarded } = approveActionSchema.parse(req.body);
 
       logger.info({ message: 'Approving action', actionId: id, userId, pointsAwarded });
@@ -183,7 +183,7 @@ export class ActionsController {
   rejectAction = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { rejectionReason } = rejectActionSchema.parse(req.body);
 
       logger.info({ message: 'Rejecting action', actionId: id, userId, rejectionReason });
@@ -206,7 +206,7 @@ export class ActionsController {
   deleteAction = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       logger.info({ message: 'Deleting action', actionId: id, userId });
 

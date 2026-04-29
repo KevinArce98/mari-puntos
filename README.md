@@ -1,6 +1,6 @@
 # MariPuntos
 
-Gamifica los permisos en tu relación de pareja. Gana puntos por acciones, solicita permisos, canjea recompensas y desbloquea logros junto a tu pareja.
+Gamifica los permisos en tu relación de pareja. Gana puntos por acciones, solicita permisos, mantén rachas semanales y desbloquea logros junto a tu pareja.
 
 ## Estructura del proyecto
 

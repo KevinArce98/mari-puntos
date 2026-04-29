@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
 import { ActionItemCard, Chip, ReviewActionModal } from '@/components/ui';
-import { useActions, useThemedColors } from '@/hooks';
+import { useActions, useStreak, useThemedColors } from '@/hooks';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { Action, ActionStatus } from '@/types';
 import logger from '@/utils/logger';
@@ -42,6 +42,7 @@ export default function ReviewActionsScreen() {
     refetchPartnerActions,
     partnerActionsPagination,
   } = useActions();
+  const { refetch: refetchStreak } = useStreak();
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
 
@@ -98,7 +99,7 @@ export default function ReviewActionsScreen() {
   const handleApproveAction = async (actionId: string, points: number) => {
     try {
       await approveAction(actionId, points);
-      await refetchPartnerActions();
+      await Promise.all([refetchPartnerActions(), refetchStreak().catch(() => {})]);
       logger.info('Action approved successfully', { actionId, points });
       Toast.show({
         type: 'success',

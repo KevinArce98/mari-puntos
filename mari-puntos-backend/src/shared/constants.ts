@@ -53,22 +53,6 @@ export const PermissionType = {
 export type PermissionType = (typeof PermissionType)[keyof typeof PermissionType];
 
 // ============================================================================
-// REWARD ENUMS
-// ============================================================================
-
-// Matches frontend RewardCategory exactly
-export const RewardCategory = {
-  PERSONAL_TIME: 'personal_time',
-  ENTERTAINMENT: 'entertainment',
-  GIFTS: 'gifts',
-  EXPERIENCES: 'experiences',
-  PRIVILEGES: 'privileges',
-  OTHER: 'other',
-} as const;
-
-export type RewardCategory = (typeof RewardCategory)[keyof typeof RewardCategory];
-
-// ============================================================================
 // PARTNER LINK ENUMS
 // ============================================================================
 

@@ -2,7 +2,7 @@
 
 **Gamifica los permisos en tu relación de pareja**
 
-MariPuntos es una aplicación móvil innovadora que transforma la dinámica de permisos entre parejas en una experiencia divertida y gamificada. Gana puntos por acciones, solicita permisos, canjea recompensas y desbloquea logros junto a tu pareja.
+MariPuntos es una aplicación móvil innovadora que transforma la dinámica de permisos entre parejas en una experiencia divertida y gamificada. Gana puntos por acciones, solicita permisos, mantén rachas semanales y desbloquea logros junto a tu pareja.
 
 ![React Native](https://img.shields.io/badge/React_Native-0.81-61DAFB?logo=react)
 ![Expo](https://img.shields.io/badge/Expo-~54.0-000020?logo=expo)
@@ -19,7 +19,7 @@ MariPuntos es una aplicación móvil innovadora que transforma la dinámica de p
 - **Sistema de Puntos**: Gana MariPuntos completando acciones
 - **Niveles**: Progresa y sube de nivel
 - **Logros**: Desbloquea logros especiales
-- **Recompensas**: Canjea puntos por recompensas
+- **Rachas**: Mantén rachas semanales completando acciones junto a tu pareja
 
 ### 🤝 Gestión de Permisos
 
@@ -34,11 +34,11 @@ MariPuntos es una aplicación móvil innovadora que transforma la dinámica de p
 - **Completar Acciones**: Gana puntos por tareas completadas
 - **Historial**: Rastrea todas tus acciones
 
-### 🎁 Sistema de Recompensas
+### 🔥 Rachas Semanales
 
-- **Catálogo Variado**: Experiencias, regalos, privilegios, tiempo
-- **Canje Inteligente**: Verifica tu saldo antes de canjear
-- **Historial de Canjes**: Revisa tus recompensas
+- **Racha Activa**: Ambos completan acciones cada semana para mantenerla
+- **Racha Más Larga**: Récord histórico del streak de la pareja
+- **Progreso Visual**: Ve si tu pareja ya completó su parte esta semana
 
 ### 👤 Perfil y Pareja
 
@@ -153,7 +153,6 @@ mari-puntos-app/
 │   ├── (tabs)/            # Navegación principal
 │   ├── permissions/       # Gestión de permisos
 │   ├── actions/           # Acciones
-│   ├── rewards/           # Recompensas
 │   └── achievements/      # Logros
 ├── components/            # Componentes reutilizables
 │   └── ui/               # Sistema de diseño
@@ -174,6 +173,13 @@ npm run android    # Abrir en Android
 npm run ios        # Abrir en iOS
 npm run web        # Abrir en navegador
 npm run lint       # Ejecutar ESLint
+```
+
+### Ejecutar en dispositivo físico
+
+```bash
+npx expo run:android --device
+npx expo run:ios --device
 ```
 
 ## 📦 Builds y distribución (EAS)
@@ -212,12 +218,11 @@ eas build -p android --profile preview
 - Ganar puntos automáticamente
 - Historial de acciones completadas
 
-### Recompensas
+### Rachas
 
-- Catálogo de recompensas por categoría
-- Verificación de saldo
-- Canje de puntos
-- Historial de canjes
+- Racha semanal actual de la pareja
+- Racha más larga histórica
+- Estado de progreso semanal (mi parte / parte del partner)
 
 ### Logros
 
@@ -248,7 +253,6 @@ eas build -p android --profile preview
 
 - 🤖 IA para sugerencias
 - 👥 Comunidad y foros
-- 🛒 Marketplace de recompensas
 - ⌚ Integración con wearables
 - 💻 Versión web
 

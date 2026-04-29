@@ -69,15 +69,6 @@ export enum PermissionStatus {
   EXPIRED = 'expired',
 }
 
-export enum RewardCategory {
-  PERSONAL_TIME = 'personal_time',
-  ENTERTAINMENT = 'entertainment',
-  GIFTS = 'gifts',
-  EXPERIENCES = 'experiences',
-  PRIVILEGES = 'privileges',
-  OTHER = 'other',
-}
-
 export enum AchievementType {
   POINTS_MILESTONE = 'points_milestone',
   LEVEL_MILESTONE = 'level_milestone',
@@ -113,7 +104,6 @@ export enum LogType {
   ACTION_CREATED = 'action_created',
   ACTION_APPROVED = 'action_approved',
   ACTION_REJECTED = 'action_rejected',
-  REWARD_REDEEMED = 'reward_redeemed',
   PARTNER_LINKED = 'partner_linked',
   OTHER = 'other',
 }
@@ -329,45 +319,6 @@ export interface GetPermissionsParams extends PaginationParams {
 }
 
 // ============================================
-// Reward Types
-// ============================================
-
-export interface Reward {
-  id: string;
-  title: string;
-  description?: string;
-  category: RewardCategory;
-  pointsCost: number;
-  requiredLevel: number;
-  imageUrl?: string;
-  isActive: boolean;
-  isCustom: boolean;
-  createdBy?: string;
-  partnerLinkId?: string;
-  timesRedeemed: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateRewardRequest {
-  title: string;
-  description?: string;
-  category: RewardCategory;
-  pointsCost: number;
-  requiredLevel: number;
-  imageUrl?: string;
-}
-
-export interface GetRewardsParams extends PaginationParams {
-  category?: RewardCategory;
-  isActive?: boolean;
-}
-
-export interface RedeemRewardRequest {
-  rewardId: string;
-}
-
-// ============================================
 // Points Types
 // ============================================
 
@@ -380,16 +331,3 @@ export interface PointsLog {
 }
 
 export type GetPointsHistoryParams = PaginationParams;
-
-export interface LeaderboardEntry {
-  id: string;
-  firstName: string;
-  lastName: string;
-  avatarUrl?: string;
-  totalPoints: number;
-  currentLevel: number;
-}
-
-export interface GetLeaderboardParams {
-  limit?: number;
-}

@@ -6,9 +6,9 @@ A professional gamified relationship points system backend built with Node.js, E
 
 - **User Authentication**: Secure authentication with Clerk
 - **Partner Linking**: Unique code-based partner connection system
-- **Actions System**: Husbands create actions, wives approve and award points
+- **Actions System**: Users create actions, partners approve and award points
 - **Permissions System**: Request and approve permissions with point costs
-- **Rewards System**: Redeem points for rewards with level requirements
+- **Streak System**: Weekly streak tracking — both partners must complete actions each week to extend the streak
 - **Points & Levels**: Automatic level calculation and progression
 - **Achievements**: Unlock achievements based on milestones
 - **Activity Logs**: Complete history of all point transactions
@@ -96,10 +96,9 @@ mari-puntos-backend/
 │   │   └── clerk.ts      # Clerk authentication setup
 │   ├── entities/         # TypeORM entities
 │   │   ├── User.ts
-│   │   ├── PartnerLink.ts
+│   │   ├── PartnerLink.ts  # includes streak columns
 │   │   ├── Action.ts
 │   │   ├── Permission.ts
-│   │   ├── Reward.ts
 │   │   ├── Log.ts
 │   │   ├── Level.ts
 │   │   └── Achievement.ts
@@ -108,21 +107,21 @@ mari-puntos-backend/
 │   │   ├── partner.service.ts
 │   │   ├── actions.service.ts
 │   │   ├── permissions.service.ts
-│   │   ├── rewards.service.ts
+│   │   ├── streak.service.ts
 │   │   └── points.service.ts
 │   ├── controllers/      # Request handlers
 │   │   ├── users.controller.ts
 │   │   ├── partner.controller.ts
 │   │   ├── actions.controller.ts
 │   │   ├── permissions.controller.ts
-│   │   ├── rewards.controller.ts
+│   │   ├── streak.controller.ts
 │   │   └── points.controller.ts
 │   ├── routes/           # API routes
 │   │   ├── users.routes.ts
 │   │   ├── partner.routes.ts
 │   │   ├── actions.routes.ts
 │   │   ├── permissions.routes.ts
-│   │   ├── rewards.routes.ts
+│   │   ├── streak.routes.ts
 │   │   ├── points.routes.ts
 │   │   └── index.ts
 │   ├── middlewares/      # Express middlewares
@@ -184,14 +183,8 @@ All endpoints require authentication via Clerk token in `Authorization: Bearer <
 - `PATCH /api/permission-templates/:id` - Update custom template
 - `DELETE /api/permission-templates/:id` - Delete custom template
 
-### Rewards
-- `POST /api/rewards` - Create custom reward
-- `GET /api/rewards` - Get all rewards
-- `GET /api/rewards/available` - Get available rewards for user
-- `GET /api/rewards/:id` - Get reward by ID
-- `POST /api/rewards/redeem` - Redeem a reward
-- `PUT /api/rewards/:id` - Update reward
-- `DELETE /api/rewards/:id` - Delete reward
+### Streak
+- `GET /api/streak` - Get current streak info for the authenticated user's partner link
 
 ### Points
 - `GET /api/points/history` - Get points history
@@ -219,10 +212,11 @@ All endpoints require authentication via Clerk token in `Authorization: Bearer <
 - Approved/rejected by wife
 - Optional point cost and duration
 
-### Reward
-- Redeemable items with point costs
-- Level requirements
-- Default and custom rewards
+### PartnerLink (streak columns)
+- `currentStreak` — consecutive weeks both partners completed actions
+- `longestStreak` — all-time record streak
+- `currentWeekId` — ISO week identifier for current tracking window (e.g. `2026-W17`)
+- `user1WeekDone` / `user2WeekDone` — whether each partner completed an action this week
 
 ### Log
 - Complete audit trail of all activities
@@ -230,7 +224,6 @@ All endpoints require authentication via Clerk token in `Authorization: Bearer <
 
 ### Level
 - Level definitions with point requirements
-- Rewards and badges per level
 
 ### Achievement
 - Milestone-based achievements
@@ -247,10 +240,15 @@ All endpoints require authentication via Clerk token in `Authorization: Bearer <
 ## 🎮 Game Mechanics
 
 ### Points System
-- Husbands earn points by completing actions
-- Wives award points when approving actions
-- Points can be spent on rewards and permissions
+- Users earn points by completing actions approved by their partner
+- Points can be spent on permissions
 - Default: 100 points per level
+
+### Streak System
+- Both partners must have at least one approved action per ISO week
+- When both complete their week, `currentStreak` increments
+- If a week is skipped, streak resets to 0
+- `longestStreak` tracks the all-time record
 
 ### Levels
 - Automatic calculation based on total points

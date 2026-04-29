@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 
 import {
+  ActivityIndicator,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -24,8 +25,9 @@ import {
   CreateActionModal,
   NotificationBell,
   PointsCard,
+  StreakCard,
 } from '@/components/ui';
-import { usePoints, useThemedColors, useUser } from '@/hooks';
+import { usePoints, useStreak, useThemedColors, useUser } from '@/hooks';
 import { useActions } from '@/hooks/useActions';
 import { borderRadius, spacing, typography } from '@/theme';
 import logger from '@/utils/logger';
@@ -37,6 +39,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { user, hasPartner, refetch: refetchUser } = useUser();
   const { myPoints, myLevel, pointsHistory, fetchHistory } = usePoints();
+  const { streak, isLoading: isStreakLoading, refetch: refetchStreak } = useStreak();
   const { createAction } = useActions();
   const [refreshing, setRefreshing] = React.useState(false);
   const [showCreateActionModal, setShowCreateActionModal] = React.useState(false);
@@ -45,6 +48,7 @@ export default function HomeScreen() {
     useCallback(() => {
       if (!user || !hasPartner) return;
       fetchHistory({ limit: 3 });
+      refetchStreak().catch(() => {});
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, hasPartner])
   );
@@ -56,6 +60,7 @@ export default function HomeScreen() {
       await Promise.all([
         refetchUser(),
         hasPartner ? fetchHistory({ limit: 3 }) : Promise.resolve(),
+        hasPartner ? refetchStreak() : Promise.resolve(),
       ]);
       logger.debug('Home screen data refreshed successfully');
     } catch (error) {
@@ -74,7 +79,6 @@ export default function HomeScreen() {
         text1: 'Acción Creada',
         text2: 'Tu acción ha sido enviada para revisión',
       });
-      // Refresh history to show the new action
       await fetchHistory({ limit: 3 });
     } catch {
       Toast.show({
@@ -160,6 +164,15 @@ export default function HomeScreen() {
 
         {/* Points Card */}
         <PointsCard points={myPoints} label="Saldo Actual" style={styles.pointsCard} />
+
+        {/* Streak Card */}
+        {streak ? (
+          <StreakCard streak={streak} />
+        ) : isStreakLoading ? (
+          <Card style={styles.streakSkeleton}>
+            <ActivityIndicator color={colors.primary} />
+          </Card>
+        ) : null}
 
         {/* Quick Actions */}
         <View style={styles.section}>
@@ -273,6 +286,12 @@ const styles = StyleSheet.create({
   },
   pointsCard: {
     marginBottom: spacing.lg,
+  },
+  streakSkeleton: {
+    marginBottom: spacing.lg,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   section: {
     marginBottom: spacing.lg,

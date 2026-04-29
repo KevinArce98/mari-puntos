@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -40,6 +41,7 @@ export default function RegisterScreen() {
   const themeColors = useThemedColors();
   const { signUp, isLoaded } = useSignUp();
   const [showPassword, setShowPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const {
     control,
@@ -280,10 +282,50 @@ export default function RegisterScreen() {
               </View>
             </View>
 
+            {/* Terms & Privacy acceptance */}
+            <TouchableOpacity
+              style={styles.termsRow}
+              onPress={() => setTermsAccepted(!termsAccepted)}
+              activeOpacity={0.7}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  {
+                    borderColor: termsAccepted
+                      ? themeColors.primary
+                      : themeColors.gray[400],
+                    backgroundColor: termsAccepted ? themeColors.primary : 'transparent',
+                  },
+                ]}
+              >
+                {termsAccepted && (
+                  <Ionicons name="checkmark" size={12} color={themeColors.background} />
+                )}
+              </View>
+              <Text style={[styles.termsText, { color: themeColors.text.secondary }]}>
+                Acepto los{' '}
+                <Text
+                  style={{ color: themeColors.primary }}
+                  onPress={() => Linking.openURL('https://maripuntos.com/terminos')}
+                >
+                  Términos de Servicio
+                </Text>{' '}
+                y la{' '}
+                <Text
+                  style={{ color: themeColors.primary }}
+                  onPress={() => Linking.openURL('https://maripuntos.com/privacidad')}
+                >
+                  Política de Privacidad
+                </Text>
+              </Text>
+            </TouchableOpacity>
+
             <Button
               title="Crear cuenta"
               onPress={handleSubmit(onSubmit)}
               loading={isSubmitting}
+              disabled={!termsAccepted}
               fullWidth
               size="lg"
               icon="person-add-outline"
@@ -416,5 +458,26 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     ...typography.styles.bodyMedium,
+  },
+  termsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 2,
+    flexShrink: 0,
+  },
+  termsText: {
+    ...typography.styles.caption,
+    flex: 1,
+    lineHeight: 20,
   },
 });

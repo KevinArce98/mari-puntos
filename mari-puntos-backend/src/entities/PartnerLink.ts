@@ -39,6 +39,21 @@ export class PartnerLink {
   @Column({ type: 'timestamp', nullable: true })
   linkedAt: Date;
 
+  @Column({ type: 'int', default: 0 })
+  currentStreak: number;
+
+  @Column({ type: 'int', default: 0 })
+  longestStreak: number;
+
+  @Column({ type: 'varchar', nullable: true })
+  currentWeekId: string | null;
+
+  @Column({ type: 'boolean', default: false })
+  user1WeekDone: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  user2WeekDone: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

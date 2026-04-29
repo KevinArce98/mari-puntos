@@ -19,6 +19,7 @@ const API_BASE_URL =
     ? process.env.EXPO_PUBLIC_API_URL
     : getDefaultApiUrl();
 
+console.log(API_BASE_URL);
 class ApiService {
   private api: AxiosInstance;
   private getToken: (() => Promise<string | null>) | null = null;

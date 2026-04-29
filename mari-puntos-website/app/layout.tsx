@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+
 import { Analytics } from '@vercel/analytics/next';
+
 import './globals.css';
 
 const geistSans = Geist({
@@ -23,7 +25,7 @@ export const metadata: Metadata = {
     'permisos',
     'gamificación',
     'puntos',
-    'recompensas',
+    'rachas',
     'beta',
     'app de pareja',
     'Costa Rica',
@@ -31,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'MariPuntos BETA - Convierte tu relación en el mejor juego',
     description:
-      'Gamificamos decisiones de pareja. Gana puntos, solicita permisos y canjea recompensas junto a tu pareja.',
+      'Gamificamos decisiones de pareja. Gana puntos, solicita permisos y mantén rachas semanales junto a tu pareja.',
     type: 'website',
   },
 };
