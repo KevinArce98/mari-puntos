@@ -24,7 +24,13 @@ import Toast from 'react-native-toast-message';
 import { Button, Card, CodeInput } from '@/components/ui';
 import { useThemedColors, useUser } from '@/hooks';
 import { userService } from '@/services';
-import { useUserStore } from '@/stores';
+import {
+  useActionsStore,
+  usePermissionsStore,
+  usePointsStore,
+  useStreakStore,
+  useUserStore,
+} from '@/stores';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import logger from '@/utils/logger';
 import { LinkPartnerFormData, linkPartnerSchema } from '@/validators';
@@ -112,7 +118,10 @@ export default function LinkPartnerScreen() {
 
   const onSubmit = async (data: LinkPartnerFormData) => {
     // Validar que no intente unirse a su propio código
-    if (generatedCode && data.partnerCode.toUpperCase() === generatedCode.toUpperCase()) {
+    if (
+      generatedCode &&
+      data.partnerCode.trim().toUpperCase() === generatedCode.toUpperCase()
+    ) {
       logger.warn('User attempted to join their own partner code');
       Toast.show({
         type: 'error',
@@ -125,6 +134,32 @@ export default function LinkPartnerScreen() {
     try {
       await joinPartnerLink(data.partnerCode);
       logger.info('Successfully joined partner link', { partnerCode: data.partnerCode });
+      // Refresh partner-dependent stores (permissions excluded from userStore.joinPartnerLink
+      // due to circular-dependency constraints — handled here instead)
+      usePermissionsStore
+        .getState()
+        .fetchMyPermissions()
+        .catch(() => {});
+      usePermissionsStore
+        .getState()
+        .fetchPartnerPermissions()
+        .catch(() => {});
+      useActionsStore
+        .getState()
+        .fetchMyActions()
+        .catch(() => {});
+      useActionsStore
+        .getState()
+        .fetchPartnerActions()
+        .catch(() => {});
+      usePointsStore
+        .getState()
+        .fetchPointsHistory()
+        .catch(() => {});
+      useStreakStore
+        .getState()
+        .fetchStreak()
+        .catch(() => {});
       Toast.show({
         type: 'success',
         text1: '¡Vinculado!',
@@ -157,6 +192,31 @@ export default function LinkPartnerScreen() {
       if (partnerInfo) {
         // Update store silently
         useUserStore.setState({ user, partnerInfo });
+        // Refresh partner-dependent stores
+        usePermissionsStore
+          .getState()
+          .fetchMyPermissions()
+          .catch(() => {});
+        usePermissionsStore
+          .getState()
+          .fetchPartnerPermissions()
+          .catch(() => {});
+        useActionsStore
+          .getState()
+          .fetchMyActions()
+          .catch(() => {});
+        useActionsStore
+          .getState()
+          .fetchPartnerActions()
+          .catch(() => {});
+        usePointsStore
+          .getState()
+          .fetchPointsHistory()
+          .catch(() => {});
+        useStreakStore
+          .getState()
+          .fetchStreak()
+          .catch(() => {});
 
         Toast.show({
           type: 'success',
@@ -190,7 +250,7 @@ export default function LinkPartnerScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior="padding"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
         <ScrollView

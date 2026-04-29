@@ -1,9 +1,20 @@
 import { create } from 'zustand';
 
 import { actionsService } from '@/services';
+import { useUserStore } from '@/stores/userStore';
 import { Action, ActionStatus, CreateActionRequest, GetActionsParams } from '@/types';
 import { getErrorMessage } from '@/utils/errorMessage';
 import logger from '@/utils/logger';
+
+/** Deduplicate an array of objects by `id`, keeping the first occurrence. */
+function dedupeById<T extends { id: string }>(items: T[]): T[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
 
 interface PaginationMeta {
   page: number;
@@ -49,7 +60,9 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
     try {
       const response = await actionsService.getMyActions(params);
       set((state) => ({
-        myActions: append ? [...state.myActions, ...response.data] : response.data,
+        myActions: append
+          ? dedupeById([...state.myActions, ...response.data])
+          : response.data,
         myActionsPagination: response.pagination ?? null,
         isLoadingMyActions: false,
         isLoading: state.isLoadingPartnerActions || state.isMutating,
@@ -75,7 +88,7 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
       const response = await actionsService.getPartnerActions(params);
       set((state) => ({
         partnerActions: append
-          ? [...state.partnerActions, ...response.data]
+          ? dedupeById([...state.partnerActions, ...response.data])
           : response.data,
         partnerActionsPagination: response.pagination ?? null,
         isLoadingPartnerActions: false,
@@ -123,6 +136,11 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
       await actionsService.approveAction(actionId, { pointsAwarded });
       logger.info('Action approved successfully', { actionId, pointsAwarded });
       await get().fetchPartnerActions({ status: ActionStatus.PENDING });
+      // Refresh partner's point total (points are awarded to them, not us)
+      useUserStore
+        .getState()
+        .fetchStats()
+        .catch(() => {});
       set((s) => ({
         isMutating: false,
         isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,
@@ -147,6 +165,10 @@ export const useActionsStore = create<ActionsState>((set, get) => ({
       await actionsService.rejectAction(actionId, { rejectionReason });
       logger.info('Action rejected successfully', { actionId, rejectionReason });
       await get().fetchPartnerActions({ status: ActionStatus.PENDING });
+      useUserStore
+        .getState()
+        .fetchStats()
+        .catch(() => {});
       set((s) => ({
         isMutating: false,
         isLoading: s.isLoadingMyActions || s.isLoadingPartnerActions,

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Appearance } from 'react-native';
 
 import { Stack } from 'expo-router';
@@ -109,9 +109,24 @@ function RootLayoutNav() {
     if (__DEV__) return;
     Updates.checkForUpdateAsync()
       .then(({ isAvailable }) => {
-        if (isAvailable) {
-          return Updates.fetchUpdateAsync().then(() => Updates.reloadAsync());
-        }
+        if (!isAvailable) return;
+        return Updates.fetchUpdateAsync().then(() => {
+          // Confirm before reloading so we don't interrupt the user mid-task
+          Alert.alert(
+            'Actualización disponible',
+            'Hay una nueva versión de MariPuntos. ¿Deseas reiniciar la app para aplicarla?',
+            [
+              { text: 'Ahora no', style: 'cancel' },
+              {
+                text: 'Reiniciar',
+                onPress: () =>
+                  Updates.reloadAsync().catch((err) =>
+                    logger.warn('OTA reload failed', err as Error)
+                  ),
+              },
+            ]
+          );
+        });
       })
       .catch((err) => {
         logger.warn('OTA update check failed', err as Error);
@@ -171,7 +186,7 @@ function RootLayoutNav() {
           />
         </Stack>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        <Toast topOffset={Platform.OS === 'ios' ? insets.top + 10 : insets.top} />
+        <Toast topOffset={insets.top + 10} />
       </AuthGuard>
     </ThemeProvider>
   );

@@ -8,6 +8,7 @@ interface StreakState {
   isLoading: boolean;
   error: string | null;
   fetchStreak: () => Promise<void>;
+  clearStreak: () => void;
 }
 
 export const useStreakStore = create<StreakState>((set) => ({
@@ -19,10 +20,11 @@ export const useStreakStore = create<StreakState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const streak = await streakService.getStreak();
-      console.log(streak);
       set({ streak, isLoading: false });
     } catch (error: unknown) {
       set({ error: getErrorMessage(error), isLoading: false });
     }
   },
+
+  clearStreak: () => set({ streak: null, error: null }),
 }));

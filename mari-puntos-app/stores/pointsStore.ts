@@ -5,6 +5,16 @@ import { GetPointsHistoryParams, PointsLog } from '@/types';
 import { getErrorMessage } from '@/utils/errorMessage';
 import logger from '@/utils/logger';
 
+/** Deduplicate an array of objects by `id`, keeping the first occurrence. */
+function dedupeById<T extends { id: string }>(items: T[]): T[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
 interface PointsState {
   pointsHistory: PointsLog[];
   isLoading: boolean;
@@ -36,7 +46,7 @@ export const usePointsStore = create<PointsState>((set) => ({
       const response = await pointsService.getPointsHistory(params);
       set((state) => ({
         pointsHistory: append
-          ? [...state.pointsHistory, ...response.data]
+          ? dedupeById([...state.pointsHistory, ...response.data])
           : response.data,
         paginationMeta: response.pagination,
         isLoading: false,
@@ -53,6 +63,5 @@ export const usePointsStore = create<PointsState>((set) => ({
     }
   },
 
-  clearPoints: () =>
-    set({ pointsHistory: [], paginationMeta: null, error: null }),
+  clearPoints: () => set({ pointsHistory: [], paginationMeta: null, error: null }),
 }));

@@ -10,7 +10,8 @@ import type { Href } from 'expo-router';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { useUserStore } from '@/stores';
+import { useActionsStore, usePermissionsStore, useUserStore } from '@/stores';
+import { ActionStatus, PermissionStatus } from '@/types';
 import logger from '@/utils/logger';
 
 const HANDLED_NOTIFICATION_KEY = '@maripuntos/handled-notification-id';
@@ -55,6 +56,7 @@ export function useNotifications() {
   const notificationListener = useRef<Notifications.EventSubscription | null>(null);
   const responseListener = useRef<Notifications.EventSubscription | null>(null);
   const tokenSentRef = useRef(false);
+  const hasRegisteredRef = useRef(false);
   const user = useUserStore((state) => state.user);
   const router = useRouter();
   const rootNavigationState = useRootNavigationState();
@@ -113,7 +115,19 @@ export function useNotifications() {
     }
   }, []);
 
+  // Only request notification permissions once the user is authenticated.
+  // Running this during the welcome/onboarding flow (user === null) triggers
+  // the OS permission dialog at an unexpected moment and can crash the app.
   useEffect(() => {
+    if (!user) {
+      // Reset on logout so the next sign-in triggers re-registration.
+      hasRegisteredRef.current = false;
+      return;
+    }
+
+    if (hasRegisteredRef.current) return;
+    hasRegisteredRef.current = true;
+
     registerForPushNotificationsAsync()
       .then((token) => {
         if (token) {
@@ -121,15 +135,52 @@ export function useNotifications() {
         }
       })
       .catch((error) => {
+        hasRegisteredRef.current = false; // Allow retry on next render
         logger.error('Error registering for push notifications:', error as Error);
       });
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     // Listener para notificaciones recibidas mientras la app está abierta
     notificationListener.current = Notifications.addNotificationReceivedListener(
-      (_notification) => {
-        // Badge count is driven by pending items in actionsStore/permissionsStore
+      (notification) => {
+        // Silently refresh the relevant store so in-app badges and lists stay
+        // current while the app is in the foreground.
+        const data = notification.request.content.data as unknown as NotificationData;
+        if (!data?.type) return;
+        switch (data.type) {
+          case 'action_created':
+            useActionsStore
+              .getState()
+              .fetchPartnerActions({ status: ActionStatus.PENDING })
+              .catch(() => {});
+            break;
+          case 'action_approved':
+          case 'action_rejected':
+            useActionsStore
+              .getState()
+              .fetchMyActions({ status: ActionStatus.PENDING })
+              .catch(() => {});
+            break;
+          case 'permission_requested':
+            usePermissionsStore
+              .getState()
+              .fetchPartnerPermissions({ status: PermissionStatus.PENDING })
+              .catch(() => {});
+            break;
+          case 'permission_response':
+            usePermissionsStore
+              .getState()
+              .fetchMyPermissions({ status: PermissionStatus.PENDING })
+              .catch(() => {});
+            break;
+          case 'partner_linked':
+            useUserStore
+              .getState()
+              .fetchPartnerInfo()
+              .catch(() => {});
+            break;
+        }
       }
     );
 
@@ -141,15 +192,20 @@ export function useNotifications() {
 
         if (data && data.type) {
           logger.info('Notification response received:', data.type);
-          // Mark as handled so the cold-start effect doesn't re-navigate on
-          // the next reload (getLastNotificationResponseAsync keeps returning it).
-          AsyncStorage.setItem(
-            HANDLED_NOTIFICATION_KEY,
-            response.notification.request.identifier
-          ).catch((err) =>
-            logger.error('Error marking notification as handled:', err as Error)
-          );
-          setPendingNotificationData(data);
+          // Persist the handled marker BEFORE triggering navigation. If the app is
+          // killed immediately after a tap, the cold-start effect reads this marker
+          // and won't re-navigate the same notification on the next launch.
+          (async () => {
+            try {
+              await AsyncStorage.setItem(
+                HANDLED_NOTIFICATION_KEY,
+                response.notification.request.identifier
+              );
+            } catch (err) {
+              logger.error('Error marking notification as handled:', err as Error);
+            }
+            setPendingNotificationData(data);
+          })();
         }
       }
     );
@@ -208,6 +264,12 @@ export function useNotifications() {
       return;
     }
 
+    // Wait for auth to resolve — partnerInfo isn't available until user is loaded,
+    // so navigating before that causes "no partner" fallback to home.
+    if (!user) {
+      return;
+    }
+
     // Pequeño delay para asegurar que la navegación esté completamente lista
     const timeoutId = setTimeout(() => {
       logger.info('Processing pending notification:', pendingNotificationData.type);
@@ -216,7 +278,20 @@ export function useNotifications() {
     }, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [pendingNotificationData, rootNavigationState?.key, handleNotificationResponse]);
+  }, [
+    pendingNotificationData,
+    rootNavigationState?.key,
+    user,
+    handleNotificationResponse,
+  ]);
+
+  // Reset token refs and state on logout so the next user gets a fresh registration
+  useEffect(() => {
+    if (!user) {
+      tokenSentRef.current = false;
+      setExpoPushToken(null);
+    }
+  }, [user]);
 
   // Enviar el token cuando el usuario esté autenticado
   useEffect(() => {
@@ -265,9 +340,10 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
     }
 
     if (!finalGranted) {
-      handleRegistrationError(
-        'Error: No se concedieron permisos para notificaciones push.'
-      );
+      // Permission denied by user — return null without throwing so hasRegisteredRef
+      // stays true and we don't re-prompt on every render. iOS won't show the dialog
+      // again anyway; Android users can re-enable from Settings.
+      logger.info('Push notification permissions not granted — skipping registration');
       return null;
     }
 

@@ -14,6 +14,8 @@
       "channel": "development"
     },
     "preview": {
+      "environment": "preview",
+      "autoIncrement": true,
       "distribution": "store",
       "ios": {
         "simulator": false,
@@ -32,6 +34,13 @@
     }
   },
   "submit": {
+    "preview": {
+      "ios": {
+        "appleId": "arias9068@email.com",
+        "ascAppId": "6758923865",
+        "appleTeamId": "CJU4U9MCM4"
+      }
+    },
     "production": {
       "ios": {
         "appleId": "arias9068@email.com",

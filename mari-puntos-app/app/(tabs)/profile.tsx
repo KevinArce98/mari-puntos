@@ -28,6 +28,12 @@ import {
   ProgressBar,
 } from '@/components/ui';
 import { usePoints, useThemedColors, useUser } from '@/hooks';
+import {
+  useActionsStore,
+  usePermissionsStore,
+  usePointsStore,
+  useStreakStore,
+} from '@/stores';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 
 const SUPPORT_EMAIL = 'soporte@maripuntos.com';
@@ -56,6 +62,11 @@ export default function ProfileScreen() {
             setLoading(true);
             try {
               await unlinkPartner();
+              // Clear partner-specific data from all dependent stores
+              useActionsStore.getState().clearActions();
+              usePermissionsStore.getState().clearPermissions();
+              usePointsStore.getState().clearPoints();
+              useStreakStore.getState().clearStreak();
               Toast.show({
                 type: 'success',
                 text1: 'Desvinculado',

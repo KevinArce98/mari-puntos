@@ -52,13 +52,20 @@ export default function ActionsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   // Prevents selectedStatus useEffect from firing before the first useFocusEffect
   const hasFocusedRef = useRef(false);
+  // Ref so useFocusEffect always reads the latest selectedStatus without it being a dep
+  const selectedStatusRef = useRef(selectedStatus);
+  selectedStatusRef.current = selectedStatus;
 
   useFocusEffect(
     useCallback(() => {
       if (!user) return;
       hasFocusedRef.current = true;
       setPage(1);
-      refetchMyActions({ page: 1, limit: 20, status: selectedStatus ?? undefined });
+      refetchMyActions({
+        page: 1,
+        limit: 20,
+        status: selectedStatusRef.current ?? undefined,
+      });
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user])
   );

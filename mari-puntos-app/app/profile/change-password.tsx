@@ -127,7 +127,10 @@ export default function ChangePasswordScreen() {
           </Text>
         </View>
       ) : (
-        <KeyboardAvoidingView style={styles.keyboardView} behavior="padding">
+        <KeyboardAvoidingView
+          style={styles.keyboardView}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}

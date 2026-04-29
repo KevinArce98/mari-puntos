@@ -148,8 +148,15 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
         pointsCost,
       });
       await get().fetchPartnerPermissions({ status: PermissionStatus.PENDING });
-      // Update partner info to refresh points (use getState() to avoid circular import)
-      await useUserStore.getState().fetchPartnerInfo();
+      // Refresh both user stats (points deducted) and partner info
+      useUserStore
+        .getState()
+        .fetchStats()
+        .catch(() => {});
+      useUserStore
+        .getState()
+        .fetchPartnerInfo()
+        .catch(() => {});
       set((s) => ({
         isMutating: false,
         isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,

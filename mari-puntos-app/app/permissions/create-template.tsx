@@ -155,7 +155,7 @@ export default function CreateTemplateScreen() {
 
       <KeyboardAvoidingView
         style={{ flex: 1, marginBottom: keyboardHeight + 50 }}
-        behavior="padding"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView

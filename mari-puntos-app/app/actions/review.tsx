@@ -179,7 +179,7 @@ export default function ReviewActionsScreen() {
           <Ionicons name="list-outline" size={24} color={colors.primary} />
           <View style={styles.statContent}>
             <Text style={[styles.statValue, { color: colors.text.primary }]}>
-              {partnerActions.length}
+              {partnerActionsPagination?.total ?? partnerActions.length}
             </Text>
             <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
               Total

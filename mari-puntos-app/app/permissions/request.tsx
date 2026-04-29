@@ -72,13 +72,7 @@ export default function RequestPermissionScreen() {
     };
   }, []);
 
-  // Load permission templates
-  useEffect(() => {
-    if (!user) return;
-    loadTemplates();
-  }, [user]);
-
-  // Reload templates when screen comes into focus
+  // Load templates on mount and on every focus (useFocusEffect fires on initial mount too)
   useFocusEffect(
     useCallback(() => {
       if (!user) return;
@@ -242,7 +236,10 @@ export default function RequestPermissionScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <KeyboardAvoidingView style={styles.keyboardView} behavior="padding">
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}
