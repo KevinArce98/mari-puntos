@@ -81,7 +81,7 @@ jobs:
               fi
 
               if [ -z "$SCOPE" ]; then
-                SCOPES=("app" "backend" "website")
+                SCOPES=("app" "backend")
               else
                 IFS=',' read -ra SCOPES <<< "$SCOPE"
               fi
@@ -90,7 +90,7 @@ jobs:
                 case $s in
                   app)     PKG="mari-puntos-app" ;;
                   backend) PKG="mari-puntos-backend" ;;
-                  website) PKG="mari-puntos-website" ;;
+                  # website is ignored in .changeset/config.json — skip
                   *)       continue ;;
                 esac
                 CURRENT="${PACKAGE_BUMP[$PKG]:-}"
