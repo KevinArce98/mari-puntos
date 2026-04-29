@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { useAuth } from '@clerk/clerk-expo';
+import { useAuth, useUser as useClerkUser } from '@clerk/clerk-expo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
@@ -37,6 +37,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signOut } = useAuth();
+  const { user: clerkUser } = useClerkUser();
   const { user, partnerInfo, hasPartner, unlinkPartner, updateProfile } = useUser();
   const { myPoints, myLevel, progressToNextLevel, pointsToNextLevel } = usePoints();
   const [loading, setLoading] = useState(false);
@@ -98,6 +99,46 @@ export default function ProfileScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Eliminar cuenta',
+      '¿Estás seguro de que deseas eliminar tu cuenta? Todos tus datos, puntos y progreso se perderán permanentemente. Esta acción no se puede deshacer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Confirmar eliminación',
+              'Esta es tu última oportunidad. ¿Deseas eliminar tu cuenta definitivamente?',
+              [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                  text: 'Sí, eliminar',
+                  style: 'destructive',
+                  onPress: async () => {
+                    setLoading(true);
+                    try {
+                      await clerkUser?.delete();
+                    } catch {
+                      setLoading(false);
+                      Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2: 'No se pudo eliminar la cuenta. Intenta de nuevo.',
+                      });
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
   };
 
   const handleSignOut = () => {
@@ -286,6 +327,23 @@ export default function ProfileScreen() {
                   `mailto:${SUPPORT_EMAIL}?subject=Ayuda%20con%20MariPuntos`
                 )
               }
+            />
+          </Card>
+        </View>
+
+        {/* Danger Zone */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+            Zona de peligro
+          </Text>
+          <Card padding="none" style={styles.menuCard}>
+            <ListItem
+              title="Eliminar cuenta"
+              leftIcon="trash-outline"
+              rightIcon="chevron-forward"
+              titleStyle={{ color: colors.error }}
+              leftIconColor={colors.error}
+              onPress={handleDeleteAccount}
             />
           </Card>
         </View>
