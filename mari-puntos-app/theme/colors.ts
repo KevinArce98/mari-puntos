@@ -48,7 +48,7 @@ export const colors = {
       diamond: '#B9F2FF',
     },
 
-    // Category colors for actions/rewards
+    // Category colors for actions
     category: {
       chores: '#3B82F6', // Blue
       romance: '#EC4899', // Pink

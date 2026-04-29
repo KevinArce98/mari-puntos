@@ -19,6 +19,7 @@ export const useStreakStore = create<StreakState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const streak = await streakService.getStreak();
+      console.log(streak);
       set({ streak, isLoading: false });
     } catch (error: unknown) {
       set({ error: getErrorMessage(error), isLoading: false });

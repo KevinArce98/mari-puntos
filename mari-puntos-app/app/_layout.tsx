@@ -154,15 +154,6 @@ function RootLayoutNav() {
               headerShown: false,
             }}
           />
-
-          <Stack.Screen
-            name="rewards/index"
-            options={{
-              presentation: 'modal',
-              title: 'Recompensas',
-              headerShown: true,
-            }}
-          />
           <Stack.Screen
             name="achievements/index"
             options={{
