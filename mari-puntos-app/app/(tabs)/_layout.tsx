@@ -151,7 +151,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="duel"
         options={{
           title: 'Duelo',
           tabBarIcon: ({ color, focused }) =>
@@ -172,6 +172,7 @@ export default function TabLayout() {
                 />
               </View>
             ),
+          tabBarButton: hasPartner ? undefined : lockedTabButton,
         }}
       />
       <Tabs.Screen
