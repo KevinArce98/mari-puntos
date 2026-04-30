@@ -50,6 +50,7 @@ export default function LoginScreen() {
   const onSubmit = async (data: LoginFormData) => {
     if (!isLoaded) return;
 
+    logger.info('Login attempt', { email: data.email });
     try {
       const result = await signIn.create({
         identifier: data.email,

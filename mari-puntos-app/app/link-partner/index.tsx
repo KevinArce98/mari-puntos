@@ -61,19 +61,14 @@ export default function LinkPartnerScreen() {
   // Load existing partner link code on mount
   useEffect(() => {
     const loadExistingCode = async () => {
-      try {
-        const existingLink = await getPartnerLinkCode();
-        if (existingLink && existingLink.status === 'pending') {
-          setGeneratedCode(existingLink.linkCode);
-          logger.debug('Existing partner link code loaded', {
-            linkCode: existingLink.linkCode,
-          });
-        }
-      } catch (error) {
-        logger.error('Error loading existing partner link code', error as Error);
-      } finally {
-        setLoadingExistingCode(false);
+      const existingLink = await getPartnerLinkCode();
+      if (existingLink && existingLink.status === 'pending') {
+        setGeneratedCode(existingLink.linkCode);
+        logger.debug('Existing partner link code loaded', {
+          linkCode: existingLink.linkCode,
+        });
       }
+      setLoadingExistingCode(false);
     };
 
     loadExistingCode();
@@ -82,6 +77,7 @@ export default function LinkPartnerScreen() {
 
   const handleGenerateCode = async () => {
     setGenerating(true);
+    logger.info('Partner link code generation requested');
     try {
       const code = await createPartnerLink();
       setGeneratedCode(code);
@@ -108,6 +104,7 @@ export default function LinkPartnerScreen() {
   const handleCopyCode = async () => {
     if (generatedCode) {
       await Clipboard.setStringAsync(generatedCode);
+      logger.info('Partner link code copied to clipboard');
       Toast.show({
         type: 'success',
         text1: '¡Copiado!',
@@ -131,9 +128,9 @@ export default function LinkPartnerScreen() {
       return;
     }
 
+    logger.info('Partner link join attempt', { partnerCode: data.partnerCode });
     try {
       await joinPartnerLink(data.partnerCode);
-      logger.info('Successfully joined partner link', { partnerCode: data.partnerCode });
       // Refresh partner-dependent stores (permissions excluded from userStore.joinPartnerLink
       // due to circular-dependency constraints — handled here instead)
       usePermissionsStore
@@ -190,6 +187,9 @@ export default function LinkPartnerScreen() {
       ]);
 
       if (partnerInfo) {
+        logger.info('Partner link confirmed via refresh', {
+          partnerName: partnerInfo.partner.firstName,
+        });
         // Update store silently
         useUserStore.setState({ user, partnerInfo });
         // Refresh partner-dependent stores

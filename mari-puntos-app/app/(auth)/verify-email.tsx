@@ -119,10 +119,11 @@ export default function VerifyEmailScreen() {
         lastName: result.lastName || '',
         clerkId: result.createdUserId ?? undefined,
       });
+      logger.info('Email verified and profile created — navigating to app', { email });
       router.replace('/(tabs)');
     } catch (profileError: any) {
       if (profileError?.status === 409) {
-        logger.info('User profile already exists, continuing...');
+        logger.info('Email verified — profile already exists, continuing', { email });
         router.replace('/(tabs)');
       } else {
         Toast.show({
@@ -137,6 +138,7 @@ export default function VerifyEmailScreen() {
   const onSubmit = async (data: VerifyEmailFormData) => {
     if (!isLoaded) return;
 
+    logger.info('Email verification attempt', { email });
     try {
       const result = await signUp.attemptEmailAddressVerification({ code: data.code });
       await completeVerification(result);

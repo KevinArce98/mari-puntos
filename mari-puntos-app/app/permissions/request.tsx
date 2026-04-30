@@ -142,6 +142,11 @@ export default function RequestPermissionScreen() {
         metadata: note.trim() ? { note: note.trim() } : undefined,
       });
 
+      logger.info('Permission request submitted', {
+        templateId: selectedTemplate.id,
+        durationHours: duration,
+      });
+
       Toast.show({
         type: 'success',
         text1: '¡Solicitud Enviada!',

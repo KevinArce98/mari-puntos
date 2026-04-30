@@ -80,7 +80,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       logger.debug('Partner info fetched successfully', { hasPartner: !!partnerInfo });
       return partnerInfo;
     } catch (error: unknown) {
-      logger.error('Failed to fetch partner info', error as Error);
+      // 404 = no partner yet — expected state, not a real error
+      logger.debug('No partner info available', error);
       set({ partnerInfo: null });
       return null;
     }
@@ -129,7 +130,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       logger.debug('Partner link code fetched successfully');
       return response;
     } catch (error: unknown) {
-      logger.error('Failed to fetch partner link code', error as Error);
+      // 404 = no link code exists yet — expected state, not a real error
+      logger.debug('No partner link code available', error);
       return null;
     }
   },

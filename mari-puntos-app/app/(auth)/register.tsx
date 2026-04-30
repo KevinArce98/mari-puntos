@@ -74,6 +74,7 @@ export default function RegisterScreen() {
   const onSubmit = async (data: RegisterFormData) => {
     if (!isLoaded) return;
 
+    logger.info('Registration attempt', { email: data.email });
     try {
       await signUp.create({
         emailAddress: data.email,

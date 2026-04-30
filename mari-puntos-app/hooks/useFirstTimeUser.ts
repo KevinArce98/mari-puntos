@@ -21,7 +21,9 @@ export function useFirstTimeUser() {
   const checkFirstTime = async () => {
     try {
       const hasSeenWelcome = await AsyncStorage.getItem(FIRST_TIME_KEY);
-      setIsFirstTime(hasSeenWelcome === null);
+      const isFirst = hasSeenWelcome === null;
+      setIsFirstTime(isFirst);
+      if (isFirst) logger.info('First-time user detected');
     } catch (error) {
       logger.error('Error checking first time user', error as Error);
       setIsFirstTime(false);
@@ -34,6 +36,7 @@ export function useFirstTimeUser() {
     try {
       await AsyncStorage.setItem(FIRST_TIME_KEY, 'false');
       setIsFirstTime(false);
+      logger.info('First-time welcome dismissed');
     } catch (error) {
       logger.error('Error marking user as not first time', error as Error);
     }

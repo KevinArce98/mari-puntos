@@ -110,7 +110,9 @@ function RootLayoutNav() {
     Updates.checkForUpdateAsync()
       .then(({ isAvailable }) => {
         if (!isAvailable) return;
+        logger.info('OTA update available — fetching');
         return Updates.fetchUpdateAsync().then(() => {
+          logger.info('OTA update fetched — prompting user to reload');
           // Confirm before reloading so we don't interrupt the user mid-task
           Alert.alert(
             'Actualización disponible',

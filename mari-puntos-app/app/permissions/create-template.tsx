@@ -108,6 +108,8 @@ export default function CreateTemplateScreen() {
         },
       });
 
+      logger.info('Permission template created', { title: title.trim(), category });
+
       Toast.show({
         type: 'success',
         text1: '¡Éxito!',

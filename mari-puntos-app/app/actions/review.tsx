@@ -100,7 +100,6 @@ export default function ReviewActionsScreen() {
     try {
       await approveAction(actionId, points);
       await Promise.all([refetchPartnerActions(), refetchStreak().catch(() => {})]);
-      logger.info('Action approved successfully', { actionId, points });
       Toast.show({
         type: 'success',
         text1: 'Acción Aprobada',
@@ -124,7 +123,6 @@ export default function ReviewActionsScreen() {
     try {
       await rejectAction(actionId, reason);
       await refetchPartnerActions();
-      logger.info('Action rejected successfully', { actionId, reason });
       Toast.show({
         type: 'success',
         text1: 'Acción Rechazada',

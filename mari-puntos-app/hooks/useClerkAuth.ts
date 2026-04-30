@@ -57,6 +57,7 @@ export function useClerkAuth() {
         // Only fetch profile if we haven't already and user doesn't exist
         if (!hasFetchedProfile.current && !user) {
           hasFetchedProfile.current = true;
+          logger.info('User authenticated — loading profile');
           fetchProfile().catch((error) => {
             hasFetchedProfile.current = false; // Reset on error so we can retry
             if (error?.status !== 404) {
@@ -77,6 +78,7 @@ export function useClerkAuth() {
                     clerkId: clerkUser.id,
                   })
                   .then(() => {
+                    logger.info('Orphan profile recovered — re-fetching on next render');
                     hasFetchedProfile.current = false; // Re-fetch on next render
                   })
                   .catch((createErr) => {
@@ -84,20 +86,21 @@ export function useClerkAuth() {
                       // Profile was already created — just re-fetch
                       hasFetchedProfile.current = false;
                     } else {
-                      logger.info(
-                        'User profile not found - normal for new users during signup'
+                      logger.warn(
+                        'Failed to recover orphan profile during session restore'
                       );
                     }
                   });
               } else {
-                logger.info(
-                  'User profile not found - this is normal for new users during signup'
+                logger.warn(
+                  'Signed-in Clerk user has no email or clerkId — cannot recover orphan profile'
                 );
               }
             }
           });
         }
       } else {
+        logger.info('User signed out — clearing session state');
         apiService.clearTokenGetter();
         clearUser();
         clearActions();

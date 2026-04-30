@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { StreakInfo, streakService } from '@/services/streakService';
 import { getErrorMessage } from '@/utils/errorMessage';
+import logger from '@/utils/logger';
 
 interface StreakState {
   streak: StreakInfo | null;
@@ -21,7 +22,9 @@ export const useStreakStore = create<StreakState>((set) => ({
     try {
       const streak = await streakService.getStreak();
       set({ streak, isLoading: false });
+      logger.debug('Streak fetched', { currentStreak: streak.currentStreak });
     } catch (error: unknown) {
+      logger.error('Failed to fetch streak', error as Error);
       set({ error: getErrorMessage(error), isLoading: false });
     }
   },

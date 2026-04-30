@@ -96,6 +96,8 @@ export default function EditPermissionScreen() {
         metadata: note.trim() ? { note: note.trim() } : undefined,
       });
 
+      logger.info('Permission updated', { permissionId: id, durationHours: duration });
+
       Toast.show({
         type: 'success',
         text1: '¡Solicitud Actualizada!',

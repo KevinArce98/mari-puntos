@@ -96,7 +96,7 @@ export function useNotifications() {
           return;
       }
 
-      logger.info('Navigating to:', route);
+      logger.info('Navigating to notification route', { route });
       router.push(route);
     },
     [router]
@@ -131,6 +131,7 @@ export function useNotifications() {
     registerForPushNotificationsAsync()
       .then((token) => {
         if (token) {
+          logger.info('Push token obtained');
           setExpoPushToken(token);
         }
       })
@@ -148,6 +149,7 @@ export function useNotifications() {
         // current while the app is in the foreground.
         const data = notification.request.content.data as unknown as NotificationData;
         if (!data?.type) return;
+        logger.info('Foreground notification received', { type: data.type });
         switch (data.type) {
           case 'action_created':
             useActionsStore
@@ -191,7 +193,7 @@ export function useNotifications() {
           .data as unknown as NotificationData;
 
         if (data && data.type) {
-          logger.info('Notification response received:', data.type);
+          logger.info('Notification tapped by user', { type: data.type });
           // Persist the handled marker BEFORE triggering navigation. If the app is
           // killed immediately after a tap, the cold-start effect reads this marker
           // and won't re-navigate the same notification on the next launch.
@@ -242,7 +244,7 @@ export function useNotifications() {
         const data = response.notification.request.content
           .data as unknown as NotificationData;
         if (data?.type) {
-          logger.info('Cold-start notification tap:', data.type);
+          logger.info('Cold-start notification tap', { type: data.type });
           await AsyncStorage.setItem(HANDLED_NOTIFICATION_KEY, identifier);
           setPendingNotificationData(data);
         }
@@ -272,7 +274,9 @@ export function useNotifications() {
 
     // Pequeño delay para asegurar que la navegación esté completamente lista
     const timeoutId = setTimeout(() => {
-      logger.info('Processing pending notification:', pendingNotificationData.type);
+      logger.info('Processing pending notification', {
+        type: pendingNotificationData.type,
+      });
       handleNotificationResponse(pendingNotificationData);
       setPendingNotificationData(null);
     }, 100);

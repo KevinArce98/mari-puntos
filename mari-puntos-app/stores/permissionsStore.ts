@@ -147,6 +147,11 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
         responseMessage,
         pointsCost,
       });
+      logger.info('Permission response submitted', {
+        permissionId,
+        approved,
+        pointsCost,
+      });
       await get().fetchPartnerPermissions({ status: PermissionStatus.PENDING });
       // Refresh both user stats (points deducted) and partner info
       useUserStore
@@ -176,6 +181,7 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
     set({ isMutating: true, isLoading: true, error: null });
     try {
       await permissionsService.cancelPermission(permissionId);
+      logger.info('Permission cancelled', { permissionId });
       await get().fetchMyPermissions({ status: PermissionStatus.PENDING });
       set((s) => ({
         isMutating: false,
