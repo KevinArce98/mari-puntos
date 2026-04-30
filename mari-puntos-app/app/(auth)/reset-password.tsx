@@ -18,7 +18,7 @@ import { isClerkAPIResponseError, useSignIn } from '@clerk/clerk-expo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { Button, ControlledCodeInput, ControlledInput } from '@/components/ui';
 import { useThemedColors } from '@/hooks';
@@ -73,10 +73,8 @@ export default function ResetPasswordScreen() {
         if (resetResult.status === 'complete') {
           await setActive({ session: resetResult.createdSessionId });
           router.replace('/(tabs)');
-          Toast.show({
-            type: 'success',
-            text1: 'Contraseña restablecida',
-            text2: 'Tu contraseña ha sido cambiada exitosamente',
+          toast.success('Contraseña restablecida', {
+            description: 'Tu contraseña ha sido cambiada exitosamente',
           });
         }
       }
@@ -87,11 +85,7 @@ export default function ResetPasswordScreen() {
         errorMessage = handleClerkErrors(error.errors);
       }
 
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: errorMessage,
-      });
+      toast.error('Error', { description: errorMessage });
     }
   };
 

@@ -21,7 +21,7 @@ import { isClerkAPIResponseError, useSignUp } from '@clerk/clerk-expo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { Button, ControlledInput } from '@/components/ui';
 import { useThemedColors } from '@/hooks';
@@ -91,10 +91,8 @@ export default function RegisterScreen() {
         firstName: data.firstName,
       });
 
-      Toast.show({
-        type: 'success',
-        text1: '¡Cuenta creada!',
-        text2: 'Revisa tu correo para el código de verificación',
+      toast.success('¡Cuenta creada!', {
+        description: 'Revisa tu correo para el código de verificación',
       });
 
       router.replace({
@@ -113,11 +111,7 @@ export default function RegisterScreen() {
         errorMessage,
       });
 
-      Toast.show({
-        type: 'error',
-        text1: 'Registro fallido',
-        text2: errorMessage,
-      });
+      toast.error('Registro fallido', { description: errorMessage });
     }
   };
 

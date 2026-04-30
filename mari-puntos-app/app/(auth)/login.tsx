@@ -19,7 +19,7 @@ import { isClerkAPIResponseError, useSignIn } from '@clerk/clerk-expo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { Button, ControlledInput } from '@/components/ui';
 import { useThemedColors } from '@/hooks';
@@ -71,11 +71,7 @@ export default function LoginScreen() {
 
       logger.warn('Login failed', { email: data.email, error: errorMessage });
 
-      Toast.show({
-        type: 'error',
-        text1: 'Inicio de sesión fallido',
-        text2: errorMessage,
-      });
+      toast.error('Inicio de sesión fallido', { description: errorMessage });
     }
   };
 

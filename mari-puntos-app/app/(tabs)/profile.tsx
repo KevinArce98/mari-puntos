@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-expo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import {
   Avatar,
@@ -68,17 +68,11 @@ export default function ProfileScreen() {
               usePermissionsStore.getState().clearPermissions();
               usePointsStore.getState().clearPoints();
               useStreakStore.getState().clearStreak();
-              Toast.show({
-                type: 'success',
-                text1: 'Desvinculado',
-                text2: 'Tu pareja ha sido desvinculada',
+              toast.success('Desvinculado', {
+                description: 'Tu pareja ha sido desvinculada',
               });
             } catch {
-              Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: 'No se pudo desvincular a la pareja',
-              });
+              toast.error('Error', { description: 'No se pudo desvincular a la pareja' });
             } finally {
               setLoading(false);
             }
@@ -97,17 +91,11 @@ export default function ProfileScreen() {
     try {
       await updateProfile(data);
 
-      Toast.show({
-        type: 'success',
-        text1: 'Perfil actualizado',
-        text2: 'Tu perfil se ha actualizado correctamente',
+      toast.success('Perfil actualizado', {
+        description: 'Tu perfil se ha actualizado correctamente',
       });
     } catch {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'No se pudo actualizar el perfil',
-      });
+      toast.error('Error', { description: 'No se pudo actualizar el perfil' });
     } finally {
       setLoading(false);
     }
@@ -138,10 +126,8 @@ export default function ProfileScreen() {
                       await signOut();
                     } catch {
                       setLoading(false);
-                      Toast.show({
-                        type: 'error',
-                        text1: 'Error',
-                        text2: 'No se pudo eliminar la cuenta. Intenta de nuevo.',
+                      toast.error('Error', {
+                        description: 'No se pudo eliminar la cuenta. Intenta de nuevo.',
                       });
                     }
                   },

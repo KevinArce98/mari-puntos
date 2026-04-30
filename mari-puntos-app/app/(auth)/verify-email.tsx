@@ -21,7 +21,7 @@ import { isClerkAPIResponseError, useAuth, useSignUp } from '@clerk/clerk-expo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { Button, ControlledCodeInput } from '@/components/ui';
 import { useThemedColors } from '@/hooks';
@@ -126,10 +126,8 @@ export default function VerifyEmailScreen() {
         logger.info('Email verified — profile already exists, continuing', { email });
         router.replace('/(tabs)');
       } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Error al crear perfil',
-          text2: profileError?.message || 'Intenta iniciar sesión nuevamente',
+        toast.error('Error al crear perfil', {
+          description: profileError?.message || 'Intenta iniciar sesión nuevamente',
         });
       }
     }
@@ -164,7 +162,7 @@ export default function VerifyEmailScreen() {
             email,
             errorMessage: retryMessage,
           });
-          Toast.show({ type: 'error', text1: 'Error', text2: retryMessage });
+          toast.error('Error', { description: retryMessage });
         }
         return;
       }
@@ -177,11 +175,7 @@ export default function VerifyEmailScreen() {
 
       logger.error('Email verification failed', error, { email, errorMessage });
 
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: errorMessage,
-      });
+      toast.error('Error', { description: errorMessage });
     }
   };
 
@@ -191,11 +185,7 @@ export default function VerifyEmailScreen() {
     try {
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       logger.info('Verification code resent', { email });
-      Toast.show({
-        type: 'success',
-        text1: 'Código enviado',
-        text2: 'Revisa tu correo electrónico',
-      });
+      toast.success('Código enviado', { description: 'Revisa tu correo electrónico' });
       // Reset cooldown
       setResendCooldown(60);
       setCanResend(false);
@@ -208,11 +198,7 @@ export default function VerifyEmailScreen() {
 
       logger.error('Failed to resend verification code', error, { email, errorMessage });
 
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: errorMessage,
-      });
+      toast.error('Error', { description: errorMessage });
     }
   };
 

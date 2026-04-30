@@ -19,7 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { Button, Card, CodeInput } from '@/components/ui';
 import { useThemedColors, useUser } from '@/hooks';
@@ -82,19 +82,13 @@ export default function LinkPartnerScreen() {
       const code = await createPartnerLink();
       setGeneratedCode(code);
       logger.info('Partner link code generated successfully', { code });
-      Toast.show({
-        type: 'success',
-        text1: '¡Código generado!',
-        text2: 'Comparte este código con tu pareja',
+      toast.success('¡Código generado!', {
+        description: 'Comparte este código con tu pareja',
       });
     } catch (error) {
       logger.error('Failed to generate partner link code', error as Error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: (error as any)?.error
-          ? (error as any).error
-          : 'No se pudo generar el código',
+      toast.error('Error', {
+        description: (error as any)?.error ?? 'No se pudo generar el código',
       });
     } finally {
       setGenerating(false);
@@ -105,11 +99,7 @@ export default function LinkPartnerScreen() {
     if (generatedCode) {
       await Clipboard.setStringAsync(generatedCode);
       logger.info('Partner link code copied to clipboard');
-      Toast.show({
-        type: 'success',
-        text1: '¡Copiado!',
-        text2: 'Código copiado al portapapeles',
-      });
+      toast.success('¡Copiado!', { description: 'Código copiado al portapapeles' });
     }
   };
 
@@ -120,11 +110,7 @@ export default function LinkPartnerScreen() {
       data.partnerCode.trim().toUpperCase() === generatedCode.toUpperCase()
     ) {
       logger.warn('User attempted to join their own partner code');
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'No puedes unirte a tu propio código',
-      });
+      toast.error('Error', { description: 'No puedes unirte a tu propio código' });
       return;
     }
 
@@ -157,22 +143,16 @@ export default function LinkPartnerScreen() {
         .getState()
         .fetchStreak()
         .catch(() => {});
-      Toast.show({
-        type: 'success',
-        text1: '¡Vinculado!',
-        text2: 'Ahora estás conectado con tu pareja',
+      toast.success('¡Vinculado!', {
+        description: 'Ahora estás conectado con tu pareja',
       });
       router.replace('/(tabs)');
     } catch (error) {
       logger.error('Failed to join partner link', error as Error, {
         partnerCode: data.partnerCode,
       });
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: (error as any)?.error
-          ? (error as any).error
-          : 'Código inválido o expirado',
+      toast.error('Error', {
+        description: (error as any)?.error ?? 'Código inválido o expirado',
       });
     }
   };
@@ -218,10 +198,8 @@ export default function LinkPartnerScreen() {
           .fetchStreak()
           .catch(() => {});
 
-        Toast.show({
-          type: 'success',
-          text1: '¡Vinculado exitosamente!',
-          text2: `Tu pareja ${partnerInfo.partner.firstName} se ha conectado`,
+        toast.success('¡Vinculado exitosamente!', {
+          description: `Tu pareja ${partnerInfo.partner.firstName} se ha conectado`,
         });
 
         // Redirect to home after a brief delay to show the toast
@@ -229,17 +207,13 @@ export default function LinkPartnerScreen() {
           router.replace('/(tabs)');
         }, 1000);
       } else {
-        Toast.show({
-          type: 'info',
-          text1: 'Esperando conexión',
-          text2: 'Tu pareja aún no ha ingresado el código',
+        toast.info('Esperando conexión', {
+          description: 'Tu pareja aún no ha ingresado el código',
         });
       }
     } catch {
-      Toast.show({
-        type: 'info',
-        text1: 'Esperando conexión',
-        text2: 'Tu pareja aún no ha ingresado el código',
+      toast.info('Esperando conexión', {
+        description: 'Tu pareja aún no ha ingresado el código',
       });
     } finally {
       setRefreshing(false);

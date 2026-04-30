@@ -18,7 +18,7 @@ import { useUser } from '@clerk/clerk-expo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui';
@@ -73,10 +73,8 @@ export default function ChangePasswordScreen() {
         newPassword: data.newPassword,
       });
       reset();
-      Toast.show({
-        type: 'success',
-        text1: 'Contraseña actualizada',
-        text2: 'Tu contraseña ha sido cambiada correctamente',
+      toast.success('Contraseña actualizada', {
+        description: 'Tu contraseña ha sido cambiada correctamente',
       });
       router.back();
     } catch (error: any) {
@@ -84,11 +82,7 @@ export default function ChangePasswordScreen() {
         error?.errors?.[0]?.longMessage ||
         error?.errors?.[0]?.message ||
         'No se pudo cambiar la contraseña';
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: message,
-      });
+      toast.error('Error', { description: message });
     } finally {
       setLoading(false);
     }

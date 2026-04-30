@@ -8,13 +8,16 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as Updates from 'expo-updates';
 
+import { Ionicons } from '@expo/vector-icons';
+
 import { ClerkProvider } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { Toaster } from 'sonner-native';
 
 import { AuthGuard } from '@/components';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -136,61 +139,73 @@ function RootLayoutNav() {
   }, []);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AuthGuard>
-        <Stack>
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="link-partner/index" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="permissions/request"
-            options={{
-              presentation: 'modal',
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="permissions/edit/[id]"
-            options={{
-              presentation: 'modal',
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="actions/review"
-            options={{
-              headerShown: false,
-              headerBackVisible: true,
-            }}
-          />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <AuthGuard>
+          <Stack>
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="link-partner/index" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="permissions/request"
+              options={{
+                presentation: 'modal',
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="permissions/edit/[id]"
+              options={{
+                presentation: 'modal',
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="actions/review"
+              options={{
+                headerShown: false,
+                headerBackVisible: true,
+              }}
+            />
 
-          <Stack.Screen
-            name="permissions/create-template"
-            options={{
-              presentation: 'modal',
-              headerShown: false,
+            <Stack.Screen
+              name="permissions/create-template"
+              options={{
+                presentation: 'modal',
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="achievements/index"
+              options={{
+                presentation: 'modal',
+                title: 'Logros',
+                headerShown: true,
+              }}
+            />
+            <Stack.Screen
+              name="profile/change-password"
+              options={{
+                presentation: 'modal',
+                headerShown: false,
+              }}
+            />
+          </Stack>
+          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+          <Toaster
+            theme={colorScheme === 'dark' ? 'dark' : 'light'}
+            offset={insets.top + 10}
+            richColors
+            icons={{
+              success: <Ionicons name="checkmark-circle" size={20} color="#22c55e" />,
+              error: <Ionicons name="close-circle" size={20} color="#ef4444" />,
+              info: <Ionicons name="information-circle" size={20} color="#3b82f6" />,
+              warning: <Ionicons name="warning" size={20} color="#f59e0b" />,
             }}
           />
-          <Stack.Screen
-            name="achievements/index"
-            options={{
-              presentation: 'modal',
-              title: 'Logros',
-              headerShown: true,
-            }}
-          />
-          <Stack.Screen
-            name="profile/change-password"
-            options={{
-              presentation: 'modal',
-              headerShown: false,
-            }}
-          />
-        </Stack>
-        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        <Toast topOffset={insets.top + 10} />
-      </AuthGuard>
-    </ThemeProvider>
+        </AuthGuard>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
 
