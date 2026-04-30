@@ -232,6 +232,52 @@ export class UsersService {
     throw new AppError(500, 'No se pudo generar un código único. Intenta de nuevo.');
   }
 
+  async deleteAccount(userId: string): Promise<void> {
+    const user = await this.getUserById(userId);
+
+    await AppDataSource.transaction(async (manager) => {
+      await manager.query('DELETE FROM logs WHERE "userId" = $1', [userId]);
+      await manager.query('DELETE FROM achievements WHERE "userId" = $1', [userId]);
+      await manager.query('DELETE FROM permissions WHERE "requesterId" = $1', [userId]);
+      await manager.query('DELETE FROM actions WHERE "userId" = $1', [userId]);
+
+      const partnerLinks: { id: string }[] = await manager.query(
+        'SELECT id FROM partner_links WHERE "user1Id" = $1 OR "user2Id" = $1',
+        [userId]
+      );
+
+      if (partnerLinks.length > 0) {
+        const partnerLinkIds = partnerLinks.map((pl) => pl.id);
+        await manager.query(
+          `DELETE FROM permissions WHERE "templateId" IN (
+            SELECT id FROM permission_templates WHERE "partnerLinkId" = ANY($1)
+          )`,
+          [partnerLinkIds]
+        );
+        await manager.query(
+          'DELETE FROM permission_templates WHERE "partnerLinkId" = ANY($1)',
+          [partnerLinkIds]
+        );
+        await manager.query(
+          'DELETE FROM partner_links WHERE id = ANY($1)',
+          [partnerLinkIds]
+        );
+      }
+
+      await manager.query('DELETE FROM users WHERE id = $1', [userId]);
+    });
+
+    try {
+      const { clerkClient } = await import('../config/clerk');
+      await clerkClient.users.deleteUser(user.clerkId);
+      logger.info({ userId, clerkId: user.clerkId }, 'Clerk account deleted');
+    } catch (clerkError) {
+      logger.error({ err: clerkError, userId }, 'Failed to delete Clerk account after DB deletion');
+    }
+
+    logger.info({ userId }, 'Account permanently deleted');
+  }
+
   async deactivateUser(userId: string): Promise<void> {
     const user = await this.getUserById(userId);
     user.isActive = false;

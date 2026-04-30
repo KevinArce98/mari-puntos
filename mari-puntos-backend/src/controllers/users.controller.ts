@@ -97,6 +97,23 @@ export class UsersController {
   };
 
   /**
+   * DELETE /users/account
+   * Permanently delete current user's account and all associated data
+   */
+  deleteAccount = async (req: AuthRequest, res: Response): Promise<void> => {
+    const userId = req.userId!;
+    try {
+      logger.info({ message: 'Permanently deleting account for user', userId });
+      await this.usersService.deleteAccount(userId);
+      logger.info({ message: 'Account permanently deleted for user', userId });
+      sendSuccess(res, null, 'Account deleted successfully');
+    } catch (error) {
+      logger.error({ err: error, userId }, 'Error permanently deleting account for user');
+      throw error;
+    }
+  };
+
+  /**
    * DELETE /users/profile
    * Deactivate current user's account
    */
