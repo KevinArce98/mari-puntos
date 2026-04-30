@@ -28,6 +28,7 @@ import {
   ProgressBar,
 } from '@/components/ui';
 import { usePoints, useThemedColors, useUser } from '@/hooks';
+import { userService } from '@/services/userService';
 import {
   useActionsStore,
   usePermissionsStore,
@@ -133,7 +134,8 @@ export default function ProfileScreen() {
                   onPress: async () => {
                     setLoading(true);
                     try {
-                      await clerkUser?.delete();
+                      await userService.deleteAccount();
+                      await signOut();
                     } catch {
                       setLoading(false);
                       Toast.show({
