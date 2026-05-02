@@ -23,6 +23,12 @@
       },
       "channel": "preview"
     },
+    "verification": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
     "production": {
       "distribution": "store",
       "autoIncrement": true,
@@ -42,6 +48,10 @@
       }
     },
     "production": {
+      "android": {
+        "serviceAccountKeyPath": "./google-play-key.json",
+        "track": "internal"
+      },
       "ios": {
         "appleId": "arias9068@email.com",
         "ascAppId": "6758923865",

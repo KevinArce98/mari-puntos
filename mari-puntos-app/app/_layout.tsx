@@ -194,8 +194,10 @@ function RootLayoutNav() {
           <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
           <Toaster
             theme={colorScheme === 'dark' ? 'dark' : 'light'}
+            position="top-center"
             offset={insets.top + 10}
             richColors
+            positionerStyle={{ zIndex: 9999, elevation: 9999 }}
             icons={{
               success: <Ionicons name="checkmark-circle" size={20} color="#22c55e" />,
               error: <Ionicons name="close-circle" size={20} color="#ef4444" />,
