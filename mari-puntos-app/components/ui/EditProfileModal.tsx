@@ -109,7 +109,7 @@ export function EditProfileModal({
         base64: true,
       });
 
-      if (!result.canceled && result.assets[0].base64) {
+      if (!result.canceled && result.assets?.[0]?.base64) {
         const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
         setSelectedImage(base64Image);
       }

@@ -19,7 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { Button, Card, TextAreaWithCounter } from '@/components/ui';
 import { usePermissions, useThemedColors } from '@/hooks';
@@ -72,11 +72,7 @@ export default function EditPermissionScreen() {
       logger.error('Failed to load permission for editing', error as Error, {
         permissionId: id,
       });
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'No se pudo cargar la solicitud',
-      });
+      toast.error('Error', { description: 'No se pudo cargar la solicitud' });
       router.back();
     } finally {
       setLoadingPermission(false);
@@ -96,20 +92,16 @@ export default function EditPermissionScreen() {
         metadata: note.trim() ? { note: note.trim() } : undefined,
       });
 
-      Toast.show({
-        type: 'success',
-        text1: '¡Solicitud Actualizada!',
-        text2: 'Los cambios se han guardado',
+      logger.info('Permission updated', { permissionId: id, durationHours: duration });
+
+      toast.success('¡Solicitud Actualizada!', {
+        description: 'Los cambios se han guardado',
       });
 
       router.back();
     } catch (e) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: (e as any)?.error
-          ? (e as any).error
-          : 'No se pudo actualizar la solicitud',
+      toast.error('Error', {
+        description: (e as any)?.error ?? 'No se pudo actualizar la solicitud',
       });
     } finally {
       setLoading(false);
@@ -212,7 +204,10 @@ export default function EditPermissionScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <KeyboardAvoidingView style={styles.keyboardView} behavior="padding">
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}

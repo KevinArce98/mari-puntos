@@ -19,10 +19,10 @@ const API_BASE_URL =
     ? process.env.EXPO_PUBLIC_API_URL
     : getDefaultApiUrl();
 
-console.log(API_BASE_URL);
 class ApiService {
   private api: AxiosInstance;
   private getToken: (() => Promise<string | null>) | null = null;
+  private onUnauthorized: (() => void) | null = null;
 
   constructor() {
     this.api = axios.create({
@@ -62,8 +62,9 @@ class ApiService {
           error.response?.data?.error || error.message || 'An error occurred';
 
         if (status === 401) {
-          // Token expired or invalid - Clerk will handle re-authentication
           logger.warn('Unauthorized API request - token may be expired');
+          // Trigger auto sign-out so the user isn't stuck in a broken session
+          this.onUnauthorized?.();
         } else if (status && status >= 500) {
           // Server errors
           logger.error('API server error', new Error(errorMessage), {
@@ -111,6 +112,18 @@ class ApiService {
    */
   clearTokenGetter() {
     this.getToken = null;
+  }
+
+  /**
+   * Register a callback invoked when the server returns 401.
+   * Used to auto sign-out when the Clerk session expires mid-session.
+   */
+  setOnUnauthorized(callback: () => void) {
+    this.onUnauthorized = callback;
+  }
+
+  clearOnUnauthorized() {
+    this.onUnauthorized = null;
   }
 
   // Generic HTTP methods — typed on both response (T) and request payload/params (P)

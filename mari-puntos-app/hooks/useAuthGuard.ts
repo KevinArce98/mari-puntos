@@ -55,6 +55,7 @@ export function useAuthGuard(options: UseAuthGuardOptions = {}) {
 
     // Check Clerk authentication
     if (!isSignedIn) {
+      logger.info('Unauthenticated — redirecting to login');
       router.replace(redirectTo);
       return;
     }

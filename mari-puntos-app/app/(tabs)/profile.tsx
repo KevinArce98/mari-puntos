@@ -15,9 +15,9 @@ import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { useAuth, useUser as useClerkUser } from '@clerk/clerk-expo';
+import { useAuth } from '@clerk/clerk-expo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import {
   Avatar,
@@ -28,6 +28,13 @@ import {
   ProgressBar,
 } from '@/components/ui';
 import { usePoints, useThemedColors, useUser } from '@/hooks';
+import { userService } from '@/services/userService';
+import {
+  useActionsStore,
+  usePermissionsStore,
+  usePointsStore,
+  useStreakStore,
+} from '@/stores';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 
 const SUPPORT_EMAIL = 'soporte@maripuntos.com';
@@ -37,7 +44,6 @@ export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signOut } = useAuth();
-  const { user: clerkUser } = useClerkUser();
   const { user, partnerInfo, hasPartner, unlinkPartner, updateProfile } = useUser();
   const { myPoints, myLevel, progressToNextLevel, pointsToNextLevel } = usePoints();
   const [loading, setLoading] = useState(false);
@@ -56,17 +62,16 @@ export default function ProfileScreen() {
             setLoading(true);
             try {
               await unlinkPartner();
-              Toast.show({
-                type: 'success',
-                text1: 'Desvinculado',
-                text2: 'Tu pareja ha sido desvinculada',
+              // Clear partner-specific data from all dependent stores
+              useActionsStore.getState().clearActions();
+              usePermissionsStore.getState().clearPermissions();
+              usePointsStore.getState().clearPoints();
+              useStreakStore.getState().clearStreak();
+              toast.success('Desvinculado', {
+                description: 'Tu pareja ha sido desvinculada',
               });
             } catch {
-              Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: 'No se pudo desvincular a la pareja',
-              });
+              toast.error('Error', { description: 'No se pudo desvincular a la pareja' });
             } finally {
               setLoading(false);
             }
@@ -85,17 +90,11 @@ export default function ProfileScreen() {
     try {
       await updateProfile(data);
 
-      Toast.show({
-        type: 'success',
-        text1: 'Perfil actualizado',
-        text2: 'Tu perfil se ha actualizado correctamente',
+      toast.success('Perfil actualizado', {
+        description: 'Tu perfil se ha actualizado correctamente',
       });
     } catch {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'No se pudo actualizar el perfil',
-      });
+      toast.error('Error', { description: 'No se pudo actualizar el perfil' });
     } finally {
       setLoading(false);
     }
@@ -122,13 +121,12 @@ export default function ProfileScreen() {
                   onPress: async () => {
                     setLoading(true);
                     try {
-                      await clerkUser?.delete();
+                      await userService.deleteAccount();
+                      await signOut();
                     } catch {
                       setLoading(false);
-                      Toast.show({
-                        type: 'error',
-                        text1: 'Error',
-                        text2: 'No se pudo eliminar la cuenta. Intenta de nuevo.',
+                      toast.error('Error', {
+                        description: 'No se pudo eliminar la cuenta. Intenta de nuevo.',
                       });
                     }
                   },

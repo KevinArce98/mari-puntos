@@ -15,7 +15,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { HistoryItem } from '@/components';
 import {
@@ -74,18 +74,12 @@ export default function HomeScreen() {
     try {
       await createAction(data);
       setShowCreateActionModal(false);
-      Toast.show({
-        type: 'success',
-        text1: 'Acción Creada',
-        text2: 'Tu acción ha sido enviada para revisión',
+      toast.success('Acción Creada', {
+        description: 'Tu acción ha sido enviada para revisión',
       });
       await fetchHistory({ limit: 3 });
     } catch {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'No se pudo crear la acción',
-      });
+      toast.error('Error', { description: 'No se pudo crear la acción' });
     }
   };
 

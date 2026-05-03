@@ -15,7 +15,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { PermissionCard } from '@/components';
 import { Badge, Button, Card } from '@/components/ui';
@@ -69,18 +69,12 @@ export default function PermissionsScreen() {
         responseMessage: data.message || '',
         pointsCost: data.pointsCost,
       });
-      Toast.show({
-        type: 'success',
-        text1: approved ? 'Solicitud aprobada' : 'Solicitud rechazada',
-        text2: approved ? '¡Tu pareja está feliz!' : '',
+      toast.success(approved ? 'Solicitud aprobada' : 'Solicitud rechazada', {
+        description: approved ? '¡Tu pareja está feliz!' : undefined,
       });
     } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: (error as any)?.error
-          ? (error as any).error
-          : 'No se pudo procesar la solicitud',
+      toast.error('Error', {
+        description: (error as any)?.error ?? 'No se pudo procesar la solicitud',
       });
     } finally {
       setLoading(null);

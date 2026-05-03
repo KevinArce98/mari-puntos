@@ -1,5 +1,6 @@
 import { AppDataSource } from '../config/db';
 import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
+import { createError } from '../middlewares/errorMiddleware';
 import { getISOWeekId, getPreviousWeekId } from '../utils/helpers';
 import { logger } from '../utils/logger';
 
@@ -59,7 +60,11 @@ export class StreakService {
       if (link.currentStreak > link.longestStreak) {
         link.longestStreak = link.currentStreak;
       }
-      logger.info({ message: 'Streak extended', linkId: link.id, currentStreak: link.currentStreak });
+      logger.info({
+        message: 'Streak extended',
+        linkId: link.id,
+        currentStreak: link.currentStreak,
+      });
     }
 
     await this.partnerLinkRepo.save(link);
@@ -96,7 +101,7 @@ export class StreakService {
       ],
     });
 
-    if (!link) throw new Error('No active partner link found');
+    if (!link) throw createError.partnerNotLinked();
     return link;
   }
 

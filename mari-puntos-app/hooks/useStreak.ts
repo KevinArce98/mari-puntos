@@ -10,18 +10,19 @@ export const useStreak = () => {
   const { streak, isLoading, error, fetchStreak } = useStreakStore();
   const { user } = useUserStore();
   const appState = useRef(AppState.currentState);
+  const hasPartner = !!user?.hasPartner;
 
   // Initial fetch when user loads
   useEffect(() => {
-    if (!user) return;
+    if (!user || !hasPartner) return;
     fetchStreak().catch((err) => {
       logger.error('Failed to fetch streak on mount', err);
     });
-  }, [user?.id]);
+  }, [user?.id, hasPartner]);
 
   // Refetch whenever the app comes back to the foreground
   useEffect(() => {
-    if (!user) return;
+    if (!user || !hasPartner) return;
 
     const subscription = AppState.addEventListener(
       'change',
@@ -36,7 +37,7 @@ export const useStreak = () => {
     );
 
     return () => subscription.remove();
-  }, [user?.id]);
+  }, [user?.id, hasPartner]);
 
   return { streak, isLoading, error, refetch: fetchStreak };
 };

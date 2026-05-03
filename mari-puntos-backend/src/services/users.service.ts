@@ -1,11 +1,11 @@
 import { AppDataSource } from '../config/db';
-import { User } from '../entities/User';
 import { Achievement } from '../entities/Achievement';
 import { PartnerLinkStatus } from '../entities/PartnerLink';
+import { User } from '../entities/User';
 import { AppError } from '../middlewares/errorMiddleware';
 import { generatePartnerCode } from '../utils/helpers';
-import { CreateUserInput, UpdateUserInput } from '../validators/schemas';
 import { logger } from '../utils/logger';
+import { CreateUserInput, UpdateUserInput } from '../validators/schemas';
 
 export class UsersService {
   private userRepository = AppDataSource.getRepository(User);
@@ -66,7 +66,10 @@ export class UsersService {
         logger.debug({ message: 'Fetched avatar URL from Clerk', avatarUrl });
       }
     } catch (clerkError) {
-      logger.warn({ err: clerkError }, 'Failed to fetch avatar from Clerk, using provided avatarUrl');
+      logger.warn(
+        { err: clerkError },
+        'Failed to fetch avatar from Clerk, using provided avatarUrl'
+      );
     }
 
     const user = this.userRepository.create({
@@ -77,7 +80,16 @@ export class UsersService {
       avatarUrl,
     });
 
-    const savedUser = await this.userRepository.save(user);
+    let savedUser: User;
+    try {
+      savedUser = await this.userRepository.save(user);
+    } catch (dbError) {
+      // Unique constraint violation — two concurrent requests raced; treat as duplicate
+      if (dbError instanceof Error && 'code' in dbError && dbError.code === '23505') {
+        throw new AppError(409, 'El usuario ya existe');
+      }
+      throw dbError;
+    }
     logger.info({ message: 'User created successfully with id', userId: savedUser.id });
 
     return savedUser;
@@ -194,10 +206,21 @@ export class UsersService {
     // Parallel queries — all fire simultaneously on a single connection slot
     const [actionsCount, approvedActionsCount, permissionsCount, achievementsCount] =
       await Promise.all([
-        AppDataSource.query('SELECT COUNT(*) as count FROM actions WHERE "userId" = $1', [userId]),
-        AppDataSource.query('SELECT COUNT(*) as count FROM actions WHERE "userId" = $1 AND status = $2', [userId, 'approved']),
-        AppDataSource.query('SELECT COUNT(*) as count FROM permissions WHERE "requesterId" = $1', [userId]),
-        AppDataSource.query('SELECT COUNT(*) as count FROM achievements WHERE "userId" = $1 AND "isUnlocked" = true', [userId]),
+        AppDataSource.query('SELECT COUNT(*) as count FROM actions WHERE "userId" = $1', [
+          userId,
+        ]),
+        AppDataSource.query(
+          'SELECT COUNT(*) as count FROM actions WHERE "userId" = $1 AND status = $2',
+          [userId, 'approved']
+        ),
+        AppDataSource.query(
+          'SELECT COUNT(*) as count FROM permissions WHERE "requesterId" = $1',
+          [userId]
+        ),
+        AppDataSource.query(
+          'SELECT COUNT(*) as count FROM achievements WHERE "userId" = $1 AND "isUnlocked" = true',
+          [userId]
+        ),
       ]);
 
     return {
@@ -230,6 +253,54 @@ export class UsersService {
       if (!existingUser) return code;
     }
     throw new AppError(500, 'No se pudo generar un código único. Intenta de nuevo.');
+  }
+
+  async deleteAccount(userId: string): Promise<void> {
+    const user = await this.getUserById(userId);
+
+    await AppDataSource.transaction(async (manager) => {
+      await manager.query('DELETE FROM logs WHERE "userId" = $1', [userId]);
+      await manager.query('DELETE FROM achievements WHERE "userId" = $1', [userId]);
+      await manager.query('DELETE FROM permissions WHERE "requesterId" = $1', [userId]);
+      await manager.query('DELETE FROM actions WHERE "userId" = $1', [userId]);
+
+      const partnerLinks: { id: string }[] = await manager.query(
+        'SELECT id FROM partner_links WHERE "user1Id" = $1 OR "user2Id" = $1',
+        [userId]
+      );
+
+      if (partnerLinks.length > 0) {
+        const partnerLinkIds = partnerLinks.map((pl) => pl.id);
+        await manager.query(
+          `DELETE FROM permissions WHERE "templateId" IN (
+            SELECT id FROM permission_templates WHERE "partnerLinkId" = ANY($1)
+          )`,
+          [partnerLinkIds]
+        );
+        await manager.query(
+          'DELETE FROM permission_templates WHERE "partnerLinkId" = ANY($1)',
+          [partnerLinkIds]
+        );
+        await manager.query('DELETE FROM partner_links WHERE id = ANY($1)', [
+          partnerLinkIds,
+        ]);
+      }
+
+      await manager.query('DELETE FROM users WHERE id = $1', [userId]);
+    });
+
+    try {
+      const { clerkClient } = await import('../config/clerk');
+      await clerkClient.users.deleteUser(user.clerkId);
+      logger.info({ userId, clerkId: user.clerkId }, 'Clerk account deleted');
+    } catch (clerkError) {
+      logger.error(
+        { err: clerkError, userId },
+        'Failed to delete Clerk account after DB deletion'
+      );
+    }
+
+    logger.info({ userId }, 'Account permanently deleted');
   }
 
   async deactivateUser(userId: string): Promise<void> {

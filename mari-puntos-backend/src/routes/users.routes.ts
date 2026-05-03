@@ -197,6 +197,8 @@ router.put('/profile', authMiddleware, asyncHandler(usersController.updateProfil
 router.get('/stats', authMiddleware, asyncHandler(usersController.getStats));
 router.get('/achievements', authMiddleware, asyncHandler(usersController.getAchievements));
 
+router.delete('/account', authMiddleware, asyncHandler(usersController.deleteAccount));
+
 /**
  * @swagger
  * /users/deactivate:

@@ -1,19 +1,6 @@
 import * as Sentry from '@sentry/react-native';
 import { consoleTransport, logger } from 'react-native-logs';
 
-/**
- * Logger configuration for the app
- *
- * In development:
- * - Logs to console with colors and timestamps
- * - All log levels enabled (debug, info, warn, error)
- *
- * In production:
- * - Only warn and error logs to console
- * - Errors automatically sent to Sentry
- * - Debug and info logs disabled for performance
- */
-
 const config = {
   levels: {
     debug: 0,
@@ -21,7 +8,8 @@ const config = {
     warn: 2,
     error: 3,
   },
-  severity: __DEV__ ? 'debug' : 'warn', // In dev: all logs, in prod: only warn/error
+  // Dev: all levels to console. Prod: only warn/error to console (info/debug go to Sentry only).
+  severity: __DEV__ ? 'debug' : 'warn',
   transport: consoleTransport,
   transportOptions: {
     colors: {
@@ -39,50 +27,58 @@ const config = {
 
 const log = logger.createLogger(config);
 
-/**
- * Custom logger that integrates with Sentry
- * Automatically sends error logs to Sentry in production
- */
+function toAttributes(args: any[]): Record<string, unknown> {
+  return args.length > 0 ? { data: args } : {};
+}
+
 const customLogger = {
   debug: (message: string, ...args: any[]) => {
     log.debug(message, ...args);
   },
 
+  // Sends a breadcrumb + Sentry Log entry for flow tracing — does NOT create a Sentry issue.
   info: (message: string, ...args: any[]) => {
     log.info(message, ...args);
-  },
-
-  warn: (message: string, ...args: any[]) => {
-    log.warn(message, ...args);
     if (!__DEV__) {
-      Sentry.captureMessage(message, {
-        level: 'warning',
-        extra: args.length > 0 ? { data: args } : undefined,
-      });
+      const attrs = toAttributes(args);
+      Sentry.addBreadcrumb({ category: 'app', message, level: 'info', data: attrs });
+      Sentry.logger.info(message, attrs);
     }
   },
 
+  // Sends a breadcrumb + Sentry Log entry for unexpected-but-handled situations — does NOT create a Sentry issue.
+  warn: (message: string, ...args: any[]) => {
+    log.warn(message, ...args);
+    if (!__DEV__) {
+      const attrs = toAttributes(args);
+      Sentry.addBreadcrumb({ category: 'app', message, level: 'warning', data: attrs });
+      Sentry.logger.warn(message, attrs);
+    }
+  },
+
+  // Creates a Sentry issue. Use only for unexpected errors that need investigation.
   error: (message: string, error?: Error | any, ...args: any[]) => {
     log.error(message, error, ...args);
 
-    // Send errors to Sentry
-    if (error instanceof Error) {
-      Sentry.captureException(error, {
-        contexts: {
-          error_context: {
-            message,
+    if (!__DEV__) {
+      if (error instanceof Error) {
+        Sentry.captureException(error, {
+          contexts: {
+            error_context: {
+              message,
+              data: args.length > 0 ? args : undefined,
+            },
+          },
+        });
+      } else {
+        Sentry.captureMessage(message, {
+          level: 'error',
+          extra: {
+            error,
             data: args.length > 0 ? args : undefined,
           },
-        },
-      });
-    } else {
-      Sentry.captureMessage(message, {
-        level: 'error',
-        extra: {
-          error,
-          data: args.length > 0 ? args : undefined,
-        },
-      });
+        });
+      }
     }
   },
 };

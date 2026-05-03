@@ -19,12 +19,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { Button, Card, CodeInput } from '@/components/ui';
 import { useThemedColors, useUser } from '@/hooks';
 import { userService } from '@/services';
-import { useUserStore } from '@/stores';
+import {
+  useActionsStore,
+  usePermissionsStore,
+  usePointsStore,
+  useStreakStore,
+  useUserStore,
+} from '@/stores';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import logger from '@/utils/logger';
 import { LinkPartnerFormData, linkPartnerSchema } from '@/validators';
@@ -55,19 +61,14 @@ export default function LinkPartnerScreen() {
   // Load existing partner link code on mount
   useEffect(() => {
     const loadExistingCode = async () => {
-      try {
-        const existingLink = await getPartnerLinkCode();
-        if (existingLink && existingLink.status === 'pending') {
-          setGeneratedCode(existingLink.linkCode);
-          logger.debug('Existing partner link code loaded', {
-            linkCode: existingLink.linkCode,
-          });
-        }
-      } catch (error) {
-        logger.error('Error loading existing partner link code', error as Error);
-      } finally {
-        setLoadingExistingCode(false);
+      const existingLink = await getPartnerLinkCode();
+      if (existingLink && existingLink.status === 'pending') {
+        setGeneratedCode(existingLink.linkCode);
+        logger.debug('Existing partner link code loaded', {
+          linkCode: existingLink.linkCode,
+        });
       }
+      setLoadingExistingCode(false);
     };
 
     loadExistingCode();
@@ -76,23 +77,18 @@ export default function LinkPartnerScreen() {
 
   const handleGenerateCode = async () => {
     setGenerating(true);
+    logger.info('Partner link code generation requested');
     try {
       const code = await createPartnerLink();
       setGeneratedCode(code);
       logger.info('Partner link code generated successfully', { code });
-      Toast.show({
-        type: 'success',
-        text1: '¡Código generado!',
-        text2: 'Comparte este código con tu pareja',
+      toast.success('¡Código generado!', {
+        description: 'Comparte este código con tu pareja',
       });
     } catch (error) {
       logger.error('Failed to generate partner link code', error as Error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: (error as any)?.error
-          ? (error as any).error
-          : 'No se pudo generar el código',
+      toast.error('Error', {
+        description: (error as any)?.error ?? 'No se pudo generar el código',
       });
     } finally {
       setGenerating(false);
@@ -102,45 +98,61 @@ export default function LinkPartnerScreen() {
   const handleCopyCode = async () => {
     if (generatedCode) {
       await Clipboard.setStringAsync(generatedCode);
-      Toast.show({
-        type: 'success',
-        text1: '¡Copiado!',
-        text2: 'Código copiado al portapapeles',
-      });
+      logger.info('Partner link code copied to clipboard');
+      toast.success('¡Copiado!', { description: 'Código copiado al portapapeles' });
     }
   };
 
   const onSubmit = async (data: LinkPartnerFormData) => {
     // Validar que no intente unirse a su propio código
-    if (generatedCode && data.partnerCode.toUpperCase() === generatedCode.toUpperCase()) {
+    if (
+      generatedCode &&
+      data.partnerCode.trim().toUpperCase() === generatedCode.toUpperCase()
+    ) {
       logger.warn('User attempted to join their own partner code');
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'No puedes unirte a tu propio código',
-      });
+      toast.error('Error', { description: 'No puedes unirte a tu propio código' });
       return;
     }
 
+    logger.info('Partner link join attempt', { partnerCode: data.partnerCode });
     try {
       await joinPartnerLink(data.partnerCode);
-      logger.info('Successfully joined partner link', { partnerCode: data.partnerCode });
-      Toast.show({
-        type: 'success',
-        text1: '¡Vinculado!',
-        text2: 'Ahora estás conectado con tu pareja',
+      // Refresh partner-dependent stores (permissions excluded from userStore.joinPartnerLink
+      // due to circular-dependency constraints — handled here instead)
+      usePermissionsStore
+        .getState()
+        .fetchMyPermissions()
+        .catch(() => {});
+      usePermissionsStore
+        .getState()
+        .fetchPartnerPermissions()
+        .catch(() => {});
+      useActionsStore
+        .getState()
+        .fetchMyActions()
+        .catch(() => {});
+      useActionsStore
+        .getState()
+        .fetchPartnerActions()
+        .catch(() => {});
+      usePointsStore
+        .getState()
+        .fetchPointsHistory()
+        .catch(() => {});
+      useStreakStore
+        .getState()
+        .fetchStreak()
+        .catch(() => {});
+      toast.success('¡Vinculado!', {
+        description: 'Ahora estás conectado con tu pareja',
       });
       router.replace('/(tabs)');
     } catch (error) {
       logger.error('Failed to join partner link', error as Error, {
         partnerCode: data.partnerCode,
       });
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: (error as any)?.error
-          ? (error as any).error
-          : 'Código inválido o expirado',
+      toast.error('Error', {
+        description: (error as any)?.error ?? 'Código inválido o expirado',
       });
     }
   };
@@ -155,13 +167,39 @@ export default function LinkPartnerScreen() {
       ]);
 
       if (partnerInfo) {
+        logger.info('Partner link confirmed via refresh', {
+          partnerName: partnerInfo.partner.firstName,
+        });
         // Update store silently
         useUserStore.setState({ user, partnerInfo });
+        // Refresh partner-dependent stores
+        usePermissionsStore
+          .getState()
+          .fetchMyPermissions()
+          .catch(() => {});
+        usePermissionsStore
+          .getState()
+          .fetchPartnerPermissions()
+          .catch(() => {});
+        useActionsStore
+          .getState()
+          .fetchMyActions()
+          .catch(() => {});
+        useActionsStore
+          .getState()
+          .fetchPartnerActions()
+          .catch(() => {});
+        usePointsStore
+          .getState()
+          .fetchPointsHistory()
+          .catch(() => {});
+        useStreakStore
+          .getState()
+          .fetchStreak()
+          .catch(() => {});
 
-        Toast.show({
-          type: 'success',
-          text1: '¡Vinculado exitosamente!',
-          text2: `Tu pareja ${partnerInfo.partner.firstName} se ha conectado`,
+        toast.success('¡Vinculado exitosamente!', {
+          description: `Tu pareja ${partnerInfo.partner.firstName} se ha conectado`,
         });
 
         // Redirect to home after a brief delay to show the toast
@@ -169,17 +207,13 @@ export default function LinkPartnerScreen() {
           router.replace('/(tabs)');
         }, 1000);
       } else {
-        Toast.show({
-          type: 'info',
-          text1: 'Esperando conexión',
-          text2: 'Tu pareja aún no ha ingresado el código',
+        toast.info('Esperando conexión', {
+          description: 'Tu pareja aún no ha ingresado el código',
         });
       }
     } catch {
-      Toast.show({
-        type: 'info',
-        text1: 'Esperando conexión',
-        text2: 'Tu pareja aún no ha ingresado el código',
+      toast.info('Esperando conexión', {
+        description: 'Tu pareja aún no ha ingresado el código',
       });
     } finally {
       setRefreshing(false);
@@ -190,7 +224,7 @@ export default function LinkPartnerScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior="padding"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
         <ScrollView

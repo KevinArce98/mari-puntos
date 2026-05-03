@@ -32,6 +32,7 @@ interface UserState {
   unlinkPartner: () => Promise<void>;
   clearUser: () => void;
   setError: (error: string | null) => void;
+  setProfileReady: () => void;
 }
 
 export const useUserStore = create<UserState>((set, get) => ({
@@ -54,10 +55,13 @@ export const useUserStore = create<UserState>((set, get) => ({
       logger.debug('User profile fetched successfully', { userId: user.id });
     } catch (error: unknown) {
       logger.error('Failed to fetch user profile', error as Error);
+      const is404 = (error as any)?.status === 404;
       set({
-        error: getErrorMessage(error),
+        error: is404 ? null : getErrorMessage(error),
         isLoading: false,
-        isProfileReady: true,
+        // On 404 keep isProfileReady false — orphan recovery may still create the profile.
+        // AuthGuard must not redirect to login until recovery resolves.
+        isProfileReady: !is404,
       });
       throw error;
     }
@@ -80,7 +84,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       logger.debug('Partner info fetched successfully', { hasPartner: !!partnerInfo });
       return partnerInfo;
     } catch (error: unknown) {
-      logger.error('Failed to fetch partner info', error as Error);
+      // 404 = no partner yet — expected state, not a real error
+      logger.debug('No partner info available', error);
       set({ partnerInfo: null });
       return null;
     }
@@ -129,7 +134,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       logger.debug('Partner link code fetched successfully');
       return response;
     } catch (error: unknown) {
-      logger.error('Failed to fetch partner link code', error as Error);
+      // 404 = no link code exists yet — expected state, not a real error
+      logger.debug('No partner link code available', error);
       return null;
     }
   },
@@ -175,4 +181,6 @@ export const useUserStore = create<UserState>((set, get) => ({
       error: null,
       isProfileReady: false,
     }),
+
+  setProfileReady: () => set({ isProfileReady: true }),
 }));

@@ -147,9 +147,21 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
         responseMessage,
         pointsCost,
       });
+      logger.info('Permission response submitted', {
+        permissionId,
+        approved,
+        pointsCost,
+      });
       await get().fetchPartnerPermissions({ status: PermissionStatus.PENDING });
-      // Update partner info to refresh points (use getState() to avoid circular import)
-      await useUserStore.getState().fetchPartnerInfo();
+      // Refresh both user stats (points deducted) and partner info
+      useUserStore
+        .getState()
+        .fetchStats()
+        .catch(() => {});
+      useUserStore
+        .getState()
+        .fetchPartnerInfo()
+        .catch(() => {});
       set((s) => ({
         isMutating: false,
         isLoading: s.isLoadingMyPermissions || s.isLoadingPartnerPermissions,
@@ -169,6 +181,7 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
     set({ isMutating: true, isLoading: true, error: null });
     try {
       await permissionsService.cancelPermission(permissionId);
+      logger.info('Permission cancelled', { permissionId });
       await get().fetchMyPermissions({ status: PermissionStatus.PENDING });
       set((s) => ({
         isMutating: false,

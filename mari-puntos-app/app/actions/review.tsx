@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { LegendList } from '@legendapp/list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { ActionItemCard, Chip, ReviewActionModal } from '@/components/ui';
 import { useActions, useStreak, useThemedColors } from '@/hooks';
@@ -100,23 +100,14 @@ export default function ReviewActionsScreen() {
     try {
       await approveAction(actionId, points);
       await Promise.all([refetchPartnerActions(), refetchStreak().catch(() => {})]);
-      logger.info('Action approved successfully', { actionId, points });
-      Toast.show({
-        type: 'success',
-        text1: 'Acción Aprobada',
-        text2: 'Los puntos han sido otorgados',
-      });
+      toast.success('Acción Aprobada', { description: 'Los puntos han sido otorgados' });
 
       // Close modal and clear selection
       setShowReviewModal(false);
       setSelectedAction(null);
     } catch (error) {
       logger.error('Failed to approve action', error as Error, { actionId, points });
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'No se pudo aprobar la acción',
-      });
+      toast.error('Error', { description: 'No se pudo aprobar la acción' });
     }
   };
 
@@ -124,23 +115,14 @@ export default function ReviewActionsScreen() {
     try {
       await rejectAction(actionId, reason);
       await refetchPartnerActions();
-      logger.info('Action rejected successfully', { actionId, reason });
-      Toast.show({
-        type: 'success',
-        text1: 'Acción Rechazada',
-        text2: 'Se ha notificado a tu pareja',
-      });
+      toast.success('Acción Rechazada', { description: 'Se ha notificado a tu pareja' });
 
       // Close modal and clear selection
       setShowReviewModal(false);
       setSelectedAction(null);
     } catch (error) {
       logger.error('Failed to reject action', error as Error, { actionId, reason });
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'No se pudo rechazar la acción',
-      });
+      toast.error('Error', { description: 'No se pudo rechazar la acción' });
     }
   };
 
@@ -179,7 +161,7 @@ export default function ReviewActionsScreen() {
           <Ionicons name="list-outline" size={24} color={colors.primary} />
           <View style={styles.statContent}>
             <Text style={[styles.statValue, { color: colors.text.primary }]}>
-              {partnerActions.length}
+              {partnerActionsPagination?.total ?? partnerActions.length}
             </Text>
             <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
               Total

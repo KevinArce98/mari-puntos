@@ -20,7 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { Button, Card, TextAreaWithCounter } from '@/components/ui';
 import { usePermissions, useThemedColors, useUser } from '@/hooks';
@@ -72,13 +72,7 @@ export default function RequestPermissionScreen() {
     };
   }, []);
 
-  // Load permission templates
-  useEffect(() => {
-    if (!user) return;
-    loadTemplates();
-  }, [user]);
-
-  // Reload templates when screen comes into focus
+  // Load templates on mount and on every focus (useFocusEffect fires on initial mount too)
   useFocusEffect(
     useCallback(() => {
       if (!user) return;
@@ -93,19 +87,13 @@ export default function RequestPermissionScreen() {
       setTemplates(result.data || []);
       logger.debug('Permission templates loaded', { count: result.data?.length || 0 });
       if (!result.data || result.data.length === 0) {
-        Toast.show({
-          type: 'info',
-          text1: 'No hay actividades',
-          text2: 'Contacta al administrador para agregar plantillas',
+        toast.info('No hay actividades', {
+          description: 'Contacta al administrador para agregar plantillas',
         });
       }
     } catch (error) {
       logger.error('Failed to load permission templates', error as Error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'No se pudieron cargar las plantillas',
-      });
+      toast.error('Error', { description: 'No se pudieron cargar las plantillas' });
     } finally {
       setLoadingTemplates(false);
     }
@@ -129,11 +117,7 @@ export default function RequestPermissionScreen() {
 
   const handleRequest = async () => {
     if (!selectedTemplate) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Por favor selecciona un tipo de actividad',
-      });
+      toast.error('Error', { description: 'Por favor selecciona un tipo de actividad' });
       return;
     }
 
@@ -148,18 +132,19 @@ export default function RequestPermissionScreen() {
         metadata: note.trim() ? { note: note.trim() } : undefined,
       });
 
-      Toast.show({
-        type: 'success',
-        text1: '¡Solicitud Enviada!',
-        text2: 'Tu pareja recibirá una notificación',
+      logger.info('Permission request submitted', {
+        templateId: selectedTemplate.id,
+        durationHours: duration,
+      });
+
+      toast.success('¡Solicitud Enviada!', {
+        description: 'Tu pareja recibirá una notificación',
       });
 
       router.back();
     } catch (e) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: (e as any)?.error ? (e as any).error : 'No se pudo enviar la solicitud',
+      toast.error('Error', {
+        description: (e as any)?.error ?? 'No se pudo enviar la solicitud',
       });
     } finally {
       setLoading(false);
@@ -242,7 +227,10 @@ export default function RequestPermissionScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <KeyboardAvoidingView style={styles.keyboardView} behavior="padding">
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}

@@ -56,7 +56,12 @@ export function NotificationBell({ size = 26 }: NotificationBellProps) {
         color={totalPending > 0 ? colors.primary : colors.text.secondary}
       />
       {totalPending > 0 && (
-        <View style={[styles.badge, { backgroundColor: colors.error }]}>
+        <View
+          style={[
+            styles.badge,
+            { backgroundColor: colors.error, borderColor: colors.background },
+          ]}
+        >
           <Text style={styles.badgeText}>{totalPending > 99 ? '99+' : totalPending}</Text>
         </View>
       )}
@@ -84,7 +89,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 4,
     borderWidth: 2,
-    borderColor: '#fff',
+    // borderColor set inline from theme to support dark mode
   },
   badgeText: {
     ...typography.styles.caption,

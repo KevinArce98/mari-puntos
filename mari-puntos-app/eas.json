@@ -14,12 +14,20 @@
       "channel": "development"
     },
     "preview": {
+      "environment": "preview",
+      "autoIncrement": true,
       "distribution": "store",
       "ios": {
         "simulator": false,
         "buildConfiguration": "Release"
       },
       "channel": "preview"
+    },
+    "verification": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "distribution": "store",
@@ -32,7 +40,18 @@
     }
   },
   "submit": {
+    "preview": {
+      "ios": {
+        "appleId": "arias9068@email.com",
+        "ascAppId": "6758923865",
+        "appleTeamId": "CJU4U9MCM4"
+      }
+    },
     "production": {
+      "android": {
+        "serviceAccountKeyPath": "./google-play-key.json",
+        "track": "internal"
+      },
       "ios": {
         "appleId": "arias9068@email.com",
         "ascAppId": "6758923865",

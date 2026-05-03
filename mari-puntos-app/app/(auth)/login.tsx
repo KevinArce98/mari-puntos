@@ -4,6 +4,7 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -18,7 +19,7 @@ import { isClerkAPIResponseError, useSignIn } from '@clerk/clerk-expo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { Button, ControlledInput } from '@/components/ui';
 import { useThemedColors } from '@/hooks';
@@ -49,6 +50,7 @@ export default function LoginScreen() {
   const onSubmit = async (data: LoginFormData) => {
     if (!isLoaded) return;
 
+    logger.info('Login attempt', { email: data.email });
     try {
       const result = await signIn.create({
         identifier: data.email,
@@ -69,11 +71,7 @@ export default function LoginScreen() {
 
       logger.warn('Login failed', { email: data.email, error: errorMessage });
 
-      Toast.show({
-        type: 'error',
-        text1: 'Inicio de sesión fallido',
-        text2: errorMessage,
-      });
+      toast.error('Inicio de sesión fallido', { description: errorMessage });
     }
   };
 
@@ -96,7 +94,7 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: themeColors.background }]}
-      behavior="padding"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView

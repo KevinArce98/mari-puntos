@@ -9,6 +9,7 @@ export const clerkLocalization = {
     'Registro fallido debido a validación de bot fallida. Por favor, actualiza la página para intentar de nuevo o contacta a soporte para más ayuda.',
   form_code_incorrect: 'Código incorrecto.',
   form_email_address_blocked: 'Esta dirección de correo electrónico ha sido bloqueada.',
+  form_identifier_exists: 'Esta dirección de correo electrónico ya está en uso.',
   form_identifier_exists__email_address:
     'Esta dirección de correo electrónico ya está en uso.',
   form_identifier_exists__phone_number: 'Este número de teléfono ya está en uso.',

@@ -113,6 +113,14 @@ class UserService {
   async unlinkPartner(): Promise<void> {
     await apiService.post<ApiResponse<null>>('/partner/unlink');
   }
+
+  /**
+   * Permanently delete account and all data
+   * DELETE /users/account
+   */
+  async deleteAccount(): Promise<void> {
+    await apiService.delete<ApiResponse<null>>('/users/account');
+  }
 }
 
 export const userService = new UserService();

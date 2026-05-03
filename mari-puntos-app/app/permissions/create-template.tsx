@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Toast from 'react-native-toast-message';
+import { toast } from 'sonner-native';
 
 import { Button, Card, IconSelector, Input, Select } from '@/components/ui';
 import { useThemedColors } from '@/hooks';
@@ -66,11 +66,7 @@ export default function CreateTemplateScreen() {
 
   const handleCreate = async () => {
     if (!title.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'El título es requerido',
-      });
+      toast.error('Error', { description: 'El título es requerido' });
       return;
     }
 
@@ -78,20 +74,12 @@ export default function CreateTemplateScreen() {
     const points = parseFloat(suggestedPoints);
 
     if (isNaN(duration) || duration <= 0) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'La duración debe ser mayor a 0',
-      });
+      toast.error('Error', { description: 'La duración debe ser mayor a 0' });
       return;
     }
 
     if (isNaN(points) || points < 0) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Los puntos deben ser 0 o mayor',
-      });
+      toast.error('Error', { description: 'Los puntos deben ser 0 o mayor' });
       return;
     }
 
@@ -108,11 +96,9 @@ export default function CreateTemplateScreen() {
         },
       });
 
-      Toast.show({
-        type: 'success',
-        text1: '¡Éxito!',
-        text2: 'Actividad personalizada creada',
-      });
+      logger.info('Permission template created', { title: title.trim(), category });
+
+      toast.success('¡Éxito!', { description: 'Actividad personalizada creada' });
 
       router.back();
     } catch (error) {
@@ -122,11 +108,7 @@ export default function CreateTemplateScreen() {
         suggestedDurationHours: duration,
         suggestedPointsCost: points,
       });
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'No se pudo crear la actividad',
-      });
+      toast.error('Error', { description: 'No se pudo crear la actividad' });
     } finally {
       setLoading(false);
     }
@@ -155,7 +137,7 @@ export default function CreateTemplateScreen() {
 
       <KeyboardAvoidingView
         style={{ flex: 1, marginBottom: keyboardHeight + 50 }}
-        behavior="padding"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
