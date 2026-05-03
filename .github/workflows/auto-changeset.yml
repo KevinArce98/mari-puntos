@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - staging
+    paths:
+      - 'mari-puntos-app/**'
+      - 'mari-puntos-backend/**'
 
 permissions:
   contents: write

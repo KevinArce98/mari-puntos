@@ -163,7 +163,7 @@ export default function Home() {
         </div>
 
         {/* Waves */}
-        <div className="absolute -bottom-52 left-0 right-0 leading-none">
+        <div className="absolute -bottom-14 left-0 right-0 leading-none">
           <svg
             className="w-full h-24 md:h-60"
             viewBox="0 0 1440 120"
