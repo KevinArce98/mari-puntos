@@ -26,6 +26,7 @@ import { toast } from 'sonner-native';
 import { Button, ControlledCodeInput } from '@/components/ui';
 import { useThemedColors } from '@/hooks';
 import { apiService, userService } from '@/services';
+import { useUserStore } from '@/stores';
 import { spacing, typography } from '@/theme';
 import { handleClerkErrors } from '@/types/clerk-localization';
 import logger from '@/utils/logger';
@@ -39,6 +40,7 @@ export default function VerifyEmailScreen() {
   const insets = useSafeAreaInsets();
   const themeColors = useThemedColors();
 
+  const { fetchProfile } = useUserStore();
   const [resendCooldown, setResendCooldown] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
@@ -120,16 +122,27 @@ export default function VerifyEmailScreen() {
         clerkId: result.createdUserId ?? undefined,
       });
       logger.info('Email verified and profile created — navigating to app', { email });
+      await fetchProfile().catch(() => {});
       router.replace('/(tabs)');
     } catch (profileError: any) {
-      if (profileError?.status === 409) {
-        logger.info('Email verified — profile already exists, continuing', { email });
-        router.replace('/(tabs)');
-      } else {
-        toast.error('Error al crear perfil', {
-          description: profileError?.message || 'Intenta iniciar sesión nuevamente',
-        });
+      if (profileError?.status === 409 || profileError?.status >= 500) {
+        // 409 = duplicate (another request already created it).
+        // 5xx = possible race where the concurrent request hit a DB constraint before
+        //       the backend could return 409 (undeployed fix). Try fetching — if the
+        //       profile exists we're good, if not fall through to error.
+        try {
+          await fetchProfile();
+          logger.info('Email verified — profile confirmed after createProfile error, navigating', { email });
+          router.replace('/(tabs)');
+          return;
+        } catch {
+          // Profile genuinely doesn't exist — fall through to error toast
+        }
       }
+      logger.error('Failed to create profile after email verification', profileError, { email });
+      toast.error('Error al crear perfil', {
+        description: profileError?.message || 'Intenta iniciar sesión nuevamente',
+      });
     }
   };
 

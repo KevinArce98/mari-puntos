@@ -20,7 +20,7 @@ import logger from '@/utils/logger';
 export function useClerkAuth() {
   const { getToken, isSignedIn, isLoaded, signOut } = useAuth();
   const { user: clerkUser } = useUser();
-  const { fetchProfile, clearUser, user } = useUserStore();
+  const { fetchProfile, clearUser, setProfileReady, user } = useUserStore();
   const { clearAll: clearNotifications } = useNotificationStore();
   const { clearActions } = useActionsStore();
   const { clearPermissions } = usePermissionsStore();
@@ -78,23 +78,30 @@ export function useClerkAuth() {
                     clerkId: clerkUser.id,
                   })
                   .then(() => {
-                    logger.info('Orphan profile recovered — re-fetching on next render');
-                    hasFetchedProfile.current = false; // Re-fetch on next render
+                    logger.info('Orphan profile recovered — fetching profile');
+                    fetchProfile().catch(() => {
+                      hasFetchedProfile.current = false;
+                    });
                   })
                   .catch((createErr) => {
                     if (createErr?.status === 409) {
-                      // Profile was already created — just re-fetch
-                      hasFetchedProfile.current = false;
+                      // Profile was created by concurrent request — fetch it
+                      fetchProfile().catch(() => {
+                        hasFetchedProfile.current = false;
+                      });
                     } else {
                       logger.warn(
                         'Failed to recover orphan profile during session restore'
                       );
+                      // Unblock AuthGuard — recovery is done, no profile exists
+                      setProfileReady();
                     }
                   });
               } else {
                 logger.warn(
                   'Signed-in Clerk user has no email or clerkId — cannot recover orphan profile'
                 );
+                setProfileReady();
               }
             }
           });
