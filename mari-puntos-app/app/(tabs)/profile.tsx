@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { useAuth, useUser as useClerkUser } from '@clerk/clerk-expo';
+import { useAuth } from '@clerk/clerk-expo';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -44,7 +44,6 @@ export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signOut } = useAuth();
-  const { user: clerkUser } = useClerkUser();
   const { user, partnerInfo, hasPartner, unlinkPartner, updateProfile } = useUser();
   const { myPoints, myLevel, progressToNextLevel, pointsToNextLevel } = usePoints();
   const [loading, setLoading] = useState(false);

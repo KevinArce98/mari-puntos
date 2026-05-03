@@ -72,9 +72,7 @@ export default function CompetitionScreen() {
                 <Text style={styles.playerName}>
                   {partnerInfo?.partner?.firstName || 'Pareja'}
                 </Text>
-                <Text style={styles.playerPoints}>
-                  {partnerPoints.toLocaleString()}
-                </Text>
+                <Text style={styles.playerPoints}>{partnerPoints.toLocaleString()}</Text>
                 <Text style={styles.playerLevel}>Nivel {partnerLevel}</Text>
               </View>
             </View>
