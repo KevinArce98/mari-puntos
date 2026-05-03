@@ -132,14 +132,19 @@ export default function VerifyEmailScreen() {
         //       profile exists we're good, if not fall through to error.
         try {
           await fetchProfile();
-          logger.info('Email verified — profile confirmed after createProfile error, navigating', { email });
+          logger.info(
+            'Email verified — profile confirmed after createProfile error, navigating',
+            { email }
+          );
           router.replace('/(tabs)');
           return;
         } catch {
           // Profile genuinely doesn't exist — fall through to error toast
         }
       }
-      logger.error('Failed to create profile after email verification', profileError, { email });
+      logger.error('Failed to create profile after email verification', profileError, {
+        email,
+      });
       toast.error('Error al crear perfil', {
         description: profileError?.message || 'Intenta iniciar sesión nuevamente',
       });
