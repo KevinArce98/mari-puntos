@@ -31,14 +31,27 @@ export class PartnerService {
         throw new AppError(404, 'Usuario no encontrado');
       }
 
-      // Check for any existing link (active or pending) under the lock
-      const existingLink = await partnerLinkRepo.findOne({
-        where: [{ user1Id: userId }, { user2Id: userId }],
+      // Block only if user already has an ACTIVE link
+      const existingActiveLink = await partnerLinkRepo.findOne({
+        where: [
+          { user1Id: userId, status: PartnerLinkStatus.ACTIVE },
+          { user2Id: userId, status: PartnerLinkStatus.ACTIVE },
+        ],
       });
 
-      if (existingLink) {
-        logger.warn({ message: 'User already has an active or pending partner link', userId });
-        throw new AppError(400, 'El usuario ya tiene un enlace de pareja');
+      if (existingActiveLink) {
+        logger.warn({ message: 'User already has an active partner link', userId });
+        throw new AppError(400, 'El usuario ya tiene un enlace de pareja activo');
+      }
+
+      // If user already has a pending link, return it instead of creating a new one
+      const existingPendingLink = await partnerLinkRepo.findOne({
+        where: [{ user1Id: userId, status: PartnerLinkStatus.PENDING }],
+      });
+
+      if (existingPendingLink) {
+        logger.info({ message: 'User already has a pending partner link, returning existing', userId });
+        return existingPendingLink;
       }
 
       // Generate unique link code (uses default repo — independent lookup is fine)
@@ -81,13 +94,16 @@ export class PartnerService {
           throw new AppError(404, 'Usuario no encontrado');
         }
 
-        // Check if joining user already has a link
-        const existingLink = await partnerLinkRepo.findOne({
-          where: [{ user1Id: userId }, { user2Id: userId }],
+        // Block only if joining user already has an ACTIVE link
+        const existingActiveLink = await partnerLinkRepo.findOne({
+          where: [
+            { user1Id: userId, status: PartnerLinkStatus.ACTIVE },
+            { user2Id: userId, status: PartnerLinkStatus.ACTIVE },
+          ],
         });
 
-        if (existingLink) {
-          throw new AppError(400, 'El usuario ya tiene un enlace de pareja');
+        if (existingActiveLink) {
+          throw new AppError(400, 'El usuario ya tiene un enlace de pareja activo');
         }
 
         // Lock the partner link row to prevent double-join race
@@ -129,6 +145,15 @@ export class PartnerService {
 
         await userRepo.save(user);
         const saved = await partnerLinkRepo.save(partnerLink);
+
+        // Clean up any orphaned PENDING links from the joining user
+        const joinerPendingLinks = await partnerLinkRepo.find({
+          where: [{ user1Id: userId, status: PartnerLinkStatus.PENDING }],
+        });
+        if (joinerPendingLinks.length > 0) {
+          await partnerLinkRepo.remove(joinerPendingLinks);
+          logger.info({ message: 'Removed orphaned pending links from joining user', userId, count: joinerPendingLinks.length });
+        }
 
         // Create link logs for both users in the same transaction
         const logRepo = manager.getRepository(Log);
