@@ -1,4 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
+
 import { config } from '../config/env';
 import { sendError } from '../utils/response';
 
@@ -43,7 +44,9 @@ function getRateLimitKey(req: Request): string {
 
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded) {
-    const first = (Array.isArray(forwarded) ? forwarded[0] : forwarded).split(',')[0].trim();
+    const first = (Array.isArray(forwarded) ? forwarded[0] : forwarded)
+      .split(',')[0]
+      .trim();
     return `ip:${first}`;
   }
 
