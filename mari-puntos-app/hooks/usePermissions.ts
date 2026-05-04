@@ -29,13 +29,13 @@ export const usePermissions = () => {
         logger.error('Failed to fetch my permissions in usePermissions hook', error);
       });
     }
-    if (!store.isLoadingPartnerPermissions) {
+    if (user.hasPartner && !store.isLoadingPartnerPermissions) {
       fetchPartnerPermissions().catch((error) => {
         logger.error('Failed to fetch partner permissions in usePermissions hook', error);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, user?.hasPartner]);
 
   const handleRequestPermission = async (data: CreatePermissionRequest) => {
     await createPermission(data);
@@ -79,7 +79,9 @@ export const usePermissions = () => {
     respondToPermission: handleRespondToPermission,
     cancelPermission: handleCancelPermission,
     refetch: async () => {
-      await Promise.all([fetchMyPermissions(), fetchPartnerPermissions()]);
+      const ops: Promise<unknown>[] = [fetchMyPermissions()];
+      if (user?.hasPartner) ops.push(fetchPartnerPermissions());
+      await Promise.all(ops);
     },
   };
 };

@@ -150,12 +150,15 @@ export function useNotifications() {
         const data = notification.request.content.data as unknown as NotificationData;
         if (!data?.type) return;
         logger.info('Foreground notification received', { type: data.type });
+        const hasPartner = !!useUserStore.getState().user?.hasPartner;
         switch (data.type) {
           case 'action_created':
-            useActionsStore
-              .getState()
-              .fetchPartnerActions({ status: ActionStatus.PENDING })
-              .catch(() => {});
+            if (hasPartner) {
+              useActionsStore
+                .getState()
+                .fetchPartnerActions({ status: ActionStatus.PENDING })
+                .catch(() => {});
+            }
             break;
           case 'action_approved':
           case 'action_rejected':
@@ -165,10 +168,12 @@ export function useNotifications() {
               .catch(() => {});
             break;
           case 'permission_requested':
-            usePermissionsStore
-              .getState()
-              .fetchPartnerPermissions({ status: PermissionStatus.PENDING })
-              .catch(() => {});
+            if (hasPartner) {
+              usePermissionsStore
+                .getState()
+                .fetchPartnerPermissions({ status: PermissionStatus.PENDING })
+                .catch(() => {});
+            }
             break;
           case 'permission_response':
             usePermissionsStore
