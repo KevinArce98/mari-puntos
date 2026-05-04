@@ -1,5 +1,11 @@
 # mari-puntos-backend
 
+## 1.2.2
+
+### Patch Changes
+
+- ec0f03e: Auto-generated changeset from staging commits.
+
 ## 1.2.1
 
 ### Patch Changes
