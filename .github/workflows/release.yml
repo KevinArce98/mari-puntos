@@ -13,9 +13,31 @@ permissions:
   pull-requests: write
 
 jobs:
+  check-changesets:
+    name: Check for pending changesets
+    runs-on: ubuntu-latest
+    outputs:
+      has_changesets: ${{ steps.check.outputs.has_changesets }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for changeset files
+        id: check
+        run: |
+          COUNT=$(find .changeset -name '*.md' ! -name 'README.md' | wc -l | tr -d ' ')
+          echo "Pending changesets: $COUNT"
+          if [ "$COUNT" -gt "0" ]; then
+            echo "has_changesets=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changesets=false" >> "$GITHUB_OUTPUT"
+          fi
+
   release:
     name: Version & Release
     runs-on: ubuntu-latest
+    needs: check-changesets
+    if: needs.check-changesets.outputs.has_changesets == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,6 +65,20 @@ jobs:
 
       - name: Delete release branch
         if: steps.changesets.outputs.hasChangesets == 'false'
+        run: git push origin --delete changeset-release/main || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  cleanup-no-changesets:
+    name: Cleanup stale release branch
+    runs-on: ubuntu-latest
+    needs: check-changesets
+    if: needs.check-changesets.outputs.has_changesets == 'false'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Delete stale release branch if exists
         run: git push origin --delete changeset-release/main || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
