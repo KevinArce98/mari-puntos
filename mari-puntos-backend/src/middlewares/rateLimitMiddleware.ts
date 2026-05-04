@@ -1,78 +1,98 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
+
 import { config } from '../config/env';
 import { sendError } from '../utils/response';
 
-interface RateLimitStore {
-  [key: string]: {
-    count: number;
-    resetTime: number;
-  };
+interface RateLimitEntry {
+  count: number;
+  resetTime: number;
 }
 
-// In-memory store for rate limiting (in production, consider using Redis)
-const store: RateLimitStore = {};
+const store = new Map<string, RateLimitEntry>();
 
-// Clean up old entries every 5 minutes
 setInterval(
   () => {
     const now = Date.now();
-    Object.keys(store).forEach((key) => {
-      if (store[key].resetTime < now) {
-        delete store[key];
-      }
+    store.forEach((entry, key) => {
+      if (entry.resetTime < now) store.delete(key);
     });
   },
   5 * 60 * 1000
 );
 
 /**
- * Simple rate limiting middleware
- * Limits requests per IP address
+ * Extract a stable rate-limit key from the request.
+ * Prefers the Clerk user ID (decoded from JWT without full verification)
+ * so each user has their own bucket. Falls back to real IP from Cloudflare
+ * headers to avoid all users sharing the Docker internal IP.
+ */
+function getRateLimitKey(req: Request): string {
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    try {
+      const payload = JSON.parse(
+        Buffer.from(authHeader.split('.')[1], 'base64url').toString()
+      );
+      if (payload.sub) return `user:${payload.sub}`;
+    } catch {
+      // fall through
+    }
+  }
+
+  const cfIp = req.headers['cf-connecting-ip'];
+  if (cfIp && typeof cfIp === 'string') return `ip:${cfIp}`;
+
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    const first = (Array.isArray(forwarded) ? forwarded[0] : forwarded)
+      .split(',')[0]
+      .trim();
+    return `ip:${first}`;
+  }
+
+  return `ip:${req.ip || req.socket.remoteAddress || 'unknown'}`;
+}
+
+/**
+ * Rate limiting middleware — keyed per user (JWT sub) or real IP.
  *
- * Development: 1000 requests per 15 minutes
- * Production: 100 requests per 15 minutes
+ * Development : 1000 req / 15 min
+ * Production  : 300 req / 15 min
  */
 export const rateLimitMiddleware = (
   req: Request,
   res: Response,
   next: NextFunction
 ): void => {
-  // Skip rate limiting in test environment
   if (config.isTest) {
     next();
     return;
   }
 
-  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const key = getRateLimitKey(req);
   const now = Date.now();
-  const windowMs = 15 * 60 * 1000; // 15 minutes
-  const maxRequests = config.isDevelopment ? 1000 : 100;
+  const windowMs = 15 * 60 * 1000;
+  const maxRequests = config.isDevelopment ? 1000 : 300;
 
-  // Initialize or get existing entry
-  if (!store[ip] || store[ip].resetTime < now) {
-    store[ip] = {
-      count: 1,
-      resetTime: now + windowMs,
-    };
+  const entry = store.get(key);
+  if (!entry || entry.resetTime < now) {
+    store.set(key, { count: 1, resetTime: now + windowMs });
     next();
     return;
   }
 
-  // Increment counter
-  store[ip].count++;
+  entry.count++;
 
-  // Check if limit exceeded
-  if (store[ip].count > maxRequests) {
-    const retryAfterSeconds = Math.ceil((store[ip].resetTime - now) / 1000);
+  if (entry.count > maxRequests) {
+    const retryAfterSeconds = Math.ceil((entry.resetTime - now) / 1000);
     res.setHeader('Retry-After', retryAfterSeconds.toString());
     sendError(res, 'Demasiadas solicitudes. Por favor intenta más tarde.', 429);
     return;
   }
 
-  // Add rate limit headers
   res.setHeader('X-RateLimit-Limit', maxRequests.toString());
-  res.setHeader('X-RateLimit-Remaining', (maxRequests - store[ip].count).toString());
-  res.setHeader('X-RateLimit-Reset', new Date(store[ip].resetTime).toISOString());
+  res.setHeader('X-RateLimit-Remaining', (maxRequests - entry.count).toString());
+  res.setHeader('X-RateLimit-Reset', new Date(entry.resetTime).toISOString());
 
   next();
 };
