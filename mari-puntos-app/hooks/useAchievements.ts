@@ -1,49 +1,49 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 import { useFocusEffect } from 'expo-router';
 
+import { useQuery } from '@tanstack/react-query';
+
+import { queryKeys } from '@/lib/queryKeys';
 import { userService } from '@/services';
 import { useUserStore } from '@/stores';
-import { Achievement } from '@/types';
-import logger from '@/utils/logger';
+import { getErrorMessage } from '@/utils/errorMessage';
 
+/**
+ * Achievements data, backed by React Query.
+ *
+ * Reference implementation for the React Query migration: the public API is
+ * unchanged (achievements / unlocked / locked / isLoading / error / refetch),
+ * so consuming screens need no changes. Caching + dedup + focus refetch are now
+ * handled by React Query instead of ad-hoc component state.
+ */
 export const useAchievements = () => {
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const user = useUserStore((state) => state.user);
 
-  const fetchAchievements = useCallback(async () => {
-    if (!user) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await userService.getAchievements();
-      setAchievements(data);
-    } catch (err: unknown) {
-      const message = (err as { error?: string })?.error ?? 'Error al cargar logros';
-      setError(message);
-      logger.error('Failed to fetch achievements', err as Error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
+  const query = useQuery({
+    queryKey: queryKeys.user.achievements(),
+    queryFn: () => userService.getAchievements(),
+    enabled: !!user,
+  });
 
+  // Preserve previous behavior: refresh when the screen regains focus.
   useFocusEffect(
     useCallback(() => {
-      fetchAchievements();
-    }, [fetchAchievements])
+      if (user) query.refetch();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user])
   );
 
-  const unlockedAchievements = achievements.filter((a) => a.isUnlocked);
-  const lockedAchievements = achievements.filter((a) => !a.isUnlocked);
+  const achievements = query.data ?? [];
 
   return {
     achievements,
-    unlockedAchievements,
-    lockedAchievements,
-    isLoading,
-    error,
-    refetch: fetchAchievements,
+    unlockedAchievements: achievements.filter((a) => a.isUnlocked),
+    lockedAchievements: achievements.filter((a) => !a.isUnlocked),
+    isLoading: query.isLoading,
+    error: query.error ? getErrorMessage(query.error) : null,
+    refetch: async () => {
+      await query.refetch();
+    },
   };
 };

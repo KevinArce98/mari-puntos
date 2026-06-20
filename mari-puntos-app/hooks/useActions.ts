@@ -31,13 +31,13 @@ export const useActions = () => {
         logger.error('Failed to fetch my actions in useActions hook', error);
       });
     }
-    if (!store.isLoadingPartnerActions) {
+    if (user.hasPartner && !store.isLoadingPartnerActions) {
       fetchPartnerActions().catch((error) => {
         logger.error('Failed to fetch partner actions in useActions hook', error);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, user?.hasPartner]);
 
   const handleCreateAction = async (data: CreateActionRequest) => {
     await createAction(data);

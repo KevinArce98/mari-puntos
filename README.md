@@ -8,8 +8,7 @@ Gamifica los permisos en tu relación de pareja. Gana puntos por acciones, solic
 mari-puntos/
 ├── mari-puntos-app/        # App móvil (Expo / React Native)
 ├── mari-puntos-backend/    # API REST (Express / TypeORM / PostgreSQL)
-├── mari-puntos-website/    # Landing page (Next.js)
-└── .github/workflows/      # CI/CD pipelines
+└── mari-puntos-website/    # Landing page (Next.js)
 ```
 
 ## Tech Stack
@@ -57,23 +56,16 @@ pnpm run dev
 
 Cada proyecto tiene su propio `.env`. Consultá los archivos `.env.example` de cada subproyecto (si existen) o revisá la configuración en el código.
 
-## CI/CD
+## Builds y despliegue
 
-El proyecto usa **GitHub Actions** con los siguientes workflows:
+La app se compila y publica manualmente con **EAS**:
 
-| Workflow | Trigger | Descripción |
-|---|---|---|
-| `ci-app.yml` | PR que toca `mari-puntos-app/` | Lint + TypeCheck |
-| `ci-backend.yml` | PR que toca `mari-puntos-backend/` | Lint + TypeCheck + Build |
-| `cd-app-update.yml` | Push a `main` (cambios en app) | OTA update via `eas update` |
-| `cd-app-build.yml` | Tag `mari-puntos-app@*` | EAS Build iOS/Android + Submit |
-| `release.yml` | Push a `main` | Changesets: version bump + tags |
-
-### Secrets requeridos en GitHub
-
-| Secret | Descripción |
-|---|---|
-| `EXPO_TOKEN` | Token de acceso de Expo (EAS) |
+```bash
+cd mari-puntos-app
+eas build --platform ios      # build de producción iOS
+eas build --platform android  # build de producción Android
+eas update                    # OTA update (JS) sobre un build existente
+```
 
 ## Conventional Commits
 
@@ -82,24 +74,9 @@ El proyecto usa [Conventional Commits](https://www.conventionalcommits.org/) val
 ```
 feat(app): agregar pantalla de estadísticas
 fix(backend): corregir cálculo de puntos
-chore(ci): actualizar workflow de build
 ```
 
-**Scopes válidos:** `app`, `backend`, `website`, `ci`, `repo`
-
-## Semantic Versioning
-
-Se usa [Changesets](https://github.com/changesets/changesets) para manejar versiones. Al desarrollar una feature:
-
-```bash
-# 1. Crear un changeset describiendo el cambio
-npx changeset
-
-# 2. Seleccionar el paquete afectado y tipo de bump (patch/minor/major)
-# 3. Committear el changeset junto con tu código
-# 4. Al hacer merge a main, se abre un PR automático de versión
-# 5. Al hacer merge de ese PR, se crea un tag y se dispara el build
-```
+**Scopes válidos:** `app`, `backend`, `website`, `repo`
 
 ## Links
 

@@ -21,6 +21,8 @@ export interface InputProps extends TextInputProps {
   leftIcon?: keyof typeof Ionicons.glyphMap;
   rightIcon?: keyof typeof Ionicons.glyphMap;
   onRightIconPress?: () => void;
+  /** Accessible label for the right icon action button (screen readers). */
+  rightIconAccessibilityLabel?: string;
   containerStyle?: ViewStyle;
   secureTextEntry?: boolean;
 }
@@ -31,6 +33,7 @@ export const Input: React.FC<InputProps> = ({
   leftIcon,
   rightIcon,
   onRightIconPress,
+  rightIconAccessibilityLabel = 'Acción',
   containerStyle,
   secureTextEntry,
   ...props
@@ -68,6 +71,8 @@ export const Input: React.FC<InputProps> = ({
 
         <TextInput
           {...props}
+          accessibilityLabel={props.accessibilityLabel ?? label}
+          accessibilityHint={error || props.accessibilityHint}
           style={[
             styles.input,
             { color: colors.text.primary },
@@ -87,7 +92,12 @@ export const Input: React.FC<InputProps> = ({
         />
 
         {secureTextEntry && (
-          <TouchableOpacity onPress={toggleSecure} style={styles.rightIcon}>
+          <TouchableOpacity
+            onPress={toggleSecure}
+            style={styles.rightIcon}
+            accessibilityRole="button"
+            accessibilityLabel={isSecure ? 'Mostrar contraseña' : 'Ocultar contraseña'}
+          >
             <Ionicons
               name={isSecure ? 'eye-off-outline' : 'eye-outline'}
               size={20}
@@ -97,7 +107,12 @@ export const Input: React.FC<InputProps> = ({
         )}
 
         {rightIcon && !secureTextEntry && (
-          <TouchableOpacity onPress={onRightIconPress} style={styles.rightIcon}>
+          <TouchableOpacity
+            onPress={onRightIconPress}
+            style={styles.rightIcon}
+            accessibilityRole="button"
+            accessibilityLabel={rightIconAccessibilityLabel}
+          >
             <Ionicons name={rightIcon} size={20} color={colors.gray[500]} />
           </TouchableOpacity>
         )}

@@ -13,10 +13,25 @@ dayjs.extend(timezone);
 dayjs.extend(relativeTime);
 dayjs.locale('es');
 
-// App timezone — currently fixed to Costa Rica (UTC-6) since the product targets CR.
-// If multi-region support is needed in the future, replace with:
-//   const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
-const TIMEZONE = 'America/Costa_Rica';
+// Fallback timezone for the product's primary market (Costa Rica, UTC-6),
+// used when the device timezone cannot be resolved.
+const DEFAULT_TIMEZONE = 'America/Costa_Rica';
+
+/**
+ * Resolve the timezone to use for all date formatting.
+ * Prefers the device's own timezone so dates are correct for users anywhere,
+ * falling back to the product default if the runtime can't report one.
+ */
+const resolveTimezone = (): string => {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return tz || DEFAULT_TIMEZONE;
+  } catch {
+    return DEFAULT_TIMEZONE;
+  }
+};
+
+const TIMEZONE = resolveTimezone();
 
 /**
  * Get current date/time in UTC-6 timezone

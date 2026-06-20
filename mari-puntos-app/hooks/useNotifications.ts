@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useActionsStore, usePermissionsStore, useUserStore } from '@/stores';
 import { ActionStatus, PermissionStatus } from '@/types';
 import logger from '@/utils/logger';
+import { type NotificationData, parseNotificationData } from '@/validators';
 
 const HANDLED_NOTIFICATION_KEY = '@maripuntos/handled-notification-id';
 
@@ -37,17 +38,7 @@ Notifications.setNotificationHandler({
     }) as Notifications.NotificationBehavior,
 });
 
-export interface NotificationData {
-  type:
-    | 'permission_requested'
-    | 'permission_response'
-    | 'action_created'
-    | 'action_approved'
-    | 'action_rejected'
-    | 'partner_linked';
-  approved?: boolean;
-  pointsAwarded?: number;
-}
+export type { NotificationData };
 
 export function useNotifications() {
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
@@ -147,15 +138,18 @@ export function useNotifications() {
       (notification) => {
         // Silently refresh the relevant store so in-app badges and lists stay
         // current while the app is in the foreground.
-        const data = notification.request.content.data as unknown as NotificationData;
-        if (!data?.type) return;
+        const data = parseNotificationData(notification.request.content.data);
+        if (!data) return;
         logger.info('Foreground notification received', { type: data.type });
+        const hasPartner = !!useUserStore.getState().user?.hasPartner;
         switch (data.type) {
           case 'action_created':
-            useActionsStore
-              .getState()
-              .fetchPartnerActions({ status: ActionStatus.PENDING })
-              .catch(() => {});
+            if (hasPartner) {
+              useActionsStore
+                .getState()
+                .fetchPartnerActions({ status: ActionStatus.PENDING })
+                .catch(() => {});
+            }
             break;
           case 'action_approved':
           case 'action_rejected':
@@ -165,10 +159,12 @@ export function useNotifications() {
               .catch(() => {});
             break;
           case 'permission_requested':
-            usePermissionsStore
-              .getState()
-              .fetchPartnerPermissions({ status: PermissionStatus.PENDING })
-              .catch(() => {});
+            if (hasPartner) {
+              usePermissionsStore
+                .getState()
+                .fetchPartnerPermissions({ status: PermissionStatus.PENDING })
+                .catch(() => {});
+            }
             break;
           case 'permission_response':
             usePermissionsStore
@@ -189,10 +185,9 @@ export function useNotifications() {
     // Listener para cuando el usuario toca una notificación (app en segundo plano o abierta)
     responseListener.current = Notifications.addNotificationResponseReceivedListener(
       (response) => {
-        const data = response.notification.request.content
-          .data as unknown as NotificationData;
+        const data = parseNotificationData(response.notification.request.content.data);
 
-        if (data && data.type) {
+        if (data) {
           logger.info('Notification tapped by user', { type: data.type });
           // Persist the handled marker BEFORE triggering navigation. If the app is
           // killed immediately after a tap, the cold-start effect reads this marker
@@ -241,9 +236,8 @@ export function useNotifications() {
           return;
         }
 
-        const data = response.notification.request.content
-          .data as unknown as NotificationData;
-        if (data?.type) {
+        const data = parseNotificationData(response.notification.request.content.data);
+        if (data) {
           logger.info('Cold-start notification tap', { type: data.type });
           await AsyncStorage.setItem(HANDLED_NOTIFICATION_KEY, identifier);
           setPendingNotificationData(data);

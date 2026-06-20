@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 
 import { Image } from 'expo-image';
+import { SaveFormat, manipulateAsync } from 'expo-image-manipulator';
 import {
   launchImageLibraryAsync,
   requestMediaLibraryPermissionsAsync,
@@ -101,19 +102,28 @@ export function EditProfileModal({
     if (!hasPermission) return;
 
     try {
+      // Pick at full quality, then downscale/compress locally before encoding.
+      // Avatars are displayed at 120px, so 512px is plenty and keeps the
+      // base64 payload an order of magnitude smaller than the raw camera image.
       const result = await launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.8,
-        base64: true,
       });
 
-      if (!result.canceled && result.assets?.[0]?.base64) {
-        const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
-        setSelectedImage(base64Image);
+      if (result.canceled || !result.assets?.[0]?.uri) return;
+
+      const manipulated = await manipulateAsync(
+        result.assets[0].uri,
+        [{ resize: { width: 512, height: 512 } }],
+        { compress: 0.7, format: SaveFormat.JPEG, base64: true }
+      );
+
+      if (manipulated.base64) {
+        setSelectedImage(`data:image/jpeg;base64,${manipulated.base64}`);
       }
-    } catch {
+    } catch (error) {
+      logger.error('Error selecting profile image', error as Error);
       Alert.alert('Error', 'No se pudo seleccionar la imagen');
     }
   };

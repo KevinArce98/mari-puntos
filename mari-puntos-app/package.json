@@ -1,7 +1,7 @@
 {
   "name": "mari-puntos-app",
   "main": "expo-router/entry",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "scripts": {
     "port:forward": "adb reverse tcp:3000 tcp:3000",
     "start": "expo start && npm run port:forward",
@@ -23,6 +23,7 @@
     "@react-navigation/elements": "^2.9.14",
     "@react-navigation/native": "^7.1.33",
     "@sentry/react-native": "~7.11.0",
+    "@tanstack/react-query": "^5.101.0",
     "axios": "^1.15.2",
     "dayjs": "^1.11.20",
     "expo": "~55.0.17",
@@ -34,6 +35,7 @@
     "expo-font": "~55.0.6",
     "expo-haptics": "~55.0.14",
     "expo-image": "~55.0.9",
+    "expo-image-manipulator": "~55.0.17",
     "expo-image-picker": "~55.0.19",
     "expo-linear-gradient": "~55.0.13",
     "expo-linking": "~55.0.14",
