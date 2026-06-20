@@ -36,8 +36,17 @@ export const Avatar: React.FC<AvatarProps> = ({
   const sizeStyles = styles[`size_${size}`];
   const levelBadgeSize = size === 'xl' ? 28 : size === 'lg' ? 24 : 20;
 
+  const accessibilityLabel =
+    (name ? `Avatar de ${name}` : 'Avatar') +
+    (showLevel && level !== undefined ? `, nivel ${level}` : '');
+
   return (
-    <View style={[styles.wrapper, style]}>
+    <View
+      style={[styles.wrapper, style]}
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={accessibilityLabel}
+    >
       <View
         style={[styles.container, sizeStyles, { backgroundColor: themeColors.gray[200] }]}
       >
