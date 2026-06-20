@@ -21,36 +21,56 @@ setInterval(
 );
 
 /**
- * Extract a stable rate-limit key from the request.
- * Prefers the Clerk user ID (decoded from JWT without full verification)
- * so each user has their own bucket. Falls back to real IP from Cloudflare
- * headers to avoid all users sharing the Docker internal IP.
+ * Resolve the real client IP, preferring Cloudflare / proxy headers so all
+ * users don't share the Docker internal IP.
  */
-function getRateLimitKey(req: Request): string {
-  const authHeader = req.headers.authorization;
-  if (authHeader?.startsWith('Bearer ')) {
-    try {
-      const payload = JSON.parse(
-        Buffer.from(authHeader.split('.')[1], 'base64url').toString()
-      );
-      if (payload.sub) return `user:${payload.sub}`;
-    } catch {
-      // fall through
-    }
-  }
-
+function getClientIp(req: Request): string {
   const cfIp = req.headers['cf-connecting-ip'];
-  if (cfIp && typeof cfIp === 'string') return `ip:${cfIp}`;
+  if (cfIp && typeof cfIp === 'string') return cfIp;
 
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded) {
     const first = (Array.isArray(forwarded) ? forwarded[0] : forwarded)
       .split(',')[0]
       .trim();
-    return `ip:${first}`;
+    if (first) return first;
   }
 
-  return `ip:${req.ip || req.socket.remoteAddress || 'unknown'}`;
+  return req.ip || req.socket.remoteAddress || 'unknown';
+}
+
+/**
+ * Extract a stable rate-limit key from the request.
+ *
+ * The Clerk `sub` is read from the JWT WITHOUT verifying the signature (full
+ * verification happens later in authMiddleware). A forged token could therefore
+ * carry any `sub`, so we never key on `sub` alone — we always bind it to the
+ * real client IP. This way:
+ *   - an attacker forging a victim's `sub` lands in a *different* bucket
+ *     (their own IP) and cannot exhaust the victim's quota, and
+ *   - an attacker cannot evade their own limit by rotating the `sub`, because
+ *     their IP stays in the key.
+ * The `sub` still gives each real user their own bucket when several share an
+ * IP (e.g. behind a proxy/NAT).
+ */
+function getRateLimitKey(req: Request): string {
+  const ip = getClientIp(req);
+
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    try {
+      const payload = JSON.parse(
+        Buffer.from(authHeader.split('.')[1], 'base64url').toString()
+      );
+      if (typeof payload.sub === 'string' && payload.sub) {
+        return `user:${payload.sub}:ip:${ip}`;
+      }
+    } catch {
+      // malformed token — fall back to IP-only keying
+    }
+  }
+
+  return `ip:${ip}`;
 }
 
 /**
