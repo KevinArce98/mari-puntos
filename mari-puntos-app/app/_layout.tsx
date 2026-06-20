@@ -14,6 +14,7 @@ import { ClerkProvider } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,6 +23,7 @@ import { Toaster } from 'sonner-native';
 import { AuthGuard } from '@/components';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNotifications } from '@/hooks/useNotifications';
+import { queryClient, setupQueryFocusManager } from '@/lib/queryClient';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import logger from '@/utils/logger';
 
@@ -64,6 +66,9 @@ const errorBoundaryStyles = StyleSheet.create({
 
 // Keep the native splash screen visible until we explicitly hide it
 SplashScreen.preventAutoHideAsync();
+
+// Wire React Query's focus manager to RN AppState so refetchOnWindowFocus works
+setupQueryFocusManager();
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
@@ -214,7 +219,9 @@ function RootLayoutNav() {
 export default Sentry.wrap(function RootLayout() {
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
-      <RootLayoutNav />
+      <QueryClientProvider client={queryClient}>
+        <RootLayoutNav />
+      </QueryClientProvider>
     </ClerkProvider>
   );
 });
