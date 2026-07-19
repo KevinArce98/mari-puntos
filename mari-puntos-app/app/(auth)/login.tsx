@@ -15,7 +15,7 @@ import {
 
 import { useRouter } from 'expo-router';
 
-import { isClerkAPIResponseError, useSignIn } from '@clerk/clerk-expo';
+import { isClerkAPIResponseError, useAuth, useSignIn } from '@clerk/clerk-expo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -33,6 +33,7 @@ export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const themeColors = useThemedColors();
   const { signIn, setActive, isLoaded } = useSignIn();
+  const { signOut } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -47,22 +48,47 @@ export default function LoginScreen() {
     },
   });
 
+  const attemptSignIn = async (data: LoginFormData) => {
+    const result = await signIn!.create({
+      identifier: data.email,
+      password: data.password,
+    });
+
+    if (result.status === 'complete') {
+      await setActive!({ session: result.createdSessionId });
+      logger.info('User logged in successfully', { email: data.email });
+      router.replace('/(tabs)');
+    }
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     if (!isLoaded) return;
 
     logger.info('Login attempt', { email: data.email });
     try {
-      const result = await signIn.create({
-        identifier: data.email,
-        password: data.password,
-      });
-
-      if (result.status === 'complete') {
-        await setActive({ session: result.createdSessionId });
-        logger.info('User logged in successfully', { email: data.email });
-        router.replace('/(tabs)');
-      }
+      await attemptSignIn(data);
     } catch (error: any) {
+      if (isClerkAPIResponseError(error) && error.errors[0]?.code === 'session_exists') {
+        logger.info('session_exists during login — signing out and retrying', {
+          email: data.email,
+        });
+        try {
+          await signOut();
+          await attemptSignIn(data);
+        } catch (retryError: any) {
+          let retryMessage = 'Correo o contraseña inválidos';
+          if (isClerkAPIResponseError(retryError)) {
+            retryMessage = handleClerkErrors(retryError.errors);
+          }
+          logger.warn('Login failed after session sign-out', {
+            email: data.email,
+            error: retryMessage,
+          });
+          toast.error('Inicio de sesión fallido', { description: retryMessage });
+        }
+        return;
+      }
+
       let errorMessage = 'Correo o contraseña inválidos';
 
       if (isClerkAPIResponseError(error)) {
@@ -74,22 +100,6 @@ export default function LoginScreen() {
       toast.error('Inicio de sesión fallido', { description: errorMessage });
     }
   };
-
-  // const handleGoogleLogin = async () => {
-  //   try {
-  //     const { createdSessionId, setActive: setOAuthActive } = await startOAuthFlow();
-  //     if (createdSessionId && setOAuthActive) {
-  //       await setOAuthActive({ session: createdSessionId });
-  //       router.replace('/(tabs)');
-  //     }
-  //   } catch {
-  //     Toast.show({
-  //       type: 'error',
-  //       text1: 'Error',
-  //       text2: 'Could not sign in with Google',
-  //     });
-  //   }
-  // };
 
   return (
     <KeyboardAvoidingView
@@ -167,23 +177,6 @@ export default function LoginScreen() {
               size="lg"
             />
           </View>
-
-          {/* Divider */}
-          {/* <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or continue with</Text>
-          <View style={styles.dividerLine} />
-        </View> */}
-
-          {/* Social Login */}
-          {/* <View style={styles.socialButtons}>
-          <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin}>
-            <Ionicons name="logo-google" size={24} color={themeColors.text.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton}>
-            <Ionicons name="logo-apple" size={24} color={themeColors.text.primary} />
-          </TouchableOpacity>
-        </View> */}
 
           {/* Register Link */}
           <View style={styles.registerContainer}>

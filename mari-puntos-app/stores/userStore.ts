@@ -55,13 +55,10 @@ export const useUserStore = create<UserState>((set, get) => ({
       logger.debug('User profile fetched successfully', { userId: user.id });
     } catch (error: unknown) {
       logger.error('Failed to fetch user profile', error as Error);
-      const is404 = (error as any)?.status === 404;
       set({
-        error: is404 ? null : getErrorMessage(error),
+        error: getErrorMessage(error),
         isLoading: false,
-        // On 404 keep isProfileReady false — orphan recovery may still create the profile.
-        // AuthGuard must not redirect to login until recovery resolves.
-        isProfileReady: !is404,
+        isProfileReady: true,
       });
       throw error;
     }

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { useRootNavigationState, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -6,28 +6,25 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useSignUp } from '@clerk/clerk-expo';
 
 import { LoadingScreen } from '@/components/loading-screen';
+import { ProfileErrorScreen } from '@/components/profile-error-screen';
 import { useClerkAuth } from '@/hooks/useClerkAuth';
 import { useFirstTimeUser } from '@/hooks/useFirstTimeUser';
 import { useUserStore } from '@/stores';
+import logger from '@/utils/logger';
 
 interface AuthGuardProps {
   children: React.ReactNode;
 }
 
-/**
- * AuthGuard component to protect routes and ensure user is authenticated.
- * Uses useEffect + router.replace instead of <Redirect> to avoid synchronous
- * navigation state updates during React Fabric layout effects, which caused
- * "Maximum update depth exceeded" errors on reload.
- */
 export function AuthGuard({ children }: AuthGuardProps) {
-  const { isLoaded, isSignedIn } = useClerkAuth();
-  const { user, isLoading: isUserLoading, isProfileReady } = useUserStore();
+  const { isLoaded, isSignedIn, signOut } = useClerkAuth();
+  const { user, isLoading: isUserLoading, isProfileReady, fetchProfile } = useUserStore();
   const { isFirstTime, isLoading: isFirstTimeLoading } = useFirstTimeUser();
   const segments = useSegments();
   const navigationState = useRootNavigationState();
   const { signUp, isLoaded: signUpLoaded } = useSignUp();
   const router = useRouter();
+  const [isRetrying, setIsRetrying] = useState(false);
 
   const waitingForProfile = isLoaded && isSignedIn && !isProfileReady;
 
@@ -42,24 +39,19 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const inAuthGroup = segments[0] === '(auth)';
   const inVerifyEmail = (segments as string[])[1] === 'verify-email';
   const inLinkPartner = segments[0] === 'link-partner';
+  const profileFetchFailed = isLoaded && isSignedIn && isProfileReady && !user;
 
-  // Compute redirect target synchronously so we can show loading screen
-  // while the useEffect fires, preventing content flash.
   let navTarget: string | null = null;
-  if (!isStillLoading && !inVerifyEmail && !inLinkPartner) {
+  if (!isStillLoading && !inVerifyEmail && !inLinkPartner && !profileFetchFailed) {
     if (signUp?.status === 'missing_requirements' && signUp.emailAddress) {
       navTarget = `/(auth)/verify-email?email=${encodeURIComponent(signUp.emailAddress)}`;
     } else if (isSignedIn) {
-      if (!user && !inAuthGroup) navTarget = '/(auth)/login';
-      else if (inAuthGroup && user) navTarget = '/(tabs)';
+      if (inAuthGroup && user) navTarget = '/(tabs)';
     } else if (!inAuthGroup) {
       navTarget = isFirstTime ? '/(auth)/welcome' : '/(auth)/login';
     }
   }
 
-  // Hide the native splash screen once auth resolution is complete.
-  // This keeps the splash visible during the entire loading phase so the
-  // custom LoadingScreen is never visible to the user.
   const hasSplashHidden = useRef(false);
   useEffect(() => {
     if (!isStillLoading && !hasSplashHidden.current) {
@@ -83,6 +75,27 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   if (isStillLoading || navTarget !== null) {
     return <LoadingScreen />;
+  }
+
+  if (profileFetchFailed) {
+    return (
+      <ProfileErrorScreen
+        retrying={isRetrying}
+        onRetry={async () => {
+          setIsRetrying(true);
+          try {
+            await fetchProfile();
+          } catch (error) {
+            logger.error('Profile retry failed', error as Error);
+          } finally {
+            setIsRetrying(false);
+          }
+        }}
+        onSignOut={() => {
+          signOut().catch((error) => logger.error('Sign out failed', error as Error));
+        }}
+      />
+    );
   }
 
   return <>{children}</>;

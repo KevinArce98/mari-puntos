@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 
-import { useAuth, useUser } from '@clerk/clerk-expo';
+import { useAuth } from '@clerk/clerk-expo';
 
-import { apiService, userService } from '@/services';
+import { apiService } from '@/services';
 import {
   useActionsStore,
   usePermissionsStore,
@@ -19,8 +19,7 @@ import logger from '@/utils/logger';
  */
 export function useClerkAuth() {
   const { getToken, isSignedIn, isLoaded, signOut } = useAuth();
-  const { user: clerkUser } = useUser();
-  const { fetchProfile, clearUser, setProfileReady, user } = useUserStore();
+  const { fetchProfile, clearUser, user } = useUserStore();
   const { clearAll: clearNotifications } = useNotificationStore();
   const { clearActions } = useActionsStore();
   const { clearPermissions } = usePermissionsStore();
@@ -54,56 +53,12 @@ export function useClerkAuth() {
           }
         });
 
-        // Only fetch profile if we haven't already and user doesn't exist
         if (!hasFetchedProfile.current && !user) {
           hasFetchedProfile.current = true;
           logger.info('User authenticated — loading profile');
           fetchProfile().catch((error) => {
             hasFetchedProfile.current = false; // Reset on error so we can retry
-            if (error?.status !== 404) {
-              logger.error('Error fetching user profile:', error);
-            } else {
-              // Profile not found — normal for new users mid-signup.
-              // But if the app was killed between email verification and
-              // createProfile, the Clerk session exists with no backend profile.
-              // Recover by re-creating the profile from Clerk user data.
-              const email = clerkUser?.primaryEmailAddress?.emailAddress;
-              if (email && clerkUser?.id) {
-                logger.info('Recovering orphan profile for signed-in user...');
-                userService
-                  .createProfile({
-                    email,
-                    firstName: clerkUser.firstName || '',
-                    lastName: clerkUser.lastName || '',
-                    clerkId: clerkUser.id,
-                  })
-                  .then(() => {
-                    logger.info('Orphan profile recovered — fetching profile');
-                    fetchProfile().catch(() => {
-                      hasFetchedProfile.current = false;
-                    });
-                  })
-                  .catch((createErr) => {
-                    if (createErr?.status === 409) {
-                      // Profile was created by concurrent request — fetch it
-                      fetchProfile().catch(() => {
-                        hasFetchedProfile.current = false;
-                      });
-                    } else {
-                      logger.warn(
-                        'Failed to recover orphan profile during session restore'
-                      );
-                      // Unblock AuthGuard — recovery is done, no profile exists
-                      setProfileReady();
-                    }
-                  });
-              } else {
-                logger.warn(
-                  'Signed-in Clerk user has no email or clerkId — cannot recover orphan profile'
-                );
-                setProfileReady();
-              }
-            }
+            logger.error('Error fetching user profile:', error);
           });
         }
       } else {
@@ -124,5 +79,6 @@ export function useClerkAuth() {
   return {
     isSignedIn,
     isLoaded,
+    signOut,
   };
 }
