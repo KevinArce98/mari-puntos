@@ -1,0 +1,634 @@
+---
+import AppShowcase from '@/components/AppShowcase.astro';
+import { BetaSignupForm } from '@/components/BetaSignupForm';
+import { FaqAccordion } from '@/components/FaqAccordion';
+import PhoneMockup from '@/components/PhoneMockup.astro';
+import Layout from '@/layouts/Layout.astro';
+
+export const prerender = true;
+
+const differentCards = [
+  {
+    iconColor: 'text-[#0F766E]',
+    iconPath:
+      'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z',
+    title: 'Sistema de Puntos Real',
+    desc: 'Gana y gasta MariPuntos en tiempo real. Cada acción positiva se refleja al instante.',
+  },
+  {
+    iconColor: 'text-orange-500',
+    iconPath:
+      'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
+    title: 'Permisos con Humor',
+    desc: 'Solicita y aprueba permisos sin conflictos. Salidas, videojuegos y más, gestionados en pareja.',
+  },
+  {
+    iconColor: 'text-purple-500',
+    iconPaths: [
+      'M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z',
+      'M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z',
+    ],
+    title: 'Rachas Semanales',
+    desc: 'Mantén la motivación construyendo rachas semana a semana. ¿Cuántas semanas seguidas pueden llegar?',
+  },
+  {
+    iconColor: 'text-amber-500',
+    iconPath:
+      'M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 21.24a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.562.562 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z',
+    title: 'Logros y Niveles',
+    desc: 'Sube de nivel y desbloquea logros a medida que suman MariPuntos juntos como pareja.',
+  },
+];
+
+const actionFeatures = [
+  {
+    path: 'M13 10V3L4 14h7v7l9-11h-7z',
+    label: 'Acciones rápidas y verificadas',
+    desc: 'Completa tareas y gana puntos al instante, validados por tu pareja.',
+  },
+  {
+    path: 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4',
+    label: 'Puntos personalizables por pareja',
+    desc: 'Definen juntos cuánto vale cada acción según sus propias reglas.',
+  },
+  {
+    path: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
+    label: 'Historial completo de actividades',
+    desc: 'Registra cada acción con fecha, puntos y estado de aprobación.',
+  },
+  {
+    path: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+    label: 'Notificaciones en tiempo real',
+    desc: 'Recibe alertas inmediatas cuando tu pareja aprueba una acción.',
+  },
+];
+
+const permissionFeatures = [
+  {
+    path: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
+    label: 'Permisos 100% personalizables',
+    desc: 'Creen sus propios permisos según la dinámica de su relación.',
+  },
+  {
+    path: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+    label: 'Aprobación con un solo toque',
+    desc: 'Tu pareja aprueba o rechaza solicitudes en segundos desde la app.',
+  },
+  {
+    path: 'M4 6h16M4 10h16M4 14h16M4 18h16',
+    label: 'Historial y seguimiento',
+    desc: 'Consulta permisos pasados, pendientes y aprobados en cualquier momento.',
+  },
+  {
+    path: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    label: 'Costo de puntos configurable',
+    desc: 'Decidan juntos cuántos MariPuntos cuesta cada tipo de permiso.',
+  },
+];
+
+const steps = [
+  {
+    path: 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z',
+    title: 'Descarga la App',
+    desc: 'Disponible gratis en App Store y Google Play. Sin suscripción ni tarjeta de crédito.',
+  },
+  {
+    path: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
+    title: 'Vincula tu Pareja',
+    desc: 'Comparte tu código único con tu pareja y en segundos estarán conectados en la misma app.',
+  },
+  {
+    path: 'M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    title: 'Disfruta Jugando',
+    desc: 'Completa acciones, solicita permisos y mantén la racha semana a semana juntos.',
+  },
+];
+
+const footerAppLinks = [
+  { label: 'Características', href: '#diferente' },
+  { label: 'Cómo funciona', href: '#como-funciona' },
+  { label: 'Preguntas frecuentes', href: '#faq' },
+];
+
+const footerLegalLinks = [
+  { label: 'Privacidad', href: '/privacidad' },
+  { label: 'Términos y Condiciones', href: '/terminos' },
+  { label: 'Contacto', href: 'mailto:arias9068@gmail.com' },
+];
+---
+
+<Layout
+  title="MariPuntos - Gamifica tu Relación de Pareja"
+  description="Gamifica tu relación con MariPuntos. Solicita permisos, gana puntos por buenas acciones y mantén rachas semanales en pareja de forma divertida y organizada."
+  keywords={[
+    'relación de pareja',
+    'gamificación',
+    'app para parejas',
+    'puntos en pareja',
+    'juego de pareja',
+    'app gratis',
+    'iOS',
+    'Android',
+  ]}
+  ogTitle="MariPuntos - Gamifica tu Relación de Pareja"
+  ogDescription="Convierte tu relación en el mejor juego. Gana puntos, solicita permisos y mantén rachas semanales."
+  twitterDescription="Convierte tu relación en el mejor juego. Descárgala gratis."
+>
+  <div class="min-h-screen bg-white">
+    <!-- ── Navbar ── -->
+    <nav class="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm shadow-sm z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16 md:h-20">
+          <div class="flex items-center gap-2">
+            <img src="/icon.png" alt="MariPuntos" class="w-8 h-8 md:w-10 md:h-10" />
+            <span class="text-xl md:text-2xl font-bold">
+              <span class="text-[#0F766E]">Mari</span>Puntos
+            </span>
+          </div>
+          <div class="hidden md:flex items-center gap-8 text-gray-600 font-medium">
+            <a href="#diferente" class="hover:text-[#0F766E] transition-colors">
+              Características
+            </a>
+            <a href="#como-funciona" class="hover:text-[#0F766E] transition-colors">
+              Cómo funciona
+            </a>
+            <a href="#faq" class="hover:text-[#0F766E] transition-colors"> FAQ </a>
+          </div>
+          <a
+            href="https://apps.apple.com/app/id6758923865"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="px-5 py-2.5 bg-[#0F766E] text-white rounded-full font-semibold text-sm hover:bg-[#115E59] transition-all duration-300 hover:shadow-lg"
+          >
+            Descargar App
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ── Hero ── -->
+    <header
+      class="relative overflow-hidden pt-24 md:pt-28 pb-20 md:pb-32 bg-linear-to-br from-[#E6F9F7] via-[#c8f4ef] to-[#a8ede6]"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 gap-12 items-end">
+          <!-- Left -->
+          <div class="pb-12 md:pb-16">
+            <div
+              class="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white rounded-full shadow-sm border border-[#0F766E]/20"
+            >
+              <span class="w-2 h-2 bg-[#0F766E] rounded-full animate-pulse"></span>
+              <span class="text-sm font-semibold text-[#0F766E]">
+                Ya disponible en iOS y Android
+              </span>
+            </div>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              Gamifica tu
+              <br />
+              <span
+                class="text-transparent bg-clip-text bg-linear-to-r from-[#0F766E] to-[#115E59]"
+              >
+                relación de pareja
+              </span>
+              <br />
+              con MariPuntos
+            </h1>
+            <p class="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
+              Solicita permisos, gana puntos por buenas acciones y mantén rachas semanales.
+              Tu relación, convertida en el mejor juego.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4">
+              <a
+                href="https://apps.apple.com/app/id6758923865"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-3 px-6 py-3.5 bg-gray-900 text-white rounded-2xl hover:bg-gray-800 transition-all duration-300 hover:scale-105 shadow-lg"
+              >
+                <img src="/apple.svg" alt="Apple" class="w-7 h-7 shrink-0" />
+                <div>
+                  <div class="text-xs opacity-75">Download on the</div>
+                  <div class="font-bold text-base leading-tight">App Store</div>
+                </div>
+              </a>
+              <a
+                href="https://play.google.com/store/apps/details?id=com.maripuntos.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-3 px-6 py-3.5 bg-gray-900 text-white rounded-2xl hover:bg-gray-800 transition-all duration-300 hover:scale-105 shadow-lg"
+              >
+                <img src="/googleplay.svg" alt="Google Play" class="w-7 h-7 shrink-0" />
+                <div>
+                  <div class="text-xs opacity-75">Get it on</div>
+                  <div class="font-bold text-base leading-tight">Google Play</div>
+                </div>
+              </a>
+            </div>
+          </div>
+          <!-- Right - Phone -->
+          <div class="flex justify-center pb-0">
+            <div class="relative animate-float">
+              <div
+                class="absolute -inset-8 bg-linear-to-r from-[#0F766E]/15 to-[#115E59]/15 rounded-full blur-3xl"
+              >
+              </div>
+              <div
+                class="relative bg-gray-900 rounded-[3rem] p-0.75 shadow-2xl"
+                style="max-width: 260px"
+              >
+                <div class="bg-gray-800 rounded-[2.9rem] p-1">
+                  <div class="bg-white rounded-[2.5rem] overflow-hidden">
+                    <img
+                      src="/actions.png"
+                      alt="MariPuntos App"
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Waves -->
+      <div class="absolute -bottom-14 left-0 right-0 leading-none">
+        <svg
+          class="w-full h-24 md:h-60"
+          viewBox="0 0 1440 120"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M0,70 C200,10 440,110 720,70 C1000,30 1260,100 1440,60 L1440,120 L0,120 Z"
+            fill="white"></path>
+        </svg>
+      </div>
+    </header>
+
+    <!-- ── What Makes Different ── -->
+    <section id="diferente" class="py-16 md:py-24 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <p class="text-sm font-semibold text-[#0F766E] uppercase tracking-widest mb-3">
+            Por qué elegirnos
+          </p>
+          <h2 class="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
+            ¿Qué hace diferente a <span class="text-[#0F766E]">MariPuntos</span>?
+          </h2>
+          <div class="w-12 h-1 bg-[#0F766E] rounded-full mx-auto mb-5"></div>
+          <p class="text-gray-600 max-w-xl mx-auto">
+            Más que una app, es un sistema de gamificación diseñado específicamente para
+            parejas
+          </p>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {
+            differentCards.map((card) => (
+              <div class="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300">
+                <div class="mb-6">
+                  <svg
+                    class={`w-12 h-12 ${card.iconColor}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    stroke-width={1.5}
+                  >
+                    {card.iconPaths ? (
+                      card.iconPaths.map((d) => (
+                        <path stroke-linecap="round" stroke-linejoin="round" d={d} />
+                      ))
+                    ) : (
+                      <path stroke-linecap="round" stroke-linejoin="round" d={card.iconPath} />
+                    )}
+                  </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">{card.title}</h3>
+                <p class="text-gray-600 leading-relaxed">{card.desc}</p>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Feature 1: Actions ── -->
+    <section class="py-16 md:py-24 bg-[#F5FFFE]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 gap-16 items-center">
+          <!-- Text -->
+          <div>
+            <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
+              Gana puntos por buenas
+              <br />
+              acciones para tu pareja
+            </h3>
+            <p class="text-lg text-gray-500 mb-10 leading-relaxed">
+              Completa acciones positivas y acumula MariPuntos. Desde preparar el desayuno
+              hasta hacer un mandado, cada detalle suma.
+            </p>
+            <ul class="space-y-6 mb-10">
+              {
+                actionFeatures.map((item) => (
+                  <li class="flex items-start gap-4">
+                    <div class="w-11 h-11 bg-white rounded-xl border border-gray-100 shadow-sm flex items-center justify-center shrink-0">
+                      <svg
+                        class="w-5 h-5 text-[#0F766E]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        stroke-width={1.8}
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" d={item.path} />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="font-semibold text-gray-900 leading-snug">{item.label}</p>
+                      <p class="text-gray-500 text-sm mt-0.5 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+          <!-- Phone -->
+          <div class="flex justify-center">
+            <PhoneMockup src="/actions.png" alt="Pantalla de Acciones MariPuntos" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Feature 2: Permissions ── -->
+    <section class="py-16 md:py-24 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 gap-16 items-center">
+          <!-- Phone -->
+          <div class="flex justify-center order-2 md:order-1">
+            <PhoneMockup src="/permisos.png" alt="Pantalla de Permisos MariPuntos" />
+          </div>
+          <!-- Text -->
+          <div class="order-1 md:order-2">
+            <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
+              Solicita permisos
+              <br />
+              usando tus puntos
+            </h3>
+            <p class="text-lg text-gray-500 mb-10 leading-relaxed">
+              ¿Quieres salir con tus amigos o jugar videojuegos? Usa tus MariPuntos para
+              gestionar todo en pareja, sin dramas.
+            </p>
+            <ul class="space-y-6 mb-10">
+              {
+                permissionFeatures.map((item) => (
+                  <li class="flex items-start gap-4">
+                    <div class="w-11 h-11 bg-purple-50 rounded-xl border border-purple-100 shadow-sm flex items-center justify-center shrink-0">
+                      <svg
+                        class="w-5 h-5 text-purple-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        stroke-width={1.8}
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" d={item.path} />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="font-semibold text-gray-900 leading-snug">{item.label}</p>
+                      <p class="text-gray-500 text-sm mt-0.5 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── How It Works ── -->
+    <section
+      id="como-funciona"
+      class="py-16 md:py-24 bg-linear-to-br from-[#0F766E] to-[#115E59] relative overflow-hidden"
+    >
+      <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-10 left-10 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+        <div class="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+      </div>
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12 md:mb-16">
+          <p class="text-white/70 text-sm font-semibold uppercase tracking-widest mb-3">
+            Proceso simple
+          </p>
+          <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">
+            ¿Cómo funciona MariPuntos?
+          </h2>
+          <p class="text-white/80 text-lg max-w-xl mx-auto">
+            Tres pasos para empezar a jugar en pareja
+          </p>
+        </div>
+
+        <div class="flex flex-col md:flex-row items-center md:items-start justify-center">
+          {
+            steps.map((step, i) => (
+              <div class="flex flex-col md:flex-row items-center md:items-start">
+                <div class="text-center px-6 md:px-10 max-w-xs">
+                  <div class="flex justify-center mb-6">
+                    <svg
+                      class="w-16 h-16 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      stroke-width={1.3}
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d={step.path} />
+                    </svg>
+                  </div>
+                  <h3 class="text-xl font-bold text-white mb-3">{step.title}</h3>
+                  <p class="text-white/75 leading-relaxed text-base">{step.desc}</p>
+                </div>
+                {i < 2 && (
+                  <div class="hidden md:flex items-start pt-6 text-white/40 shrink-0">
+                    <svg
+                      class="w-8 h-8"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      stroke-width={1.5}
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ── App Showcase ── -->
+    <AppShowcase />
+
+    <!-- ── Download / Available ── -->
+    <section class="py-16 md:py-24 bg-gray-50">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <p class="text-sm font-semibold text-[#0F766E] uppercase tracking-widest mb-3">
+          Descarga
+        </p>
+        <h2 class="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
+          MariPuntos está disponible
+          <br />
+          <span class="text-[#0F766E]">en todos tus dispositivos</span>
+        </h2>
+        <p class="text-gray-600 text-lg mb-10 max-w-xl mx-auto">
+          Descarga gratis desde tu tienda favorita y empieza a jugar en pareja hoy mismo
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="https://apps.apple.com/app/id6758923865"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-4 px-8 py-4 bg-gray-900 text-white rounded-2xl hover:bg-gray-800 transition-all duration-300 hover:scale-105 shadow-xl"
+          >
+            <img src="/apple.svg" alt="Apple" class="w-8 h-8 shrink-0" />
+            <div class="text-left">
+              <div class="text-xs opacity-75">Download on the</div>
+              <div class="font-bold text-xl leading-tight">App Store</div>
+            </div>
+          </a>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.maripuntos.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-4 px-8 py-4 bg-gray-900 text-white rounded-2xl hover:bg-gray-800 transition-all duration-300 hover:scale-105 shadow-xl"
+          >
+            <img src="/googleplay.svg" alt="Google Play" class="w-8 h-8 shrink-0" />
+            <div class="text-left">
+              <div class="text-xs opacity-75">Get it on</div>
+              <div class="font-bold text-xl leading-tight">Google Play</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FAQ ── -->
+    <section id="faq" class="py-16 md:py-24 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <p class="text-sm font-semibold text-[#0F766E] uppercase tracking-widest mb-3">
+            Soporte
+          </p>
+          <h2 class="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
+            Preguntas Frecuentes
+          </h2>
+          <p class="text-gray-600 max-w-xl mx-auto">
+            Todo lo que necesitas saber antes de descargar
+          </p>
+        </div>
+        <FaqAccordion client:load />
+      </div>
+    </section>
+
+    <!-- ── Newsletter ── -->
+    <section
+      class="py-16 md:py-20 bg-linear-to-br from-[#0F766E] to-[#115E59] text-white relative overflow-hidden"
+    >
+      <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+      </div>
+      <div class="relative max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Mantente al día</h2>
+        <p class="text-white/80 text-lg mb-8">
+          Suscríbete para recibir novedades, nuevas funciones y tips para parejas
+        </p>
+        <BetaSignupForm client:load />
+        <p class="text-white/60 text-sm mt-4">Sin spam. Solo lo mejor para tu relación.</p>
+      </div>
+    </section>
+
+    <!-- ── Footer ── -->
+    <footer class="py-12 bg-gray-900 text-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-4 gap-8 mb-10">
+          <div class="md:col-span-2">
+            <div class="flex items-center gap-2 mb-4">
+              <img src="/icon.png" alt="MariPuntos" class="w-9 h-9" />
+              <span class="text-2xl font-bold">
+                <span class="text-[#0F766E]">Mari</span>Puntos
+              </span>
+            </div>
+            <p class="text-gray-400 leading-relaxed max-w-sm">
+              La app que convierte la vida en pareja en el mejor juego. Gana puntos,
+              solicita permisos y mantén rachas semanales.
+            </p>
+            <div class="flex gap-3 mt-5">
+              <a
+                href="https://apps.apple.com/app/id6758923865"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-sm"
+              >
+                <img src="/apple.svg" alt="Apple" class="w-4 h-4" />
+                App Store
+              </a>
+              <a
+                href="https://play.google.com/store/apps/details?id=com.maripuntos.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-sm"
+              >
+                <img src="/googleplay.svg" alt="Google Play" class="w-4 h-4" />
+                Google Play
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-lg mb-4">App</h4>
+            <ul class="space-y-2">
+              {
+                footerAppLinks.map((link) => (
+                  <li>
+                    <a
+                      href={link.href}
+                      class="text-gray-400 hover:text-[#0F766E] transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-lg mb-4">Legal</h4>
+            <ul class="space-y-2">
+              {
+                footerLegalLinks.map((link) => (
+                  <li>
+                    <a
+                      href={link.href}
+                      class="text-gray-400 hover:text-[#0F766E] transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+
+        <div
+          class="border-t border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4"
+        >
+          <p class="text-gray-400 text-sm">© 2026 MariPuntos. Todos los derechos reservados.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+</Layout>

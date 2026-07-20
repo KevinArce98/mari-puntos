@@ -3,15 +3,15 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --primary: #24C6B1;
-  --primary-dark: #1da896;
+  --primary: #0F766E;
+  --primary-dark: #115E59;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Geist', sans-serif;
+  --font-mono: 'Geist Mono', monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -135,7 +135,7 @@ body {
 
 /* Gradient backgrounds */
 .bg-gradient-primary {
-  background: linear-gradient(135deg, #24C6B1 0%, #1da896 100%);
+  background: linear-gradient(135deg, #0F766E 0%, #115E59 100%);
 }
 
 /* Mobile-first responsive utilities */
@@ -206,13 +206,13 @@ a:active {
 }
 
 .prose a {
-  color: #24C6B1;
+  color: #0F766E;
   text-decoration: underline;
   font-weight: 500;
 }
 
 .prose a:hover {
-  color: #188F7F;
+  color: #115E59;
 }
 
 .prose-lg {
@@ -238,4 +238,3 @@ a:active {
   margin-bottom: 0.6666667em;
   line-height: 1.5;
 }
-
