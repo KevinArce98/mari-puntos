@@ -21,17 +21,24 @@ export const Card: React.FC<CardProps> = ({
   const colors = useThemedColors();
 
   const variantStyles = {
-    default: { ...shadows.sm },
-    elevated: { ...shadows.md },
-    outlined: { borderWidth: 1, borderColor: colors.gray[200], ...shadows.none },
-    filled: { backgroundColor: colors.gray[50], ...shadows.none },
+    default: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    elevated: { backgroundColor: colors.surface, ...shadows.md },
+    outlined: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    filled: { backgroundColor: colors.gray[50] },
   };
 
   return (
     <View
       style={[
         styles.card,
-        { backgroundColor: colors.gray[100] },
         variantStyles[variant],
         padding !== 'none' && { padding: spacing[padding] },
         style,

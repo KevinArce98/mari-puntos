@@ -1,38 +1,42 @@
 export const colors = {
   light: {
-    // Design System - MariPuntos Color Palette
-    primary: '#24C6B1', // Turquoise
-    primaryDark: '#188F7F', // Dark Teal
-    accent: '#FFD700', // Gold
+    // Design System v2 - MariPuntos Color Palette
+    primary: '#0F766E', // Teal 700 (5.7:1 sobre blanco)
+    primaryDark: '#115E59', // Teal 800
+    primaryTint: '#F0FDFA', // Teal 50 - fondos tonales (botón secundario, chips)
+    accent: '#D97706', // Amber 600 - SOLO logros, trofeos y niveles
+    love: '#FB7185', // Rose 400 - momentos de pareja: racha, duelo, romance
     white: '#FFFFFF',
-    background: '#F8F9FA', // Light background
+    background: '#FAFAF9', // Stone 50
+    surface: '#FFFFFF', // Cards - siempre más claras que el fondo
+    border: '#E7E5E4', // Stone 200 - separación de cards
 
     // Text colors
     text: {
-      primary: '#1A1A1A',
-      secondary: '#6B7280',
-      light: '#9CA3AF',
+      primary: '#1C1917',
+      secondary: '#57534E', // Stone 600 (7.3:1)
+      light: '#78716C', // Stone 500 (4.5:1) - mínimo permitido
       white: '#FFFFFF',
     },
 
     // States
-    success: '#22C55E',
-    error: '#EF4444',
-    warning: '#F59E0B',
-    info: '#3B82F6',
+    success: '#16A34A',
+    error: '#DC2626',
+    warning: '#D97706',
+    info: '#2563EB',
 
-    // Grays - Design System
+    // Grays - warm neutrals (stone)
     gray: {
-      50: '#F9FAFB',
-      100: '#F3F4F6',
-      200: '#E5E7EB', // Main gray from design
-      300: '#D1D5DB',
-      400: '#9CA3AF',
-      500: '#6B7280',
-      600: '#4B5563',
-      700: '#374151',
-      800: '#1F2937',
-      900: '#111827',
+      50: '#FAFAF9',
+      100: '#F5F5F4',
+      200: '#E7E5E4',
+      300: '#D6D3D1',
+      400: '#A8A29E',
+      500: '#78716C',
+      600: '#57534E',
+      700: '#44403C',
+      800: '#292524',
+      900: '#1C1917',
     },
 
     // Transparencies
@@ -41,99 +45,114 @@ export const colors = {
 
     // Gamification levels
     level: {
-      bronze: '#CD7F32',
-      silver: '#C0C0C0',
-      gold: '#FFD700',
-      platinum: '#E5E4E2',
-      diamond: '#B9F2FF',
+      bronze: '#B45309',
+      silver: '#78716C',
+      gold: '#D97706',
+      platinum: '#57534E',
+      diamond: '#0891B2',
     },
 
-    // Category colors for actions
+    // Category colors for actions (sistema único, tonos de igual saturación)
     category: {
-      chores: '#3B82F6', // Blue
-      romance: '#EC4899', // Pink
-      gifts: '#8B5CF6', // Purple
+      chores: '#0EA5E9', // Sky
+      romance: '#FB7185', // Rose
+      gifts: '#A78BFA', // Violet
       activities: '#F59E0B', // Amber
-      naughty: '#EF4444', // Red
+      naughty: '#F43F5E', // Red rose
     },
 
     // Points colors
     points: {
-      positive: '#24C6B1', // Turquoise
-      negative: '#EF4444', // Red
+      positive: '#0F766E',
+      negative: '#DC2626',
     },
 
-    // Action category icon colors
+    // Streak states
+    streak: {
+      active: '#F97316', // Orange 500 - racha completada
+      warm: '#FBBF24', // Amber 400 - racha en curso
+    },
+
+    // Action category icon colors (alineado al sistema de categorías)
     actionCategory: {
-      childcare: '#FF6B9D',
-      errands: '#FFA94D',
-      romantic: '#FF4757',
-      personalGrowth: '#6C5CE7',
+      childcare: '#FB7185',
+      errands: '#F59E0B',
+      romantic: '#F43F5E',
+      personalGrowth: '#A78BFA',
     },
   },
 
   dark: {
-    primary: '#24C6B1',
-    primaryDark: '#188F7F',
-    accent: '#FFD700',
-    white: '#151718', // Invertido para dark
-    background: '#151718',
+    // Dark diseñado (no invertido): primario desaturado sobre superficies cálidas
+    primary: '#2DD4BF', // Teal 400
+    primaryDark: '#14B8A6', // Teal 500
+    primaryTint: '#134E4A', // Teal 900 - fondo tonal en oscuro
+    accent: '#F59E0B', // Amber 500 - más luminoso sobre oscuro
+    love: '#FB7185',
+    white: '#1C1917', // Superficie (compat: se usa como bg de cards)
+    background: '#0C0A09',
+    surface: '#1C1917',
+    border: '#292524',
 
     text: {
-      primary: '#ECEDEE',
-      secondary: '#9BA1A6',
-      light: '#6B7280',
+      primary: '#FAFAF9',
+      secondary: '#A8A29E',
+      light: '#78716C',
       white: '#FFFFFF',
     },
 
-    success: '#22C55E',
-    error: '#EF4444',
-    warning: '#F59E0B',
-    info: '#3B82F6',
+    success: '#4ADE80',
+    error: '#F87171',
+    warning: '#FBBF24',
+    info: '#60A5FA',
 
     gray: {
-      50: '#232627',
-      100: '#2A2D2E',
-      200: '#323637',
-      300: '#3E4346',
-      400: '#4B5563',
-      500: '#6B7280',
-      600: '#9CA3AF',
-      700: '#D1D5DB',
-      800: '#E5E7EB',
-      900: '#F3F4F6',
+      50: '#1C1917',
+      100: '#292524',
+      200: '#38332F',
+      300: '#44403C',
+      400: '#78716C',
+      500: '#A8A29E',
+      600: '#D6D3D1',
+      700: '#E7E5E4',
+      800: '#F5F5F4',
+      900: '#FAFAF9',
     },
 
     overlay: 'rgba(0, 0, 0, 0.7)',
     overlayLight: 'rgba(0, 0, 0, 0.5)',
 
     level: {
-      bronze: '#CD7F32',
-      silver: '#C0C0C0',
-      gold: '#FFD700',
-      platinum: '#E5E4E2',
-      diamond: '#B9F2FF',
+      bronze: '#D97706',
+      silver: '#A8A29E',
+      gold: '#FBBF24',
+      platinum: '#D6D3D1',
+      diamond: '#22D3EE',
     },
 
     category: {
-      chores: '#60A5FA',
-      romance: '#F472B6',
-      gifts: '#A78BFA',
+      chores: '#38BDF8',
+      romance: '#FDA4AF',
+      gifts: '#C4B5FD',
       activities: '#FBBF24',
-      naughty: '#F87171',
+      naughty: '#FB7185',
     },
 
     points: {
-      positive: '#24C6B1',
-      negative: '#EF4444',
+      positive: '#2DD4BF',
+      negative: '#F87171',
     },
 
-    // Action category icon colors
+    streak: {
+      active: '#FB923C',
+      warm: '#FCD34D',
+    },
+
     actionCategory: {
-      childcare: '#FF6B9D',
-      errands: '#FFA94D',
-      romantic: '#FF4757',
-      personalGrowth: '#6C5CE7',
+      childcare: '#FDA4AF',
+      errands: '#FBBF24',
+      romantic: '#FB7185',
+      personalGrowth: '#C4B5FD',
     },
   },
 };

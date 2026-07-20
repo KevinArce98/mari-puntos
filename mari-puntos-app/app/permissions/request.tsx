@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 
 import {
-  ActivityIndicator,
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -9,12 +9,12 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
 
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
+import { usePreventRemove } from 'expo-router/react-navigation';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -22,7 +22,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { Button, Card, TextAreaWithCounter } from '@/components/ui';
+import {
+  Button,
+  Card,
+  PressableScale,
+  SkeletonList,
+  TextAreaWithCounter,
+} from '@/components/ui';
 import { usePermissions, useThemedColors, useUser } from '@/hooks';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { permissionsService } from '@/services';
@@ -35,6 +41,7 @@ export default function RequestPermissionScreen() {
   const themeColors = useThemedColors();
   const colorScheme: 'light' | 'dark' = useColorScheme() === 'dark' ? 'dark' : 'light';
   const router = useRouter();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { user } = useUser();
   const { requestPermission } = usePermissions();
@@ -49,11 +56,27 @@ export default function RequestPermissionScreen() {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const [allowExit, setAllowExit] = useState(false);
 
   // Date & Time pickers state
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showPicker, setShowPicker] = useState<'date' | 'time' | null>(null);
+
+  usePreventRemove(Boolean(selectedTemplate || note.trim()) && !allowExit, ({ data }) => {
+    Alert.alert(
+      'Descartar solicitud',
+      'Perderás los cambios que todavía no has enviado.',
+      [
+        { text: 'Seguir editando', style: 'cancel' },
+        {
+          text: 'Descartar',
+          style: 'destructive',
+          onPress: () => navigation.dispatch(data.action),
+        },
+      ]
+    );
+  });
 
   // Keep the floating bottom button above the keyboard (the button is
   // absolute-positioned outside KeyboardAvoidingView on both platforms).
@@ -137,11 +160,12 @@ export default function RequestPermissionScreen() {
         durationHours: duration,
       });
 
-      toast.success('¡Solicitud Enviada!', {
+      toast.success('Solicitud enviada', {
         description: 'Tu pareja recibirá una notificación',
       });
 
-      router.back();
+      setAllowExit(true);
+      setTimeout(() => router.back(), 0);
     } catch (e) {
       toast.error('Error', {
         description: (e as any)?.error ?? 'No se pudo enviar la solicitud',
@@ -218,11 +242,16 @@ export default function RequestPermissionScreen() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <PressableScale
+          onPress={() => router.back()}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="Volver"
+        >
           <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
-        </TouchableOpacity>
+        </PressableScale>
         <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
-          Nueva Solicitud
+          Nueva solicitud
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -238,18 +267,13 @@ export default function RequestPermissionScreen() {
             keyboardShouldPersistTaps="handled"
           >
             {loadingTemplates ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={themeColors.primary} />
-                <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>
-                  Cargando plantillas...
-                </Text>
-              </View>
+              <SkeletonList count={4} lines={2} showAvatar={false} />
             ) : (
               <>
                 {/* Activity Type */}
                 <View style={styles.section}>
                   <View style={styles.sectionHeader}>
-                    <TouchableOpacity
+                    <PressableScale
                       onPress={() => router.push('/permissions/create-template')}
                       style={styles.addButton}
                     >
@@ -261,9 +285,9 @@ export default function RequestPermissionScreen() {
                       <Text
                         style={[styles.addButtonText, { color: themeColors.primary }]}
                       >
-                        Nueva Actividad
+                        Nueva actividad
                       </Text>
-                    </TouchableOpacity>
+                    </PressableScale>
                   </View>
 
                   {/* All Templates Dropdown */}
@@ -274,7 +298,7 @@ export default function RequestPermissionScreen() {
                         onPress={() => setShowTemplatePicker(false)}
                       />
                     )}
-                    <TouchableOpacity
+                    <PressableScale
                       style={[
                         styles.dropdown,
                         { backgroundColor: themeColors.gray[100] },
@@ -314,7 +338,7 @@ export default function RequestPermissionScreen() {
                         size={20}
                         color={themeColors.gray[400]}
                       />
-                    </TouchableOpacity>
+                    </PressableScale>
 
                     {showTemplatePicker && (
                       <Card style={styles.dropdownMenu} padding="none">
@@ -336,7 +360,7 @@ export default function RequestPermissionScreen() {
                           </View>
                         ) : (
                           allTemplatesSorted.map((template) => (
-                            <TouchableOpacity
+                            <PressableScale
                               key={template.id}
                               style={[
                                 styles.dropdownItem,
@@ -406,7 +430,7 @@ export default function RequestPermissionScreen() {
                                     `/${template.suggestedDurationHours}h`}
                                 </Text>
                               )}
-                            </TouchableOpacity>
+                            </PressableScale>
                           ))
                         )}
                       </Card>
@@ -422,7 +446,7 @@ export default function RequestPermissionScreen() {
                     Cuándo
                   </Text>
                   <View style={styles.dateTimeRow}>
-                    <TouchableOpacity
+                    <PressableScale
                       style={[
                         styles.dateTimeButton,
                         { backgroundColor: themeColors.gray[100] },
@@ -443,8 +467,8 @@ export default function RequestPermissionScreen() {
                       >
                         {formatDate(selectedDate)}
                       </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
+                    </PressableScale>
+                    <PressableScale
                       style={[
                         styles.dateTimeButton,
                         { backgroundColor: themeColors.gray[100] },
@@ -465,7 +489,7 @@ export default function RequestPermissionScreen() {
                       >
                         {formatTime(selectedTime)}
                       </Text>
-                    </TouchableOpacity>
+                    </PressableScale>
                   </View>
 
                   {showPicker && (
@@ -512,15 +536,17 @@ export default function RequestPermissionScreen() {
                   </View>
 
                   <View style={styles.durationControl}>
-                    <TouchableOpacity
+                    <PressableScale
                       style={[
                         styles.durationButton,
                         { backgroundColor: themeColors.gray[100] },
                       ]}
                       onPress={() => handleDurationChange(-0.5)}
+                      accessibilityRole="button"
+                      accessibilityLabel="Reducir duración"
                     >
                       <Ionicons name="remove" size={24} color={themeColors.primary} />
-                    </TouchableOpacity>
+                    </PressableScale>
 
                     <View
                       style={[
@@ -537,15 +563,17 @@ export default function RequestPermissionScreen() {
                       />
                     </View>
 
-                    <TouchableOpacity
+                    <PressableScale
                       style={[
                         styles.durationButton,
                         { backgroundColor: themeColors.gray[100] },
                       ]}
                       onPress={() => handleDurationChange(0.5)}
+                      accessibilityRole="button"
+                      accessibilityLabel="Aumentar duración"
                     >
                       <Ionicons name="add" size={24} color={themeColors.primary} />
-                    </TouchableOpacity>
+                    </PressableScale>
                   </View>
                 </View>
 
@@ -554,7 +582,7 @@ export default function RequestPermissionScreen() {
                   <Text
                     style={[styles.sectionTitle, { color: themeColors.text.primary }]}
                   >
-                    Nota (Opcional)
+                    Nota (opcional)
                   </Text>
                   <TextAreaWithCounter
                     placeholder="Agrega un mensaje para tu pareja..."
@@ -586,7 +614,7 @@ export default function RequestPermissionScreen() {
         ]}
       >
         <Button
-          title="Enviar Solicitud"
+          title="Enviar solicitud"
           onPress={handleRequest}
           loading={loading}
           disabled={!selectedTemplate || loadingTemplates}

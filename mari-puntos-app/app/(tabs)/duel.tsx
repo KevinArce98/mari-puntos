@@ -2,16 +2,19 @@ import React from 'react';
 
 import { StyleSheet, Text, View } from 'react-native';
 
-import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+
+import { Ionicons } from '@expo/vector-icons';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Avatar, Card } from '@/components/ui';
+import { Avatar, Button, Card } from '@/components/ui';
 import { useThemedColors, useUser } from '@/hooks';
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { borderRadius, spacing, typography } from '@/theme';
 
 export default function CompetitionScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const themeColors = useThemedColors();
   const { user, partnerInfo } = useUser();
 
@@ -21,8 +24,14 @@ export default function CompetitionScreen() {
   const partnerLevel = partnerInfo?.partner?.currentLevel || 1;
 
   const totalPoints = myPoints + partnerPoints;
+  const hasActivity = totalPoints > 0;
   const myPercentage = totalPoints > 0 ? (myPoints / totalPoints) * 100 : 50;
-  const userWinning = myPoints >= partnerPoints;
+  const isTie = myPoints === partnerPoints;
+  const resultTitle = isTie
+    ? 'Van empatados'
+    : myPoints > partnerPoints
+      ? 'Vas ganando'
+      : 'Tu pareja va adelante';
 
   return (
     <View
@@ -38,28 +47,55 @@ export default function CompetitionScreen() {
       </View>
 
       <View style={styles.content}>
-        <Card style={styles.competitionCard} padding="none">
-          <LinearGradient
-            colors={[themeColors.primary, themeColors.primaryDark]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.competitionGradient}
-          >
-            <Text style={styles.competitionTitle}>
-              {userWinning ? '¡Vas ganando! 🎉' : '¡Sigue así! 💪'}
+        {!hasActivity ? (
+          <Card style={styles.emptyCard} padding="lg">
+            <View
+              style={[styles.emptyIcon, { backgroundColor: themeColors.primaryTint }]}
+            >
+              <Ionicons name="stats-chart" size={36} color={themeColors.primary} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: themeColors.text.primary }]}>
+              El duelo comienza con la primera acción
+            </Text>
+            <Text style={[styles.emptyText, { color: themeColors.text.secondary }]}>
+              Aquí compararán el saldo total de MariPuntos cuando empiecen a ganar puntos.
+            </Text>
+            <Button
+              title="Registrar acción"
+              onPress={() =>
+                router.push({ pathname: '/(tabs)', params: { createAction: '1' } })
+              }
+              icon="add-circle-outline"
+            />
+          </Card>
+        ) : (
+          <Card style={styles.competitionCard} padding="lg">
+            <Text style={[styles.competitionTitle, { color: themeColors.text.primary }]}>
+              {resultTitle}
+            </Text>
+            <Text style={[styles.timeframe, { color: themeColors.text.secondary }]}>
+              Saldo total acumulado
             </Text>
 
             <View style={styles.vsContainer}>
               <View style={styles.playerColumn}>
                 <Avatar imageUri={user?.avatarUrl} name={user?.firstName} size="lg" />
-                <Text style={styles.playerName}>{user?.firstName || 'Tú'}</Text>
-                <Text style={styles.playerPoints}>{myPoints.toLocaleString()}</Text>
-                <Text style={styles.playerLevel}>Nivel {myLevel}</Text>
+                <Text style={[styles.playerName, { color: themeColors.text.primary }]}>
+                  {user?.firstName || 'Tú'}
+                </Text>
+                <Text style={[styles.playerPoints, { color: themeColors.primary }]}>
+                  {myPoints.toLocaleString()}
+                </Text>
+                <Text style={[styles.playerLevel, { color: themeColors.text.secondary }]}>
+                  Nivel {myLevel}
+                </Text>
               </View>
 
               <View style={styles.vsCenter}>
-                <View style={styles.vsBadge}>
-                  <Text style={styles.vsText}>VS</Text>
+                <View
+                  style={[styles.vsBadge, { backgroundColor: themeColors.primaryTint }]}
+                >
+                  <Text style={[styles.vsText, { color: themeColors.primary }]}>VS</Text>
                 </View>
               </View>
 
@@ -69,27 +105,38 @@ export default function CompetitionScreen() {
                   name={partnerInfo?.partner?.firstName}
                   size="lg"
                 />
-                <Text style={styles.playerName}>
+                <Text style={[styles.playerName, { color: themeColors.text.primary }]}>
                   {partnerInfo?.partner?.firstName || 'Pareja'}
                 </Text>
-                <Text style={styles.playerPoints}>{partnerPoints.toLocaleString()}</Text>
-                <Text style={styles.playerLevel}>Nivel {partnerLevel}</Text>
+                <Text style={[styles.playerPoints, { color: themeColors.love }]}>
+                  {partnerPoints.toLocaleString()}
+                </Text>
+                <Text style={[styles.playerLevel, { color: themeColors.text.secondary }]}>
+                  Nivel {partnerLevel}
+                </Text>
               </View>
             </View>
 
             <View style={styles.progressContainer}>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${myPercentage}%` }]} />
+              <View style={[styles.progressBar, { backgroundColor: themeColors.love }]}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${myPercentage}%`, backgroundColor: themeColors.primary },
+                  ]}
+                />
               </View>
               <View style={styles.progressLabels}>
-                <Text style={styles.progressLabel}>{Math.round(myPercentage)}%</Text>
-                <Text style={styles.progressLabel}>
+                <Text style={[styles.progressLabel, { color: themeColors.primary }]}>
+                  {Math.round(myPercentage)}%
+                </Text>
+                <Text style={[styles.progressLabel, { color: themeColors.love }]}>
                   {Math.round(100 - myPercentage)}%
                 </Text>
               </View>
             </View>
-          </LinearGradient>
-        </Card>
+          </Card>
+        )}
       </View>
     </View>
   );
@@ -106,14 +153,15 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingTop: 0,
   },
-  competitionCard: {
-    overflow: 'hidden',
-  },
-  competitionGradient: { padding: spacing.lg },
+  competitionCard: {},
   competitionTitle: {
     ...typography.styles.h3,
-    color: colors.light.white,
     textAlign: 'center',
+  },
+  timeframe: {
+    ...typography.styles.caption,
+    textAlign: 'center',
+    marginTop: spacing.xs,
     marginBottom: spacing.lg,
   },
   vsContainer: {
@@ -125,17 +173,15 @@ const styles = StyleSheet.create({
   playerColumn: { alignItems: 'center', flex: 1 },
   playerName: {
     ...typography.styles.bodyMedium,
-    color: colors.light.white,
     marginTop: spacing.sm,
   },
   playerPoints: {
     ...typography.styles.h3,
-    color: colors.light.accent,
+    fontVariant: ['tabular-nums'],
     marginTop: spacing.xs,
   },
   playerLevel: {
     ...typography.styles.small,
-    color: 'rgba(255,255,255,0.7)',
     marginTop: 2,
   },
   vsCenter: { paddingHorizontal: spacing.md },
@@ -143,25 +189,21 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: borderRadius.full,
-    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   vsText: {
     ...typography.styles.bodyMedium,
-    color: colors.light.white,
     fontFamily: 'PlusJakartaSans-Bold',
   },
   progressContainer: { marginTop: spacing.sm },
   progressBar: {
     height: 8,
-    backgroundColor: 'rgba(255,255,255,0.3)',
     borderRadius: borderRadius.full,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.light.accent,
     borderRadius: borderRadius.full,
   },
   progressLabels: {
@@ -170,7 +212,29 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   progressLabel: {
-    ...typography.styles.small,
-    color: 'rgba(255,255,255,0.8)',
+    ...typography.styles.caption,
+    fontVariant: ['tabular-nums'],
+  },
+  emptyCard: {
+    alignItems: 'center',
+    marginTop: spacing.lg,
+  },
+  emptyIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: borderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  emptyTitle: {
+    ...typography.styles.h3,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  emptyText: {
+    ...typography.styles.body,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
   },
 });

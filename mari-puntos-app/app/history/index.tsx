@@ -6,11 +6,11 @@ import { Stack } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { LegendList } from '@legendapp/list';
+import { LegendList } from '@legendapp/list/react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HistoryItem } from '@/components';
-import { Card } from '@/components/ui';
+import { Card, SkeletonList } from '@/components/ui';
 import { usePoints, useThemedColors } from '@/hooks';
 import { spacing, typography } from '@/theme';
 import { PointsLog } from '@/types';
@@ -141,8 +141,8 @@ export default function HistoryScreen() {
       />
 
       {isLoading && pointsHistory.length === 0 && (
-        <View style={[styles.initialLoader, { backgroundColor: colors.background }]}>
-          <ActivityIndicator size="large" color={colors.primary} />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}>
+          <SkeletonList count={6} lines={2} style={{ padding: spacing.lg }} />
         </View>
       )}
     </View>
@@ -187,10 +187,5 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.styles.caption,
-  },
-  initialLoader: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

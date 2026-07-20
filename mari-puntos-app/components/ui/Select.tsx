@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
   ViewStyle,
 } from 'react-native';
@@ -15,6 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
+
+import { PressableScale } from './PressableScale';
 
 export interface SelectOption {
   label: string;
@@ -58,7 +59,7 @@ export const Select: React.FC<SelectProps> = ({
         <Text style={[styles.label, { color: themeColors.text.primary }]}>{label}</Text>
       )}
 
-      <TouchableOpacity
+      <PressableScale
         style={[
           styles.selectButton,
           { backgroundColor: themeColors.gray[100], borderColor: themeColors.gray[300] },
@@ -67,7 +68,10 @@ export const Select: React.FC<SelectProps> = ({
         ]}
         onPress={() => !disabled && setIsOpen(true)}
         disabled={disabled}
-        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={label || placeholder}
+        accessibilityValue={{ text: selectedOption?.label || placeholder }}
+        accessibilityState={{ disabled, expanded: isOpen }}
       >
         <Text
           style={[
@@ -83,7 +87,7 @@ export const Select: React.FC<SelectProps> = ({
           size={20}
           color={disabled ? themeColors.gray[400] : themeColors.gray[500]}
         />
-      </TouchableOpacity>
+      </PressableScale>
 
       {error && <Text style={[styles.error, { color: themeColors.error }]}>{error}</Text>}
 
@@ -94,23 +98,31 @@ export const Select: React.FC<SelectProps> = ({
         onRequestClose={() => setIsOpen(false)}
       >
         <Pressable style={styles.modalOverlay} onPress={() => setIsOpen(false)}>
-          <View style={[styles.modalContent, { backgroundColor: themeColors.gray[100] }]}>
+          <View
+            style={[styles.modalContent, { backgroundColor: themeColors.gray[100] }]}
+            accessibilityViewIsModal
+          >
             <View
               style={[styles.modalHeader, { borderBottomColor: themeColors.gray[200] }]}
             >
               <Text style={[styles.modalTitle, { color: themeColors.text.primary }]}>
-                {label || 'Select an option'}
+                {label || 'Selecciona una opción'}
               </Text>
-              <TouchableOpacity onPress={() => setIsOpen(false)}>
+              <PressableScale
+                onPress={() => setIsOpen(false)}
+                style={styles.modalCloseButton}
+                accessibilityRole="button"
+                accessibilityLabel="Cerrar opciones"
+              >
                 <Ionicons name="close" size={24} color={themeColors.text.primary} />
-              </TouchableOpacity>
+              </PressableScale>
             </View>
 
             <FlatList
               data={options}
               keyExtractor={(item) => item.value.toString()}
               renderItem={({ item }) => (
-                <TouchableOpacity
+                <PressableScale
                   style={[
                     styles.option,
                     { borderBottomColor: themeColors.gray[100] },
@@ -119,7 +131,9 @@ export const Select: React.FC<SelectProps> = ({
                     },
                   ]}
                   onPress={() => handleSelect(item.value)}
-                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={item.label}
+                  accessibilityState={{ selected: item.value === value }}
                 >
                   <Text
                     style={[
@@ -136,7 +150,7 @@ export const Select: React.FC<SelectProps> = ({
                   {item.value === value && (
                     <Ionicons name="checkmark" size={20} color={themeColors.primary} />
                   )}
-                </TouchableOpacity>
+                </PressableScale>
               )}
               style={styles.optionsList}
             />
@@ -193,6 +207,12 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     ...typography.styles.h3,
+  },
+  modalCloseButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   optionsList: {
     maxHeight: 400,

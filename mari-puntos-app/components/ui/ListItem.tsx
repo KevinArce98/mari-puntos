@@ -1,18 +1,13 @@
 import React from 'react';
 
-import {
-  StyleSheet,
-  Text,
-  TextStyle,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
+
+import { PressableScale } from './PressableScale';
 
 interface ListItemProps {
   title: string;
@@ -22,11 +17,18 @@ interface ListItemProps {
   leftComponent?: React.ReactNode;
   rightComponent?: React.ReactNode;
   onPress?: () => void;
+  /** Bottom separator — use for every row except the last in a group. */
+  showBorder?: boolean;
   style?: ViewStyle;
   titleStyle?: TextStyle;
   leftIconColor?: string;
 }
 
+/**
+ * Fila de menú/lista. Sin superficie ni borde propios — está pensada para
+ * vivir dentro de un `Card padding="none"` que aporta el contenedor;
+ * usa `showBorder` para separar filas consecutivas con una línea inferior.
+ */
 export const ListItem: React.FC<ListItemProps> = ({
   title,
   subtitle,
@@ -35,22 +37,18 @@ export const ListItem: React.FC<ListItemProps> = ({
   leftComponent,
   rightComponent,
   onPress,
+  showBorder = false,
   style,
   titleStyle,
   leftIconColor,
 }) => {
   const colors = useThemedColors();
-  const Container = onPress ? TouchableOpacity : View;
 
-  return (
-    <Container
-      style={[styles.container, { backgroundColor: colors.gray[100] }, style]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
+  const content = (
+    <>
       {leftComponent ||
         (leftIcon && (
-          <View style={[styles.iconContainer, { backgroundColor: colors.background }]}>
+          <View style={[styles.iconContainer, { backgroundColor: colors.gray[100] }]}>
             <Ionicons name={leftIcon} size={24} color={leftIconColor ?? colors.primary} />
           </View>
         ))}
@@ -68,8 +66,29 @@ export const ListItem: React.FC<ListItemProps> = ({
 
       {rightComponent ||
         (rightIcon && <Ionicons name={rightIcon} size={20} color={colors.gray[400]} />)}
-    </Container>
+    </>
   );
+
+  const containerStyle = [
+    styles.container,
+    showBorder && { borderBottomWidth: 1, borderBottomColor: colors.border },
+    style,
+  ];
+
+  if (onPress) {
+    return (
+      <PressableScale
+        style={StyleSheet.flatten(containerStyle)}
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
+      >
+        {content}
+      </PressableScale>
+    );
+  }
+
+  return <View style={containerStyle}>{content}</View>;
 };
 
 const styles = StyleSheet.create({
@@ -77,8 +96,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
-    borderRadius: borderRadius.lg,
-    marginBottom: spacing.sm,
   },
   iconContainer: {
     width: 40,

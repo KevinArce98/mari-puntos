@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Appearance } from 'react-native';
 
-import { Stack } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as Updates from 'expo-updates';
@@ -12,7 +12,6 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { ClerkProvider } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -108,11 +107,10 @@ if (!CLERK_PUBLISHABLE_KEY) {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme() ?? Appearance.getColorScheme();
+  const themeColors = colors[colorScheme === 'dark' ? 'dark' : 'light'];
   const insets = useSafeAreaInsets();
   useNotifications();
 
-  // Check for OTA updates on foreground — ensures critical patches reach users
-  // without waiting for next cold start (only runs in production EAS builds)
   useEffect(() => {
     if (__DEV__) return;
     Updates.checkForUpdateAsync()
@@ -121,7 +119,6 @@ function RootLayoutNav() {
         logger.info('OTA update available — fetching');
         return Updates.fetchUpdateAsync().then(() => {
           logger.info('OTA update fetched — prompting user to reload');
-          // Confirm before reloading so we don't interrupt the user mid-task
           Alert.alert(
             'Actualización disponible',
             'Hay una nueva versión de MariPuntos. ¿Deseas reiniciar la app para aplicarla?',
@@ -151,17 +148,18 @@ function RootLayoutNav() {
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="link-partner/index" options={{ headerShown: false }} />
+            <Stack.Screen name="inbox/index" options={{ headerShown: false }} />
             <Stack.Screen
               name="permissions/request"
               options={{
-                presentation: 'modal',
+                presentation: 'card',
                 headerShown: false,
               }}
             />
             <Stack.Screen
               name="permissions/edit/[id]"
               options={{
-                presentation: 'modal',
+                presentation: 'card',
                 headerShown: false,
               }}
             />
@@ -176,22 +174,21 @@ function RootLayoutNav() {
             <Stack.Screen
               name="permissions/create-template"
               options={{
-                presentation: 'modal',
+                presentation: 'card',
                 headerShown: false,
               }}
             />
             <Stack.Screen
               name="achievements/index"
               options={{
-                presentation: 'modal',
-                title: 'Logros',
-                headerShown: true,
+                presentation: 'card',
+                headerShown: false,
               }}
             />
             <Stack.Screen
               name="profile/change-password"
               options={{
-                presentation: 'modal',
+                presentation: 'card',
                 headerShown: false,
               }}
             />
@@ -204,10 +201,14 @@ function RootLayoutNav() {
             richColors
             positionerStyle={{ zIndex: 9999, elevation: 9999 }}
             icons={{
-              success: <Ionicons name="checkmark-circle" size={20} color="#22c55e" />,
-              error: <Ionicons name="close-circle" size={20} color="#ef4444" />,
-              info: <Ionicons name="information-circle" size={20} color="#3b82f6" />,
-              warning: <Ionicons name="warning" size={20} color="#f59e0b" />,
+              success: (
+                <Ionicons name="checkmark-circle" size={20} color={themeColors.success} />
+              ),
+              error: <Ionicons name="close-circle" size={20} color={themeColors.error} />,
+              info: (
+                <Ionicons name="information-circle" size={20} color={themeColors.info} />
+              ),
+              warning: <Ionicons name="warning" size={20} color={themeColors.warning} />,
             }}
           />
         </AuthGuard>

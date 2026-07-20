@@ -2,32 +2,38 @@ import React from 'react';
 
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 
-import { LinearGradient } from 'expo-linear-gradient';
-
 import { Ionicons } from '@expo/vector-icons';
 
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
+
+import { PressableScale } from './PressableScale';
 
 interface PointsCardProps {
   points: number;
   label?: string;
   style?: ViewStyle;
   variant?: 'default' | 'compact';
+  onPress?: () => void;
 }
 
 export const PointsCard: React.FC<PointsCardProps> = ({
   points,
-  label = 'Total Puntos',
+  label = 'Total de puntos',
   style,
   variant = 'default',
+  onPress,
 }) => {
   const colors = useThemedColors();
 
   if (variant === 'compact') {
-    return (
+    const content = (
       <View
-        style={[styles.compactContainer, { backgroundColor: colors.gray[100] }, style]}
+        style={[
+          styles.compactContainer,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+          style,
+        ]}
       >
         <Ionicons name="trophy" size={20} color={colors.accent} />
         <Text style={[styles.compactPoints, { color: colors.text.primary }]}>
@@ -35,60 +41,80 @@ export const PointsCard: React.FC<PointsCardProps> = ({
         </Text>
       </View>
     );
+
+    if (!onPress) return content;
+
+    return (
+      <PressableScale
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${points.toLocaleString()} MariPuntos. Ver logros`}
+      >
+        {content}
+      </PressableScale>
+    );
   }
 
   return (
-    <LinearGradient
-      colors={[colors.primary, colors.primaryDark]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={[styles.container, style]}
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+        style,
+      ]}
     >
-      <View style={styles.iconContainer}>
-        <Ionicons name="trophy" size={32} color={colors.accent} />
-      </View>
       <View style={styles.content}>
-        <Text style={styles.label}>{label}</Text>
-        <Text style={[styles.points, { color: colors.text.white }]}>
+        <Text style={[styles.label, { color: colors.text.secondary }]}>{label}</Text>
+        <Text style={[styles.points, { color: colors.text.primary }]}>
           {points.toLocaleString()}
         </Text>
-        <Text style={styles.unit}>MariPuntos</Text>
+        <View style={[styles.unitChip, { backgroundColor: colors.primaryTint }]}>
+          <Text style={[styles.unit, { color: colors.primary }]}>MariPuntos</Text>
+        </View>
       </View>
-    </LinearGradient>
+      <View style={[styles.iconContainer, { backgroundColor: colors.primaryTint }]}>
+        <Ionicons name="trophy" size={28} color={colors.accent} />
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: borderRadius['2xl'],
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
     padding: spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   iconContainer: {
     width: 56,
     height: 56,
     borderRadius: borderRadius.full,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.md,
+    marginLeft: spacing.md,
   },
   content: {
     flex: 1,
   },
   label: {
     ...typography.styles.caption,
-    color: 'rgba(255, 255, 255, 0.8)',
     marginBottom: spacing.xs,
   },
   points: {
     ...typography.styles.pointsMedium,
-    lineHeight: 52,
+  },
+  unitChip: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+    marginTop: spacing.xs,
   },
   unit: {
     ...typography.styles.caption,
-    color: 'rgba(255, 255, 255, 0.8)',
   },
   // Compact variant
   compactContainer: {
@@ -97,9 +123,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
+    borderWidth: 1,
     gap: spacing.xs,
   },
   compactPoints: {
     ...typography.styles.h4,
+    fontVariant: ['tabular-nums'],
   },
 });

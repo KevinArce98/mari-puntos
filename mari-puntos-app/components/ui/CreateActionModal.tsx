@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import {
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -8,7 +9,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -28,6 +28,7 @@ import {
 
 import { Button } from './Button';
 import { ControlledInput } from './ControlledInput';
+import { PressableScale } from './PressableScale';
 import { TextAreaWithCounter } from './TextAreaWithCounter';
 
 interface CreateActionModalProps {
@@ -42,7 +43,7 @@ const CATEGORIES: {
   icon: keyof typeof Ionicons.glyphMap;
 }[] = [
   { value: ActionCategory.HOUSEHOLD, label: 'Hogar', icon: 'home' },
-  { value: ActionCategory.CHILDCARE, label: 'Cuidado Niños', icon: 'people' },
+  { value: ActionCategory.CHILDCARE, label: 'Cuidado de niños', icon: 'people' },
   { value: ActionCategory.ERRANDS, label: 'Mandados', icon: 'cart' },
   { value: ActionCategory.ROMANTIC, label: 'Romántico', icon: 'heart' },
   { value: ActionCategory.PERSONAL_GROWTH, label: 'Crecimiento', icon: 'trending-up' },
@@ -80,8 +81,9 @@ export function CreateActionModal({
     control,
     handleSubmit,
     reset,
-    formState: { isSubmitting },
+    formState: { isDirty, isSubmitting, isValid },
   } = useForm<CreateActionFormData>({
+    mode: 'onChange',
     resolver: zodResolver(createActionSchema),
     defaultValues: {
       title: '',
@@ -101,8 +103,23 @@ export function CreateActionModal({
   };
 
   const handleClose = () => {
-    reset();
-    onClose();
+    const close = () => {
+      reset();
+      onClose();
+    };
+
+    if (isDirty) {
+      Alert.alert(
+        'Descartar acción',
+        'Perderás los cambios que todavía no has guardado.',
+        [
+          { text: 'Seguir editando', style: 'cancel' },
+          { text: 'Descartar', style: 'destructive', onPress: close },
+        ]
+      );
+      return;
+    }
+    close();
   };
 
   return (
@@ -133,15 +150,21 @@ export function CreateActionModal({
                 paddingBottom: spacing.xl + (keyboardOffset > 0 ? 0 : insets.bottom),
               },
             ]}
+            accessibilityViewIsModal
           >
             {/* Header */}
             <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
               <Text style={[styles.title, { color: themeColors.text.primary }]}>
-                Crear Acción
+                Crear acción
               </Text>
-              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+              <PressableScale
+                onPress={handleClose}
+                style={styles.closeButton}
+                accessibilityRole="button"
+                accessibilityLabel="Cerrar creación de acción"
+              >
                 <Ionicons name="close" size={24} color={themeColors.text.primary} />
-              </TouchableOpacity>
+              </PressableScale>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -190,7 +213,7 @@ export function CreateActionModal({
                   render={({ field: { onChange, value } }) => (
                     <View style={styles.categoriesGrid}>
                       {CATEGORIES.map((category) => (
-                        <TouchableOpacity
+                        <PressableScale
                           key={category.value}
                           style={[
                             styles.categoryCard,
@@ -204,6 +227,9 @@ export function CreateActionModal({
                             ],
                           ]}
                           onPress={() => onChange(category.value)}
+                          accessibilityRole="button"
+                          accessibilityLabel={category.label}
+                          accessibilityState={{ selected: value === category.value }}
                         >
                           <Ionicons
                             name={category.icon}
@@ -226,7 +252,7 @@ export function CreateActionModal({
                           >
                             {category.label}
                           </Text>
-                        </TouchableOpacity>
+                        </PressableScale>
                       ))}
                     </View>
                   )}
@@ -247,7 +273,7 @@ export function CreateActionModal({
                 title="Crear"
                 onPress={handleSubmit(onSubmitForm)}
                 style={styles.actionButton}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !isValid}
                 loading={isSubmitting}
               />
             </View>

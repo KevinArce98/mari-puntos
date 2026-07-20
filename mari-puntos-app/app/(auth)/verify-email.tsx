@@ -50,6 +50,7 @@ export default function VerifyEmailScreen() {
     watch,
     formState: { isSubmitting },
   } = useForm<VerifyEmailFormData>({
+    mode: 'onBlur',
     resolver: zodResolver(verifyEmailSchema),
     defaultValues: {
       code: '',
@@ -220,6 +221,27 @@ export default function VerifyEmailScreen() {
     }
   };
 
+  const leaveVerification = (destination: '/(auth)/register' | '/(auth)/login') => {
+    const changingEmail = destination === '/(auth)/register';
+    Alert.alert(
+      changingEmail ? 'Cambiar correo' : 'Cancelar registro',
+      changingEmail
+        ? 'Volverás al registro para usar otra dirección de correo.'
+        : 'El registro actual quedará sin completar.',
+      [
+        { text: 'Continuar verificando', style: 'cancel' },
+        {
+          text: changingEmail ? 'Cambiar correo' : 'Salir',
+          style: changingEmail ? 'default' : 'destructive',
+          onPress: async () => {
+            await signOut().catch(() => {});
+            router.replace(destination);
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: themeColors.background }]}
@@ -275,6 +297,22 @@ export default function VerifyEmailScreen() {
               fullWidth
               disabled={!canResend}
             />
+
+            <View style={styles.exitActions}>
+              <Button
+                title="Cambiar correo"
+                onPress={() => leaveVerification('/(auth)/register')}
+                variant="ghost"
+                fullWidth
+              />
+              <Button
+                title="Cancelar registro"
+                onPress={() => leaveVerification('/(auth)/login')}
+                variant="ghost"
+                fullWidth
+                textStyle={{ color: themeColors.text.secondary }}
+              />
+            </View>
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
@@ -316,5 +354,9 @@ const styles = StyleSheet.create({
   },
   verifyButton: {
     marginBottom: spacing.md,
+  },
+  exitActions: {
+    width: '100%',
+    marginTop: spacing.sm,
   },
 });

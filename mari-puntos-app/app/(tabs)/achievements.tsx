@@ -1,14 +1,23 @@
 import React, { useMemo } from 'react';
 
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+
+import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Badge, Card, Chip, ProgressBar } from '@/components/ui';
+import {
+  Badge,
+  Card,
+  Chip,
+  PressableScale,
+  ProgressBar,
+  SkeletonList,
+} from '@/components/ui';
 import { useAchievements, useThemedColors } from '@/hooks';
-import { borderRadius, shadows, spacing, typography } from '@/theme';
+import { borderRadius, spacing, typography } from '@/theme';
 import { Achievement, AchievementType } from '@/types';
 import { formatDateOnly } from '@/utils/dateUtils';
 
@@ -29,8 +38,9 @@ const ACHIEVEMENT_TYPE_LABELS: Record<AchievementType, string> = {
   [AchievementType.SPECIAL]: 'Especial',
 };
 
-export default function AchievementsTabScreen() {
+export function AchievementsScreenContent({ showBack = false }: { showBack?: boolean }) {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const colors = useThemedColors();
   const { achievements, unlockedAchievements, lockedAchievements, isLoading, error } =
     useAchievements();
@@ -65,7 +75,11 @@ export default function AchievementsTabScreen() {
             { backgroundColor: isLocked ? colors.gray[100] : `${colors.accent}15` },
           ]}
         >
-          <Text style={styles.achievementIcon}>{isLocked ? '🔒' : '🏆'}</Text>
+          <Ionicons
+            name={isLocked ? 'lock-closed' : 'trophy'}
+            size={26}
+            color={isLocked ? colors.gray[400] : colors.accent}
+          />
         </View>
 
         <View style={styles.achievementInfo}>
@@ -129,11 +143,30 @@ export default function AchievementsTabScreen() {
       ]}
     >
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Logros</Text>
+        {showBack && (
+          <PressableScale
+            onPress={() => router.back()}
+            style={styles.headerButton}
+            accessibilityRole="button"
+            accessibilityLabel="Volver"
+          >
+            <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
+          </PressableScale>
+        )}
+        <Text
+          style={[
+            styles.headerTitle,
+            { color: colors.text.primary },
+            showBack && styles.centeredHeaderTitle,
+          ]}
+        >
+          Logros
+        </Text>
+        {showBack && <View style={styles.headerButton} />}
       </View>
 
       {isLoading ? (
-        <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
+        <SkeletonList count={4} lines={2} style={{ paddingHorizontal: spacing.lg }} />
       ) : error ? (
         <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
       ) : (
@@ -227,7 +260,7 @@ export default function AchievementsTabScreen() {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-                  🏆 Desbloqueados
+                  Desbloqueados
                 </Text>
                 <Text style={[styles.sectionCount, { color: colors.text.secondary }]}>
                   {unlocked.length}
@@ -242,7 +275,7 @@ export default function AchievementsTabScreen() {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-                  🔒 Por desbloquear
+                  Por desbloquear
                 </Text>
                 <Text style={[styles.sectionCount, { color: colors.text.secondary }]}>
                   {locked.length}
@@ -269,13 +302,31 @@ export default function AchievementsTabScreen() {
   );
 }
 
+export default function AchievementsTabScreen() {
+  return <AchievementsScreenContent />;
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+    minHeight: 64,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   headerTitle: { ...typography.styles.h2 },
+  centeredHeaderTitle: {
+    ...typography.styles.h3,
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   loader: { marginTop: spacing.xl },
   errorText: { ...typography.styles.body, textAlign: 'center', marginTop: spacing.xl },
   scrollContent: {
@@ -335,9 +386,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,
-    ...shadows.sm,
   },
-  achievementIcon: { fontSize: 28 },
   achievementInfo: { flex: 1 },
   achievementHeader: {
     flexDirection: 'row',

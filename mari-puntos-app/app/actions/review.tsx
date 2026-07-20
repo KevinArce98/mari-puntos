@@ -6,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -14,11 +13,11 @@ import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { LegendList } from '@legendapp/list';
+import { LegendList } from '@legendapp/list/react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { ActionItemCard, Chip, ReviewActionModal } from '@/components/ui';
+import { ActionItemCard, Chip, PressableScale, ReviewActionModal } from '@/components/ui';
 import { useActions, useStreak, useThemedColors } from '@/hooks';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { Action, ActionStatus } from '@/types';
@@ -100,7 +99,7 @@ export default function ReviewActionsScreen() {
     try {
       await approveAction(actionId, points);
       await Promise.all([refetchPartnerActions(), refetchStreak().catch(() => {})]);
-      toast.success('Acción Aprobada', { description: 'Los puntos han sido otorgados' });
+      toast.success('Acción aprobada', { description: 'Los puntos han sido otorgados' });
 
       // Close modal and clear selection
       setShowReviewModal(false);
@@ -108,6 +107,7 @@ export default function ReviewActionsScreen() {
     } catch (error) {
       logger.error('Failed to approve action', error as Error, { actionId, points });
       toast.error('Error', { description: 'No se pudo aprobar la acción' });
+      throw error;
     }
   };
 
@@ -115,7 +115,7 @@ export default function ReviewActionsScreen() {
     try {
       await rejectAction(actionId, reason);
       await refetchPartnerActions();
-      toast.success('Acción Rechazada', { description: 'Se ha notificado a tu pareja' });
+      toast.success('Acción rechazada', { description: 'Se ha notificado a tu pareja' });
 
       // Close modal and clear selection
       setShowReviewModal(false);
@@ -123,6 +123,7 @@ export default function ReviewActionsScreen() {
     } catch (error) {
       logger.error('Failed to reject action', error as Error, { actionId, reason });
       toast.error('Error', { description: 'No se pudo rechazar la acción' });
+      throw error;
     }
   };
 
@@ -135,11 +136,11 @@ export default function ReviewActionsScreen() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <PressableScale onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
-        </TouchableOpacity>
+        </PressableScale>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
-          Revisar Acciones
+          Revisar acciones
         </Text>
       </View>
 
@@ -174,12 +175,12 @@ export default function ReviewActionsScreen() {
         data={filteredActions}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity
+          <PressableScale
             onPress={() => handleActionPress(item)}
             disabled={item.status !== ActionStatus.PENDING}
           >
             <ActionItemCard action={item} showStatus />
-          </TouchableOpacity>
+          </PressableScale>
         )}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

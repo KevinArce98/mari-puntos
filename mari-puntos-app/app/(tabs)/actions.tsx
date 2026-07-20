@@ -6,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -14,11 +13,17 @@ import { useFocusEffect, useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { LegendList } from '@legendapp/list';
+import { LegendList } from '@legendapp/list/react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { ActionItemCard, Chip, CreateActionModal } from '@/components/ui';
+import {
+  ActionItemCard,
+  Button,
+  Chip,
+  CreateActionModal,
+  PressableScale,
+} from '@/components/ui';
 import { useActions, usePoints, useThemedColors, useUser } from '@/hooks';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { ActionStatus } from '@/types';
@@ -97,11 +102,12 @@ export default function ActionsScreen() {
   const handleCreateAction = async (data: CreateActionFormData) => {
     try {
       await createAction(data);
-      toast.success('Acción Creada', {
+      toast.success('Acción creada', {
         description: 'Tu acción ha sido enviada para revisión',
       });
-    } catch {
+    } catch (error) {
       toast.error('Error', { description: 'No se pudo crear la acción' });
+      throw error;
     }
   };
 
@@ -128,9 +134,9 @@ export default function ActionsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
-          Mis Acciones
+          Mis acciones
         </Text>
-        <TouchableOpacity
+        <PressableScale
           onPress={() => router.push('/actions/review')}
           style={styles.reviewButton}
           accessibilityRole="button"
@@ -144,7 +150,7 @@ export default function ActionsScreen() {
               </Text>
             </View>
           )}
-        </TouchableOpacity>
+        </PressableScale>
       </View>
 
       {/* Stats Card */}
@@ -156,7 +162,7 @@ export default function ActionsScreen() {
               {myPoints.toLocaleString()}
             </Text>
             <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-              Puntos Totales
+              Puntos totales
             </Text>
           </View>
         </View>
@@ -215,9 +221,18 @@ export default function ActionsScreen() {
                 : 'No has creado acciones aún'}
             </Text>
             {!selectedStatus && (
-              <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>
-                Crea tu primera acción para empezar a ganar puntos
-              </Text>
+              <>
+                <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>
+                  Crea tu primera acción para empezar a ganar puntos
+                </Text>
+                <Button
+                  title="Registrar primera acción"
+                  onPress={() => setShowCreateModal(true)}
+                  size="sm"
+                  icon="add-circle-outline"
+                  style={styles.emptyButton}
+                />
+              </>
             )}
           </View>
         }
@@ -233,15 +248,14 @@ export default function ActionsScreen() {
       />
 
       {/* Floating Action Button */}
-      <TouchableOpacity
+      <PressableScale
         style={[styles.fab, { backgroundColor: colors.primary }]}
         onPress={() => setShowCreateModal(true)}
-        activeOpacity={0.8}
         accessibilityRole="button"
         accessibilityLabel="Crear nueva acción"
       >
         <Ionicons name="add" size={28} color={colors.text.white} />
-      </TouchableOpacity>
+      </PressableScale>
 
       {/* Create Action Modal */}
       <CreateActionModal
@@ -268,7 +282,10 @@ const styles = StyleSheet.create({
     ...typography.styles.h2,
   },
   reviewButton: {
-    padding: spacing.sm,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative',
   },
   badge: {
@@ -347,6 +364,9 @@ const styles = StyleSheet.create({
     ...typography.styles.body,
     marginTop: spacing.sm,
     textAlign: 'center',
+  },
+  emptyButton: {
+    marginTop: spacing.lg,
   },
   fab: {
     position: 'absolute',

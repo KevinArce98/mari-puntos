@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
 
-import {
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -26,6 +19,7 @@ import {
 } from '@/validators/action.schema';
 
 import { Button } from './Button';
+import { PressableScale } from './PressableScale';
 import { TextAreaWithCounter } from './TextAreaWithCounter';
 
 interface ReviewActionModalProps {
@@ -38,10 +32,10 @@ interface ReviewActionModalProps {
 
 const CATEGORY_LABELS: Record<ActionCategory, string> = {
   [ActionCategory.HOUSEHOLD]: 'Hogar',
-  [ActionCategory.CHILDCARE]: 'Cuidado Niños',
+  [ActionCategory.CHILDCARE]: 'Cuidado de niños',
   [ActionCategory.ERRANDS]: 'Mandados',
   [ActionCategory.ROMANTIC]: 'Romántico',
-  [ActionCategory.PERSONAL_GROWTH]: 'Crecimiento Personal',
+  [ActionCategory.PERSONAL_GROWTH]: 'Crecimiento personal',
   [ActionCategory.OTHER]: 'Otro',
 };
 
@@ -57,7 +51,13 @@ export function ReviewActionModal({
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'review' | 'reject'>('review');
 
-  const { control, handleSubmit, reset } = useForm<ReviewActionFormData>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isDirty },
+  } = useForm<ReviewActionFormData>({
+    mode: 'onBlur',
     resolver: zodResolver(reviewActionSchema),
     defaultValues: {
       points: 100,
@@ -65,18 +65,32 @@ export function ReviewActionModal({
     },
   });
 
-  const handleApprove = async () => {
+  const handleApprove = () => {
     if (!action) return;
 
-    setLoading(true);
-    try {
-      await onApprove(action.id, points);
-      resetAndClose();
-    } catch (error) {
-      logger.error('Error approving action', error as Error, { actionId: action.id });
-    } finally {
-      setLoading(false);
-    }
+    Alert.alert(
+      'Confirmar aprobación',
+      `Se otorgarán ${points} MariPuntos a tu pareja. Esta acción no se puede deshacer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Aprobar',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await onApprove(action.id, points);
+              resetAndClose();
+            } catch (error) {
+              logger.error('Error approving action', error as Error, {
+                actionId: action.id,
+              });
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const onSubmitReject = async (data: ReviewActionFormData) => {
@@ -100,6 +114,17 @@ export function ReviewActionModal({
     onClose();
   };
 
+  const handleClose = () => {
+    if (mode === 'reject' && isDirty) {
+      Alert.alert('Descartar rechazo', 'Perderás el motivo que todavía no has enviado.', [
+        { text: 'Seguir editando', style: 'cancel' },
+        { text: 'Descartar', style: 'destructive', onPress: resetAndClose },
+      ]);
+      return;
+    }
+    resetAndClose();
+  };
+
   if (!visible || !action) {
     return null;
   }
@@ -111,18 +136,26 @@ export function ReviewActionModal({
       visible={visible}
       animationType="slide"
       transparent
-      onRequestClose={resetAndClose}
+      onRequestClose={handleClose}
     >
       <View style={styles.overlay}>
-        <View style={[styles.container, { backgroundColor: themeColors.gray[100] }]}>
+        <View
+          style={[styles.container, { backgroundColor: themeColors.gray[100] }]}
+          accessibilityViewIsModal
+        >
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
             <Text style={[styles.title, { color: themeColors.text.primary }]}>
-              {mode === 'review' ? 'Revisar Acción' : 'Rechazar Acción'}
+              {mode === 'review' ? 'Revisar acción' : 'Rechazar acción'}
             </Text>
-            <TouchableOpacity onPress={resetAndClose} style={styles.closeButton}>
+            <PressableScale
+              onPress={handleClose}
+              style={styles.closeButton}
+              accessibilityRole="button"
+              accessibilityLabel="Cerrar revisión de acción"
+            >
               <Ionicons name="close" size={24} color={themeColors.text.primary} />
-            </TouchableOpacity>
+            </PressableScale>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
@@ -172,7 +205,7 @@ export function ReviewActionModal({
                 </View>
                 <Slider
                   style={styles.slider}
-                  minimumValue={0}
+                  minimumValue={10}
                   maximumValue={1000}
                   step={10}
                   value={points}
@@ -180,10 +213,11 @@ export function ReviewActionModal({
                   minimumTrackTintColor={themeColors.primary}
                   maximumTrackTintColor={themeColors.gray[300]}
                   thumbTintColor={themeColors.primary}
+                  accessibilityLabel="Puntos a otorgar"
                 />
                 <View style={styles.sliderLabels}>
                   <Text style={[styles.sliderLabel, { color: themeColors.gray[400] }]}>
-                    0
+                    10
                   </Text>
                   <Text style={[styles.sliderLabel, { color: themeColors.gray[400] }]}>
                     1000
@@ -193,11 +227,11 @@ export function ReviewActionModal({
                   <Text
                     style={[styles.suggestedLabel, { color: themeColors.text.secondary }]}
                   >
-                    Sugerencias:
+                    Sugerencias
                   </Text>
                   <View style={styles.suggestedButtons}>
                     {[50, 100, 250, 500].map((value) => (
-                      <TouchableOpacity
+                      <PressableScale
                         key={value}
                         style={[
                           styles.suggestedButton,
@@ -211,6 +245,9 @@ export function ReviewActionModal({
                           ],
                         ]}
                         onPress={() => setPoints(value)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${value} puntos`}
+                        accessibilityState={{ selected: points === value }}
                       >
                         <Text
                           style={[
@@ -224,7 +261,7 @@ export function ReviewActionModal({
                         >
                           {value}
                         </Text>
-                      </TouchableOpacity>
+                      </PressableScale>
                     ))}
                   </View>
                 </View>
@@ -259,9 +296,10 @@ export function ReviewActionModal({
               <>
                 <Button
                   title="Rechazar"
-                  variant="danger"
+                  variant="outline"
                   onPress={() => setMode('reject')}
-                  style={styles.actionButton}
+                  textStyle={{ color: themeColors.error }}
+                  style={[styles.actionButton, { borderColor: themeColors.error }]}
                   disabled={loading}
                   icon="close-circle"
                 />
@@ -284,7 +322,7 @@ export function ReviewActionModal({
                   disabled={loading}
                 />
                 <Button
-                  title="Confirmar Rechazo"
+                  title="Confirmar rechazo"
                   onPress={handleSubmit(onSubmitReject)}
                   style={[styles.actionButton, { backgroundColor: themeColors.error }]}
                   disabled={loading}

@@ -38,10 +38,6 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
 
   const requesterPoints = permission.requester?.totalPoints ?? 0;
   const displayPointsCost = permission.pointsCost ?? 0;
-  const hasInsufficientPoints =
-    permission.status === 'pending' &&
-    displayPointsCost > 0 &&
-    requesterPoints < displayPointsCost;
 
   return (
     <>
@@ -72,12 +68,6 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
             {permission.template.description}
           </Text>
         )}
-        {hasInsufficientPoints && (
-          <Text style={[styles.warningText, { color: colors.error }]}>
-            ⚠️ Tu pareja no tiene suficientes puntos para esta solicitud
-          </Text>
-        )}
-
         <Text style={[styles.permissionDate, { color: colors.text.secondary }]}>
           Fecha creación: {formatDateOnly(permission.createdAt)}
         </Text>
@@ -88,7 +78,6 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
               onPress={() => setModalVisible(true)}
               size="sm"
               style={styles.actionButton}
-              disabled={hasInsufficientPoints}
             />
           </View>
         ) : (
@@ -109,6 +98,8 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
         onApprove={handleApprove}
         onReject={handleReject}
         permissionTitle={permission.template?.title || 'Permiso'}
+        suggestedPointsCost={permission.template?.suggestedPointsCost}
+        requesterPoints={requesterPoints}
         loading={loading === permission.id}
       />
     </>
@@ -150,11 +141,5 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-  },
-  warningText: {
-    ...typography.styles.caption,
-    textAlign: 'center',
-    marginTop: spacing.xs,
-    marginBottom: spacing.sm,
   },
 });

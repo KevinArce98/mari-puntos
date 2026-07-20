@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Text,
   TextStyle,
-  TouchableOpacity,
   View,
   ViewStyle,
 } from 'react-native';
@@ -14,6 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
+
+import { PressableScale } from './PressableScale';
 
 interface ButtonProps {
   title: string;
@@ -46,10 +47,11 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantStyles = {
     primary: { backgroundColor: colors.primary },
-    secondary: { backgroundColor: colors.accent },
+    // Tonal: tinte del primario, no dorado
+    secondary: { backgroundColor: colors.primaryTint },
     outline: {
       backgroundColor: 'transparent',
-      borderWidth: 1.5,
+      borderWidth: 1,
       borderColor: colors.gray[300],
     },
     ghost: { backgroundColor: 'transparent' },
@@ -58,7 +60,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   const textVariantStyles = {
     primary: { color: colors.text.white },
-    secondary: { color: colors.text.primary },
+    secondary: { color: colors.primary },
     outline: { color: colors.text.primary },
     ghost: { color: colors.primary },
     danger: { color: colors.text.white },
@@ -83,18 +85,17 @@ export const Button: React.FC<ButtonProps> = ({
   const iconColor =
     variant === 'primary' || variant === 'danger'
       ? colors.text.white
-      : variant === 'secondary'
+      : variant === 'outline'
         ? colors.text.primary
         : colors.primary;
 
   const iconSize = size === 'sm' ? 16 : size === 'lg' ? 24 : 20;
 
   return (
-    <TouchableOpacity
-      style={buttonStyles}
+    <PressableScale
+      style={StyleSheet.flatten(buttonStyles)}
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.8}
       accessibilityRole="button"
       accessibilityLabel={title}
       accessibilityState={{ disabled: disabled || loading, busy: loading }}
@@ -128,13 +129,13 @@ export const Button: React.FC<ButtonProps> = ({
           )}
         </View>
       )}
-    </TouchableOpacity>
+    </PressableScale>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: borderRadius.xl,
+    borderRadius: borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
 
   // States
   disabled: {
-    opacity: 0.5,
+    opacity: 0.4,
   },
   fullWidth: {
     width: '100%',

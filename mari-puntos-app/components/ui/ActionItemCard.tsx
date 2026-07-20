@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -10,6 +10,7 @@ import { Action, ActionCategory, ActionStatus } from '@/types';
 import { formatDateWithTime } from '@/utils/dateUtils';
 
 import { Card } from './Card';
+import { PressableScale } from './PressableScale';
 
 const CATEGORY_ICON: Record<
   ActionCategory,
@@ -77,7 +78,7 @@ export function ActionItemCard({
 
   return (
     <Card style={styles.card}>
-      <TouchableOpacity
+      <PressableScale
         onPress={onPress}
         disabled={!onPress}
         style={styles.touchable}
@@ -156,7 +157,7 @@ export function ActionItemCard({
             <Ionicons name="chevron-forward" size={20} color={themeColors.gray[400]} />
           )}
         </View>
-      </TouchableOpacity>
+      </PressableScale>
     </Card>
   );
 }

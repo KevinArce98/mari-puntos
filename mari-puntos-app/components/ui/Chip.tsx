@@ -1,9 +1,11 @@
 import React from 'react';
 
-import { StyleSheet, Text, TouchableOpacity, ViewStyle } from 'react-native';
+import { StyleSheet, Text, ViewStyle } from 'react-native';
 
 import { useThemedColors } from '@/hooks';
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { borderRadius, spacing, typography } from '@/theme';
+
+import { PressableScale } from './PressableScale';
 
 interface ChipProps {
   label: string;
@@ -21,18 +23,17 @@ export const Chip: React.FC<ChipProps> = ({
   const themeColors = useThemedColors();
 
   return (
-    <TouchableOpacity
+    <PressableScale
       style={[
         styles.chip,
-        { backgroundColor: themeColors.gray[100], borderColor: themeColors.gray[200] },
+        { backgroundColor: themeColors.surface, borderColor: themeColors.border },
         selected && {
-          backgroundColor: themeColors.primary,
+          backgroundColor: themeColors.primaryTint,
           borderColor: themeColors.primary,
         },
         style,
       ]}
       onPress={onPress}
-      activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ selected }}
@@ -40,13 +41,13 @@ export const Chip: React.FC<ChipProps> = ({
       <Text
         style={[
           styles.label,
-          { color: themeColors.text.primary },
-          selected && { color: colors.light.white },
+          { color: themeColors.text.secondary },
+          selected && { color: themeColors.primary },
         ]}
       >
         {label}
       </Text>
-    </TouchableOpacity>
+    </PressableScale>
   );
 };
 

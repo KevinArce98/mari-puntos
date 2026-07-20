@@ -8,7 +8,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
@@ -21,9 +20,9 @@ import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { Button, ControlledInput } from '@/components/ui';
+import { Button, ControlledInput, PressableScale } from '@/components/ui';
 import { useThemedColors } from '@/hooks';
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { borderRadius, spacing, typography } from '@/theme';
 import { handleClerkErrors } from '@/types/clerk-localization';
 import logger from '@/utils/logger';
 import { type LoginFormData, loginSchema } from '@/validators/auth.schema';
@@ -41,6 +40,7 @@ export default function LoginScreen() {
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<LoginFormData>({
+    mode: 'onBlur',
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
@@ -160,14 +160,14 @@ export default function LoginScreen() {
               onRightIconPress={() => setShowPassword(!showPassword)}
             />
 
-            <TouchableOpacity
+            <PressableScale
               style={styles.forgotPassword}
               onPress={() => router.push('/(auth)/forgot-password')}
             >
               <Text style={[styles.forgotPasswordText, { color: themeColors.primary }]}>
                 ¿Olvidaste tu contraseña?
               </Text>
-            </TouchableOpacity>
+            </PressableScale>
 
             <Button
               title="Iniciar sesión"
@@ -183,11 +183,11 @@ export default function LoginScreen() {
             <Text style={[styles.registerText, { color: themeColors.text.secondary }]}>
               {'¿No tienes una cuenta? '}
             </Text>
-            <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+            <PressableScale onPress={() => router.push('/(auth)/register')}>
               <Text style={[styles.registerLink, { color: themeColors.primary }]}>
                 Regístrate
               </Text>
-            </TouchableOpacity>
+            </PressableScale>
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
@@ -240,36 +240,6 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     ...typography.styles.bodyMedium,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.lg,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.light.gray[300],
-  },
-  dividerText: {
-    ...typography.styles.caption,
-    marginHorizontal: spacing.md,
-  },
-  socialButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.xl,
-  },
-  socialButton: {
-    width: 56,
-    height: 56,
-    borderRadius: borderRadius.xl,
-    backgroundColor: colors.light.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.light.gray[200],
   },
   registerContainer: {
     flexDirection: 'row',

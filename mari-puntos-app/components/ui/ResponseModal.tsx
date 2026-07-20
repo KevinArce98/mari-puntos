@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 
 import {
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 
@@ -19,7 +19,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useThemedColors } from '@/hooks';
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { borderRadius, spacing, typography } from '@/theme';
 import {
   type ResponseMessageFormData,
   responseMessageSchema,
@@ -28,13 +28,16 @@ import {
 import { Button } from './Button';
 import { ControlledInput } from './ControlledInput';
 import { Input } from './Input';
+import { PressableScale } from './PressableScale';
 
 interface ResponseModalProps {
   visible: boolean;
   onClose: () => void;
-  onApprove: (data: ResponseMessageFormData) => void;
-  onReject: (data: ResponseMessageFormData) => void;
+  onApprove: (data: ResponseMessageFormData) => Promise<void> | void;
+  onReject: (data: ResponseMessageFormData) => Promise<void> | void;
   permissionTitle: string;
+  suggestedPointsCost?: number;
+  requesterPoints?: number;
   loading?: boolean;
 }
 
@@ -44,6 +47,8 @@ export function ResponseModal({
   onApprove,
   onReject,
   permissionTitle,
+  suggestedPointsCost,
+  requesterPoints,
   loading = false,
 }: ResponseModalProps) {
   const themeColors = useThemedColors();
@@ -51,13 +56,10 @@ export function ResponseModal({
   const [pendingAction, setPendingAction] = useState<'approve' | 'reject' | null>(null);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
-  // Reset which button is spinning whenever the parent finishes its async work.
   useEffect(() => {
     if (!loading) setPendingAction(null);
   }, [loading]);
 
-  // Modal creates its own Android window that doesn't inherit `adjustResize`,
-  // so track the keyboard manually to lift the modal above it.
   useEffect(() => {
     if (Platform.OS !== 'android') return;
     const show = Keyboard.addListener('keyboardDidShow', (e) => {
@@ -72,29 +74,96 @@ export function ResponseModal({
     };
   }, []);
 
-  const { control, handleSubmit, reset } = useForm<ResponseMessageFormData>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { isDirty },
+  } = useForm<ResponseMessageFormData>({
+    mode: 'onBlur',
     resolver: zodResolver(responseMessageSchema),
     defaultValues: {
       message: '',
-      pointsCost: 0,
+      pointsCost:
+        suggestedPointsCost && suggestedPointsCost > 0 ? suggestedPointsCost : undefined,
     },
   });
 
+  useEffect(() => {
+    if (!visible) return;
+    reset({
+      message: '',
+      pointsCost:
+        suggestedPointsCost && suggestedPointsCost > 0 ? suggestedPointsCost : undefined,
+    });
+  }, [reset, suggestedPointsCost, visible]);
+
   const onSubmitApprove = (data: ResponseMessageFormData) => {
-    setPendingAction('approve');
-    onApprove(data);
-    reset();
+    const cost = data.pointsCost ?? 0;
+    if (cost < 1) {
+      setError('pointsCost', {
+        type: 'manual',
+        message: 'Ingresa un costo entre 1 y 1000 puntos',
+      });
+      return;
+    }
+    if (requesterPoints != null && cost > requesterPoints) {
+      setError('pointsCost', {
+        type: 'manual',
+        message: `Tu pareja tiene ${requesterPoints.toLocaleString()} puntos disponibles`,
+      });
+      return;
+    }
+
+    const submit = async () => {
+      setPendingAction('approve');
+      try {
+        await onApprove(data);
+        reset();
+      } finally {
+        setPendingAction(null);
+      }
+    };
+
+    Alert.alert(
+      'Confirmar aprobación',
+      `Se descontarán ${cost} MariPuntos del saldo de tu pareja. Esta acción no se puede deshacer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Aprobar', onPress: submit },
+      ]
+    );
   };
 
-  const onSubmitReject = (data: ResponseMessageFormData) => {
+  const onSubmitReject = async (data: ResponseMessageFormData) => {
     setPendingAction('reject');
-    onReject(data);
-    reset();
+    try {
+      await onReject({ ...data, pointsCost: undefined });
+      reset();
+    } finally {
+      setPendingAction(null);
+    }
   };
 
   const handleClose = () => {
-    reset();
-    onClose();
+    const close = () => {
+      reset();
+      onClose();
+    };
+
+    if (isDirty) {
+      Alert.alert(
+        'Descartar respuesta',
+        'Perderás los cambios que todavía no has enviado.',
+        [
+          { text: 'Seguir editando', style: 'cancel' },
+          { text: 'Descartar', style: 'destructive', onPress: close },
+        ]
+      );
+      return;
+    }
+    close();
   };
 
   return (
@@ -116,108 +185,120 @@ export function ResponseModal({
           },
         ]}
       >
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={handleClose}>
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View
-              style={[styles.modalContainer, { backgroundColor: themeColors.gray[100] }]}
-              onStartShouldSetResponder={() => true}
+        <View
+          style={[
+            styles.modalContainer,
+            {
+              backgroundColor: themeColors.surface,
+              paddingBottom:
+                Platform.OS === 'ios' ? insets.bottom + spacing.md : spacing.md,
+            },
+          ]}
+          accessibilityViewIsModal
+        >
+          <View style={styles.header}>
+            <Text style={[styles.title, { color: themeColors.text.primary }]}>
+              Responder permiso
+            </Text>
+            <PressableScale
+              onPress={handleClose}
+              style={styles.closeButton}
+              accessibilityRole="button"
+              accessibilityLabel="Cerrar respuesta"
             >
-              {/* Header */}
-              <View style={styles.header}>
-                <Text style={[styles.title, { color: themeColors.text.primary }]}>
-                  Responder Permiso
-                </Text>
-                <TouchableOpacity onPress={handleClose}>
-                  <Ionicons name="close" size={24} color={themeColors.text.secondary} />
-                </TouchableOpacity>
-              </View>
+              <Ionicons name="close" size={24} color={themeColors.text.secondary} />
+            </PressableScale>
+          </View>
 
-              {/* Permission Title */}
-              <View
-                style={[
-                  styles.permissionInfo,
-                  { backgroundColor: themeColors.background },
-                ]}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.content}
+          >
+            {/* Permission Title */}
+            <View
+              style={[styles.permissionInfo, { backgroundColor: themeColors.background }]}
+            >
+              <Text
+                style={[styles.permissionLabel, { color: themeColors.text.secondary }]}
               >
-                <Text
-                  style={[styles.permissionLabel, { color: themeColors.text.secondary }]}
-                >
-                  Solicitud:
-                </Text>
-                <Text
-                  style={[styles.permissionTitle, { color: themeColors.text.primary }]}
-                >
-                  {permissionTitle}
-                </Text>
-              </View>
-
-              {/* Points Cost Input */}
-              <View style={styles.inputContainer}>
-                <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>
-                  Costo en Puntos *
-                </Text>
-                <Controller
-                  control={control}
-                  name="pointsCost"
-                  render={({
-                    field: { onChange, onBlur, value },
-                    fieldState: { error },
-                  }) => (
-                    <Input
-                      placeholder="Ejemplo: 50"
-                      keyboardType="numeric"
-                      value={value?.toString() || ''}
-                      onChangeText={(text) => {
-                        const numValue = parseInt(text) || '';
-                        onChange(numValue);
-                      }}
-                      onBlur={onBlur}
-                      error={error?.message}
-                      editable={!loading}
-                    />
-                  )}
-                />
-              </View>
-
-              {/* Message Input */}
-              <View style={styles.inputContainer}>
-                <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>
-                  Mensaje de respuesta (opcional)
-                </Text>
-                <ControlledInput
-                  control={control}
-                  name="message"
-                  placeholder="Escribe un mensaje para tu pareja..."
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                  editable={!loading}
-                />
-              </View>
-
-              {/* Action Buttons */}
-              <View style={styles.actionButtons}>
-                <Button
-                  title="Rechazar"
-                  textStyle={styles.rejectButtonText}
-                  onPress={handleSubmit(onSubmitReject)}
-                  variant="outline"
-                  style={[styles.actionButton, styles.rejectButton]}
-                  loading={pendingAction === 'reject'}
-                  disabled={loading}
-                />
-                <Button
-                  title="Aprobar"
-                  onPress={handleSubmit(onSubmitApprove)}
-                  variant="primary"
-                  style={styles.actionButton}
-                  loading={pendingAction === 'approve'}
-                  disabled={loading}
-                />
-              </View>
+                Solicitud:
+              </Text>
+              <Text style={[styles.permissionTitle, { color: themeColors.text.primary }]}>
+                {permissionTitle}
+              </Text>
             </View>
-          </TouchableWithoutFeedback>
-        </TouchableOpacity>
+
+            {/* Points Cost Input */}
+            <View style={styles.inputContainer}>
+              <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>
+                Costo en puntos *
+              </Text>
+              <Controller
+                control={control}
+                name="pointsCost"
+                render={({
+                  field: { onChange, onBlur, value },
+                  fieldState: { error },
+                }) => (
+                  <Input
+                    placeholder="Ejemplo: 50"
+                    keyboardType="numeric"
+                    value={value?.toString() || ''}
+                    onChangeText={(text) => {
+                      const numValue = text ? Number.parseInt(text, 10) : undefined;
+                      onChange(numValue);
+                    }}
+                    onBlur={onBlur}
+                    error={error?.message}
+                    editable={!loading}
+                  />
+                )}
+              />
+              {requesterPoints != null && (
+                <Text style={[styles.balanceHint, { color: themeColors.text.secondary }]}>
+                  Saldo disponible: {requesterPoints.toLocaleString()} MariPuntos
+                </Text>
+              )}
+            </View>
+
+            {/* Message Input */}
+            <View style={styles.inputContainer}>
+              <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>
+                Mensaje de respuesta (opcional)
+              </Text>
+              <ControlledInput
+                control={control}
+                name="message"
+                placeholder="Escribe un mensaje para tu pareja..."
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                editable={!loading}
+              />
+            </View>
+          </ScrollView>
+
+          <View style={styles.actionButtons}>
+            <Button
+              title="Rechazar"
+              onPress={handleSubmit(onSubmitReject)}
+              variant="outline"
+              textStyle={{ color: themeColors.error }}
+              style={[styles.actionButton, { borderColor: themeColors.error }]}
+              loading={pendingAction === 'reject'}
+              disabled={loading}
+            />
+            <Button
+              title="Aprobar"
+              onPress={handleSubmit(onSubmitApprove)}
+              variant="primary"
+              style={styles.actionButton}
+              loading={pendingAction === 'approve'}
+              disabled={loading}
+            />
+          </View>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -227,27 +308,36 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
     width: '100%',
     height: '100%',
   },
   modalContainer: {
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    width: '90%',
-    maxWidth: 500,
-    boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.25)',
+    borderTopLeftRadius: borderRadius['2xl'],
+    borderTopRightRadius: borderRadius['2xl'],
+    width: '100%',
+    maxHeight: '92%',
     elevation: 5,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   title: {
     ...typography.styles.h3,
+  },
+  closeButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.sm,
   },
   permissionInfo: {
     padding: spacing.md,
@@ -263,7 +353,7 @@ const styles = StyleSheet.create({
     fontFamily: 'PlusJakartaSans-SemiBold',
   },
   inputContainer: {
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   inputLabel: {
     ...typography.styles.body,
@@ -280,15 +370,14 @@ const styles = StyleSheet.create({
   actionButtons: {
     flexDirection: 'row',
     gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
   },
   actionButton: {
     flex: 1,
   },
-  rejectButton: {
-    backgroundColor: colors.light.error,
-    borderColor: colors.light.error,
-  },
-  rejectButtonText: {
-    color: colors.light.white,
+  balanceHint: {
+    ...typography.styles.caption,
+    marginTop: -spacing.sm,
   },
 });

@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
-import { useRouter } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
+import { usePreventRemove } from 'expo-router/react-navigation';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -21,7 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 import { z } from 'zod';
 
-import { Button } from '@/components/ui';
+import { Button, PressableScale } from '@/components/ui';
 import { ControlledInput } from '@/components/ui/ControlledInput';
 import { useThemedColors } from '@/hooks';
 import { spacing, typography } from '@/theme';
@@ -43,15 +44,24 @@ type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 export default function ChangePasswordScreen() {
   const colors = useThemedColors();
   const router = useRouter();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { user, isLoaded } = useUser();
   const [loading, setLoading] = useState(false);
+  const [allowExit, setAllowExit] = useState(false);
 
   const hasPasswordAuth = isLoaded
     ? user?.externalAccounts?.length === 0 || user?.passwordEnabled
     : true;
 
-  const { control, handleSubmit, watch, reset } = useForm<ChangePasswordFormData>({
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { isDirty },
+  } = useForm<ChangePasswordFormData>({
+    mode: 'onBlur',
     resolver: zodResolver(changePasswordSchema),
     defaultValues: {
       currentPassword: '',
@@ -62,6 +72,21 @@ export default function ChangePasswordScreen() {
 
   const newPassword = watch('newPassword');
   const hasSymbol = hasPasswordSymbol(newPassword);
+
+  usePreventRemove(isDirty && !allowExit, ({ data }) => {
+    Alert.alert(
+      'Descartar cambios',
+      'Perderás las contraseñas que todavía no has guardado.',
+      [
+        { text: 'Seguir editando', style: 'cancel' },
+        {
+          text: 'Descartar',
+          style: 'destructive',
+          onPress: () => navigation.dispatch(data.action),
+        },
+      ]
+    );
+  });
 
   const onSubmit = async (data: ChangePasswordFormData) => {
     if (!user) return;
@@ -76,7 +101,8 @@ export default function ChangePasswordScreen() {
       toast.success('Contraseña actualizada', {
         description: 'Tu contraseña ha sido cambiada correctamente',
       });
-      router.back();
+      setAllowExit(true);
+      setTimeout(() => router.back(), 0);
     } catch (error: any) {
       const message =
         error?.errors?.[0]?.longMessage ||
@@ -100,11 +126,16 @@ export default function ChangePasswordScreen() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <PressableScale
+          onPress={() => router.back()}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="Volver"
+        >
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
-        </TouchableOpacity>
+        </PressableScale>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
-          Cambiar Contraseña
+          Cambiar contraseña
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -113,7 +144,7 @@ export default function ChangePasswordScreen() {
         <View style={styles.noPasswordContainer}>
           <Ionicons name="logo-google" size={48} color={colors.gray[400]} />
           <Text style={[styles.noPasswordTitle, { color: colors.text.primary }]}>
-            Cuenta OAuth
+            Cuenta externa
           </Text>
           <Text style={[styles.noPasswordText, { color: colors.text.secondary }]}>
             Tu cuenta está vinculada con un proveedor externo (Google/Apple). No puedes
@@ -161,7 +192,7 @@ export default function ChangePasswordScreen() {
             />
 
             <Button
-              title="Guardar Contraseña"
+              title="Guardar contraseña"
               onPress={handleSubmit(onSubmit)}
               loading={loading}
               fullWidth
