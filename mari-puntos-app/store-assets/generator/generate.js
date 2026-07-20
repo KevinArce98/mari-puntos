@@ -913,8 +913,20 @@ function page(shot, device) {
 </body></html>`;
 }
 
-for (const shot of SHOTS) {
-  fs.writeFileSync(path.join(OUT_HTML, `iphone-${shot.id}.html`), page(shot, 'iphone'));
-  fs.writeFileSync(path.join(OUT_HTML, `ipad-${shot.id}.html`), page(shot, 'ipad'));
+if (require.main === module) {
+  for (const shot of SHOTS) {
+    fs.writeFileSync(path.join(OUT_HTML, `iphone-${shot.id}.html`), page(shot, 'iphone'));
+    fs.writeFileSync(path.join(OUT_HTML, `ipad-${shot.id}.html`), page(shot, 'ipad'));
+  }
+  console.log(`Generated ${SHOTS.length * 2} HTML files in ${OUT_HTML}`);
 }
-console.log(`Generated ${SHOTS.length * 2} HTML files in ${OUT_HTML}`);
+
+module.exports = {
+  css,
+  statusBar,
+  tabBar,
+  screenHome,
+  screenActions,
+  screenPermissions,
+  screenDuel,
+};
