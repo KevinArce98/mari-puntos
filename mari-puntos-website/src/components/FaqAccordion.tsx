@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 
 const faqs = [
@@ -33,6 +31,11 @@ const faqs = [
     answer:
       'Las rachas cuentan cuántas semanas consecutivas ambos completaron al menos una acción juntos. ¡Compiten para no romper la racha!',
   },
+  {
+    question: '¿Qué son los niveles y logros?',
+    answer:
+      'A medida que suman MariPuntos, suben de nivel juntos y desbloquean logros que celebran su progreso como pareja.',
+  },
 ];
 
 export function FaqAccordion() {
@@ -48,7 +51,7 @@ export function FaqAccordion() {
           >
             <span className="font-semibold text-gray-900 pr-4">{faq.question}</span>
             <span
-              className="text-2xl text-[#24C6B1] shrink-0 transition-transform duration-200"
+              className="text-2xl text-[#0F766E] shrink-0 transition-transform duration-200"
               style={{ transform: open === i ? 'rotate(45deg)' : 'rotate(0deg)' }}
             >
               +

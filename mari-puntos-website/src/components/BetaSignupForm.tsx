@@ -1,13 +1,24 @@
-'use client';
-
 import { useActionState } from 'react';
-import { submitBetaSignup } from '@/app/actions/beta-signup';
 
-const initialState = {
+type State = {
+  success: boolean;
+  message?: string;
+  error?: string;
+};
+
+const initialState: State = {
   success: false,
   message: '',
   error: '',
 };
+
+async function submitBetaSignup(_prevState: State, formData: FormData): Promise<State> {
+  const response = await fetch('/api/beta-signup', {
+    method: 'POST',
+    body: formData,
+  });
+  return response.json();
+}
 
 export function BetaSignupForm() {
   const [state, formAction, isPending] = useActionState(submitBetaSignup, initialState);
@@ -26,7 +37,7 @@ export function BetaSignupForm() {
         <button
           type="submit"
           disabled={isPending}
-          className="px-10 py-4 bg-white text-[#24C6B1] rounded-full font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="px-10 py-4 bg-white text-[#0F766E] rounded-full font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           {isPending ? 'Enviando...' : 'Acceder'}
         </button>
