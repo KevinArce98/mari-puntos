@@ -251,10 +251,11 @@ export class ActionsService {
       return lockedAction;
     });
 
-    // Non-critical fire-and-forget: streak, achievements, notification
-    this.streakService.recordAction(action.userId).catch((err) => {
+    try {
+      await this.streakService.recordAction(action.userId);
+    } catch (err) {
       logger.error({ err }, 'Streak update failed after approveAction');
-    });
+    }
 
     try {
       await this.pointsService.checkAchievementsForUser(action.userId);

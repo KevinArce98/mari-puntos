@@ -6,18 +6,13 @@ import { AppError } from '../middlewares/errorMiddleware';
 import { calculateLevel, calculatePointsInCurrentLevel, getNowUTC6 } from '../utils/helpers';
 import { In } from 'typeorm';
 import { logger } from '../utils/logger';
-import dayjs from 'dayjs';
-import timezone from 'dayjs/plugin/timezone';
-import utc from 'dayjs/plugin/utc';
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-const TIMEZONE = 'America/Costa_Rica';
+import { StreakService } from './streak.service';
 
 export class PointsService {
   private userRepository = AppDataSource.getRepository(User);
   private logRepository = AppDataSource.getRepository(Log);
   private achievementRepository = AppDataSource.getRepository(Achievement);
+  private streakService = new StreakService();
 
   async addPoints(userId: string, points: number, reason: string): Promise<User> {
     logger.info({ message: 'Adding points to user', userId, points, reason });
@@ -180,6 +175,29 @@ export class PointsService {
     await this.checkAchievements(user);
   }
 
+  private achievementCopy(type: AchievementType, value: number): { title: string; description: string } {
+    switch (type) {
+      case AchievementType.POINTS_MILESTONE:
+        return { title: `Maestro de ${value} Puntos`, description: `Ganaste ${value} puntos totales` };
+      case AchievementType.LEVEL_MILESTONE:
+        return { title: `Campeón Nivel ${value}`, description: `Alcanzaste el nivel ${value}` };
+      case AchievementType.ACTIONS_COMPLETED:
+        return value === 1
+          ? { title: 'Primera Acción Completada', description: 'Completaste tu primera acción aprobada' }
+          : { title: `${value} Acciones Completadas`, description: `Completaste ${value} acciones aprobadas` };
+      case AchievementType.PERMISSIONS_GRANTED:
+        return value === 1
+          ? { title: 'Primer Permiso Otorgado', description: 'Obtuviste tu primer permiso aprobado' }
+          : { title: `${value} Permisos Otorgados`, description: `Obtuviste ${value} permisos aprobados` };
+      case AchievementType.STREAK:
+        return value === 1
+          ? { title: 'Racha de 1 Semana', description: 'Completaron acciones juntos esta semana' }
+          : { title: `Racha de ${value} Semanas`, description: `Completaron acciones juntos ${value} semanas seguidas` };
+      case AchievementType.SPECIAL:
+        return { title: `Logro Especial ${value}`, description: `Logro especial ${value}` };
+    }
+  }
+
   private async checkAchievements(user: User): Promise<void> {
     // Single query for all unlocked achievements
     const unlockedAchievements = await this.achievementRepository.find({
@@ -190,8 +208,7 @@ export class PointsService {
       unlockedAchievements.map((a) => `${a.type}_${a.requiredValue}`)
     );
 
-    // Parallel DB queries for counts and streak dates
-    const [approvedActionsResult, approvedPermissionsResult, streakDatesResult] =
+    const [approvedActionsResult, approvedPermissionsResult, streakInfo] =
       await Promise.all([
         AppDataSource.query<[{ count: string }]>(
           `SELECT COUNT(*) AS count FROM actions WHERE "userId" = $1 AND status = 'approved'`,
@@ -201,53 +218,46 @@ export class PointsService {
           `SELECT COUNT(*) AS count FROM permissions WHERE "requesterId" = $1 AND status = 'approved'`,
           [user.id]
         ),
-        AppDataSource.query<Array<{ day: string }>>(
-          `SELECT DISTINCT DATE("approvedAt") AS day
-           FROM actions
-           WHERE "userId" = $1 AND status = 'approved' AND "approvedAt" IS NOT NULL
-           ORDER BY day DESC
-           LIMIT 31`,
-          [user.id]
-        ),
+        this.streakService.getStreak(user.id).catch(() => null),
       ]);
 
     const approvedActions = parseInt(approvedActionsResult[0]?.count ?? '0');
     const approvedPermissions = parseInt(approvedPermissionsResult[0]?.count ?? '0');
-    const currentStreak = this.computeStreak(streakDatesResult.map((r) => r.day));
+    const currentStreak = streakInfo?.currentStreak ?? 0;
 
-    // Points milestones
-    const pointsMilestones = [100, 500, 1000, 5000, 10000];
+    const pointsMilestones = [250, 750, 1500, 3500, 7500];
     for (const milestone of pointsMilestones) {
       if (user.totalPoints >= milestone && !unlockedKeys.has(`${AchievementType.POINTS_MILESTONE}_${milestone}`)) {
-        await this.unlockAchievement(user.id, `Maestro de ${milestone} Puntos`, `Ganaste ${milestone} puntos totales`, AchievementType.POINTS_MILESTONE, milestone);
+        const copy = this.achievementCopy(AchievementType.POINTS_MILESTONE, milestone);
+        await this.unlockAchievement(user.id, copy.title, copy.description, AchievementType.POINTS_MILESTONE, milestone);
       }
     }
 
-    // Actions completed milestones
-    const actionsMilestones = [5, 10, 25, 50, 100];
+    const actionsMilestones = [1, 5, 10, 25, 50, 100];
     for (const milestone of actionsMilestones) {
       if (approvedActions >= milestone && !unlockedKeys.has(`${AchievementType.ACTIONS_COMPLETED}_${milestone}`)) {
-        await this.unlockAchievement(user.id, `${milestone} Acciones Completadas`, `Completaste ${milestone} acciones aprobadas`, AchievementType.ACTIONS_COMPLETED, milestone);
+        const copy = this.achievementCopy(AchievementType.ACTIONS_COMPLETED, milestone);
+        await this.unlockAchievement(user.id, copy.title, copy.description, AchievementType.ACTIONS_COMPLETED, milestone);
       } else if (approvedActions < milestone) {
         await this.updateProgress(user.id, AchievementType.ACTIONS_COMPLETED, milestone, approvedActions);
       }
     }
 
-    // Permissions granted milestones
     const permissionsMilestones = [1, 5, 10, 25];
     for (const milestone of permissionsMilestones) {
       if (approvedPermissions >= milestone && !unlockedKeys.has(`${AchievementType.PERMISSIONS_GRANTED}_${milestone}`)) {
-        await this.unlockAchievement(user.id, `${milestone} Permiso${milestone > 1 ? 's' : ''} Otorgado${milestone > 1 ? 's' : ''}`, `Obtuviste ${milestone} permisos aprobados`, AchievementType.PERMISSIONS_GRANTED, milestone);
+        const copy = this.achievementCopy(AchievementType.PERMISSIONS_GRANTED, milestone);
+        await this.unlockAchievement(user.id, copy.title, copy.description, AchievementType.PERMISSIONS_GRANTED, milestone);
       } else if (approvedPermissions < milestone) {
         await this.updateProgress(user.id, AchievementType.PERMISSIONS_GRANTED, milestone, approvedPermissions);
       }
     }
 
-    // Streak milestones (consecutive days with approved actions)
-    const streakMilestones = [3, 7, 14, 30];
+    const streakMilestones = [2, 4, 8, 12];
     for (const milestone of streakMilestones) {
       if (currentStreak >= milestone && !unlockedKeys.has(`${AchievementType.STREAK}_${milestone}`)) {
-        await this.unlockAchievement(user.id, `Racha de ${milestone} Días`, `Tuviste acciones aprobadas ${milestone} días seguidos`, AchievementType.STREAK, milestone);
+        const copy = this.achievementCopy(AchievementType.STREAK, milestone);
+        await this.unlockAchievement(user.id, copy.title, copy.description, AchievementType.STREAK, milestone);
       } else if (currentStreak < milestone) {
         await this.updateProgress(user.id, AchievementType.STREAK, milestone, currentStreak);
       }
@@ -275,62 +285,19 @@ export class PointsService {
       }
     } else {
       // Seed the locked achievement row so the frontend can show progress
-      const titles: Record<AchievementType, (v: number) => string> = {
-        [AchievementType.POINTS_MILESTONE]: (v) => `Maestro de ${v} Puntos`,
-        [AchievementType.LEVEL_MILESTONE]: (v) => `Campeón Nivel ${v}`,
-        [AchievementType.ACTIONS_COMPLETED]: (v) => `${v} Acciones Completadas`,
-        [AchievementType.PERMISSIONS_GRANTED]: (v) => `${v} Permiso${v > 1 ? 's' : ''} Otorgado${v > 1 ? 's' : ''}`,
-        [AchievementType.STREAK]: (v) => `Racha de ${v} Días`,
-        [AchievementType.SPECIAL]: (v) => `Logro Especial ${v}`,
-      };
-      const descriptions: Record<AchievementType, (v: number) => string> = {
-        [AchievementType.POINTS_MILESTONE]: (v) => `Gana ${v} puntos totales`,
-        [AchievementType.LEVEL_MILESTONE]: (v) => `Alcanza el nivel ${v}`,
-        [AchievementType.ACTIONS_COMPLETED]: (v) => `Completa ${v} acciones aprobadas`,
-        [AchievementType.PERMISSIONS_GRANTED]: (v) => `Obtén ${v} permisos aprobados`,
-        [AchievementType.STREAK]: (v) => `Mantén una racha de ${v} días seguidos`,
-        [AchievementType.SPECIAL]: (v) => `Logro especial ${v}`,
-      };
-
+      const copy = this.achievementCopy(type, requiredValue);
       await this.achievementRepository.save(
         this.achievementRepository.create({
           userId,
           type,
-          title: titles[type](requiredValue),
-          description: descriptions[type](requiredValue),
+          title: copy.title,
+          description: copy.description,
           isUnlocked: false,
           requiredValue,
           currentProgress,
         })
       );
     }
-  }
-
-  /**
-   * Computes consecutive day streak from a DESC-ordered list of ISO date strings.
-   * Streak starts from today or yesterday (to allow end-of-day submissions).
-   */
-  private computeStreak(descDays: string[]): number {
-    if (descDays.length === 0) return 0;
-
-    const todayStr = dayjs().tz(TIMEZONE).format('YYYY-MM-DD');
-    const yesterdayStr = dayjs().tz(TIMEZONE).subtract(1, 'day').format('YYYY-MM-DD');
-
-    // Streak must include today or yesterday
-    if (descDays[0] !== todayStr && descDays[0] !== yesterdayStr) return 0;
-
-    let streak = 1;
-    for (let i = 1; i < descDays.length; i++) {
-      const prev = new Date(descDays[i - 1] + 'T00:00:00Z');
-      const curr = new Date(descDays[i] + 'T00:00:00Z');
-      const diffDays = Math.round((prev.getTime() - curr.getTime()) / 86400000);
-      if (diffDays === 1) {
-        streak++;
-      } else {
-        break;
-      }
-    }
-    return streak;
   }
 
   private async checkLevelAchievements(user: User): Promise<void> {
@@ -347,10 +314,11 @@ export class PointsService {
         });
 
         if (!existingAchievement || !existingAchievement.isUnlocked) {
+          const copy = this.achievementCopy(AchievementType.LEVEL_MILESTONE, milestone);
           await this.unlockAchievement(
             user.id,
-            `Campeón Nivel ${milestone}`,
-            `Alcanzaste el nivel ${milestone}`,
+            copy.title,
+            copy.description,
             AchievementType.LEVEL_MILESTONE,
             milestone
           );
