@@ -8,22 +8,21 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
 
 import { useRouter } from 'expo-router';
 
-import { isClerkAPIResponseError, useSignIn } from '@clerk/clerk-expo';
+import { isClerkAPIResponseError, useAuth, useSignIn } from '@clerk/clerk-expo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { Button, ControlledInput } from '@/components/ui';
+import { Button, ControlledInput, PressableScale } from '@/components/ui';
 import { useThemedColors } from '@/hooks';
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { borderRadius, spacing, typography } from '@/theme';
 import { handleClerkErrors } from '@/types/clerk-localization';
 import logger from '@/utils/logger';
 import { type LoginFormData, loginSchema } from '@/validators/auth.schema';
@@ -33,6 +32,7 @@ export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const themeColors = useThemedColors();
   const { signIn, setActive, isLoaded } = useSignIn();
+  const { signOut } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -40,6 +40,7 @@ export default function LoginScreen() {
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<LoginFormData>({
+    mode: 'onBlur',
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
@@ -47,22 +48,47 @@ export default function LoginScreen() {
     },
   });
 
+  const attemptSignIn = async (data: LoginFormData) => {
+    const result = await signIn!.create({
+      identifier: data.email,
+      password: data.password,
+    });
+
+    if (result.status === 'complete') {
+      await setActive!({ session: result.createdSessionId });
+      logger.info('User logged in successfully', { email: data.email });
+      router.replace('/(tabs)');
+    }
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     if (!isLoaded) return;
 
     logger.info('Login attempt', { email: data.email });
     try {
-      const result = await signIn.create({
-        identifier: data.email,
-        password: data.password,
-      });
-
-      if (result.status === 'complete') {
-        await setActive({ session: result.createdSessionId });
-        logger.info('User logged in successfully', { email: data.email });
-        router.replace('/(tabs)');
-      }
+      await attemptSignIn(data);
     } catch (error: any) {
+      if (isClerkAPIResponseError(error) && error.errors[0]?.code === 'session_exists') {
+        logger.info('session_exists during login — signing out and retrying', {
+          email: data.email,
+        });
+        try {
+          await signOut();
+          await attemptSignIn(data);
+        } catch (retryError: any) {
+          let retryMessage = 'Correo o contraseña inválidos';
+          if (isClerkAPIResponseError(retryError)) {
+            retryMessage = handleClerkErrors(retryError.errors);
+          }
+          logger.warn('Login failed after session sign-out', {
+            email: data.email,
+            error: retryMessage,
+          });
+          toast.error('Inicio de sesión fallido', { description: retryMessage });
+        }
+        return;
+      }
+
       let errorMessage = 'Correo o contraseña inválidos';
 
       if (isClerkAPIResponseError(error)) {
@@ -74,22 +100,6 @@ export default function LoginScreen() {
       toast.error('Inicio de sesión fallido', { description: errorMessage });
     }
   };
-
-  // const handleGoogleLogin = async () => {
-  //   try {
-  //     const { createdSessionId, setActive: setOAuthActive } = await startOAuthFlow();
-  //     if (createdSessionId && setOAuthActive) {
-  //       await setOAuthActive({ session: createdSessionId });
-  //       router.replace('/(tabs)');
-  //     }
-  //   } catch {
-  //     Toast.show({
-  //       type: 'error',
-  //       text1: 'Error',
-  //       text2: 'Could not sign in with Google',
-  //     });
-  //   }
-  // };
 
   return (
     <KeyboardAvoidingView
@@ -150,14 +160,14 @@ export default function LoginScreen() {
               onRightIconPress={() => setShowPassword(!showPassword)}
             />
 
-            <TouchableOpacity
+            <PressableScale
               style={styles.forgotPassword}
               onPress={() => router.push('/(auth)/forgot-password')}
             >
               <Text style={[styles.forgotPasswordText, { color: themeColors.primary }]}>
                 ¿Olvidaste tu contraseña?
               </Text>
-            </TouchableOpacity>
+            </PressableScale>
 
             <Button
               title="Iniciar sesión"
@@ -168,33 +178,16 @@ export default function LoginScreen() {
             />
           </View>
 
-          {/* Divider */}
-          {/* <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or continue with</Text>
-          <View style={styles.dividerLine} />
-        </View> */}
-
-          {/* Social Login */}
-          {/* <View style={styles.socialButtons}>
-          <TouchableOpacity style={styles.socialButton} onPress={handleGoogleLogin}>
-            <Ionicons name="logo-google" size={24} color={themeColors.text.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton}>
-            <Ionicons name="logo-apple" size={24} color={themeColors.text.primary} />
-          </TouchableOpacity>
-        </View> */}
-
           {/* Register Link */}
           <View style={styles.registerContainer}>
             <Text style={[styles.registerText, { color: themeColors.text.secondary }]}>
               {'¿No tienes una cuenta? '}
             </Text>
-            <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+            <PressableScale onPress={() => router.push('/(auth)/register')}>
               <Text style={[styles.registerLink, { color: themeColors.primary }]}>
                 Regístrate
               </Text>
-            </TouchableOpacity>
+            </PressableScale>
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
@@ -247,36 +240,6 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     ...typography.styles.bodyMedium,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.lg,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.light.gray[300],
-  },
-  dividerText: {
-    ...typography.styles.caption,
-    marginHorizontal: spacing.md,
-  },
-  socialButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.xl,
-  },
-  socialButton: {
-    width: 56,
-    height: 56,
-    borderRadius: borderRadius.xl,
-    backgroundColor: colors.light.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.light.gray[200],
   },
   registerContainer: {
     flexDirection: 'row',

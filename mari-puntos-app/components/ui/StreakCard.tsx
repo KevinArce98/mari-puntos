@@ -13,18 +13,40 @@ import { Card } from './Card';
 interface StreakCardProps {
   streak: StreakInfo;
   style?: ViewStyle;
+  variant?: 'default' | 'compact';
 }
 
-export function StreakCard({ streak, style }: StreakCardProps) {
+export function StreakCard({ streak, style, variant = 'default' }: StreakCardProps) {
   const colors = useThemedColors();
   const { currentStreak, longestStreak, myWeekDone, partnerWeekDone, bothDoneThisWeek } =
     streak;
 
   const flameColor = bothDoneThisWeek
-    ? '#FF6B35'
+    ? colors.streak.active
     : currentStreak > 0
-      ? '#FFB347'
+      ? colors.streak.warm
       : colors.gray[300];
+
+  if (variant === 'compact') {
+    return (
+      <View
+        style={[
+          styles.compactCard,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+          style,
+        ]}
+        accessibilityLabel={`Racha semanal: ${currentStreak} ${
+          currentStreak === 1 ? 'semana' : 'semanas'
+        }`}
+      >
+        <Ionicons name="flame" size={20} color={flameColor} />
+        <Text style={[styles.compactValue, { color: colors.text.primary }]}>
+          {currentStreak}
+        </Text>
+        <Text style={[styles.compactLabel, { color: colors.text.secondary }]}>sem.</Text>
+      </View>
+    );
+  }
 
   return (
     <Card style={style ? [styles.card, style] : styles.card}>
@@ -63,9 +85,12 @@ export function StreakCard({ streak, style }: StreakCardProps) {
         </Text>
       )}
       {bothDoneThisWeek && (
-        <Text style={[styles.hint, { color: colors.success }]}>
-          ¡Racha completada esta semana! 🔥
-        </Text>
+        <View style={styles.completedRow}>
+          <Ionicons name="flame" size={14} color={colors.streak.active} />
+          <Text style={[styles.hint, { color: colors.success }]}>
+            ¡Racha completada esta semana!
+          </Text>
+        </View>
       )}
     </Card>
   );
@@ -134,5 +159,22 @@ const styles = StyleSheet.create({
   },
   statusLabel: { ...typography.styles.bodyMedium },
   divider: { width: 1, height: 32 },
+  completedRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   hint: { ...typography.styles.caption, lineHeight: 18 },
+  compactCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    gap: spacing.xs,
+  },
+  compactValue: {
+    ...typography.styles.h4,
+    fontVariant: ['tabular-nums'],
+  },
+  compactLabel: {
+    ...typography.styles.caption,
+  },
 });

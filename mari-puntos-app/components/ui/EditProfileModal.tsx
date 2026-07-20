@@ -9,7 +9,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -35,6 +34,7 @@ import {
 
 import { Button } from './Button';
 import { ControlledInput } from './ControlledInput';
+import { PressableScale } from './PressableScale';
 
 interface EditProfileModalProps {
   visible: boolean;
@@ -76,8 +76,9 @@ export function EditProfileModal({
     control,
     handleSubmit,
     reset,
-    formState: { isSubmitting },
+    formState: { isDirty, isSubmitting },
   } = useForm<UpdateProfileFormData>({
+    mode: 'onBlur',
     resolver: zodResolver(updateProfileSchema),
     defaultValues: {
       firstName: currentFirstName,
@@ -146,9 +147,24 @@ export function EditProfileModal({
   };
 
   const handleClose = () => {
-    reset();
-    setSelectedImage(null);
-    onClose();
+    const close = () => {
+      reset();
+      setSelectedImage(null);
+      onClose();
+    };
+
+    if (isDirty || selectedImage) {
+      Alert.alert(
+        'Descartar cambios',
+        'Perderás los cambios que todavía no has guardado.',
+        [
+          { text: 'Seguir editando', style: 'cancel' },
+          { text: 'Descartar', style: 'destructive', onPress: close },
+        ]
+      );
+      return;
+    }
+    close();
   };
 
   const displayImage = selectedImage || currentAvatarUrl;
@@ -165,22 +181,35 @@ export function EditProfileModal({
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={[styles.keyboardAvoidingView, { paddingBottom: keyboardOffset }]}
         >
-          <View style={[styles.container, { backgroundColor: themeColors.gray[100] }]}>
+          <View
+            style={[styles.container, { backgroundColor: themeColors.gray[100] }]}
+            accessibilityViewIsModal
+          >
             <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
               <Text style={[styles.title, { color: themeColors.text.primary }]}>
-                Editar Perfil
+                Editar perfil
               </Text>
-              <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+              <PressableScale
+                onPress={handleClose}
+                style={styles.closeButton}
+                accessibilityRole="button"
+                accessibilityLabel="Cerrar edición de perfil"
+              >
                 <Ionicons name="close" size={24} color={themeColors.text.primary} />
-              </TouchableOpacity>
+              </PressableScale>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.section}>
                 <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                  Foto de Perfil
+                  Foto de perfil
                 </Text>
-                <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
+                <PressableScale
+                  style={styles.avatarContainer}
+                  onPress={pickImage}
+                  accessibilityRole="button"
+                  accessibilityLabel="Cambiar foto de perfil"
+                >
                   {displayImage ? (
                     <Image
                       source={displayImage}
@@ -208,7 +237,7 @@ export function EditProfileModal({
                   >
                     <Ionicons name="camera" size={16} color={themeColors.white} />
                   </View>
-                </TouchableOpacity>
+                </PressableScale>
                 <Text style={[styles.hint, { color: themeColors.text.secondary }]}>
                   Toca para cambiar tu foto
                 </Text>
@@ -288,7 +317,10 @@ const styles = StyleSheet.create({
     ...typography.styles.h3,
   },
   closeButton: {
-    padding: spacing.xs,
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   section: {
     padding: spacing.lg,

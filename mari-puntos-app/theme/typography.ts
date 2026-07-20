@@ -9,16 +9,16 @@ export const typography = {
     bold: 'PlusJakartaSans-Bold',
   },
 
-  // Font sizes from Design System
+  // Font sizes v2 - body mínimo 16 en móvil
   fontSize: {
     xs: 12,
-    sm: 14, // Body text
-    base: 16,
+    sm: 14,
+    base: 16, // Body text
     lg: 18,
-    xl: 20, // Heading 2
+    xl: 22, // Heading 2
     '2xl': 24,
-    '3xl': 30, // Heading 1
-    '4xl': 36,
+    '3xl': 28, // Heading 1
+    '4xl': 34, // Display
     '5xl': 48,
     '6xl': 64, // Large points display
   },
@@ -30,45 +30,54 @@ export const typography = {
     relaxed: 1.75,
   },
 
-  // Text styles presets matching Design System
+  // Text styles presets - Design System v2
   styles: {
-    // Heading 1 - Plus Jakarta Sans / Bold / 30px
+    // Display - números de puntos (tabular para evitar saltos de layout)
+    display: {
+      fontSize: 34,
+      fontFamily: 'PlusJakartaSans-Bold',
+      lineHeight: 40,
+      fontVariant: ['tabular-nums'],
+    } as TextStyle,
+
+    // Heading 1 - título de pantalla
     h1: {
-      fontSize: 30,
+      fontSize: 28,
       fontFamily: 'PlusJakartaSans-Bold',
-      lineHeight: 36,
+      lineHeight: 34,
     } as TextStyle,
 
-    // Heading 2 - Plus Jakarta Sans / Bold / 20px
+    // Heading 2 - sección grande
     h2: {
-      fontSize: 20,
+      fontSize: 22,
       fontFamily: 'PlusJakartaSans-Bold',
-      lineHeight: 24,
+      lineHeight: 28,
     } as TextStyle,
 
+    // Heading 3 - título de card
     h3: {
-      fontSize: 16,
+      fontSize: 17,
       fontFamily: 'PlusJakartaSans-SemiBold',
-      lineHeight: 22,
+      lineHeight: 24,
     } as TextStyle,
 
     h4: {
       fontSize: 16,
       fontFamily: 'PlusJakartaSans-SemiBold',
-      lineHeight: 20,
+      lineHeight: 22,
     } as TextStyle,
 
-    // Body Text - Plus Jakarta Sans / Regular / 14px
+    // Body - 16px mínimo móvil
     body: {
-      fontSize: 14,
+      fontSize: 16,
       fontFamily: 'PlusJakartaSans-Regular',
-      lineHeight: 21,
+      lineHeight: 24,
     } as TextStyle,
 
     bodyMedium: {
-      fontSize: 14,
+      fontSize: 16,
       fontFamily: 'PlusJakartaSans-Medium',
-      lineHeight: 21,
+      lineHeight: 24,
     } as TextStyle,
 
     bodyLarge: {
@@ -77,16 +86,24 @@ export const typography = {
       lineHeight: 24,
     } as TextStyle,
 
-    caption: {
-      fontSize: 12,
+    // Texto secundario compacto (listas densas, metadatos largos)
+    bodySm: {
+      fontSize: 14,
       fontFamily: 'PlusJakartaSans-Regular',
-      lineHeight: 18,
+      lineHeight: 20,
     } as TextStyle,
 
+    caption: {
+      fontSize: 12,
+      fontFamily: 'PlusJakartaSans-Medium',
+      lineHeight: 16,
+    } as TextStyle,
+
+    // 12px es el mínimo del sistema (antes 10px)
     small: {
-      fontSize: 10,
+      fontSize: 12,
       fontFamily: 'PlusJakartaSans-Regular',
-      lineHeight: 14,
+      lineHeight: 16,
     } as TextStyle,
 
     button: {
@@ -103,15 +120,17 @@ export const typography = {
 
     // Large points display
     pointsLarge: {
-      fontSize: 64,
+      fontSize: 56,
       fontFamily: 'PlusJakartaSans-Bold',
-      lineHeight: 72,
+      lineHeight: 64,
+      fontVariant: ['tabular-nums'],
     } as TextStyle,
 
     pointsMedium: {
-      fontSize: 48,
+      fontSize: 44,
       fontFamily: 'PlusJakartaSans-Bold',
-      lineHeight: 56,
+      lineHeight: 52,
+      fontVariant: ['tabular-nums'],
     } as TextStyle,
   },
 };

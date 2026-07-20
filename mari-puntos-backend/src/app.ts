@@ -6,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import { config } from './config/env';
 import { swaggerSpec } from './config/swagger';
 import routes from './routes';
+import webhooksRoutes from './routes/webhooks.routes';
 import { errorMiddleware, notFoundMiddleware } from './middlewares/errorMiddleware';
 import { rateLimitMiddleware } from './middlewares/rateLimitMiddleware';
 import { httpLogger } from './utils/logger';
@@ -40,18 +41,21 @@ export const createApp = (): Application => {
     })
   );
 
-  // Body parser middleware — 100kb default; profile update route gets 10mb for base64 image
+  app.use(
+    '/api/webhooks',
+    express.raw({ type: 'application/json', limit: '1mb' }),
+    webhooksRoutes
+  );
+
   app.use((req, _res, next) => {
     const isProfileUpdate = req.method === 'PUT' && req.path === '/api/users/profile';
     express.json({ limit: isProfileUpdate ? '10mb' : '100kb' })(req, _res, next);
   });
   app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
-  // Logging middleware
   app.use(
     pinoHttp({
       logger: httpLogger,
-      // Loggear solo errores en producción, todo en desarrollo
       autoLogging: config.isDevelopment
         ? true
         : {

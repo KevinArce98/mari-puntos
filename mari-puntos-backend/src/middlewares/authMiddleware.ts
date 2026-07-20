@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
+import { verifyToken } from '@clerk/express';
 import { AppDataSource } from '../config/db';
 import { User } from '../entities/User';
 import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
-import jwt from 'jsonwebtoken';
 import { LRUCache } from 'lru-cache';
 import { config } from '../config/env';
 import { sendError } from '../utils/response';
 import { logger } from '../utils/logger';
+import { UsersService } from '../services/users.service';
 
 /** LRU cache: clerkId → { userId, isActive }. TTL 5 min. Max 500 entries. */
 const userCache = new LRUCache<string, { userId: string; isActive: boolean }>({
@@ -14,36 +15,41 @@ const userCache = new LRUCache<string, { userId: string; isActive: boolean }>({
   ttl: 1000 * 60 * 5, // 5 minutes
 });
 
+const usersService = new UsersService();
+
 export interface AuthRequest extends Request {
   userId?: string;
   user?: User;
   clerkId?: string;
 }
 
-/**
- * Verify and decode a Clerk JWT token.
- * Returns the decoded payload or throws if invalid.
- */
-function verifyClerkJWT(token: string): jwt.JwtPayload {
-  const options: jwt.VerifyOptions = {
-    algorithms: ['RS256'],
-    issuer: config.clerk.issuer,
-  };
-  const decoded = jwt.verify(token, config.clerk.publicKey, options) as jwt.JwtPayload;
-
-  if (!decoded.exp || !decoded.nbf) {
-    throw Object.assign(new Error('Missing token claims'), { name: 'InvalidClaimsError' });
+async function verifyClerkJWT(token: string) {
+  let payload: Awaited<ReturnType<typeof verifyToken>>;
+  try {
+    payload = await verifyToken(token, {
+      jwtKey: config.clerk.publicKey,
+      clockSkewInMs: 5000,
+    });
+  } catch (err) {
+    const reason = (err as { reason?: string } | undefined)?.reason;
+    throw Object.assign(
+      new Error(err instanceof Error ? err.message : 'Token verification failed'),
+      {
+        name:
+          reason === 'token-expired'
+            ? 'TokenExpiredError'
+            : reason === 'token-not-active-yet'
+              ? 'TokenNotBeforeError'
+              : 'JsonWebTokenError',
+      }
+    );
   }
 
-  const currentTime = Math.floor(Date.now() / 1000);
-  if (decoded.exp < currentTime) {
-    throw Object.assign(new Error('Token expired'), { name: 'TokenExpiredError' });
-  }
-  if (decoded.nbf > currentTime) {
-    throw Object.assign(new Error('Token not yet valid'), { name: 'TokenNotBeforeError' });
+  if (payload.iss !== config.clerk.issuer) {
+    throw Object.assign(new Error('Issuer mismatch'), { name: 'JsonWebTokenError' });
   }
 
-  return decoded;
+  return payload;
 }
 
 /**
@@ -65,9 +71,9 @@ export const authMiddleware = async (
 
     const token = authHeader.replace('Bearer ', '');
 
-    let decoded: jwt.JwtPayload;
+    let decoded: Awaited<ReturnType<typeof verifyClerkJWT>>;
     try {
-      decoded = verifyClerkJWT(token);
+      decoded = await verifyClerkJWT(token);
     } catch (jwtError: unknown) {
       logger.error({ err: jwtError }, 'JWT verification failed');
       const errName = jwtError instanceof Error ? jwtError.name : '';
@@ -83,15 +89,23 @@ export const authMiddleware = async (
 
     const clerkId = decoded.sub as string;
 
-    // Check cache first to avoid DB lookup on every request
     let cached = userCache.get(clerkId);
     if (!cached) {
       const userRepository = AppDataSource.getRepository(User);
-      const user = await userRepository.findOne({ where: { clerkId } });
+      let user = await userRepository.findOne({ where: { clerkId } });
 
       if (!user) {
-        sendError(res, 'Usuario no encontrado. Por favor crea un perfil primero.', 404);
-        return;
+        try {
+          user = await usersService.findOrCreateByClerkId(clerkId);
+          logger.info({ clerkId, userId: user.id }, 'JIT-provisioned user on first request');
+        } catch (provisionError) {
+          logger.error(
+            { err: provisionError, clerkId },
+            'JIT provisioning failed for authenticated Clerk session'
+          );
+          sendError(res, 'No se pudo preparar tu cuenta. Intenta de nuevo.', 500);
+          return;
+        }
       }
 
       cached = { userId: user.id, isActive: user.isActive };
@@ -189,9 +203,9 @@ export const clerkOnlyAuthMiddleware = async (
 
     const token = authHeader.replace('Bearer ', '');
 
-    let decoded: jwt.JwtPayload;
+    let decoded: Awaited<ReturnType<typeof verifyClerkJWT>>;
     try {
-      decoded = verifyClerkJWT(token);
+      decoded = await verifyClerkJWT(token);
       logger.debug('Token verified successfully for profile creation');
     } catch (jwtError: unknown) {
       logger.error({ err: jwtError }, 'JWT verification failed (clerk-only)');

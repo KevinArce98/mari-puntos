@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
 
 import {
-  ActivityIndicator,
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
 
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { usePreventRemove } from 'expo-router/react-navigation';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -21,7 +21,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { Button, Card, TextAreaWithCounter } from '@/components/ui';
+import {
+  Button,
+  Card,
+  PressableScale,
+  SkeletonList,
+  TextAreaWithCounter,
+} from '@/components/ui';
 import { usePermissions, useThemedColors } from '@/hooks';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { permissionsService } from '@/services';
@@ -34,6 +40,7 @@ export default function EditPermissionScreen() {
   const themeColors = useThemedColors();
   const colorScheme: 'light' | 'dark' = useColorScheme() === 'dark' ? 'dark' : 'light';
   const router = useRouter();
+  const navigation = useNavigation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { updatePermission } = usePermissions();
@@ -43,11 +50,28 @@ export default function EditPermissionScreen() {
   const [duration, setDuration] = useState(2);
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [hasEdited, setHasEdited] = useState(false);
+  const [allowExit, setAllowExit] = useState(false);
 
   // Date & Time pickers state
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showPicker, setShowPicker] = useState<'date' | 'time' | null>(null);
+
+  usePreventRemove(hasEdited && !allowExit, ({ data }) => {
+    Alert.alert(
+      'Descartar cambios',
+      'Perderás los cambios que todavía no has guardado.',
+      [
+        { text: 'Seguir editando', style: 'cancel' },
+        {
+          text: 'Descartar',
+          style: 'destructive',
+          onPress: () => navigation.dispatch(data.action),
+        },
+      ]
+    );
+  });
 
   useEffect(() => {
     loadPermission();
@@ -68,6 +92,7 @@ export default function EditPermissionScreen() {
       setSelectedTime(requestedDate);
       setDuration(Number(data.durationHours) || 2);
       setNote(data.metadata?.note || '');
+      setHasEdited(false);
     } catch (error) {
       logger.error('Failed to load permission for editing', error as Error, {
         permissionId: id,
@@ -94,11 +119,12 @@ export default function EditPermissionScreen() {
 
       logger.info('Permission updated', { permissionId: id, durationHours: duration });
 
-      toast.success('¡Solicitud Actualizada!', {
+      toast.success('Solicitud actualizada', {
         description: 'Los cambios se han guardado',
       });
 
-      router.back();
+      setAllowExit(true);
+      setTimeout(() => router.back(), 0);
     } catch (e) {
       toast.error('Error', {
         description: (e as any)?.error ?? 'No se pudo actualizar la solicitud',
@@ -112,6 +138,7 @@ export default function EditPermissionScreen() {
     const currentDuration = isNaN(duration) ? 2 : duration;
     const newDuration = Math.max(0.5, Math.min(8, currentDuration + change));
     setDuration(newDuration);
+    setHasEdited(true);
   };
 
   const handleDateChange = (event: any, date?: Date) => {
@@ -120,6 +147,7 @@ export default function EditPermissionScreen() {
     }
     if (date) {
       setSelectedDate(date);
+      setHasEdited(true);
     }
   };
 
@@ -129,6 +157,7 @@ export default function EditPermissionScreen() {
     }
     if (time) {
       setSelectedTime(time);
+      setHasEdited(true);
     }
   };
 
@@ -168,13 +197,14 @@ export default function EditPermissionScreen() {
         style={[
           styles.container,
           { backgroundColor: themeColors.background, paddingTop: insets.top },
-          styles.loadingContainer,
         ]}
       >
-        <ActivityIndicator size="large" color={themeColors.primary} />
-        <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>
-          Cargando solicitud...
-        </Text>
+        <SkeletonList
+          count={3}
+          lines={3}
+          showAvatar={false}
+          style={{ padding: spacing.lg }}
+        />
       </View>
     );
   }
@@ -189,17 +219,22 @@ export default function EditPermissionScreen() {
         styles.container,
         {
           backgroundColor: themeColors.background,
-          paddingTop: Platform.OS !== 'ios' ? insets.top : 0,
+          paddingTop: insets.top,
         },
       ]}
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <PressableScale
+          onPress={() => router.back()}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="Volver"
+        >
           <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
-        </TouchableOpacity>
+        </PressableScale>
         <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
-          Editar Solicitud
+          Editar solicitud
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -246,7 +281,7 @@ export default function EditPermissionScreen() {
                 Cuándo
               </Text>
               <View style={styles.dateTimeRow}>
-                <TouchableOpacity
+                <PressableScale
                   style={[
                     styles.dateTimeButton,
                     { backgroundColor: themeColors.gray[100] },
@@ -265,8 +300,8 @@ export default function EditPermissionScreen() {
                   >
                     {formatDate(selectedDate)}
                   </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
+                </PressableScale>
+                <PressableScale
                   style={[
                     styles.dateTimeButton,
                     { backgroundColor: themeColors.gray[100] },
@@ -281,7 +316,7 @@ export default function EditPermissionScreen() {
                   >
                     {formatTime(selectedTime)}
                   </Text>
-                </TouchableOpacity>
+                </PressableScale>
               </View>
 
               {showPicker && (
@@ -321,15 +356,17 @@ export default function EditPermissionScreen() {
               </View>
 
               <View style={styles.durationControl}>
-                <TouchableOpacity
+                <PressableScale
                   style={[
                     styles.durationButton,
                     { backgroundColor: themeColors.gray[100] },
                   ]}
                   onPress={() => handleDurationChange(-0.5)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Reducir duración"
                 >
                   <Ionicons name="remove" size={24} color={themeColors.primary} />
-                </TouchableOpacity>
+                </PressableScale>
 
                 <View
                   style={[
@@ -348,27 +385,32 @@ export default function EditPermissionScreen() {
                   />
                 </View>
 
-                <TouchableOpacity
+                <PressableScale
                   style={[
                     styles.durationButton,
                     { backgroundColor: themeColors.gray[100] },
                   ]}
                   onPress={() => handleDurationChange(0.5)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Aumentar duración"
                 >
                   <Ionicons name="add" size={24} color={themeColors.primary} />
-                </TouchableOpacity>
+                </PressableScale>
               </View>
             </View>
 
             {/* Optional Note */}
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                Nota (Opcional)
+                Nota (opcional)
               </Text>
               <TextAreaWithCounter
                 placeholder="Agrega un mensaje para tu pareja..."
                 value={note}
-                onChangeText={setNote}
+                onChangeText={(value) => {
+                  setNote(value);
+                  setHasEdited(true);
+                }}
                 numberOfLines={3}
                 maxLength={500}
                 containerStyle={styles.noteInput}
@@ -389,7 +431,7 @@ export default function EditPermissionScreen() {
         ]}
       >
         <Button
-          title="Guardar Cambios"
+          title="Guardar cambios"
           onPress={handleUpdate}
           loading={loading}
           fullWidth

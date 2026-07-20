@@ -12,7 +12,7 @@ export default function PrivacyPolicy() {
   return (
     <LegalLayout
       title="Política de Privacidad de MariPuntos"
-      lastUpdated="28 de abril de 2026"
+      lastUpdated="19 de julio de 2026"
     >
       <section className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Introducción</h2>
@@ -56,6 +56,11 @@ export default function PrivacyPolicy() {
           <li>Sistema operativo</li>
           <li>Identificadores únicos del dispositivo</li>
           <li>Datos de uso de la aplicación</li>
+          <li>Informes de errores y fallos técnicos (crash reports)</li>
+          <li>
+            Grabación técnica de la sesión en pantalla cuando ocurre un error, con todo el
+            texto e imágenes ocultos (nunca se captura contenido real)
+          </li>
         </ul>
       </section>
 
@@ -146,6 +151,11 @@ export default function PrivacyPolicy() {
         <ul className="list-disc list-inside text-gray-700 space-y-2">
           <li>
             <strong>Clerk</strong>: Autenticación de usuarios
+          </li>
+          <li>
+            <strong>Sentry</strong>: Monitoreo de errores y fallos técnicos para mejorar
+            la estabilidad de la aplicación, incluyendo una grabación técnica de la
+            pantalla con texto e imágenes ocultos cuando ocurre un error
           </li>
           <li>
             <strong>Backend propio</strong>: Almacenamiento de datos de la aplicación

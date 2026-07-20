@@ -3,6 +3,7 @@ import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
 import { Tabs, useRouter } from 'expo-router';
+import type { BottomTabBarButtonProps } from 'expo-router/build/react-navigation/bottom-tabs';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -11,7 +12,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/haptic-tab';
 import { useThemedColors, useUser } from '@/hooks';
 import { useActionsStore, usePermissionsStore, useUserStore } from '@/stores';
-import { shadows } from '@/theme';
 import logger from '@/utils/logger';
 
 export default function TabLayout() {
@@ -67,14 +67,18 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.gray[400],
         headerShown: false,
-        tabBarButton: HapticTab,
+        // expo-router's vendored BottomTabBarButtonProps type has drifted from the
+        // installed @react-navigation/elements version (duplicate HoverEffectProps/
+        // pressColor declarations), so the two are structurally compatible at runtime
+        // but not nominally assignable to TS.
+        tabBarButton: HapticTab as (props: BottomTabBarButtonProps) => React.ReactNode,
         tabBarStyle: {
-          backgroundColor: colors.gray[100],
-          borderTopWidth: 0,
+          backgroundColor: colors.surface,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom,
           paddingTop: 8,
-          ...shadows.md,
         },
         tabBarLabelStyle: {
           fontSize: 11,

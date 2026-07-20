@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -16,7 +15,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useThemedColors } from '@/hooks';
-import { borderRadius, colors, shadows, spacing, typography } from '@/theme';
+import { borderRadius, shadows, spacing, typography } from '@/theme';
+
+import { PressableScale } from './PressableScale';
 
 const ICON_OPTIONS = [
   { name: 'game-controller-outline', label: 'Gaming' },
@@ -98,7 +99,12 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
       <View
         style={[
           styles.container,
@@ -107,6 +113,7 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
             paddingTop: Platform.OS !== 'ios' ? insets.top : 0,
           },
         ]}
+        accessibilityViewIsModal
       >
         {/* Header */}
         <View
@@ -119,11 +126,16 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
           ]}
         >
           <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
-            Seleccionar Icono
+            Seleccionar icono
           </Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+          <PressableScale
+            onPress={onClose}
+            style={styles.closeButton}
+            accessibilityRole="button"
+            accessibilityLabel="Cerrar selector de iconos"
+          >
             <Ionicons name="close" size={28} color={themeColors.text.primary} />
-          </TouchableOpacity>
+          </PressableScale>
         </View>
 
         {/* Search */}
@@ -148,7 +160,7 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
         {/* Icons Grid */}
         <ScrollView contentContainerStyle={styles.gridContainer}>
           {filteredIcons.map((icon) => (
-            <TouchableOpacity
+            <PressableScale
               key={icon.name}
               style={[
                 styles.iconItem,
@@ -158,6 +170,9 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
                 },
               ]}
               onPress={() => handleSelect(icon.name)}
+              accessibilityRole="button"
+              accessibilityLabel={icon.label}
+              accessibilityState={{ selected: selectedIcon === icon.name }}
             >
               <View
                 style={[
@@ -171,7 +186,7 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
                   size={32}
                   color={
                     selectedIcon === icon.name
-                      ? colors.light.white
+                      ? themeColors.text.white
                       : themeColors.text.primary
                   }
                 />
@@ -189,7 +204,7 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
               >
                 {icon.label}
               </Text>
-            </TouchableOpacity>
+            </PressableScale>
           ))}
         </ScrollView>
       </View>
@@ -213,7 +228,10 @@ const styles = StyleSheet.create({
     ...typography.styles.h3,
   },
   closeButton: {
-    padding: spacing.xs,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchContainer: {
     flexDirection: 'row',

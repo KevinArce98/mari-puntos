@@ -24,36 +24,65 @@ import { borderRadius, spacing, typography } from '@/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+interface OnboardingDetail {
+  icon: keyof typeof Ionicons.glyphMap;
+  text: string;
+}
+
 interface OnboardingStep {
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
   description: string;
+  details: OnboardingDetail[];
+  numbered?: boolean;
 }
 
 const ONBOARDING_STEPS: OnboardingStep[] = [
   {
     icon: 'people',
-    title: '¡Bienvenido a MariPuntos!',
+    title: 'Bienvenido a MariPuntos',
     description:
-      'Convierte tus rutinas diarias en un juego divertido con tu pareja. ¡Fortalece tu vínculo mientras completan tareas juntos!',
+      'El juego de puntos para parejas: gana puntos con lo que haces por tu pareja y úsalos para pedir lo que quieres.',
+    details: [
+      { icon: 'add-circle-outline', text: 'Gana puntos completando acciones' },
+      { icon: 'hand-right-outline', text: 'Gástalos solicitando permisos' },
+      { icon: 'flame-outline', text: 'Mantengan su racha y compitan en el duelo' },
+    ],
   },
   {
     icon: 'checkmark-circle',
-    title: 'Completa Acciones',
+    title: 'Gana puntos con acciones',
     description:
-      'Realiza actividades diarias y gana puntos. Desde tareas del hogar hasta detalles especiales, cada acción cuenta.',
+      'Una acción es algo que haces por tu pareja o el hogar: lavar los platos, un detalle romántico, un mandado.',
+    numbered: true,
+    details: [
+      { icon: 'create-outline', text: 'Registra la acción que hiciste' },
+      { icon: 'eye-outline', text: 'Tu pareja la revisa y la aprueba' },
+      { icon: 'trending-up-outline', text: 'Los puntos se suman a tu saldo' },
+    ],
+  },
+  {
+    icon: 'hand-right',
+    title: 'Usa tus puntos en permisos',
+    description:
+      '¿Salida con amigos? ¿Tarde de videojuegos? Pídelo como permiso y págalo con los puntos que ganaste.',
+    numbered: true,
+    details: [
+      { icon: 'list-outline', text: 'Elige o crea el permiso que quieres' },
+      { icon: 'paper-plane-outline', text: 'Envía la solicitud a tu pareja' },
+      { icon: 'remove-circle-outline', text: 'Si acepta, se descuentan los puntos' },
+    ],
   },
   {
     icon: 'flame',
-    title: 'Mantén tu Racha',
+    title: 'Crezcan juntos',
     description:
-      'Completen acciones juntos cada semana para mantener su racha activa. ¡Cuántas semanas seguidas pueden llegar?',
-  },
-  {
-    icon: 'stats-chart',
-    title: 'Sube de Nivel',
-    description:
-      'Desbloquea logros, sube de nivel y compite de forma amistosa. ¡Haz que cada día sea una nueva aventura juntos!',
+      'Para jugar, vincula tu cuenta con la de tu pareja. Te guiamos paso a paso al entrar.',
+    details: [
+      { icon: 'flame-outline', text: 'Racha: completen acciones cada semana' },
+      { icon: 'stats-chart-outline', text: 'Duelo: compite por sumar más puntos' },
+      { icon: 'trophy-outline', text: 'Logros y niveles por su progreso' },
+    ],
   },
 ];
 
@@ -93,8 +122,8 @@ export default function WelcomeScreen() {
   const renderStep = ({ item }: { item: OnboardingStep }) => (
     <View style={styles.slide}>
       <View style={styles.illustrationContainer}>
-        <View style={styles.illustrationPlaceholder}>
-          <Ionicons name={item.icon} size={120} color={themeColors.primary} />
+        <View style={[styles.iconCircle, { backgroundColor: themeColors.primaryTint }]}>
+          <Ionicons name={item.icon} size={72} color={themeColors.primary} />
         </View>
       </View>
       <View style={styles.content}>
@@ -104,6 +133,39 @@ export default function WelcomeScreen() {
         <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
           {item.description}
         </Text>
+        <View
+          style={[
+            styles.detailsCard,
+            {
+              backgroundColor: themeColors.surface,
+              borderColor: themeColors.border,
+            },
+          ]}
+        >
+          {item.details.map((detail, index) => (
+            <View key={index} style={styles.detailRow}>
+              {item.numbered ? (
+                <View
+                  style={[styles.stepBadge, { backgroundColor: themeColors.primaryTint }]}
+                >
+                  <Text style={[styles.stepBadgeText, { color: themeColors.primary }]}>
+                    {index + 1}
+                  </Text>
+                </View>
+              ) : (
+                <Ionicons
+                  name={detail.icon}
+                  size={20}
+                  color={themeColors.primary}
+                  style={styles.detailIcon}
+                />
+              )}
+              <Text style={[styles.detailText, { color: themeColors.text.primary }]}>
+                {detail.text}
+              </Text>
+            </View>
+          ))}
+        </View>
       </View>
     </View>
   );
@@ -131,7 +193,12 @@ export default function WelcomeScreen() {
 
       {/* Skip button */}
       {!isLastStep && (
-        <Pressable onPress={handleSkip} style={styles.skipButton}>
+        <Pressable
+          onPress={handleSkip}
+          style={styles.skipButton}
+          accessibilityRole="button"
+          accessibilityLabel="Saltar introducción"
+        >
           <Text style={[styles.skipText, { color: themeColors.primary }]}>Saltar</Text>
         </Pressable>
       )}
@@ -156,7 +223,10 @@ export default function WelcomeScreen() {
       />
 
       {/* Progress Indicators */}
-      <View style={styles.progressContainer}>
+      <View
+        style={styles.progressContainer}
+        accessibilityLabel={`Paso ${currentStep + 1} de ${ONBOARDING_STEPS.length}`}
+      >
         {ONBOARDING_STEPS.map((_, index) => (
           <View
             key={index}
@@ -179,7 +249,7 @@ export default function WelcomeScreen() {
         ) : (
           <>
             <Button
-              title="Crear Cuenta"
+              title="Crear cuenta"
               onPress={() => {
                 markAsNotFirstTime();
                 router.push('/(auth)/register');
@@ -252,12 +322,60 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    minHeight: 140,
   },
-  illustrationPlaceholder: {
-    width: 240,
-    height: 240,
+  iconCircle: {
+    width: 136,
+    height: 136,
+    borderRadius: borderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  content: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  title: {
+    ...typography.styles.h1,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  subtitle: {
+    ...typography.styles.body,
+    textAlign: 'center',
+    paddingHorizontal: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  detailsCard: {
+    alignSelf: 'stretch',
+    borderWidth: 1,
+    borderRadius: borderRadius.xl,
+    padding: spacing.md,
+    gap: spacing.md,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  detailIcon: {
+    width: 24,
+    textAlign: 'center',
+  },
+  stepBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: borderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  stepBadgeText: {
+    ...typography.styles.caption,
+    fontFamily: 'PlusJakartaSans-SemiBold',
+  },
+  detailText: {
+    ...typography.styles.bodySm,
+    flex: 1,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -270,21 +388,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-  },
-  content: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-  },
-  title: {
-    ...typography.styles.h1,
-    textAlign: 'center',
-    marginBottom: spacing.md,
-  },
-  subtitle: {
-    ...typography.styles.body,
-    textAlign: 'center',
-    paddingHorizontal: spacing.md,
-    lineHeight: 22,
   },
   actions: {
     gap: spacing.sm,

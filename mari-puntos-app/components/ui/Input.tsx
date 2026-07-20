@@ -5,7 +5,6 @@ import {
   Text,
   TextInput,
   TextInputProps,
-  TouchableOpacity,
   View,
   ViewStyle,
 } from 'react-native';
@@ -15,13 +14,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
 
+import { PressableScale } from './PressableScale';
+
 export interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
   leftIcon?: keyof typeof Ionicons.glyphMap;
   rightIcon?: keyof typeof Ionicons.glyphMap;
   onRightIconPress?: () => void;
-  /** Accessible label for the right icon action button (screen readers). */
   rightIconAccessibilityLabel?: string;
   containerStyle?: ViewStyle;
   secureTextEntry?: boolean;
@@ -92,7 +92,7 @@ export const Input: React.FC<InputProps> = ({
         />
 
         {secureTextEntry && (
-          <TouchableOpacity
+          <PressableScale
             onPress={toggleSecure}
             style={styles.rightIcon}
             accessibilityRole="button"
@@ -103,18 +103,18 @@ export const Input: React.FC<InputProps> = ({
               size={20}
               color={colors.gray[500]}
             />
-          </TouchableOpacity>
+          </PressableScale>
         )}
 
         {rightIcon && !secureTextEntry && (
-          <TouchableOpacity
+          <PressableScale
             onPress={onRightIconPress}
             style={styles.rightIcon}
             accessibilityRole="button"
             accessibilityLabel={rightIconAccessibilityLabel}
           >
             <Ionicons name={rightIcon} size={20} color={colors.gray[500]} />
-          </TouchableOpacity>
+          </PressableScale>
         )}
       </View>
 

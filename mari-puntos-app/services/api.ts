@@ -23,6 +23,8 @@ class ApiService {
   private api: AxiosInstance;
   private getToken: (() => Promise<string | null>) | null = null;
   private onUnauthorized: (() => void) | null = null;
+  private consecutive401s = 0;
+  private static readonly SIGN_OUT_AFTER_CONSECUTIVE_401S = 2;
 
   constructor() {
     this.api = axios.create({
@@ -55,16 +57,25 @@ class ApiService {
 
     // Response interceptor to handle errors
     this.api.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        this.consecutive401s = 0;
+        return response;
+      },
       async (error: AxiosError<ApiError>) => {
         const status = error.response?.status;
         const errorMessage =
           error.response?.data?.error || error.message || 'An error occurred';
 
         if (status === 401) {
-          logger.warn('Unauthorized API request - token may be expired');
-          // Trigger auto sign-out so the user isn't stuck in a broken session
-          this.onUnauthorized?.();
+          this.consecutive401s += 1;
+          logger.warn(
+            `Unauthorized API request (${this.consecutive401s} consecutive) - token may be expired`
+          );
+          if (this.consecutive401s >= ApiService.SIGN_OUT_AFTER_CONSECUTIVE_401S) {
+            this.consecutive401s = 0;
+            // Trigger auto sign-out so the user isn't stuck in a broken session
+            this.onUnauthorized?.();
+          }
         } else if (status && status >= 500) {
           // Server errors
           logger.error('API server error', new Error(errorMessage), {

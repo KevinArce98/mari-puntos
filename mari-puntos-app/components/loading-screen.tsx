@@ -12,7 +12,7 @@ import {
 import { Image } from 'expo-image';
 
 import { useThemedColors } from '@/hooks';
-import { colors, spacing, typography } from '@/theme';
+import { spacing, typography } from '@/theme';
 
 export function LoadingScreen() {
   const themeColors = useThemedColors();
@@ -97,16 +97,16 @@ export function LoadingScreen() {
 
         {/* Animated Dots */}
         <View style={styles.dotsContainer}>
-          <AnimatedDot delay={0} />
-          <AnimatedDot delay={200} />
-          <AnimatedDot delay={400} />
+          <AnimatedDot delay={0} color={themeColors.primary} />
+          <AnimatedDot delay={200} color={themeColors.primary} />
+          <AnimatedDot delay={400} color={themeColors.primary} />
         </View>
       </Animated.View>
     </View>
   );
 }
 
-function AnimatedDot({ delay }: { delay: number }) {
+function AnimatedDot({ delay, color }: { delay: number; color: string }) {
   const opacity = React.useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
@@ -127,7 +127,7 @@ function AnimatedDot({ delay }: { delay: number }) {
     ).start();
   }, [delay, opacity]);
 
-  return <Animated.View style={[styles.dot, { opacity }]} />;
+  return <Animated.View style={[styles.dot, { opacity, backgroundColor: color }]} />;
 }
 
 const styles = StyleSheet.create({
@@ -191,6 +191,5 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.light.primary,
   },
 });

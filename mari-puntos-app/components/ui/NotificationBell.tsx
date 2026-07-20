@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
@@ -11,6 +11,8 @@ import { useThemedColors } from '@/hooks';
 import { useActionsStore, usePermissionsStore } from '@/stores';
 import { borderRadius, typography } from '@/theme';
 import logger from '@/utils/logger';
+
+import { PressableScale } from './PressableScale';
 
 interface NotificationBellProps {
   size?: number;
@@ -36,15 +38,11 @@ export function NotificationBell({ size = 26 }: NotificationBellProps) {
   }, [totalPending]);
 
   const handlePress = useCallback(() => {
-    if (pendingActionsCount > 0 && pendingActionsCount >= pendingPermissionsCount) {
-      router.push('/actions/review');
-    } else if (pendingPermissionsCount > 0) {
-      router.push('/(tabs)/permissions');
-    }
-  }, [pendingActionsCount, pendingPermissionsCount, router]);
+    router.push('/inbox');
+  }, [router]);
 
   return (
-    <TouchableOpacity
+    <PressableScale
       onPress={handlePress}
       style={[styles.button, { backgroundColor: colors.gray[100] }]}
       accessibilityRole="button"
@@ -65,7 +63,7 @@ export function NotificationBell({ size = 26 }: NotificationBellProps) {
           <Text style={styles.badgeText}>{totalPending > 99 ? '99+' : totalPending}</Text>
         </View>
       )}
-    </TouchableOpacity>
+    </PressableScale>
   );
 }
 

@@ -8,6 +8,5 @@ export * from './useColorScheme';
 export * from './useThemeColor';
 export * from './useThemedColors';
 export * from './useClerkAuth';
-export * from './useAuthGuard';
 export * from './useFirstTimeUser';
 export * from './useNotifications';

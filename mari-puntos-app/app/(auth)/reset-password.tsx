@@ -7,7 +7,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
@@ -20,7 +19,12 @@ import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { Button, ControlledCodeInput, ControlledInput } from '@/components/ui';
+import {
+  Button,
+  ControlledCodeInput,
+  ControlledInput,
+  PressableScale,
+} from '@/components/ui';
 import { useThemedColors } from '@/hooks';
 import { spacing, typography } from '@/theme';
 import { handleClerkErrors } from '@/types/clerk-localization';
@@ -43,6 +47,7 @@ export default function ResetPasswordScreen() {
     watch,
     formState: { isSubmitting },
   } = useForm<ResetPasswordFormData>({
+    mode: 'onBlur',
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       code: '',
@@ -172,11 +177,11 @@ export default function ResetPasswordScreen() {
 
           {/* Back */}
           <View style={styles.backContainer}>
-            <TouchableOpacity onPress={() => router.back()}>
+            <PressableScale onPress={() => router.back()}>
               <Text style={[styles.backLink, { color: themeColors.primary }]}>
                 Volver
               </Text>
-            </TouchableOpacity>
+            </PressableScale>
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>

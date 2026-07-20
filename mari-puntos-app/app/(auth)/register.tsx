@@ -8,7 +8,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
@@ -23,9 +22,9 @@ import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { Button, ControlledInput } from '@/components/ui';
+import { Button, ControlledInput, PressableScale } from '@/components/ui';
 import { useThemedColors } from '@/hooks';
-import { borderRadius, colors, spacing, typography } from '@/theme';
+import { spacing, typography } from '@/theme';
 import { handleClerkErrors } from '@/types/clerk-localization';
 import logger from '@/utils/logger';
 import { type RegisterFormData, registerSchema } from '@/validators/auth.schema';
@@ -50,6 +49,7 @@ export default function RegisterScreen() {
     watch,
     formState: { isSubmitting },
   } = useForm<RegisterFormData>({
+    mode: 'onBlur',
     resolver: zodResolver(registerSchema),
     defaultValues: {
       firstName: '',
@@ -133,9 +133,9 @@ export default function RegisterScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Back Button */}
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <PressableScale style={styles.backButton} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
-          </TouchableOpacity>
+          </PressableScale>
 
           {/* Header */}
           <View style={styles.header}>
@@ -208,7 +208,14 @@ export default function RegisterScreen() {
                   color={hasMinLength ? themeColors.success : themeColors.gray[400]}
                 />
                 <Text
-                  style={[styles.requirementText, hasMinLength && styles.requirementMet]}
+                  style={[
+                    styles.requirementText,
+                    {
+                      color: hasMinLength
+                        ? themeColors.success
+                        : themeColors.text.secondary,
+                    },
+                  ]}
                 >
                   Al menos 8 caracteres
                 </Text>
@@ -220,7 +227,14 @@ export default function RegisterScreen() {
                   color={hasLowercase ? themeColors.success : themeColors.gray[400]}
                 />
                 <Text
-                  style={[styles.requirementText, hasLowercase && styles.requirementMet]}
+                  style={[
+                    styles.requirementText,
+                    {
+                      color: hasLowercase
+                        ? themeColors.success
+                        : themeColors.text.secondary,
+                    },
+                  ]}
                 >
                   Una letra minúscula (a-z)
                 </Text>
@@ -232,7 +246,14 @@ export default function RegisterScreen() {
                   color={hasUppercase ? themeColors.success : themeColors.gray[400]}
                 />
                 <Text
-                  style={[styles.requirementText, hasUppercase && styles.requirementMet]}
+                  style={[
+                    styles.requirementText,
+                    {
+                      color: hasUppercase
+                        ? themeColors.success
+                        : themeColors.text.secondary,
+                    },
+                  ]}
                 >
                   Una letra mayúscula (A-Z)
                 </Text>
@@ -244,7 +265,12 @@ export default function RegisterScreen() {
                   color={hasNumber ? themeColors.success : themeColors.gray[400]}
                 />
                 <Text
-                  style={[styles.requirementText, hasNumber && styles.requirementMet]}
+                  style={[
+                    styles.requirementText,
+                    {
+                      color: hasNumber ? themeColors.success : themeColors.text.secondary,
+                    },
+                  ]}
                 >
                   Un número (0-9)
                 </Text>
@@ -256,7 +282,12 @@ export default function RegisterScreen() {
                   color={hasSymbol ? themeColors.success : themeColors.gray[400]}
                 />
                 <Text
-                  style={[styles.requirementText, hasSymbol && styles.requirementMet]}
+                  style={[
+                    styles.requirementText,
+                    {
+                      color: hasSymbol ? themeColors.success : themeColors.text.secondary,
+                    },
+                  ]}
                 >
                   Un símbolo (ej. !@#$)
                 </Text>
@@ -270,7 +301,11 @@ export default function RegisterScreen() {
                 <Text
                   style={[
                     styles.requirementText,
-                    passwordsMatch && styles.requirementMet,
+                    {
+                      color: passwordsMatch
+                        ? themeColors.success
+                        : themeColors.text.secondary,
+                    },
                   ]}
                 >
                   Las contraseñas coinciden
@@ -279,10 +314,9 @@ export default function RegisterScreen() {
             </View>
 
             {/* Terms & Privacy acceptance */}
-            <TouchableOpacity
+            <PressableScale
               style={styles.termsRow}
               onPress={() => setTermsAccepted(!termsAccepted)}
-              activeOpacity={0.7}
             >
               <View
                 style={[
@@ -315,7 +349,7 @@ export default function RegisterScreen() {
                   Política de Privacidad
                 </Text>
               </Text>
-            </TouchableOpacity>
+            </PressableScale>
 
             <Button
               title="Crear cuenta"
@@ -328,33 +362,16 @@ export default function RegisterScreen() {
             />
           </View>
 
-          {/* Divider */}
-          {/* <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>o regístrate con</Text>
-          <View style={styles.dividerLine} />
-        </View> */}
-
-          {/* Social Buttons */}
-          {/* <View style={styles.socialButtons}>
-          <TouchableOpacity style={styles.socialButton}>
-            <Ionicons name="logo-google" size={24} color={themeColors.text.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.socialButton}>
-            <Ionicons name="logo-apple" size={24} color={themeColors.text.primary} />
-          </TouchableOpacity>
-        </View> */}
-
           {/* Login Link */}
           <View style={styles.loginContainer}>
             <Text style={[styles.loginText, { color: themeColors.text.secondary }]}>
               ¿Ya tienes una cuenta?{' '}
             </Text>
-            <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
+            <PressableScale onPress={() => router.push('/(auth)/login')}>
               <Text style={[styles.loginLink, { color: themeColors.primary }]}>
                 Inicia sesión
               </Text>
-            </TouchableOpacity>
+            </PressableScale>
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>
@@ -409,40 +426,6 @@ const styles = StyleSheet.create({
   },
   requirementText: {
     ...typography.styles.caption,
-    color: colors.light.gray[400],
-  },
-  requirementMet: {
-    color: colors.light.success,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.lg,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.light.gray[300],
-  },
-  dividerText: {
-    ...typography.styles.caption,
-    marginHorizontal: spacing.md,
-  },
-  socialButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.xl,
-  },
-  socialButton: {
-    width: 56,
-    height: 56,
-    borderRadius: borderRadius.xl,
-    backgroundColor: colors.light.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.light.gray[200],
   },
   loginContainer: {
     flexDirection: 'row',

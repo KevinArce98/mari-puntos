@@ -1,11 +1,13 @@
 import React from 'react';
 
-import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
 import { useThemedColors } from '@/hooks';
-import { borderRadius, shadows, spacing, typography } from '@/theme';
+import { borderRadius, spacing, typography } from '@/theme';
+
+import { PressableScale } from './PressableScale';
 
 interface ActionCardProps {
   title: string;
@@ -28,10 +30,15 @@ export const ActionCard: React.FC<ActionCardProps> = ({
   const bgColor = iconBackgroundColor || colors.primary;
 
   return (
-    <TouchableOpacity
-      style={[styles.container, { backgroundColor: colors.gray[100] }, style]}
+    <PressableScale
+      style={StyleSheet.flatten([
+        styles.container,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+        style,
+      ])}
       onPress={onPress}
-      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
     >
       <View style={[styles.iconContainer, { backgroundColor: bgColor }]}>
         <Ionicons name={icon} size={24} color={colors.text.white} />
@@ -45,7 +52,7 @@ export const ActionCard: React.FC<ActionCardProps> = ({
         )}
       </View>
       <Ionicons name="chevron-forward" size={20} color={colors.gray[400]} />
-    </TouchableOpacity>
+    </PressableScale>
   );
 };
 
@@ -54,8 +61,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: borderRadius.xl,
+    borderWidth: 1,
     padding: spacing.md,
-    ...shadows.sm,
   },
   iconContainer: {
     width: 48,

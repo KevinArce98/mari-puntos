@@ -1,20 +1,13 @@
 import React, { useState } from 'react';
 
-import {
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import Slider from '@react-native-community/slider';
 import { Controller, useForm } from 'react-hook-form';
 
+import { POINT_VALUE_PRESETS } from '@/constants/points';
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
 import { Action, ActionCategory } from '@/types';
@@ -26,6 +19,8 @@ import {
 } from '@/validators/action.schema';
 
 import { Button } from './Button';
+import { Chip } from './Chip';
+import { PressableScale } from './PressableScale';
 import { TextAreaWithCounter } from './TextAreaWithCounter';
 
 interface ReviewActionModalProps {
@@ -38,10 +33,10 @@ interface ReviewActionModalProps {
 
 const CATEGORY_LABELS: Record<ActionCategory, string> = {
   [ActionCategory.HOUSEHOLD]: 'Hogar',
-  [ActionCategory.CHILDCARE]: 'Cuidado Niños',
+  [ActionCategory.CHILDCARE]: 'Cuidado de niños',
   [ActionCategory.ERRANDS]: 'Mandados',
   [ActionCategory.ROMANTIC]: 'Romántico',
-  [ActionCategory.PERSONAL_GROWTH]: 'Crecimiento Personal',
+  [ActionCategory.PERSONAL_GROWTH]: 'Crecimiento personal',
   [ActionCategory.OTHER]: 'Otro',
 };
 
@@ -57,7 +52,13 @@ export function ReviewActionModal({
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'review' | 'reject'>('review');
 
-  const { control, handleSubmit, reset } = useForm<ReviewActionFormData>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isDirty },
+  } = useForm<ReviewActionFormData>({
+    mode: 'onBlur',
     resolver: zodResolver(reviewActionSchema),
     defaultValues: {
       points: 100,
@@ -65,18 +66,32 @@ export function ReviewActionModal({
     },
   });
 
-  const handleApprove = async () => {
+  const handleApprove = () => {
     if (!action) return;
 
-    setLoading(true);
-    try {
-      await onApprove(action.id, points);
-      resetAndClose();
-    } catch (error) {
-      logger.error('Error approving action', error as Error, { actionId: action.id });
-    } finally {
-      setLoading(false);
-    }
+    Alert.alert(
+      'Confirmar aprobación',
+      `Se otorgarán ${points} MariPuntos a tu pareja. Esta acción no se puede deshacer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Aprobar',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await onApprove(action.id, points);
+              resetAndClose();
+            } catch (error) {
+              logger.error('Error approving action', error as Error, {
+                actionId: action.id,
+              });
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const onSubmitReject = async (data: ReviewActionFormData) => {
@@ -100,6 +115,17 @@ export function ReviewActionModal({
     onClose();
   };
 
+  const handleClose = () => {
+    if (mode === 'reject' && isDirty) {
+      Alert.alert('Descartar rechazo', 'Perderás el motivo que todavía no has enviado.', [
+        { text: 'Seguir editando', style: 'cancel' },
+        { text: 'Descartar', style: 'destructive', onPress: resetAndClose },
+      ]);
+      return;
+    }
+    resetAndClose();
+  };
+
   if (!visible || !action) {
     return null;
   }
@@ -111,18 +137,26 @@ export function ReviewActionModal({
       visible={visible}
       animationType="slide"
       transparent
-      onRequestClose={resetAndClose}
+      onRequestClose={handleClose}
     >
       <View style={styles.overlay}>
-        <View style={[styles.container, { backgroundColor: themeColors.gray[100] }]}>
+        <View
+          style={[styles.container, { backgroundColor: themeColors.gray[100] }]}
+          accessibilityViewIsModal
+        >
           {/* Header */}
           <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
             <Text style={[styles.title, { color: themeColors.text.primary }]}>
-              {mode === 'review' ? 'Revisar Acción' : 'Rechazar Acción'}
+              {mode === 'review' ? 'Revisar acción' : 'Rechazar acción'}
             </Text>
-            <TouchableOpacity onPress={resetAndClose} style={styles.closeButton}>
+            <PressableScale
+              onPress={handleClose}
+              style={styles.closeButton}
+              accessibilityRole="button"
+              accessibilityLabel="Cerrar revisión de acción"
+            >
               <Ionicons name="close" size={24} color={themeColors.text.primary} />
-            </TouchableOpacity>
+            </PressableScale>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
@@ -170,63 +204,21 @@ export function ReviewActionModal({
                     </Text>
                   </View>
                 </View>
-                <Slider
-                  style={styles.slider}
-                  minimumValue={0}
-                  maximumValue={1000}
-                  step={10}
-                  value={points}
-                  onValueChange={setPoints}
-                  minimumTrackTintColor={themeColors.primary}
-                  maximumTrackTintColor={themeColors.gray[300]}
-                  thumbTintColor={themeColors.primary}
-                />
-                <View style={styles.sliderLabels}>
-                  <Text style={[styles.sliderLabel, { color: themeColors.gray[400] }]}>
-                    0
-                  </Text>
-                  <Text style={[styles.sliderLabel, { color: themeColors.gray[400] }]}>
-                    1000
-                  </Text>
-                </View>
-                <View style={styles.suggestedPoints}>
-                  <Text
-                    style={[styles.suggestedLabel, { color: themeColors.text.secondary }]}
-                  >
-                    Sugerencias:
-                  </Text>
-                  <View style={styles.suggestedButtons}>
-                    {[50, 100, 250, 500].map((value) => (
-                      <TouchableOpacity
-                        key={value}
-                        style={[
-                          styles.suggestedButton,
-                          { backgroundColor: themeColors.gray[100] },
-                          points === value && [
-                            styles.suggestedButtonActive,
-                            {
-                              backgroundColor: `${themeColors.primary}15`,
-                              borderColor: themeColors.primary,
-                            },
-                          ],
-                        ]}
-                        onPress={() => setPoints(value)}
-                      >
-                        <Text
-                          style={[
-                            styles.suggestedButtonText,
-                            { color: themeColors.gray[600] },
-                            points === value && [
-                              styles.suggestedButtonTextActive,
-                              { color: themeColors.primary },
-                            ],
-                          ]}
-                        >
-                          {value}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                <Text
+                  style={[styles.suggestedLabel, { color: themeColors.text.secondary }]}
+                >
+                  Valores fijos — mantiene los puntos consistentes entre acciones
+                </Text>
+                <View style={styles.pointsPresets}>
+                  {POINT_VALUE_PRESETS.map((value) => (
+                    <Chip
+                      key={value}
+                      label={String(value)}
+                      selected={points === value}
+                      onPress={() => setPoints(value)}
+                      style={styles.pointsPresetChip}
+                    />
+                  ))}
                 </View>
               </View>
             ) : (
@@ -259,9 +251,10 @@ export function ReviewActionModal({
               <>
                 <Button
                   title="Rechazar"
-                  variant="danger"
+                  variant="outline"
                   onPress={() => setMode('reject')}
-                  style={styles.actionButton}
+                  textStyle={{ color: themeColors.error }}
+                  style={[styles.actionButton, { borderColor: themeColors.error }]}
                   disabled={loading}
                   icon="close-circle"
                 />
@@ -284,7 +277,7 @@ export function ReviewActionModal({
                   disabled={loading}
                 />
                 <Button
-                  title="Confirmar Rechazo"
+                  title="Confirmar rechazo"
                   onPress={handleSubmit(onSubmitReject)}
                   style={[styles.actionButton, { backgroundColor: themeColors.error }]}
                   disabled={loading}
@@ -377,43 +370,17 @@ const styles = StyleSheet.create({
     ...typography.styles.h3,
     fontFamily: 'PlusJakartaSans-Bold',
   },
-  slider: {
-    width: '100%',
-    height: 40,
-  },
-  sliderLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
-  },
-  sliderLabel: {
-    ...typography.styles.caption,
-  },
-  suggestedPoints: {
-    marginTop: spacing.sm,
-  },
   suggestedLabel: {
     ...typography.styles.caption,
     marginBottom: spacing.sm,
   },
-  suggestedButtons: {
+  pointsPresets: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  suggestedButton: {
-    flex: 1,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    alignItems: 'center',
-  },
-  suggestedButtonActive: {},
-  suggestedButtonText: {
-    ...typography.styles.bodyMedium,
-  },
-  suggestedButtonTextActive: {
-    fontFamily: 'PlusJakartaSans-SemiBold',
+  pointsPresetChip: {
+    marginRight: 0,
   },
   textArea: {
     ...typography.styles.body,

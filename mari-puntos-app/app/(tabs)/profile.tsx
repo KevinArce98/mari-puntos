@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
 
-import {
-  Alert,
-  Linking,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
@@ -25,6 +17,7 @@ import {
   Card,
   EditProfileModal,
   ListItem,
+  PressableScale,
   ProgressBar,
 } from '@/components/ui';
 import { usePoints, useThemedColors, useUser } from '@/hooks';
@@ -37,7 +30,7 @@ import {
 } from '@/stores';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 
-const SUPPORT_EMAIL = 'soporte@maripuntos.com';
+const SUPPORT_EMAIL = 'arias9068@gmail.com';
 
 export default function ProfileScreen() {
   const colors = useThemedColors();
@@ -93,8 +86,9 @@ export default function ProfileScreen() {
       toast.success('Perfil actualizado', {
         description: 'Tu perfil se ha actualizado correctamente',
       });
-    } catch {
+    } catch (error) {
       toast.error('Error', { description: 'No se pudo actualizar el perfil' });
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -164,9 +158,9 @@ export default function ProfileScreen() {
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Perfil</Text>
 
         {/* TODO: Configuración funcitonality */}
-        {/* <TouchableOpacity style={styles.settingsButton}>
+        {/* <PressableScale style={styles.settingsButton}>
           <Ionicons name="settings-outline" size={24} color={colors.text.primary} />
-        </TouchableOpacity> */}
+        </PressableScale> */}
       </View>
 
       <ScrollView
@@ -191,12 +185,14 @@ export default function ProfileScreen() {
                 {user?.email}
               </Text>
             </View>
-            <TouchableOpacity
+            <PressableScale
               style={[styles.editButton, { backgroundColor: `${colors.primary}15` }]}
               onPress={() => setShowEditModal(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Editar perfil"
             >
               <Ionicons name="pencil" size={16} color={colors.primary} />
-            </TouchableOpacity>
+            </PressableScale>
           </View>
 
           {/* Stats Row */}
@@ -240,11 +236,17 @@ export default function ProfileScreen() {
           <Card style={styles.partnerCard}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-                Tu Pareja
+                Tu pareja
               </Text>
-              <TouchableOpacity onPress={handleUnlinkPartner} disabled={loading}>
+              <PressableScale
+                onPress={handleUnlinkPartner}
+                disabled={loading}
+                style={styles.unlinkButton}
+                accessibilityRole="button"
+                accessibilityLabel="Desvincular pareja"
+              >
                 <Ionicons name="unlink" size={18} color={colors.error} />
-              </TouchableOpacity>
+              </PressableScale>
             </View>
             <View style={styles.partnerInfo}>
               <Avatar
@@ -278,13 +280,13 @@ export default function ProfileScreen() {
               <Ionicons name="people-outline" size={32} color={colors.primary} />
             </View>
             <Text style={[styles.noPartnerTitle, { color: colors.text.primary }]}>
-              No Hay Pareja Vinculada
+              No hay pareja vinculada
             </Text>
             <Text style={[styles.noPartnerText, { color: colors.text.secondary }]}>
               Conéctate con tu pareja para comenzar a ganar puntos juntos
             </Text>
             <Button
-              title="Vincular Pareja"
+              title="Vincular pareja"
               onPress={() => router.push('/link-partner')}
               size="sm"
               icon="link"
@@ -292,7 +294,29 @@ export default function ProfileScreen() {
           </Card>
         )}
 
-        {/* Menu Options */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
+            Progreso
+          </Text>
+          <Card padding="none" style={styles.menuCard}>
+            <ListItem
+              title="Logros"
+              subtitle="Revisa lo que has desbloqueado"
+              leftIcon="trophy-outline"
+              rightIcon="chevron-forward"
+              onPress={() => router.push('/achievements')}
+              showBorder
+            />
+            <ListItem
+              title="Historial"
+              subtitle="Consulta todos tus movimientos"
+              leftIcon="time-outline"
+              rightIcon="chevron-forward"
+              onPress={() => router.push('/history')}
+            />
+          </Card>
+        </View>
+
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
             Configuración
@@ -303,21 +327,24 @@ export default function ProfileScreen() {
               leftIcon="notifications-outline"
               rightIcon="chevron-forward"
               onPress={() => Linking.openSettings()}
+              showBorder
             />
             <ListItem
               title="Cambiar contraseña"
               leftIcon="lock-closed-outline"
               rightIcon="chevron-forward"
               onPress={() => router.push('/profile/change-password')}
+              showBorder
             />
             <ListItem
               title="Privacidad"
               leftIcon="shield-outline"
               rightIcon="chevron-forward"
               onPress={() => Linking.openURL('https://maripuntos.com/privacidad')}
+              showBorder
             />
             <ListItem
-              title="Ayuda y Soporte"
+              title="Ayuda y soporte"
               leftIcon="help-circle-outline"
               rightIcon="chevron-forward"
               onPress={() =>
@@ -348,7 +375,7 @@ export default function ProfileScreen() {
 
         {/* Sign Out Button */}
         <Button
-          title="Cerrar Sesión"
+          title="Cerrar sesión"
           onPress={handleSignOut}
           variant="outline"
           fullWidth
@@ -420,11 +447,18 @@ const styles = StyleSheet.create({
     ...typography.styles.caption,
   },
   editButton: {
-    width: 36,
-    height: 36,
+    width: 44,
+    height: 44,
     borderRadius: borderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  unlinkButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: -spacing.sm,
   },
   statsRow: {
     flexDirection: 'row',

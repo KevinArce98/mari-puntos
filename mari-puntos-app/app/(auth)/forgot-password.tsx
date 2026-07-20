@@ -7,7 +7,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
@@ -20,7 +19,7 @@ import { useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { Button, ControlledInput } from '@/components/ui';
+import { Button, ControlledInput, PressableScale } from '@/components/ui';
 import { useThemedColors } from '@/hooks';
 import { spacing, typography } from '@/theme';
 import { handleClerkErrors } from '@/types/clerk-localization';
@@ -39,6 +38,7 @@ export default function ForgotPasswordScreen() {
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<ForgotPasswordFormData>({
+    mode: 'onBlur',
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
       email: '',
@@ -129,11 +129,11 @@ export default function ForgotPasswordScreen() {
 
           {/* Back to Login */}
           <View style={styles.backContainer}>
-            <TouchableOpacity onPress={() => router.back()}>
+            <PressableScale onPress={() => router.back()}>
               <Text style={[styles.backLink, { color: themeColors.primary }]}>
                 Volver al inicio de sesión
               </Text>
-            </TouchableOpacity>
+            </PressableScale>
           </View>
         </ScrollView>
       </TouchableWithoutFeedback>

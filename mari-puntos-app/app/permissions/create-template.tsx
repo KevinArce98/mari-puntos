@@ -1,25 +1,35 @@
 import React, { useEffect, useState } from 'react';
 
 import {
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
 
-import { useRouter } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
+import { usePreventRemove } from 'expo-router/react-navigation';
 
 import { Ionicons } from '@expo/vector-icons';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
-import { Button, Card, IconSelector, Input, Select } from '@/components/ui';
+import {
+  Button,
+  Card,
+  Chip,
+  IconSelector,
+  Input,
+  PressableScale,
+  Select,
+} from '@/components/ui';
+import { POINT_VALUE_PRESETS } from '@/constants/points';
 import { useThemedColors } from '@/hooks';
 import { permissionsService } from '@/services';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
@@ -39,6 +49,7 @@ const CATEGORY_OPTIONS = [
 export default function CreateTemplateScreen() {
   const themeColors = useThemedColors();
   const router = useRouter();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
   const [title, setTitle] = useState('');
@@ -50,6 +61,29 @@ export default function CreateTemplateScreen() {
   const [showIconSelector, setShowIconSelector] = useState(false);
   const [loading, setLoading] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [allowExit, setAllowExit] = useState(false);
+
+  const isDirty =
+    Boolean(title.trim() || description.trim()) ||
+    category !== PermissionCategory.OTHER ||
+    suggestedDuration !== '2' ||
+    suggestedPoints !== '50' ||
+    selectedIcon !== 'sparkles-outline';
+
+  usePreventRemove(isDirty && !allowExit, ({ data }) => {
+    Alert.alert(
+      'Descartar actividad',
+      'Perderás los cambios que todavía no has guardado.',
+      [
+        { text: 'Seguir editando', style: 'cancel' },
+        {
+          text: 'Descartar',
+          style: 'destructive',
+          onPress: () => navigation.dispatch(data.action),
+        },
+      ]
+    );
+  });
 
   useEffect(() => {
     const showListener = Keyboard.addListener('keyboardDidShow', (e) => {
@@ -98,9 +132,10 @@ export default function CreateTemplateScreen() {
 
       logger.info('Permission template created', { title: title.trim(), category });
 
-      toast.success('¡Éxito!', { description: 'Actividad personalizada creada' });
+      toast.success('Actividad creada', { description: 'Ya puedes seleccionarla' });
 
-      router.back();
+      setAllowExit(true);
+      setTimeout(() => router.back(), 0);
     } catch (error) {
       logger.error('Failed to create permission template', error as Error, {
         title: title.trim(),
@@ -120,17 +155,22 @@ export default function CreateTemplateScreen() {
         styles.container,
         {
           backgroundColor: themeColors.background,
-          paddingTop: Platform.OS !== 'ios' ? insets.top : 0,
+          paddingTop: insets.top,
         },
       ]}
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <PressableScale
+          onPress={() => router.back()}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="Volver"
+        >
           <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
-        </TouchableOpacity>
+        </PressableScale>
         <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
-          Nueva Actividad
+          Nueva actividad
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -150,7 +190,7 @@ export default function CreateTemplateScreen() {
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
                 Icono
               </Text>
-              <TouchableOpacity
+              <PressableScale
                 style={[styles.iconButton, { backgroundColor: themeColors.gray[100] }]}
                 onPress={() => setShowIconSelector(true)}
               >
@@ -170,7 +210,7 @@ export default function CreateTemplateScreen() {
                   <Text
                     style={[styles.iconButtonText, { color: themeColors.text.primary }]}
                   >
-                    Seleccionar Icono
+                    Seleccionar icono
                   </Text>
                   <Text
                     style={[
@@ -186,7 +226,7 @@ export default function CreateTemplateScreen() {
                   size={24}
                   color={themeColors.gray[400]}
                 />
-              </TouchableOpacity>
+              </PressableScale>
             </View>
 
             {/* Title */}
@@ -205,7 +245,7 @@ export default function CreateTemplateScreen() {
             {/* Description */}
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                Descripción (Opcional)
+                Descripción (opcional)
               </Text>
               <Input
                 placeholder="Describe la actividad..."
@@ -230,30 +270,33 @@ export default function CreateTemplateScreen() {
               />
             </View>
 
-            {/* Duration & Points */}
-            <View style={styles.row}>
-              <View style={[styles.section, styles.halfWidth]}>
-                <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                  Duración (hrs)
-                </Text>
-                <Input
-                  placeholder="2"
-                  value={suggestedDuration}
-                  onChangeText={setSuggestedDuration}
-                  keyboardType="numeric"
-                />
-              </View>
+            {/* Duration */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Duración (hrs)
+              </Text>
+              <Input
+                placeholder="2"
+                value={suggestedDuration}
+                onChangeText={setSuggestedDuration}
+                keyboardType="numeric"
+              />
+            </View>
 
-              <View style={[styles.section, styles.halfWidth]}>
-                <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                  Puntos Sugeridos
-                </Text>
-                <Input
-                  placeholder="50"
-                  value={suggestedPoints}
-                  onChangeText={setSuggestedPoints}
-                  keyboardType="numeric"
-                />
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Puntos sugeridos
+              </Text>
+              <View style={styles.pointsPresets}>
+                {POINT_VALUE_PRESETS.map((value) => (
+                  <Chip
+                    key={value}
+                    label={String(value)}
+                    selected={suggestedPoints === String(value)}
+                    onPress={() => setSuggestedPoints(String(value))}
+                    style={styles.pointsPresetChip}
+                  />
+                ))}
               </View>
             </View>
 
@@ -279,7 +322,7 @@ export default function CreateTemplateScreen() {
               </View>
               <View style={styles.infoContent}>
                 <Text style={[styles.infoTitle, { color: themeColors.text.primary }]}>
-                  Actividad Personalizada
+                  Actividad personalizada
                 </Text>
                 <Text style={[styles.infoText, { color: themeColors.text.secondary }]}>
                   Esta actividad estará disponible solo para ti y tu pareja. Los valores
@@ -303,7 +346,7 @@ export default function CreateTemplateScreen() {
         ]}
       >
         <Button
-          title="Crear Actividad"
+          title="Crear actividad"
           onPress={handleCreate}
           loading={loading}
           disabled={!title.trim()}
@@ -380,12 +423,13 @@ const styles = StyleSheet.create({
     ...typography.styles.caption,
     marginTop: spacing.xs,
   },
-  row: {
+  pointsPresets: {
     flexDirection: 'row',
-    gap: spacing.md,
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
-  halfWidth: {
-    flex: 1,
+  pointsPresetChip: {
+    marginRight: 0,
   },
   infoCard: {
     flexDirection: 'row',

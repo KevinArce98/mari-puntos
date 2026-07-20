@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 
-import { StyleSheet, TextInput, View, ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View, ViewStyle } from 'react-native';
 
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
@@ -48,10 +48,17 @@ export const CodeInput: React.FC<CodeInputProps> = ({
 
   return (
     <View style={[styles.container, style]}>
-      <View style={styles.boxesContainer}>
+      <Pressable
+        style={styles.boxesContainer}
+        onPress={handlePress}
+        accessibilityRole="button"
+        accessibilityLabel="Ingresar código de verificación"
+        accessibilityValue={{ text: value || 'Vacío' }}
+      >
         {codeArray.slice(0, length).map((char, index) => (
           <View
             key={index}
+            accessible={false}
             style={[
               styles.box,
               {
@@ -59,7 +66,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({
                 backgroundColor: themeColors.gray[100],
               },
               focused &&
-                index === value.length && {
+                index === Math.min(value.length, length - 1) && {
                   borderColor: themeColors.primary,
                   borderWidth: 2,
                 },
@@ -69,16 +76,13 @@ export const CodeInput: React.FC<CodeInputProps> = ({
               },
               error && { borderColor: themeColors.error },
             ]}
-            onTouchEnd={handlePress}
           >
-            <TextInput
-              style={[styles.boxText, { color: themeColors.text.primary }]}
-              value={char}
-              editable={false}
-            />
+            <Text style={[styles.boxText, { color: themeColors.text.primary }]}>
+              {char}
+            </Text>
           </View>
         ))}
-      </View>
+      </Pressable>
       <TextInput
         ref={inputRef}
         style={styles.hiddenInput}
@@ -87,8 +91,11 @@ export const CodeInput: React.FC<CodeInputProps> = ({
         maxLength={length}
         keyboardType={type === 'numeric' ? 'number-pad' : 'default'}
         autoCapitalize={type === 'alphanumeric' ? 'characters' : 'none'}
+        autoComplete={type === 'numeric' ? 'sms-otp' : 'off'}
+        textContentType={type === 'numeric' ? 'oneTimeCode' : 'none'}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
+        accessible={false}
       />
     </View>
   );
@@ -101,10 +108,13 @@ const styles = StyleSheet.create({
   boxesContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs,
+    width: '100%',
   },
   box: {
-    width: 48,
+    flex: 1,
+    minWidth: 36,
+    maxWidth: 48,
     height: 56,
     borderRadius: borderRadius.lg,
     borderWidth: 1.5,

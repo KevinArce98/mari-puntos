@@ -95,10 +95,51 @@ export class UsersService {
     return savedUser;
   }
 
-  /**
-   * Update user profile - returns user and hasPartner flag
-   * Also updates Clerk profile if firstName, lastName, or profileImage are provided
-   */
+  async findOrCreateByClerkId(clerkId: string): Promise<User> {
+    const existing = await this.userRepository.findOne({ where: { clerkId } });
+    if (existing) return existing;
+
+    const { clerkClient } = await import('../config/clerk');
+    const clerkUser = await clerkClient.users.getUser(clerkId);
+    const email = clerkUser.primaryEmailAddress?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress;
+
+    if (!email) {
+      throw new AppError(500, 'El usuario de Clerk no tiene un correo electrónico asociado');
+    }
+
+    const staleByEmail = await this.userRepository.findOne({ where: { email } });
+    if (staleByEmail) {
+      logger.warn(
+        { clerkId, previousClerkId: staleByEmail.clerkId, email },
+        'Re-linking existing user row to new clerkId (stale row from incomplete deletion?)'
+      );
+      staleByEmail.clerkId = clerkId;
+      return await this.userRepository.save(staleByEmail);
+    }
+
+    const user = this.userRepository.create({
+      clerkId,
+      email,
+      firstName: clerkUser.firstName || '',
+      lastName: clerkUser.lastName || '',
+      avatarUrl: clerkUser.imageUrl,
+    });
+
+    try {
+      return await this.userRepository.save(user);
+    } catch (dbError) {
+      if (dbError instanceof Error && 'code' in dbError && dbError.code === '23505') {
+        // Raced with a concurrent request (another API call or the webhook) — re-fetch.
+        const winner = await this.userRepository.findOne({ where: { clerkId } });
+        if (winner) return winner;
+        const winnerByEmail = await this.userRepository.findOne({ where: { email } });
+        if (winnerByEmail) return winnerByEmail;
+      }
+      throw dbError;
+    }
+  }
+
+
   async updateUser(
     userId: string,
     data: UpdateUserInput
@@ -107,7 +148,12 @@ export class UsersService {
 
     const user = await this.getUserById(userId);
 
-    // Update Clerk profile if needed
+    if (data.firstName !== undefined) user.firstName = data.firstName;
+    if (data.lastName !== undefined) user.lastName = data.lastName;
+    if (data.pushToken !== undefined) user.pushToken = data.pushToken;
+
+    await this.userRepository.save(user);
+
     if (
       data.firstName !== undefined ||
       data.lastName !== undefined ||
@@ -116,7 +162,6 @@ export class UsersService {
       try {
         const { clerkClient } = await import('../config/clerk');
 
-        // Update profile image in Clerk if provided
         if (data.profileImage) {
           logger.debug({ message: 'Updating profile image in Clerk', userId });
 
@@ -130,7 +175,6 @@ export class UsersService {
           });
         }
 
-        // Update firstName/lastName in Clerk if provided
         if (data.firstName !== undefined || data.lastName !== undefined) {
           logger.debug({ message: 'Updating user name in Clerk', userId });
           await clerkClient.users.updateUser(user.clerkId, {
@@ -143,29 +187,21 @@ export class UsersService {
 
         // Fetch updated user from Clerk to get the new imageUrl
         const clerkUser = await clerkClient.users.getUser(user.clerkId);
-        if (clerkUser.imageUrl) {
+        if (clerkUser.imageUrl && clerkUser.imageUrl !== user.avatarUrl) {
           user.avatarUrl = clerkUser.imageUrl;
+          await this.userRepository.save(user);
           logger.debug({
             message: 'Synced avatar URL from Clerk',
             avatarUrl: clerkUser.imageUrl,
           });
         }
       } catch (clerkError) {
-        logger.error({ err: clerkError, userId }, 'Failed to update Clerk profile');
-        const errorMessage =
-          clerkError instanceof Error ? clerkError.message : 'Unknown error';
-        throw new Error(`Failed to update profile in Clerk: ${errorMessage}`, {
-          cause: clerkError,
-        });
+        logger.error(
+          { err: clerkError, userId },
+          'Failed to sync profile to Clerk — local update already saved, continuing'
+        );
       }
     }
-
-    // Update local database
-    if (data.firstName !== undefined) user.firstName = data.firstName;
-    if (data.lastName !== undefined) user.lastName = data.lastName;
-    if (data.pushToken !== undefined) user.pushToken = data.pushToken;
-
-    await this.userRepository.save(user);
 
     const hasPartner = this.checkHasPartner(user);
 
@@ -255,9 +291,7 @@ export class UsersService {
     throw new AppError(500, 'No se pudo generar un código único. Intenta de nuevo.');
   }
 
-  async deleteAccount(userId: string): Promise<void> {
-    const user = await this.getUserById(userId);
-
+  private async purgeLocalUserData(userId: string): Promise<void> {
     await AppDataSource.transaction(async (manager) => {
       await manager.query('DELETE FROM logs WHERE "userId" = $1', [userId]);
       await manager.query('DELETE FROM achievements WHERE "userId" = $1', [userId]);
@@ -288,19 +322,46 @@ export class UsersService {
 
       await manager.query('DELETE FROM users WHERE id = $1', [userId]);
     });
+  }
 
-    try {
-      const { clerkClient } = await import('../config/clerk');
-      await clerkClient.users.deleteUser(user.clerkId);
-      logger.info({ userId, clerkId: user.clerkId }, 'Clerk account deleted');
-    } catch (clerkError) {
+  async deleteAccount(userId: string): Promise<void> {
+    const user = await this.getUserById(userId);
+
+    await this.purgeLocalUserData(userId);
+
+    const { clerkClient } = await import('../config/clerk');
+    let clerkDeleted = false;
+    for (let attempt = 1; attempt <= 2 && !clerkDeleted; attempt++) {
+      try {
+        await clerkClient.users.deleteUser(user.clerkId);
+        clerkDeleted = true;
+        logger.info({ userId, clerkId: user.clerkId }, 'Clerk account deleted');
+      } catch (clerkError) {
+        logger.warn(
+          { err: clerkError, userId, attempt },
+          'Failed to delete Clerk account after DB deletion'
+        );
+        if (attempt === 1) await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }
+    if (!clerkDeleted) {
       logger.error(
-        { err: clerkError, userId },
-        'Failed to delete Clerk account after DB deletion'
+        { userId, clerkId: user.clerkId },
+        'Clerk account deletion failed after retry — local data already purged'
       );
     }
 
     logger.info({ userId }, 'Account permanently deleted');
+  }
+
+  async purgeUserByClerkId(clerkId: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { clerkId } });
+    if (!user) {
+      logger.debug({ clerkId }, 'user.deleted webhook: no matching local user, nothing to purge');
+      return;
+    }
+    await this.purgeLocalUserData(user.id);
+    logger.info({ userId: user.id, clerkId }, 'Local user data purged via Clerk webhook');
   }
 
   async deactivateUser(userId: string): Promise<void> {

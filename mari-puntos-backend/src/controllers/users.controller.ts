@@ -8,7 +8,7 @@ import {
   sendTestNotificationSchema,
 } from '../validators/schemas';
 import { sendSuccess, sendCreated } from '../utils/response';
-import { toUserDTO, toUserStatsDTO } from '../utils/mappers';
+import { toUserDTO, toUserStatsDTO, toAchievementDTOList } from '../utils/mappers';
 import { logger } from '../utils/logger';
 
 export class UsersController {
@@ -93,7 +93,7 @@ export class UsersController {
   getAchievements = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId!;
     const achievements = await this.usersService.getUserAchievements(userId);
-    sendSuccess(res, achievements);
+    sendSuccess(res, toAchievementDTOList(achievements));
   };
 
   /**
