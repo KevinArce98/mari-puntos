@@ -5,9 +5,9 @@ import { Alert, Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import Slider from '@react-native-community/slider';
 import { Controller, useForm } from 'react-hook-form';
 
+import { POINT_VALUE_PRESETS } from '@/constants/points';
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
 import { Action, ActionCategory } from '@/types';
@@ -19,6 +19,7 @@ import {
 } from '@/validators/action.schema';
 
 import { Button } from './Button';
+import { Chip } from './Chip';
 import { PressableScale } from './PressableScale';
 import { TextAreaWithCounter } from './TextAreaWithCounter';
 
@@ -203,67 +204,21 @@ export function ReviewActionModal({
                     </Text>
                   </View>
                 </View>
-                <Slider
-                  style={styles.slider}
-                  minimumValue={10}
-                  maximumValue={1000}
-                  step={10}
-                  value={points}
-                  onValueChange={setPoints}
-                  minimumTrackTintColor={themeColors.primary}
-                  maximumTrackTintColor={themeColors.gray[300]}
-                  thumbTintColor={themeColors.primary}
-                  accessibilityLabel="Puntos a otorgar"
-                />
-                <View style={styles.sliderLabels}>
-                  <Text style={[styles.sliderLabel, { color: themeColors.gray[400] }]}>
-                    10
-                  </Text>
-                  <Text style={[styles.sliderLabel, { color: themeColors.gray[400] }]}>
-                    1000
-                  </Text>
-                </View>
-                <View style={styles.suggestedPoints}>
-                  <Text
-                    style={[styles.suggestedLabel, { color: themeColors.text.secondary }]}
-                  >
-                    Sugerencias
-                  </Text>
-                  <View style={styles.suggestedButtons}>
-                    {[50, 100, 250, 500].map((value) => (
-                      <PressableScale
-                        key={value}
-                        style={[
-                          styles.suggestedButton,
-                          { backgroundColor: themeColors.gray[100] },
-                          points === value && [
-                            styles.suggestedButtonActive,
-                            {
-                              backgroundColor: `${themeColors.primary}15`,
-                              borderColor: themeColors.primary,
-                            },
-                          ],
-                        ]}
-                        onPress={() => setPoints(value)}
-                        accessibilityRole="button"
-                        accessibilityLabel={`${value} puntos`}
-                        accessibilityState={{ selected: points === value }}
-                      >
-                        <Text
-                          style={[
-                            styles.suggestedButtonText,
-                            { color: themeColors.gray[600] },
-                            points === value && [
-                              styles.suggestedButtonTextActive,
-                              { color: themeColors.primary },
-                            ],
-                          ]}
-                        >
-                          {value}
-                        </Text>
-                      </PressableScale>
-                    ))}
-                  </View>
+                <Text
+                  style={[styles.suggestedLabel, { color: themeColors.text.secondary }]}
+                >
+                  Valores fijos — mantiene los puntos consistentes entre acciones
+                </Text>
+                <View style={styles.pointsPresets}>
+                  {POINT_VALUE_PRESETS.map((value) => (
+                    <Chip
+                      key={value}
+                      label={String(value)}
+                      selected={points === value}
+                      onPress={() => setPoints(value)}
+                      style={styles.pointsPresetChip}
+                    />
+                  ))}
                 </View>
               </View>
             ) : (
@@ -415,43 +370,17 @@ const styles = StyleSheet.create({
     ...typography.styles.h3,
     fontFamily: 'PlusJakartaSans-Bold',
   },
-  slider: {
-    width: '100%',
-    height: 40,
-  },
-  sliderLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
-  },
-  sliderLabel: {
-    ...typography.styles.caption,
-  },
-  suggestedPoints: {
-    marginTop: spacing.sm,
-  },
   suggestedLabel: {
     ...typography.styles.caption,
     marginBottom: spacing.sm,
   },
-  suggestedButtons: {
+  pointsPresets: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  suggestedButton: {
-    flex: 1,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    alignItems: 'center',
-  },
-  suggestedButtonActive: {},
-  suggestedButtonText: {
-    ...typography.styles.bodyMedium,
-  },
-  suggestedButtonTextActive: {
-    fontFamily: 'PlusJakartaSans-SemiBold',
+  pointsPresetChip: {
+    marginRight: 0,
   },
   textArea: {
     ...typography.styles.body,

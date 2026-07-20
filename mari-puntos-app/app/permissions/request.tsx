@@ -236,7 +236,7 @@ export default function RequestPermissionScreen() {
         styles.container,
         {
           backgroundColor: themeColors.background,
-          paddingTop: Platform.OS !== 'ios' ? insets.top : 0,
+          paddingTop: insets.top,
         },
       ]}
     >

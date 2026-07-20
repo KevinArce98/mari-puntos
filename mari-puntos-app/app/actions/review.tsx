@@ -182,7 +182,10 @@ export default function ReviewActionsScreen() {
             <ActionItemCard action={item} showStatus />
           </PressableScale>
         )}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + spacing.xl },
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
@@ -325,7 +328,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: spacing.lg,
     paddingTop: 0,
-    paddingBottom: spacing['3xl'],
   },
   filtersContainer: {
     marginBottom: spacing.md,

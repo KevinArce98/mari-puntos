@@ -120,7 +120,7 @@ export default function ChangePasswordScreen() {
         styles.container,
         {
           backgroundColor: colors.background,
-          paddingTop: Platform.OS !== 'ios' ? insets.top : 0,
+          paddingTop: insets.top,
         },
       ]}
     >

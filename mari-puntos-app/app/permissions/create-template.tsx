@@ -23,11 +23,13 @@ import { toast } from 'sonner-native';
 import {
   Button,
   Card,
+  Chip,
   IconSelector,
   Input,
   PressableScale,
   Select,
 } from '@/components/ui';
+import { POINT_VALUE_PRESETS } from '@/constants/points';
 import { useThemedColors } from '@/hooks';
 import { permissionsService } from '@/services';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
@@ -153,7 +155,7 @@ export default function CreateTemplateScreen() {
         styles.container,
         {
           backgroundColor: themeColors.background,
-          paddingTop: Platform.OS !== 'ios' ? insets.top : 0,
+          paddingTop: insets.top,
         },
       ]}
     >
@@ -268,30 +270,33 @@ export default function CreateTemplateScreen() {
               />
             </View>
 
-            {/* Duration & Points */}
-            <View style={styles.row}>
-              <View style={[styles.section, styles.halfWidth]}>
-                <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                  Duración (hrs)
-                </Text>
-                <Input
-                  placeholder="2"
-                  value={suggestedDuration}
-                  onChangeText={setSuggestedDuration}
-                  keyboardType="numeric"
-                />
-              </View>
+            {/* Duration */}
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Duración (hrs)
+              </Text>
+              <Input
+                placeholder="2"
+                value={suggestedDuration}
+                onChangeText={setSuggestedDuration}
+                keyboardType="numeric"
+              />
+            </View>
 
-              <View style={[styles.section, styles.halfWidth]}>
-                <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                  Puntos sugeridos
-                </Text>
-                <Input
-                  placeholder="50"
-                  value={suggestedPoints}
-                  onChangeText={setSuggestedPoints}
-                  keyboardType="numeric"
-                />
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
+                Puntos sugeridos
+              </Text>
+              <View style={styles.pointsPresets}>
+                {POINT_VALUE_PRESETS.map((value) => (
+                  <Chip
+                    key={value}
+                    label={String(value)}
+                    selected={suggestedPoints === String(value)}
+                    onPress={() => setSuggestedPoints(String(value))}
+                    style={styles.pointsPresetChip}
+                  />
+                ))}
               </View>
             </View>
 
@@ -418,12 +423,13 @@ const styles = StyleSheet.create({
     ...typography.styles.caption,
     marginTop: spacing.xs,
   },
-  row: {
+  pointsPresets: {
     flexDirection: 'row',
-    gap: spacing.md,
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
-  halfWidth: {
-    flex: 1,
+  pointsPresetChip: {
+    marginRight: 0,
   },
   infoCard: {
     flexDirection: 'row',

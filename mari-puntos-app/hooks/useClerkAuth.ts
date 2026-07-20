@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 import { useAuth } from '@clerk/clerk-expo';
+import * as Sentry from '@sentry/react-native';
 
 import { apiService } from '@/services';
 import {
@@ -13,12 +14,8 @@ import {
 import { useNotificationStore } from '@/stores/notificationStore';
 import logger from '@/utils/logger';
 
-/**
- * Hook to integrate Clerk authentication with the API service
- * This hook sets up the token getter for the API service and manages user state
- */
 export function useClerkAuth() {
-  const { getToken, isSignedIn, isLoaded, signOut } = useAuth();
+  const { getToken, isSignedIn, isLoaded, signOut, userId } = useAuth();
   const { fetchProfile, clearUser, user } = useUserStore();
   const { clearAll: clearNotifications } = useNotificationStore();
   const { clearActions } = useActionsStore();
@@ -27,8 +24,6 @@ export function useClerkAuth() {
   const { clearStreak } = useStreakStore();
   const hasFetchedProfile = useRef(false);
 
-  // Wire up auto sign-out on 401 so an expired Clerk session doesn't leave the
-  // user stuck in a broken state.
   useEffect(() => {
     if (isSignedIn) {
       apiService.setOnUnauthorized(() => {
@@ -44,6 +39,8 @@ export function useClerkAuth() {
   useEffect(() => {
     if (isLoaded) {
       if (isSignedIn) {
+        Sentry.setUser(userId ? { id: userId } : null);
+
         apiService.setTokenGetter(async () => {
           try {
             return await getToken();
@@ -63,6 +60,7 @@ export function useClerkAuth() {
         }
       } else {
         logger.info('User signed out — clearing session state');
+        Sentry.setUser(null);
         apiService.clearTokenGetter();
         clearUser();
         clearActions();
@@ -74,7 +72,7 @@ export function useClerkAuth() {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSignedIn, isLoaded]);
+  }, [isSignedIn, isLoaded, userId]);
 
   return {
     isSignedIn,

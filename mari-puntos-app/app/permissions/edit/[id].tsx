@@ -219,7 +219,7 @@ export default function EditPermissionScreen() {
         styles.container,
         {
           backgroundColor: themeColors.background,
-          paddingTop: Platform.OS !== 'ios' ? insets.top : 0,
+          paddingTop: insets.top,
         },
       ]}
     >

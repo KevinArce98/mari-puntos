@@ -82,6 +82,15 @@ Sentry.init({
   // Enable tracing for performance monitoring
   tracesSampleRate: __DEV__ ? 1.0 : 0.2, // 100% in dev, 20% in prod
 
+  // Profile the JS/native threads of sampled traces (same rate as tracesSampleRate)
+  profilesSampleRate: __DEV__ ? 1.0 : 0.2,
+
+  // Session Replay: low sample rate for normal sessions, always capture on error
+  replaysSessionSampleRate: __DEV__ ? 1.0 : 0.1,
+  replaysOnErrorSampleRate: 1.0,
+
+  integrations: [Sentry.hermesProfilingIntegration(), Sentry.mobileReplayIntegration()],
+
   // Enable session tracking
   enableAutoSessionTracking: true,
 

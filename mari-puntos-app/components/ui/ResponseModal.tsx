@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { POINT_VALUE_PRESETS } from '@/constants/points';
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
 import {
@@ -26,8 +27,8 @@ import {
 } from '@/validators/action.schema';
 
 import { Button } from './Button';
+import { Chip } from './Chip';
 import { ControlledInput } from './ControlledInput';
-import { Input } from './Input';
 import { PressableScale } from './PressableScale';
 
 interface ResponseModalProps {
@@ -39,6 +40,12 @@ interface ResponseModalProps {
   suggestedPointsCost?: number;
   requesterPoints?: number;
   loading?: boolean;
+}
+
+function nearestPreset(value: number): number {
+  return POINT_VALUE_PRESETS.reduce((closest, preset) =>
+    Math.abs(preset - value) < Math.abs(closest - value) ? preset : closest
+  );
 }
 
 export function ResponseModal({
@@ -86,7 +93,9 @@ export function ResponseModal({
     defaultValues: {
       message: '',
       pointsCost:
-        suggestedPointsCost && suggestedPointsCost > 0 ? suggestedPointsCost : undefined,
+        suggestedPointsCost && suggestedPointsCost > 0
+          ? nearestPreset(suggestedPointsCost)
+          : undefined,
     },
   });
 
@@ -95,7 +104,9 @@ export function ResponseModal({
     reset({
       message: '',
       pointsCost:
-        suggestedPointsCost && suggestedPointsCost > 0 ? suggestedPointsCost : undefined,
+        suggestedPointsCost && suggestedPointsCost > 0
+          ? nearestPreset(suggestedPointsCost)
+          : undefined,
     });
   }, [reset, suggestedPointsCost, visible]);
 
@@ -104,7 +115,7 @@ export function ResponseModal({
     if (cost < 1) {
       setError('pointsCost', {
         type: 'manual',
-        message: 'Ingresa un costo entre 1 y 1000 puntos',
+        message: 'Selecciona un costo en puntos',
       });
       return;
     }
@@ -229,7 +240,7 @@ export function ResponseModal({
               </Text>
             </View>
 
-            {/* Points Cost Input */}
+            {/* Points Cost Picker */}
             <View style={styles.inputContainer}>
               <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>
                 Costo en puntos *
@@ -237,22 +248,34 @@ export function ResponseModal({
               <Controller
                 control={control}
                 name="pointsCost"
-                render={({
-                  field: { onChange, onBlur, value },
-                  fieldState: { error },
-                }) => (
-                  <Input
-                    placeholder="Ejemplo: 50"
-                    keyboardType="numeric"
-                    value={value?.toString() || ''}
-                    onChangeText={(text) => {
-                      const numValue = text ? Number.parseInt(text, 10) : undefined;
-                      onChange(numValue);
-                    }}
-                    onBlur={onBlur}
-                    error={error?.message}
-                    editable={!loading}
-                  />
+                render={({ field: { onChange, value }, fieldState: { error } }) => (
+                  <>
+                    <View style={styles.pointsPresets}>
+                      {POINT_VALUE_PRESETS.map((preset) => {
+                        const overBudget =
+                          requesterPoints != null && preset > requesterPoints;
+                        return (
+                          <Chip
+                            key={preset}
+                            label={String(preset)}
+                            selected={value === preset}
+                            onPress={
+                              loading || overBudget ? undefined : () => onChange(preset)
+                            }
+                            style={StyleSheet.flatten([
+                              styles.pointsPresetChip,
+                              overBudget && styles.pointsPresetChipDisabled,
+                            ])}
+                          />
+                        );
+                      })}
+                    </View>
+                    {error?.message && (
+                      <Text style={[styles.errorText, { color: themeColors.error }]}>
+                        {error.message}
+                      </Text>
+                    )}
+                  </>
                 )}
               />
               {requesterPoints != null && (
@@ -376,8 +399,23 @@ const styles = StyleSheet.create({
   actionButton: {
     flex: 1,
   },
+  pointsPresets: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  pointsPresetChip: {
+    marginRight: 0,
+  },
+  pointsPresetChipDisabled: {
+    opacity: 0.35,
+  },
+  errorText: {
+    ...typography.styles.caption,
+    marginTop: spacing.sm,
+  },
   balanceHint: {
     ...typography.styles.caption,
-    marginTop: -spacing.sm,
+    marginTop: spacing.sm,
   },
 });
