@@ -39,7 +39,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const inAuthGroup = segments[0] === '(auth)';
   const inVerifyEmail = (segments as string[])[1] === 'verify-email';
   const inLinkPartner = segments[0] === 'link-partner';
-  const profileFetchFailed = isLoaded && isSignedIn && isProfileReady && !user;
+  const profileFetchFailed =
+    isLoaded && isSignedIn && isProfileReady && !user && !inAuthGroup && !inLinkPartner;
 
   let navTarget: string | null = null;
   if (!isStillLoading && !inVerifyEmail && !inLinkPartner && !profileFetchFailed) {
