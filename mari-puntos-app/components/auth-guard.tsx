@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
+import { StyleSheet, View } from 'react-native';
+
 import { useRootNavigationState, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -18,7 +20,13 @@ interface AuthGuardProps {
 
 export function AuthGuard({ children }: AuthGuardProps) {
   const { isLoaded, isSignedIn, signOut } = useClerkAuth();
-  const { user, isLoading: isUserLoading, isProfileReady, fetchProfile } = useUserStore();
+  const {
+    user,
+    isLoading: isUserLoading,
+    isProfileReady,
+    fetchProfile,
+    isAuthTransitioning,
+  } = useUserStore();
   const { isFirstTime, isLoading: isFirstTimeLoading } = useFirstTimeUser();
   const segments = useSegments();
   const navigationState = useRootNavigationState();
@@ -40,15 +48,24 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const inVerifyEmail = (segments as string[])[1] === 'verify-email';
   const inLinkPartner = segments[0] === 'link-partner';
   const profileFetchFailed =
-    isLoaded && isSignedIn && isProfileReady && !user && !inAuthGroup && !inLinkPartner;
+    isLoaded &&
+    isSignedIn &&
+    isProfileReady &&
+    !user &&
+    !inAuthGroup &&
+    !inLinkPartner &&
+    !isAuthTransitioning;
+
+  const pendingVerification =
+    signUp?.status === 'missing_requirements' && !!signUp.emailAddress;
 
   let navTarget: string | null = null;
-  if (!isStillLoading && !inVerifyEmail && !inLinkPartner && !profileFetchFailed) {
-    if (signUp?.status === 'missing_requirements' && signUp.emailAddress) {
-      navTarget = `/(auth)/verify-email?email=${encodeURIComponent(signUp.emailAddress)}`;
-    } else if (isSignedIn) {
-      if (inAuthGroup && user) navTarget = '/(tabs)';
-    } else if (!inAuthGroup) {
+  if (!isStillLoading && !isAuthTransitioning && !profileFetchFailed) {
+    if (isSignedIn && user) {
+      if (inAuthGroup) navTarget = '/(tabs)';
+    } else if (pendingVerification && !inVerifyEmail) {
+      navTarget = `/(auth)/verify-email?email=${encodeURIComponent(signUp!.emailAddress!)}`;
+    } else if (!isSignedIn && !pendingVerification && !inAuthGroup && !inLinkPartner) {
       navTarget = isFirstTime ? '/(auth)/welcome' : '/(auth)/login';
     }
   }
@@ -63,41 +80,45 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   useEffect(() => {
     if (!navTarget) return;
-    if (signUp?.status === 'missing_requirements' && signUp.emailAddress) {
-      router.replace({
-        pathname: '/(auth)/verify-email',
-        params: { email: signUp.emailAddress },
-      } as any);
-    } else {
-      router.replace(navTarget as any);
-    }
+    router.replace(navTarget as any);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navTarget]);
 
-  if (isStillLoading || navTarget !== null) {
-    return <LoadingScreen />;
-  }
-
-  if (profileFetchFailed) {
-    return (
-      <ProfileErrorScreen
-        retrying={isRetrying}
-        onRetry={async () => {
-          setIsRetrying(true);
-          try {
-            await fetchProfile();
-          } catch (error) {
-            logger.error('Profile retry failed', error as Error);
-          } finally {
-            setIsRetrying(false);
-          }
-        }}
-        onSignOut={() => {
-          signOut().catch((error) => logger.error('Sign out failed', error as Error));
-        }}
-      />
-    );
-  }
-
-  return <>{children}</>;
+  const isBusy = isStillLoading || isAuthTransitioning || navTarget !== null;
+  return (
+    <View style={styles.root}>
+      {children}
+      {profileFetchFailed && (
+        <View style={StyleSheet.absoluteFill}>
+          <ProfileErrorScreen
+            retrying={isRetrying}
+            onRetry={async () => {
+              setIsRetrying(true);
+              try {
+                await fetchProfile();
+              } catch (error) {
+                logger.error('Profile retry failed', error as Error);
+              } finally {
+                setIsRetrying(false);
+              }
+            }}
+            onSignOut={() => {
+              signOut().catch((error) => logger.error('Sign out failed', error as Error));
+            }}
+          />
+        </View>
+      )}
+      {isBusy && (
+        <View style={StyleSheet.absoluteFill}>
+          <LoadingScreen />
+        </View>
+      )}
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
