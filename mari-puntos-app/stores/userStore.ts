@@ -18,6 +18,7 @@ interface UserState {
   isLoading: boolean;
   isProfileReady: boolean;
   error: string | null;
+  isAuthTransitioning: boolean;
 
   // Actions
   setUser: (user: User | null) => void;
@@ -33,6 +34,7 @@ interface UserState {
   clearUser: () => void;
   setError: (error: string | null) => void;
   setProfileReady: () => void;
+  setAuthTransitioning: (value: boolean) => void;
 }
 
 export const useUserStore = create<UserState>((set, get) => ({
@@ -42,8 +44,11 @@ export const useUserStore = create<UserState>((set, get) => ({
   isLoading: false,
   isProfileReady: false,
   error: null,
+  isAuthTransitioning: false,
 
   setUser: (user) => set({ user }),
+
+  setAuthTransitioning: (value) => set({ isAuthTransitioning: value }),
 
   setError: (error) => set({ error }),
 

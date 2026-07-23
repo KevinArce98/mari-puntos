@@ -40,7 +40,7 @@ export default function VerifyEmailScreen() {
   const insets = useSafeAreaInsets();
   const themeColors = useThemedColors();
 
-  const { fetchProfile } = useUserStore();
+  const { fetchProfile, setAuthTransitioning } = useUserStore();
   const [resendCooldown, setResendCooldown] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
@@ -75,7 +75,6 @@ export default function VerifyEmailScreen() {
     return () => backHandler.remove();
   }, [router]);
 
-  // Cooldown timer for resend button — setInterval is Strict Mode safe (no cascaded re-runs)
   useEffect(() => {
     if (canResend) return;
     const interval = setInterval(() => {
@@ -91,8 +90,6 @@ export default function VerifyEmailScreen() {
     return () => clearInterval(interval);
   }, [canResend]);
 
-  // Activate session, wire token getter, then create backend profile.
-  // setActive must come first so getToken() returns a valid JWT for createProfile.
   const completeVerification = async (result: {
     status: string | null;
     createdUserId: string | null;
@@ -104,9 +101,6 @@ export default function VerifyEmailScreen() {
 
     await setActive?.({ session: result.createdSessionId });
 
-    // Pre-wire token getter immediately — useClerkAuth's useEffect won't have
-    // re-run yet (React hasn't re-rendered), so fresh users would otherwise
-    // send createProfile with no token and get a 401.
     apiService.setTokenGetter(async () => {
       try {
         return await getToken();
@@ -122,22 +116,18 @@ export default function VerifyEmailScreen() {
         lastName: result.lastName || '',
         clerkId: result.createdUserId ?? undefined,
       });
-      logger.info('Email verified and profile created — navigating to app', { email });
+      logger.info('Email verified and profile created — awaiting AuthGuard redirect', {
+        email,
+      });
       await fetchProfile().catch(() => {});
-      router.replace('/(tabs)');
     } catch (profileError: any) {
       if (profileError?.status === 409 || profileError?.status >= 500) {
-        // 409 = duplicate (another request already created it).
-        // 5xx = possible race where the concurrent request hit a DB constraint before
-        //       the backend could return 409 (undeployed fix). Try fetching — if the
-        //       profile exists we're good, if not fall through to error.
         try {
           await fetchProfile();
           logger.info(
-            'Email verified — profile confirmed after createProfile error, navigating',
+            'Email verified — profile confirmed after createProfile error, awaiting redirect',
             { email }
           );
-          router.replace('/(tabs)');
           return;
         } catch {
           // Profile genuinely doesn't exist — fall through to error toast
@@ -156,6 +146,7 @@ export default function VerifyEmailScreen() {
     if (!isLoaded) return;
 
     logger.info('Email verification attempt', { email });
+    setAuthTransitioning(true);
     try {
       const result = await signUp.attemptEmailAddressVerification({ code: data.code });
       await completeVerification(result);
@@ -195,6 +186,8 @@ export default function VerifyEmailScreen() {
       logger.error('Email verification failed', error, { email, errorMessage });
 
       toast.error('Error', { description: errorMessage });
+    } finally {
+      setAuthTransitioning(false);
     }
   };
 

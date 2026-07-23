@@ -56,8 +56,9 @@ export default function LoginScreen() {
 
     if (result.status === 'complete') {
       await setActive!({ session: result.createdSessionId });
-      logger.info('User logged in successfully', { email: data.email });
-      router.replace('/(tabs)');
+      logger.info('User logged in successfully — awaiting AuthGuard redirect', {
+        email: data.email,
+      });
     }
   };
 
