@@ -1,0 +1,53 @@
+name: Reporte de bug
+description: Algo no funciona como debería
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por ayudar a probar MariPuntos. Completá lo que puedas — no hace falta llenar todo.
+  - type: dropdown
+    id: area
+    attributes:
+      label: ¿Dónde ocurre?
+      options:
+        - App (iOS)
+        - App (Android)
+        - Backend / API
+        - Sitio web
+        - No estoy seguro/a
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versión de la app
+      description: En Perfil / Ajustes, o el número en la tienda. Dejar vacío si no aplica.
+      placeholder: "1.4.0"
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: ¿Qué pasó?
+      description: Describí el problema y qué esperabas que pasara en su lugar.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+      placeholder: |
+        1. Abrí ...
+        2. Toqué ...
+        3. Vi ...
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Capturas o video
+      description: Arrastrá los archivos a este campo si tenés.
+  - type: input
+    id: device
+    attributes:
+      label: Dispositivo y sistema operativo
+      placeholder: "iPhone 13, iOS 18.5  /  Pixel 7, Android 15"

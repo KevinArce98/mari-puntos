@@ -78,6 +78,14 @@ fix(backend): corregir cálculo de puntos
 
 **Scopes válidos:** `app`, `backend`, `website`, `repo`
 
+## Seguridad
+
+¿Encontraste una vulnerabilidad? No abras un issue público — seguí [SECURITY.md](SECURITY.md).
+
+## Licencia
+
+[MIT](LICENSE) © Kevin Arias
+
 ## Links
 
 - **App Store:** https://apps.apple.com/app/id6758923865
