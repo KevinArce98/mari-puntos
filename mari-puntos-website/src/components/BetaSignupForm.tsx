@@ -25,6 +25,14 @@ export function BetaSignupForm() {
 
   return (
     <form action={formAction} className="max-w-md mx-auto mb-8">
+      <div
+        className="absolute -left-[9999px] top-auto h-px w-px overflow-hidden"
+        aria-hidden="true"
+      >
+        <label htmlFor="company">No completar este campo</label>
+        <input type="text" id="company" name="company" tabIndex={-1} autoComplete="off" />
+      </div>
+
       <div className="flex flex-col sm:flex-row gap-3">
         <input
           type="email"
