@@ -34,6 +34,9 @@ yarn-error.*
 .env*.local
 .env
 
+# store submission metadata (review contact + demo credentials) — use store.config.example.json
+store.config.json
+
 # typescript
 *.tsbuildinfo
 

@@ -1,0 +1,75 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "categories": ["LIFESTYLE", "SOCIAL_NETWORKING"],
+    "review": {
+      "firstName": "YOUR_FIRST_NAME",
+      "lastName": "YOUR_LAST_NAME",
+      "phone": "+000 00000000",
+      "email": "your-review-contact@example.com",
+      "demoRequired": true,
+      "demoUsername": "demo@example.com",
+      "demoPassword": "REPLACE_WITH_DEMO_PASSWORD",
+      "notes": "MariPuntos requiere dos cuentas vinculadas (pareja) para ver el contenido completo. Inicia sesión con las credenciales de demo proporcionadas (NO es necesario registrar una cuenta nueva ni verificar correo): la cuenta ya está vinculada a una pareja de prueba con historial de puntos, logros y racha activa. Si prefieres registrar una cuenta propia, usa una contraseña única y aleatoria: por seguridad, las contraseñas presentes en filtraciones conocidas son rechazadas."
+    },
+    "info": {
+      "es-ES": {
+        "title": "MariPuntos",
+        "subtitle": "Puntos y permisos en pareja",
+        "promoText": "Convierte la rutina diaria en un juego divertido con tu pareja. Gana puntos, acuerda permisos y suban de nivel juntos.",
+        "description": "MariPuntos convierte la relación de pareja en un juego divertido y justo. Gana puntos por buenas acciones, solicita permisos de forma clara y mantén la racha semanal activa junto a tu pareja.\n\nCÓMO FUNCIONA\n• Registra acciones diarias (tareas del hogar, detalles, romance) y gana MariPuntos\n• Solicita permisos con un costo en puntos y tu pareja los aprueba o rechaza\n• Cada acción y permiso pasa por revisión mutua, sin discusiones\n• Sube de nivel y desbloquea logros a medida que suman puntos juntos\n\nCARACTERÍSTICAS\n• Vinculación de pareja mediante código único\n• Historial completo y transparente de puntos ganados y gastados\n• Racha semanal para mantener la motivación en pareja\n• Duelo amistoso: compara el saldo de puntos con tu pareja\n• Logros y niveles que celebran el progreso en conjunto\n• Notificaciones cuando tu pareja registra una acción o solicita un permiso\n• Categorías de acciones: hogar, romance, detalles, actividades y más\n• Diseño simple, cálido y pensado para usarse todos los días\n\nMariPuntos es ideal para parejas que quieren organizar tareas compartidas, acordar límites de forma divertida y fortalecer su vínculo con pequeñas metas diarias.\n\nDescarga MariPuntos y empieza a jugar en pareja hoy mismo.",
+        "keywords": [
+          "pareja",
+          "relación",
+          "puntos",
+          "permisos",
+          "racha",
+          "tareas",
+          "novios",
+          "juego",
+          "hogar",
+          "logros",
+          "amor",
+          "duelo",
+          "hábitos",
+          "vínculo"
+        ],
+        "releaseNotes": "Rediseñamos el inicio de sesión y el panel principal, y agregamos una bandeja de entrada para revisar juntos las acciones y permisos pendientes en un solo lugar. También corregimos errores y mejoramos el rendimiento general.",
+        "marketingUrl": "https://maripuntos.com",
+        "supportUrl": "https://maripuntos.com",
+        "privacyPolicyUrl": "https://maripuntos.com/privacidad",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "./store-assets/screenshots/iphone-6.9/01-bienvenida.png",
+            "./store-assets/screenshots/iphone-6.9/02-inicio.png",
+            "./store-assets/screenshots/iphone-6.9/03-acciones.png",
+            "./store-assets/screenshots/iphone-6.9/04-permisos.png",
+            "./store-assets/screenshots/iphone-6.9/05-duelo.png",
+            "./store-assets/screenshots/iphone-6.9/06-logros.png",
+            "./store-assets/screenshots/iphone-6.9/07-historial.png",
+            "./store-assets/screenshots/iphone-6.9/08-perfil.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "./store-assets/screenshots/ipad-13/01-bienvenida.png",
+            "./store-assets/screenshots/ipad-13/02-inicio.png",
+            "./store-assets/screenshots/ipad-13/03-acciones.png",
+            "./store-assets/screenshots/ipad-13/04-permisos.png",
+            "./store-assets/screenshots/ipad-13/05-duelo.png",
+            "./store-assets/screenshots/ipad-13/06-logros.png",
+            "./store-assets/screenshots/ipad-13/07-historial.png",
+            "./store-assets/screenshots/ipad-13/08-perfil.png"
+          ]
+        }
+      }
+    }
+  },
+  "google": {
+    "info": {
+      "es-ES": {
+        "title": "MariPuntos",
+        "shortDescription": "Gana puntos, acuerda permisos y sube de nivel jugando en pareja cada día",
+        "fullDescription": "¿Y si los permisos en tu relación fueran un juego? Con MariPuntos, tú y tu pareja convierten el día a día en una experiencia divertida y justa.\n\n🎯 ¿CÓMO FUNCIONA?\nGana puntos completando acciones acordadas con tu pareja —desde lavar los platos hasta planear una cita. Usa esos puntos para solicitar permisos: salir con amigos, una noche de videojuegos, o lo que quieran acordar juntos.\n\n• Registra acciones diarias (tareas del hogar, detalles, romance) y gana MariPuntos\n• Solicita permisos con un costo en puntos y tu pareja los aprueba o rechaza\n• Cada acción y permiso pasa por revisión mutua, sin discusiones\n• Sube de nivel y desbloquea logros a medida que suman puntos juntos\n\n✨ CARACTERÍSTICAS\n• Vinculación de pareja mediante código único\n• Historial completo y transparente de puntos ganados y gastados\n• Racha semanal para mantener la motivación en pareja\n• Duelo amistoso: compara el saldo de puntos con tu pareja\n• Logros y niveles que celebran el progreso en conjunto\n• Notificaciones cuando tu pareja registra una acción o solicita un permiso\n• Categorías de acciones: hogar, romance, detalles, actividades y más\n• Diseño simple, cálido y pensado para usarse todos los días\n\n💑 PARA QUIÉN ES\nMariPuntos es ideal para parejas que quieren organizar tareas compartidas, acordar límites de forma divertida y fortalecer su vínculo con pequeñas metas diarias.\n\nDescarga MariPuntos y empieza a jugar en pareja hoy mismo."
+      }
+    }
+  }
+}

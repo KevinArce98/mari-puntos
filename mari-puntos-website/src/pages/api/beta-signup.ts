@@ -4,21 +4,88 @@ import nodemailer from 'nodemailer';
 export const prerender = false;
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_EMAIL_LENGTH = 254;
 
-export const POST: APIRoute = async ({ request }) => {
-  const formData = await request.formData();
-  const email = formData.get('email');
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const RATE_LIMIT_MAX_PER_WINDOW = 3;
+const MAX_TRACKED_CLIENTS = 5000;
 
-  if (typeof email !== 'string' || !email) {
-    return new Response(JSON.stringify({ success: false, error: 'Email es requerido' }), {
-      status: 400,
-    });
+const requestLog = new Map<string, number[]>();
+
+const isRateLimited = (clientKey: string): boolean => {
+  const now = Date.now();
+  const recent = (requestLog.get(clientKey) ?? []).filter(
+    (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS
+  );
+  recent.push(now);
+  requestLog.set(clientKey, recent);
+
+  if (requestLog.size > MAX_TRACKED_CLIENTS) {
+    for (const [key, timestamps] of requestLog) {
+      if (timestamps.every((timestamp) => now - timestamp >= RATE_LIMIT_WINDOW_MS)) {
+        requestLog.delete(key);
+      }
+    }
   }
 
-  if (!emailRegex.test(email)) {
-    return new Response(JSON.stringify({ success: false, error: 'Email inválido' }), {
-      status: 400,
-    });
+  return recent.length > RATE_LIMIT_MAX_PER_WINDOW;
+};
+
+const escapeHtml = (value: string): string =>
+  value.replace(/[&<>"']/g, (char) => {
+    switch (char) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      default:
+        return '&#39;';
+    }
+  });
+
+const jsonResponse = (body: Record<string, unknown>, status: number): Response =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+export const POST: APIRoute = async ({ request, clientAddress }) => {
+  const formData = await request.formData();
+  const email = formData.get('email');
+  const honeypot = formData.get('company');
+
+  if (typeof honeypot === 'string' && honeypot.trim() !== '') {
+    return jsonResponse(
+      { success: true, message: '¡Gracias! Te contactaremos pronto.' },
+      200
+    );
+  }
+
+  if (typeof email !== 'string' || !email) {
+    return jsonResponse({ success: false, error: 'Email es requerido' }, 400);
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+
+  if (normalizedEmail.length > MAX_EMAIL_LENGTH || !emailRegex.test(normalizedEmail)) {
+    return jsonResponse({ success: false, error: 'Email inválido' }, 400);
+  }
+
+  const clientKey =
+    clientAddress ||
+    request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+    request.headers.get('x-real-ip') ||
+    'unknown';
+
+  if (isRateLimited(clientKey)) {
+    return jsonResponse(
+      { success: false, error: 'Demasiados intentos. Intenta de nuevo en unos minutos.' },
+      429
+    );
   }
 
   try {
@@ -46,7 +113,7 @@ export const POST: APIRoute = async ({ request }) => {
 
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <p style="margin: 0; color: #666; font-size: 14px; font-weight: bold;">Email del usuario:</p>
-              <p style="margin: 10px 0 0 0; color: #0F766E; font-size: 18px; font-weight: bold;">${email}</p>
+              <p style="margin: 10px 0 0 0; color: #0F766E; font-size: 18px; font-weight: bold;">${escapeHtml(normalizedEmail)}</p>
             </div>
 
             <div style="margin: 20px 0; padding: 15px; background: #E6F9F7; border-left: 4px solid #0F766E; border-radius: 4px;">
@@ -72,18 +139,18 @@ export const POST: APIRoute = async ({ request }) => {
       `,
     });
 
-    return new Response(
-      JSON.stringify({ success: true, message: '¡Gracias! Te contactaremos pronto.' }),
-      { status: 200 }
+    return jsonResponse(
+      { success: true, message: '¡Gracias! Te contactaremos pronto.' },
+      200
     );
   } catch (error) {
     console.error('Error enviando email:', error);
-    return new Response(
-      JSON.stringify({
+    return jsonResponse(
+      {
         success: false,
         error: 'Error al procesar la solicitud. Por favor intenta de nuevo.',
-      }),
-      { status: 500 }
+      },
+      500
     );
   }
 };
