@@ -1,5 +1,5 @@
 export const clerkLocalization = {
-  already_a_member_in_organization: '{{email}} ya es miembro de la organización.',
+  already_a_member_in_organization: 'Esta persona ya es miembro de la organización.',
   avatar_file_size_exceeded:
     'El tamaño del archivo excede el límite máximo de 10MB. Por favor, elige un archivo más pequeño.',
   avatar_file_type_invalid:
@@ -47,8 +47,7 @@ export const clerkLocalization = {
   form_password_validation_failed: 'La validación de la contraseña falló.',
   form_username_invalid_character:
     'El nombre de usuario contiene caracteres no permitidos.',
-  form_username_invalid_length:
-    'Tu nombre de usuario debe tener entre {{min_length}} y {{max_length}} caracteres.',
+  form_username_invalid_length: 'El nombre de usuario no tiene una longitud válida.',
   form_username_needs_non_number_char:
     'Tu nombre de usuario debe contener al menos un carácter no numérico.',
   identification_deletion_failed: 'No se pudo eliminar el método de identificación.',
@@ -71,7 +70,15 @@ export const clerkLocalization = {
     'El registro requiere un autenticador de plataforma pero el dispositivo no lo soporta.',
   passkey_registration_cancelled: 'El registro de passkey fue cancelado o expiró.',
   passkey_retrieval_cancelled: 'La verificación de passkey fue cancelada o expiró.',
-  verification_expired: 'Esta código ha expirado.',
+  verification_expired:
+    'Este código ha expirado. Solicita uno nuevo con "Reenviar código".',
+  verification_failed:
+    'Demasiados intentos fallidos. Solicita un código nuevo con "Reenviar código".',
+  verification_already_verified: 'Este correo ya fue verificado. Inicia sesión.',
+  client_state_invalid:
+    'La sesión de verificación ya no es válida. Solicita un código nuevo con "Reenviar código".',
+  too_many_requests: 'Demasiados intentos. Espera un momento e inténtalo de nuevo.',
+  rate_limit_exceeded: 'Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.',
   passwordComplexity: {
     maximumLength: 'menos de {{length}} caracteres',
     minimumLength: '{{length}} o más caracteres',
@@ -155,16 +162,32 @@ export const handleClerkErrors = (errors: any[]): string => {
   if (typeof errorMessage === 'string') {
     let message = errorMessage;
 
-    // Reemplazar placeholders como {{email}}, {{length}}, {{min_length}}, {{max_length}}
-    if (error.meta) {
-      Object.keys(error.meta).forEach((key) => {
-        message = message.replace(`{{${key}}}`, error.meta[key]);
-      });
+    const meta = error.meta ?? {};
+    const placeholderValues: Record<string, unknown> = {
+      ...meta,
+      email: Array.isArray(meta.emailAddresses)
+        ? meta.emailAddresses[0]
+        : meta.emailAddresses,
+    };
+
+    Object.entries(placeholderValues).forEach(([key, value]) => {
+      if (value == null || typeof value === 'object') return;
+      message = message.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
+    });
+
+    const hasUnresolvedPlaceholder = /{{.+?}}/.test(message);
+    if (hasUnresolvedPlaceholder) {
+      return (
+        error.longMessage ||
+        error.message ||
+        'Ocurrió un error. Por favor, intenta de nuevo.'
+      );
     }
 
     return message;
   }
 
-  // Si no encontramos el mensaje, retornar un mensaje genérico
-  return error.message || 'Ocurrió un error. Por favor, intenta de nuevo.';
+  return (
+    error.longMessage || error.message || 'Ocurrió un error. Por favor, intenta de nuevo.'
+  );
 };

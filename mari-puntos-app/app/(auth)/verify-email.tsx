@@ -19,7 +19,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { isClerkAPIResponseError, useAuth, useSignUp } from '@clerk/clerk-expo';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import * as Sentry from '@sentry/react-native';
+import { useForm, useWatch } from 'react-hook-form';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -32,6 +33,14 @@ import { handleClerkErrors } from '@/types/clerk-localization';
 import logger from '@/utils/logger';
 import { type VerifyEmailFormData, verifyEmailSchema } from '@/validators/auth.schema';
 
+const RECOVERABLE_VERIFICATION_CODES = [
+  'verification_failed',
+  'verification_expired',
+  'client_state_invalid',
+];
+
+const RESEND_COOLDOWN_SECONDS = 30;
+
 export default function VerifyEmailScreen() {
   const { signUp, setActive, isLoaded } = useSignUp();
   const { signOut, getToken } = useAuth();
@@ -41,13 +50,14 @@ export default function VerifyEmailScreen() {
   const themeColors = useThemedColors();
 
   const { fetchProfile, setAuthTransitioning } = useUserStore();
-  const [resendCooldown, setResendCooldown] = useState(60);
+  const [resendCooldown, setResendCooldown] = useState(RESEND_COOLDOWN_SECONDS);
   const [canResend, setCanResend] = useState(false);
+  const [codeError, setCodeError] = useState(false);
 
   const {
     control,
     handleSubmit,
-    watch,
+    setValue,
     formState: { isSubmitting },
   } = useForm<VerifyEmailFormData>({
     mode: 'onBlur',
@@ -57,9 +67,10 @@ export default function VerifyEmailScreen() {
     },
   });
 
-  const code = watch('code');
+  const code = useWatch({ control, name: 'code' });
 
-  // Intercept back button on Android — show confirmation so user isn't permanently trapped
+  if (code.length > 0 && codeError) setCodeError(false);
+
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
       Alert.alert(
@@ -70,7 +81,7 @@ export default function VerifyEmailScreen() {
           { text: 'Salir', style: 'destructive', onPress: () => router.back() },
         ]
       );
-      return true; // Prevent default (we handle navigation via the alert)
+      return true;
     });
     return () => backHandler.remove();
   }, [router]);
@@ -142,8 +153,42 @@ export default function VerifyEmailScreen() {
     }
   };
 
+  const recoverWithNewCode = async (clerkCode: string) => {
+    setValue('code', '');
+    setCodeError(false);
+
+    if (!signUp) {
+      setCanResend(true);
+      return;
+    }
+
+    try {
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      logger.info('Auto-resent verification code after recoverable error', {
+        email,
+        clerkCode,
+      });
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+      setCanResend(false);
+      toast.info('Te enviamos un código nuevo', {
+        description: 'El código anterior ya no era válido. Revisa tu correo electrónico.',
+      });
+    } catch (resendError: any) {
+      let resendMessage =
+        'No se pudo enviar un código nuevo. Intenta con "Reenviar código".';
+      if (isClerkAPIResponseError(resendError)) {
+        resendMessage = handleClerkErrors(resendError.errors);
+      }
+      logger.error('Auto-resend after recoverable error failed', resendError, { email });
+      setCanResend(true);
+      toast.error('Error', { description: resendMessage });
+    }
+  };
+
   const onSubmit = async (data: VerifyEmailFormData) => {
     if (!isLoaded) return;
+
+    if (signUp?.id) Sentry.setUser({ id: signUp.id });
 
     logger.info('Email verification attempt', { email });
     setAuthTransitioning(true);
@@ -151,9 +196,11 @@ export default function VerifyEmailScreen() {
       const result = await signUp.attemptEmailAddressVerification({ code: data.code });
       await completeVerification(result);
     } catch (error: any) {
-      // If there's already an active session (e.g. previous sign-up completed but
-      // profile creation failed), sign out and retry verification.
-      if (isClerkAPIResponseError(error) && error.errors[0]?.code === 'session_exists') {
+      const clerkCode = isClerkAPIResponseError(error)
+        ? error.errors[0]?.code
+        : undefined;
+
+      if (clerkCode === 'session_exists') {
         logger.info('session_exists during verification — signing out and retrying', {
           email,
         });
@@ -164,6 +211,9 @@ export default function VerifyEmailScreen() {
           });
           await completeVerification(result);
         } catch (retryError: any) {
+          const retryCode = isClerkAPIResponseError(retryError)
+            ? retryError.errors[0]?.code
+            : undefined;
           let retryMessage = 'Código inválido';
           if (isClerkAPIResponseError(retryError)) {
             retryMessage = handleClerkErrors(retryError.errors);
@@ -171,8 +221,14 @@ export default function VerifyEmailScreen() {
           logger.error('Email verification failed after session sign-out', retryError, {
             email,
             errorMessage: retryMessage,
+            clerkCode: retryCode,
           });
-          toast.error('Error', { description: retryMessage });
+          if (retryCode && RECOVERABLE_VERIFICATION_CODES.includes(retryCode)) {
+            await recoverWithNewCode(retryCode);
+          } else {
+            setCodeError(true);
+            toast.error('Error', { description: retryMessage });
+          }
         }
         return;
       }
@@ -183,9 +239,18 @@ export default function VerifyEmailScreen() {
         errorMessage = handleClerkErrors(error.errors);
       }
 
-      logger.error('Email verification failed', error, { email, errorMessage });
+      logger.error('Email verification failed', error, {
+        email,
+        errorMessage,
+        clerkCode,
+      });
 
-      toast.error('Error', { description: errorMessage });
+      if (clerkCode && RECOVERABLE_VERIFICATION_CODES.includes(clerkCode)) {
+        await recoverWithNewCode(clerkCode);
+      } else {
+        setCodeError(true);
+        toast.error('Error', { description: errorMessage });
+      }
     } finally {
       setAuthTransitioning(false);
     }
@@ -196,10 +261,12 @@ export default function VerifyEmailScreen() {
 
     try {
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      setValue('code', '');
+      setCodeError(false);
       logger.info('Verification code resent', { email });
       toast.success('Código enviado', { description: 'Revisa tu correo electrónico' });
       // Reset cooldown
-      setResendCooldown(60);
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setCanResend(false);
     } catch (error: any) {
       let errorMessage = 'No se pudo enviar el código';
@@ -269,6 +336,7 @@ export default function VerifyEmailScreen() {
               name="code"
               length={6}
               type="numeric"
+              error={codeError}
               style={styles.codeInput}
             />
 

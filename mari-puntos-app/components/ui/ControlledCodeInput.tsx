@@ -12,6 +12,7 @@ interface ControlledCodeInputProps<T extends FieldValues> {
   length?: number;
   type?: 'numeric' | 'alphanumeric';
   style?: ViewStyle;
+  error?: boolean;
 }
 
 export function ControlledCodeInput<T extends FieldValues>({
@@ -20,6 +21,7 @@ export function ControlledCodeInput<T extends FieldValues>({
   length = 6,
   type = 'alphanumeric',
   style,
+  error = false,
 }: ControlledCodeInputProps<T>) {
   return (
     <Controller
@@ -32,6 +34,7 @@ export function ControlledCodeInput<T extends FieldValues>({
           onChangeText={onChange}
           type={type}
           style={style}
+          error={error}
         />
       )}
     />
