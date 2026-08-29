@@ -294,40 +294,54 @@ export class PartnerService {
 
   async unlinkPartner(userId: string): Promise<void> {
     logger.info({ message: 'Unlinking partner', userId });
-    const partnerLink = await this.partnerLinkRepository.findOne({
-      where: [{ user1Id: userId }, { user2Id: userId }],
-    });
 
-    if (!partnerLink) {
-      logger.error({ message: 'Partner link not found for unlinking', userId });
-      throw createError.partnerLinkNotFound();
-    }
+    const { partnerId, partnerLinkId, partner, initiator } =
+      await AppDataSource.transaction(async (manager) => {
+        const partnerLinkRepo = manager.getRepository(PartnerLink);
+        const userRepo = manager.getRepository(User);
 
-    if (partnerLink.status !== PartnerLinkStatus.ACTIVE) {
-      logger.warn({
-        message: 'Partner link is not active, cannot unlink',
-        userId,
-        status: partnerLink.status,
+        const partnerLink = await partnerLinkRepo.findOne({
+          where: [{ user1Id: userId }, { user2Id: userId }],
+          lock: { mode: 'pessimistic_write' },
+        });
+
+        if (!partnerLink) {
+          logger.error({ message: 'Partner link not found for unlinking', userId });
+          throw createError.partnerLinkNotFound();
+        }
+
+        if (partnerLink.status !== PartnerLinkStatus.ACTIVE) {
+          logger.warn({
+            message: 'Partner link is not active, cannot unlink',
+            userId,
+            status: partnerLink.status,
+          });
+          throw new AppError(
+            400,
+            'No tienes una pareja vinculada activa',
+            'errors.partner.noActiveLink'
+          );
+        }
+
+        const partnerId =
+          partnerLink.user1Id === userId ? partnerLink.user2Id : partnerLink.user1Id;
+        const partnerLinkId = partnerLink.id;
+
+        const partner = await userRepo.findOne({ where: { id: partnerId } });
+        const initiator = await userRepo.findOne({
+          where: { id: userId },
+          select: { id: true, locale: true },
+        });
+
+        await partnerLinkRepo.remove(partnerLink);
+        logger.info({
+          message: 'Partner link deleted successfully',
+          userId,
+          partnerLinkId,
+        });
+
+        return { partnerId, partnerLinkId, partner, initiator };
       });
-      throw new AppError(
-        400,
-        'No tienes una pareja vinculada activa',
-        'errors.partner.noActiveLink'
-      );
-    }
-
-    const partnerId =
-      partnerLink.user1Id === userId ? partnerLink.user2Id : partnerLink.user1Id;
-    const partnerLinkId = partnerLink.id;
-
-    const partner = await this.userRepository.findOne({ where: { id: partnerId } });
-    const initiator = await this.userRepository.findOne({
-      where: { id: userId },
-      select: { id: true, locale: true },
-    });
-
-    await this.partnerLinkRepository.remove(partnerLink);
-    logger.info({ message: 'Partner link deleted successfully', userId, partnerLinkId });
 
     await this.auditLog.recordMany([
       {
