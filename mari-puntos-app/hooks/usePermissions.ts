@@ -1,38 +1,41 @@
-import { useCallback } from 'react';
-
-import { useFocusEffect } from 'expo-router';
-
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@/lib/queryKeys';
 import { permissionsService } from '@/services';
 import { useUserStore } from '@/stores';
-import { CreatePermissionRequest, RespondPermissionRequest } from '@/types';
-import { getErrorMessage } from '@/utils/errorMessage';
+import {
+  CreatePermissionRequest,
+  PermissionStatus,
+  RespondPermissionRequest,
+} from '@/types';
 
-export const usePermissions = () => {
+import { useInfiniteList } from './useInfiniteList';
+import { usePendingPermissionsCount } from './usePendingPermissionsCount';
+
+interface UsePermissionsOptions {
+  status?: PermissionStatus | null;
+}
+
+export const usePermissions = (options?: UsePermissionsOptions) => {
   const user = useUserStore((s) => s.user);
   const queryClient = useQueryClient();
+  const status = options?.status ?? undefined;
 
-  const myQuery = useQuery({
-    queryKey: queryKeys.permissions.mine(),
-    queryFn: async () => (await permissionsService.getMyPermissions()).data,
+  const mine = useInfiniteList({
+    queryKey: queryKeys.permissions.mine({ status }),
+    fetchPage: ({ page, limit }) =>
+      permissionsService.getMyPermissions({ page, limit, status }),
     enabled: !!user,
   });
 
-  const partnerQuery = useQuery({
-    queryKey: queryKeys.permissions.partner(),
-    queryFn: async () => (await permissionsService.getPartnerPermissions()).data,
+  const partner = useInfiniteList({
+    queryKey: queryKeys.permissions.partner({ status }),
+    fetchPage: ({ page, limit }) =>
+      permissionsService.getPartnerPermissions({ page, limit, status }),
     enabled: !!user?.hasPartner,
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      if (user) myQuery.refetch();
-      if (user?.hasPartner) partnerQuery.refetch();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user?.id, user?.hasPartner])
-  );
+  const pendingCount = usePendingPermissionsCount('partner');
 
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: queryKeys.permissions.all });
@@ -71,29 +74,26 @@ export const usePermissions = () => {
     await invalidate();
   };
 
-  const myPermissions = myQuery.data ?? [];
-  const partnerPermissions = partnerQuery.data ?? [];
-  const pendingPermissions = partnerPermissions.filter((p) => p.status === 'pending');
-
   return {
-    myPermissions,
-    partnerPermissions,
-    isLoading: myQuery.isLoading || partnerQuery.isLoading,
-    error: myQuery.error
-      ? getErrorMessage(myQuery.error)
-      : partnerQuery.error
-        ? getErrorMessage(partnerQuery.error)
-        : null,
-    pendingCount: pendingPermissions.length,
-    pendingPermissions,
+    myPermissions: mine.items,
+    partnerPermissions: partner.items,
+    myPermissionsPagination: mine.pagination,
+    partnerPermissionsPagination: partner.pagination,
+    loadMoreMyPermissions: mine.loadMore,
+    loadMorePartnerPermissions: partner.loadMore,
+    isFetchingMoreMyPermissions: mine.isFetchingNextPage,
+    isFetchingMorePartnerPermissions: partner.isFetchingNextPage,
+    isLoading: mine.isLoading || partner.isLoading,
+    error: mine.error ?? partner.error,
+    pendingCount,
     requestPermission,
     updatePermission,
     respondToPermission,
     cancelPermission,
     refetch: async () => {
       await Promise.all([
-        myQuery.refetch(),
-        ...(user?.hasPartner ? [partnerQuery.refetch()] : []),
+        mine.refetch(),
+        ...(user?.hasPartner ? [partner.refetch()] : []),
       ]);
     },
   };
