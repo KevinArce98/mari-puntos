@@ -21,194 +21,149 @@ export class PermissionTemplatesController {
   private templatesService = new PermissionTemplatesService();
 
   getTemplates = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-      const userId = req.userId!;
-      const page = parseInt(req.query.page as string) || PAGINATION_DEFAULTS.PAGE;
-      const limit = Math.min(
-        parseInt(req.query.limit as string) || PAGINATION_DEFAULTS.LIMIT,
-        PAGINATION_DEFAULTS.MAX_LIMIT
-      );
-      const category = req.query.category as PermissionCategory | undefined;
-      const isSystemTemplate =
-        req.query.isSystemTemplate === 'true'
-          ? true
-          : req.query.isSystemTemplate === 'false'
-            ? false
-            : undefined;
+    const userId = req.userId!;
+    const page = parseInt(req.query.page as string) || PAGINATION_DEFAULTS.PAGE;
+    const limit = Math.min(
+      parseInt(req.query.limit as string) || PAGINATION_DEFAULTS.LIMIT,
+      PAGINATION_DEFAULTS.MAX_LIMIT
+    );
+    const category = req.query.category as PermissionCategory | undefined;
+    const isSystemTemplate =
+      req.query.isSystemTemplate === 'true'
+        ? true
+        : req.query.isSystemTemplate === 'false'
+          ? false
+          : undefined;
 
-      logger.debug({
-        message: 'Getting permission templates',
-        userId,
-        page,
-        limit,
-        category,
-        isSystemTemplate,
-      });
+    logger.debug({
+      message: 'Getting permission templates',
+      userId,
+      page,
+      limit,
+      category,
+      isSystemTemplate,
+    });
 
-      const result = await this.templatesService.getTemplates(userId, {
-        category,
-        isSystemTemplate,
-        page,
-        limit,
-      });
+    const result = await this.templatesService.getTemplates(userId, {
+      category,
+      isSystemTemplate,
+      page,
+      limit,
+    });
 
-      logger.debug({
-        message: 'Permission templates retrieved',
-        userId,
-        total: result.total,
-      });
+    logger.debug({
+      message: 'Permission templates retrieved',
+      userId,
+      total: result.total,
+    });
 
-      sendPaginated(
-        res,
-        toPermissionTemplateDTOList(result.templates),
-        createPaginationMeta(page, limit, result.total)
-      );
-    } catch (error) {
-      logger.error(
-        { err: error, userId: req.userId },
-        'Error getting permission templates'
-      );
-      throw error;
-    }
+    sendPaginated(
+      res,
+      toPermissionTemplateDTOList(result.templates),
+      createPaginationMeta(page, limit, result.total)
+    );
   };
 
   getSystemTemplates = async (_req: AuthRequest, res: Response): Promise<void> => {
-    try {
-      logger.debug({ message: 'Getting system permission templates' });
+    logger.debug({ message: 'Getting system permission templates' });
 
-      const templates = await this.templatesService.getSystemTemplates();
+    const templates = await this.templatesService.getSystemTemplates();
 
-      logger.debug({
-        message: 'System permission templates retrieved',
-        count: templates.length,
-      });
+    logger.debug({
+      message: 'System permission templates retrieved',
+      count: templates.length,
+    });
 
-      sendSuccess(res, toPermissionTemplateDTOList(templates));
-    } catch (error) {
-      logger.error({ err: error }, 'Error getting system permission templates');
-      throw error;
-    }
+    sendSuccess(res, toPermissionTemplateDTOList(templates));
   };
 
   getTemplateById = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-      const userId = req.userId!;
-      const id = req.params.id as string;
+    const userId = req.userId!;
+    const id = req.params.id as string;
 
-      logger.debug({
-        message: 'Getting permission template by ID',
-        userId,
-        templateId: id,
-      });
+    logger.debug({
+      message: 'Getting permission template by ID',
+      userId,
+      templateId: id,
+    });
 
-      const template = await this.templatesService.getTemplateById(id, userId);
+    const template = await this.templatesService.getTemplateById(id, userId);
 
-      logger.debug({
-        message: 'Permission template retrieved by ID',
-        userId,
-        templateId: id,
-      });
+    logger.debug({
+      message: 'Permission template retrieved by ID',
+      userId,
+      templateId: id,
+    });
 
-      sendSuccess(res, toPermissionTemplateDTO(template));
-    } catch (error) {
-      logger.error(
-        { err: error, userId: req.userId, templateId: req.params.id },
-        'Error getting permission template by ID'
-      );
-      throw error;
-    }
+    sendSuccess(res, toPermissionTemplateDTO(template));
   };
 
   createTemplate = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-      const userId = req.userId!;
-      const data = createPermissionTemplateSchema.parse(req.body);
+    const userId = req.userId!;
+    const data = createPermissionTemplateSchema.parse(req.body);
 
-      logger.info({
-        message: 'Creating permission template',
-        userId,
-        templateData: data,
-      });
+    logger.info({
+      message: 'Creating permission template',
+      userId,
+      templateData: data,
+    });
 
-      const template = await this.templatesService.createTemplate(userId, data);
+    const template = await this.templatesService.createTemplate(userId, data);
 
-      logger.info({
-        message: 'Permission template created successfully',
-        userId,
-        templateId: template.id,
-      });
+    logger.info({
+      message: 'Permission template created successfully',
+      userId,
+      templateId: template.id,
+    });
 
-      sendCreated(
-        res,
-        toPermissionTemplateDTO(template),
-        'Permission template created successfully'
-      );
-    } catch (error) {
-      logger.error(
-        { err: error, userId: req.userId },
-        'Error creating permission template'
-      );
-      throw error;
-    }
+    sendCreated(
+      res,
+      toPermissionTemplateDTO(template),
+      'Permission template created successfully'
+    );
   };
 
   updateTemplate = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-      const userId = req.userId!;
-      const id = req.params.id as string;
-      const data = updatePermissionTemplateSchema.parse(req.body);
+    const userId = req.userId!;
+    const id = req.params.id as string;
+    const data = updatePermissionTemplateSchema.parse(req.body);
 
-      logger.info({
-        message: 'Updating permission template',
-        userId,
-        templateId: id,
-        updateData: data,
-      });
+    logger.info({
+      message: 'Updating permission template',
+      userId,
+      templateId: id,
+      updateData: data,
+    });
 
-      const template = await this.templatesService.updateTemplate(id, userId, data);
+    const template = await this.templatesService.updateTemplate(id, userId, data);
 
-      logger.info({
-        message: 'Permission template updated successfully',
-        userId,
-        templateId: id,
-      });
+    logger.info({
+      message: 'Permission template updated successfully',
+      userId,
+      templateId: id,
+    });
 
-      sendSuccess(
-        res,
-        toPermissionTemplateDTO(template),
-        'Permission template updated successfully'
-      );
-    } catch (error) {
-      logger.error(
-        { err: error, userId: req.userId, templateId: req.params.id },
-        'Error updating permission template'
-      );
-      throw error;
-    }
+    sendSuccess(
+      res,
+      toPermissionTemplateDTO(template),
+      'Permission template updated successfully'
+    );
   };
 
   deleteTemplate = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-      const userId = req.userId!;
-      const id = req.params.id as string;
+    const userId = req.userId!;
+    const id = req.params.id as string;
 
-      logger.info({ message: 'Deleting permission template', userId, templateId: id });
+    logger.info({ message: 'Deleting permission template', userId, templateId: id });
 
-      await this.templatesService.deleteTemplate(id, userId);
+    await this.templatesService.deleteTemplate(id, userId);
 
-      logger.info({
-        message: 'Permission template deleted successfully',
-        userId,
-        templateId: id,
-      });
+    logger.info({
+      message: 'Permission template deleted successfully',
+      userId,
+      templateId: id,
+    });
 
-      sendSuccess(res, { success: true }, 'Permission template deleted successfully');
-    } catch (error) {
-      logger.error(
-        { err: error, userId: req.userId, templateId: req.params.id },
-        'Error deleting permission template'
-      );
-      throw error;
-    }
+    sendSuccess(res, { success: true }, 'Permission template deleted successfully');
   };
 }
