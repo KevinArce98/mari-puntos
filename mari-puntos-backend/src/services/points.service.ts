@@ -5,13 +5,11 @@ import { Achievement, AchievementType } from '../entities/Achievement';
 import { Log, LogType } from '../entities/Log';
 import { User } from '../entities/User';
 import { getAchievementCopy, translate } from '../i18n';
-import { AppError } from '../middlewares/errorMiddleware';
 import {
   calculateLevel,
   calculatePointsInCurrentLevel,
   getNowUTC6,
 } from '../utils/helpers';
-import { logger } from '../utils/logger';
 import { StreakService } from './streak.service';
 
 export class PointsService {
@@ -19,84 +17,6 @@ export class PointsService {
   private logRepository = AppDataSource.getRepository(Log);
   private achievementRepository = AppDataSource.getRepository(Achievement);
   private streakService = new StreakService();
-
-  async addPoints(userId: string, points: number, reason: string): Promise<User> {
-    logger.info({ message: 'Adding points to user', userId, points, reason });
-
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-
-    if (!user) {
-      logger.warn({ message: 'User not found for adding points', userId });
-      throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
-    }
-
-    const previousLevel = user.currentLevel;
-
-    user.totalPoints += points;
-    user.currentLevel = calculateLevel(user.totalPoints);
-    user.pointsInCurrentLevel = calculatePointsInCurrentLevel(user.totalPoints);
-
-    const updatedUser = await this.userRepository.save(user);
-    logger.info({
-      message: 'Points added successfully',
-      userId,
-      points,
-      newTotal: updatedUser.totalPoints,
-      newLevel: updatedUser.currentLevel,
-    });
-
-    await this.logRepository.save(
-      this.logRepository.create({
-        userId,
-        type: LogType.POINTS_EARNED,
-        message: reason,
-        pointsChange: points,
-      })
-    );
-
-    if (user.currentLevel > previousLevel) {
-      logger.info({
-        message: 'User leveled up',
-        userId,
-        fromLevel: previousLevel,
-        toLevel: user.currentLevel,
-      });
-      await this.handleLevelUp(user, previousLevel);
-    }
-
-    await this.checkAchievements(user);
-
-    return updatedUser;
-  }
-
-  async deductPoints(userId: string, points: number, reason: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-
-    if (!user) {
-      throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
-    }
-
-    if (user.totalPoints < points) {
-      throw new AppError(400, 'Puntos insuficientes', 'errors.points.insufficient');
-    }
-
-    user.totalPoints -= points;
-    user.currentLevel = calculateLevel(user.totalPoints);
-    user.pointsInCurrentLevel = calculatePointsInCurrentLevel(user.totalPoints);
-
-    await this.userRepository.save(user);
-
-    await this.logRepository.save(
-      this.logRepository.create({
-        userId,
-        type: LogType.POINTS_SPENT,
-        message: reason,
-        pointsChange: -points,
-      })
-    );
-
-    return user;
-  }
 
   async getPointsHistory(
     userId: string,
