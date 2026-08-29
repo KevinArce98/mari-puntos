@@ -41,5 +41,5 @@ WORKDIR /app/mari-puntos-backend
 
 EXPOSE 3001
 
-# Run migrations then start server
-CMD ["sh", "-c", "node -e \"const {AppDataSource}=require('./dist/config/db');AppDataSource.initialize().then(ds=>ds.runMigrations()).then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1)})\" && node dist/server.js"]
+# Run migrations (advisory-locked) then start server
+CMD ["sh", "-c", "node dist/scripts/migrate.js && node dist/server.js"]
