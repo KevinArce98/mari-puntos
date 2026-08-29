@@ -1,12 +1,13 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
-  OneToOne,
+  Entity,
   JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
+
 import { User } from './User';
 
 export enum PartnerLinkStatus {
@@ -60,7 +61,6 @@ export class PartnerLink {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  // Relations
   @OneToOne(() => User, (user) => user.partnerLinkAsUser1)
   @JoinColumn({ name: 'user1Id' })
   user1: User;

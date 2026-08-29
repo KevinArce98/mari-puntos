@@ -1,8 +1,3 @@
-/**
- * Data Transfer Objects (DTOs) for MariPuntos API
- * ⚠️ These MUST match the frontend TypeScript interfaces EXACTLY
- * Frontend is the source of truth - backend adapts to frontend
- */
 import { PermissionCategory } from '../entities/PermissionTemplate';
 import {
   ActionCategory,
@@ -12,24 +7,12 @@ import {
   PermissionStatus,
 } from './constants';
 
-// ============================================================================
-// API RESPONSE TYPES (Matches frontend ApiResponse)
-// ============================================================================
-
-/**
- * Standard success response format
- * Frontend expects: { success: true, data: T, message?: string }
- */
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
   message?: string;
 }
 
-/**
- * Standard error response format
- * Frontend expects: { success: false, error: string, details?: { field, message }[] }
- */
 export interface ApiError {
   success: false;
   error: string;
@@ -38,10 +21,6 @@ export interface ApiError {
     message: string;
   }[];
 }
-
-// ============================================================================
-// PAGINATION (Matches frontend exactly)
-// ============================================================================
 
 export interface PaginationParams {
   page?: number;
@@ -55,23 +34,14 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
-/**
- * Paginated response format
- * Frontend expects: { success: boolean, data: T[], pagination: {...} }
- */
 export interface PaginatedResponse<T> {
   success: boolean;
   data: T[];
   pagination: PaginationMeta;
 }
 
-// ============================================================================
-// USER DTOs (Matches frontend User interface exactly)
-// ============================================================================
+export type AppLocale = 'es' | 'en';
 
-/**
- * User response DTO - matches frontend User interface
- */
 export interface UserDTO {
   id: string;
   email: string;
@@ -84,13 +54,11 @@ export interface UserDTO {
   partnerCode?: string;
   hasPartner: boolean;
   isActive: boolean;
+  locale?: AppLocale;
   createdAt: string;
   updatedAt: string;
 }
 
-/**
- * User stats response DTO - matches frontend UserStats interface
- */
 export interface UserStatsDTO {
   totalPoints: number;
   currentLevel: number;
@@ -101,56 +69,36 @@ export interface UserStatsDTO {
   achievementsUnlocked: number;
 }
 
-/**
- * Create user request - matches frontend CreateUserRequest
- */
 export interface CreateUserDTO {
   email: string;
   firstName: string;
   lastName: string;
   clerkId: string;
   avatarUrl?: string;
+  locale?: AppLocale;
 }
 
-/**
- * Update user request - matches frontend UpdateProfileRequest
- */
 export interface UpdateUserDTO {
   firstName?: string;
   lastName?: string;
+  locale?: AppLocale;
 }
 
-// ============================================================================
-// PARTNER DTOs (Matches frontend Partner interfaces exactly)
-// ============================================================================
-
-/**
- * Create partner link response - matches frontend CreatePartnerLinkResponse
- */
 export interface CreatePartnerLinkResponseDTO {
   linkCode: string;
   status: PartnerLinkStatus;
 }
 
-/**
- * Join partner request - matches frontend JoinPartnerRequest
- */
 export interface JoinPartnerDTO {
   linkCode: string;
 }
 
-/**
- * Join partner response - matches frontend JoinPartnerResponse
- */
 export interface JoinPartnerResponseDTO {
   linkCode: string;
   status: 'active';
   linkedAt: string;
 }
 
-/**
- * Partner info response - matches frontend PartnerInfo
- */
 export interface PartnerInfoDTO {
   id: string;
   linkCode: string;
@@ -167,13 +115,6 @@ export interface PartnerInfoDTO {
   };
 }
 
-// ============================================================================
-// ACTION DTOs (Matches frontend Action interfaces exactly)
-// ============================================================================
-
-/**
- * Action response DTO - matches frontend Action interface
- */
 export interface ActionDTO {
   id: string;
   userId: string;
@@ -188,9 +129,6 @@ export interface ActionDTO {
   updatedAt: string;
 }
 
-/**
- * Create action request - matches frontend CreateActionRequest
- */
 export interface CreateActionDTO {
   title: string;
   description?: string;
@@ -198,34 +136,18 @@ export interface CreateActionDTO {
   metadata?: Record<string, unknown>;
 }
 
-/**
- * Approve action request - matches frontend ApproveActionRequest
- */
 export interface ApproveActionDTO {
   pointsAwarded: number;
 }
 
-/**
- * Reject action request - matches frontend RejectActionRequest
- */
 export interface RejectActionDTO {
   rejectionReason: string;
 }
 
-/**
- * Get actions query params - matches frontend GetActionsParams
- */
 export interface GetActionsParamsDTO extends PaginationParams {
   status?: ActionStatus;
 }
 
-// ============================================================================
-// PERMISSION DTOs (Matches frontend Permission interfaces exactly)
-// ============================================================================
-
-/**
- * Permission Template response DTO - matches frontend PermissionTemplate interface
- */
 export interface PermissionTemplateDTO {
   id: string;
   title: string;
@@ -241,9 +163,6 @@ export interface PermissionTemplateDTO {
   updatedAt: string;
 }
 
-/**
- * Permission response DTO - matches frontend Permission interface
- */
 export interface PermissionDTO {
   id: string;
   templateId: string;
@@ -276,9 +195,6 @@ export interface PermissionDTO {
   };
 }
 
-/**
- * Create permission request - matches frontend CreatePermissionRequest
- */
 export interface CreatePermissionDTO {
   templateId: string;
   requestedDate: string;
@@ -286,29 +202,16 @@ export interface CreatePermissionDTO {
   metadata?: Record<string, unknown>;
 }
 
-/**
- * Respond to permission request - matches frontend RespondPermissionRequest
- */
 export interface RespondPermissionDTO {
   approved: boolean;
   responseMessage?: string;
-  pointsCost?: number; // Set by approver when approving
+  pointsCost?: number;
 }
 
-/**
- * Get permissions query params - matches frontend GetPermissionsParams
- */
 export interface GetPermissionsParamsDTO extends PaginationParams {
   status?: PermissionStatus;
 }
 
-// ============================================================================
-// POINTS DTOs (Matches frontend Points interfaces exactly)
-// ============================================================================
-
-/**
- * Points log response DTO - matches frontend PointsLog interface
- */
 export interface PointsLogDTO {
   id: string;
   type: LogType;
@@ -317,14 +220,8 @@ export interface PointsLogDTO {
   createdAt: string;
 }
 
-/**
- * Get points history params - matches frontend GetPointsHistoryParams
- */
 export type GetPointsHistoryParamsDTO = PaginationParams;
 
-/**
- * Leaderboard entry response - matches frontend LeaderboardEntry
- */
 export interface LeaderboardEntryDTO {
   id: string;
   firstName: string;
@@ -334,16 +231,9 @@ export interface LeaderboardEntryDTO {
   currentLevel: number;
 }
 
-/**
- * Get leaderboard params - matches frontend GetLeaderboardParams
- */
 export interface GetLeaderboardParamsDTO {
   limit?: number;
 }
-
-// ============================================================================
-// LEVEL DTOs
-// ============================================================================
 
 export interface LevelDTO {
   id: string;
@@ -354,10 +244,6 @@ export interface LevelDTO {
   iconUrl?: string;
   badgeUrl?: string;
 }
-
-// ============================================================================
-// ACHIEVEMENT DTOs
-// ============================================================================
 
 export interface AchievementDTO {
   id: string;

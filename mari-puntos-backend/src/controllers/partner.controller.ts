@@ -1,21 +1,18 @@
 import { Response } from 'express';
+
 import { AuthRequest } from '../middlewares/authMiddleware';
-import { PartnerService } from '../services/partner.service';
-import { joinPartnerLinkSchema } from '../validators/schemas';
-import { sendSuccess, sendCreated } from '../utils/response';
-import { toPartnerInfoDTO } from '../utils/mappers';
-import { getNowUTC6 } from '../utils/helpers';
-import { PartnerLinkStatus } from '../shared/constants';
 import { AppError } from '../middlewares/errorMiddleware';
+import { PartnerService } from '../services/partner.service';
+import { PartnerLinkStatus } from '../shared/constants';
+import { getNowUTC6 } from '../utils/helpers';
 import { logger } from '../utils/logger';
+import { toPartnerInfoDTO } from '../utils/mappers';
+import { sendCreated, sendSuccess } from '../utils/response';
+import { joinPartnerLinkSchema } from '../validators/schemas';
 
 export class PartnerController {
   private partnerService = new PartnerService();
 
-  /**
-   * POST /partner/create
-   * Create a partner link code
-   */
   createLink = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -24,9 +21,12 @@ export class PartnerController {
 
       const partnerLink = await this.partnerService.createPartnerLink(userId);
 
-      logger.info({ message: 'Partner link created successfully', userId, linkCode: partnerLink.linkCode });
+      logger.info({
+        message: 'Partner link created successfully',
+        userId,
+        linkCode: partnerLink.linkCode,
+      });
 
-      // Response matches frontend CreatePartnerLinkResponse
       sendCreated(
         res,
         {
@@ -41,10 +41,6 @@ export class PartnerController {
     }
   };
 
-  /**
-   * POST /partner/join
-   * Join a partner using their link code
-   */
   joinLink = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -56,7 +52,6 @@ export class PartnerController {
 
       logger.info({ message: 'Successfully joined partner link', userId, linkCode });
 
-      // Response matches frontend JoinPartnerResponse
       sendSuccess(
         res,
         {
@@ -67,15 +62,14 @@ export class PartnerController {
         'Successfully linked with partner'
       );
     } catch (error) {
-      logger.error({ err: error, userId: req.userId, linkCode: req.body?.linkCode }, 'Error joining partner link');
+      logger.error(
+        { err: error, userId: req.userId, linkCode: req.body?.linkCode },
+        'Error joining partner link'
+      );
       throw error;
     }
   };
 
-  /**
-   * GET /partner/create
-   * Get a partner link code
-   */
   getLinkCode = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -86,10 +80,18 @@ export class PartnerController {
 
       if (!partnerLink) {
         logger.warn({ message: 'No partner link found for user', userId });
-        throw new AppError(404, 'No partner link found for user');
+        throw new AppError(
+          404,
+          'No partner link found for user',
+          'errors.partner.linkNotFoundForUser'
+        );
       }
 
-      logger.debug({ message: 'Partner link code retrieved', userId, linkCode: partnerLink.linkCode });
+      logger.debug({
+        message: 'Partner link code retrieved',
+        userId,
+        linkCode: partnerLink.linkCode,
+      });
 
       sendSuccess(
         res,
@@ -105,10 +107,6 @@ export class PartnerController {
     }
   };
 
-  /**
-   * GET /partner
-   * Get partner information
-   */
   getPartner = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -124,20 +122,22 @@ export class PartnerController {
       }
 
       const { partnerLink, partner } = result;
-      logger.debug({ message: 'Partner information retrieved', userId, partnerId: partner.id });
+      logger.debug({
+        message: 'Partner information retrieved',
+        userId,
+        partnerId: partner.id,
+      });
 
-      // Response matches frontend PartnerInfo
       sendSuccess(res, toPartnerInfoDTO(partnerLink, partner, userId));
     } catch (error) {
-      logger.error({ err: error, userId: req.userId }, 'Error getting partner information');
+      logger.error(
+        { err: error, userId: req.userId },
+        'Error getting partner information'
+      );
       throw error;
     }
   };
 
-  /**
-   * DELETE /partner
-   * Unlink from partner
-   */
   unlinkPartner = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;

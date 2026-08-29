@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { config } from '../config/env';
+import { getRequestLocale, translate } from '../i18n';
 import { sendError } from '../utils/response';
 
 interface RateLimitEntry {
@@ -20,10 +21,6 @@ setInterval(
   5 * 60 * 1000
 );
 
-/**
- * Resolve the real client IP, preferring Cloudflare / proxy headers so all
- * users don't share the Docker internal IP.
- */
 function getClientIp(req: Request): string {
   const cfIp = req.headers['cf-connecting-ip'];
   if (cfIp && typeof cfIp === 'string') return cfIp;
@@ -39,20 +36,6 @@ function getClientIp(req: Request): string {
   return req.ip || req.socket.remoteAddress || 'unknown';
 }
 
-/**
- * Extract a stable rate-limit key from the request.
- *
- * The Clerk `sub` is read from the JWT WITHOUT verifying the signature (full
- * verification happens later in authMiddleware). A forged token could therefore
- * carry any `sub`, so we never key on `sub` alone — we always bind it to the
- * real client IP. This way:
- *   - an attacker forging a victim's `sub` lands in a *different* bucket
- *     (their own IP) and cannot exhaust the victim's quota, and
- *   - an attacker cannot evade their own limit by rotating the `sub`, because
- *     their IP stays in the key.
- * The `sub` still gives each real user their own bucket when several share an
- * IP (e.g. behind a proxy/NAT).
- */
 function getRateLimitKey(req: Request): string {
   const ip = getClientIp(req);
 
@@ -66,19 +49,13 @@ function getRateLimitKey(req: Request): string {
         return `user:${payload.sub}:ip:${ip}`;
       }
     } catch {
-      // malformed token — fall back to IP-only keying
+      void 0;
     }
   }
 
   return `ip:${ip}`;
 }
 
-/**
- * Rate limiting middleware — keyed per user (JWT sub) or real IP.
- *
- * Development : 1000 req / 15 min
- * Production  : 300 req / 15 min
- */
 export const rateLimitMiddleware = (
   req: Request,
   res: Response,
@@ -106,7 +83,7 @@ export const rateLimitMiddleware = (
   if (entry.count > maxRequests) {
     const retryAfterSeconds = Math.ceil((entry.resetTime - now) / 1000);
     res.setHeader('Retry-After', retryAfterSeconds.toString());
-    sendError(res, 'Demasiadas solicitudes. Por favor intenta más tarde.', 429);
+    sendError(res, translate('errors.rateLimit.tooMany', getRequestLocale(req)), 429);
     return;
   }
 

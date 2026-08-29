@@ -1,15 +1,20 @@
 import { AppDataSource } from '../config/db';
-import { Action, ActionStatus, ActionCategory } from '../entities/Action';
-import { User } from '../entities/User';
+import { Action, ActionCategory, ActionStatus } from '../entities/Action';
 import { Log, LogType } from '../entities/Log';
+import { User } from '../entities/User';
+import { translate } from '../i18n';
 import { AppError } from '../middlewares/errorMiddleware';
-import { getNowUTC6, calculateLevel, calculatePointsInCurrentLevel } from '../utils/helpers';
+import {
+  calculateLevel,
+  calculatePointsInCurrentLevel,
+  getNowUTC6,
+} from '../utils/helpers';
+import { logger } from '../utils/logger';
+import { CreateActionInput, UpdateActionInput } from '../validators/schemas';
 import { PartnerService } from './partner.service';
 import { PointsService } from './points.service';
-import { CreateActionInput, UpdateActionInput } from '../validators/schemas';
 import { PushNotificationService } from './push-notification.service';
 import { StreakService } from './streak.service';
-import { logger } from '../utils/logger';
 
 export class ActionsService {
   private actionRepository = AppDataSource.getRepository(Action);
@@ -27,7 +32,7 @@ export class ActionsService {
 
     if (!user) {
       logger.warn({ message: 'User not found for action creation', userId });
-      throw new AppError(404, 'Usuario no encontrado');
+      throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
     }
 
     const action = this.actionRepository.create({
@@ -40,14 +45,17 @@ export class ActionsService {
     });
 
     const savedAction = await this.actionRepository.save(action);
-    logger.info({ message: 'Action created successfully', userId, actionId: savedAction.id });
+    logger.info({
+      message: 'Action created successfully',
+      userId,
+      actionId: savedAction.id,
+    });
 
-    // Create log
     await this.logRepository.save(
       this.logRepository.create({
         userId,
         type: LogType.ACTION_CREATED,
-        message: `Acción creada: ${action.title}`,
+        message: translate('logs.actionCreated', user.locale, { title: action.title }),
         relatedEntityId: action.id,
         relatedEntityType: 'Action',
       })
@@ -56,12 +64,15 @@ export class ActionsService {
     try {
       const partnerIdForNotif = await this.partnerService.getPartnerId(userId);
       if (partnerIdForNotif) {
-        const partner = await this.userRepository.findOne({ where: { id: partnerIdForNotif } });
+        const partner = await this.userRepository.findOne({
+          where: { id: partnerIdForNotif },
+        });
         if (partner?.pushToken) {
           await this.pushNotificationService.sendActionCreatedNotification(
             partner.pushToken,
             user.firstName || user.email,
-            action.title
+            action.title,
+            partner.locale
           );
         }
       }
@@ -75,18 +86,22 @@ export class ActionsService {
   async getActionById(actionId: string, requestingUserId?: string): Promise<Action> {
     const action = await this.actionRepository.findOne({
       where: { id: actionId },
-      relations: ['user'],
+      relations: { user: true },
     });
 
     if (!action) {
-      throw new AppError(404, 'Acción no encontrada');
+      throw new AppError(404, 'Acción no encontrada', 'errors.action.notFound');
     }
 
     if (requestingUserId) {
       if (action.userId !== requestingUserId) {
         const partnerId = await this.partnerService.getPartnerId(requestingUserId);
         if (partnerId !== action.userId) {
-          throw new AppError(403, 'No tienes acceso a esta acción');
+          throw new AppError(
+            403,
+            'No tienes acceso a esta acción',
+            'errors.action.noAccess'
+          );
         }
       }
     }
@@ -133,7 +148,7 @@ export class ActionsService {
     const partnerId = await this.partnerService.getPartnerId(userId);
 
     if (!partnerId) {
-      throw new AppError(404, 'Pareja no encontrada');
+      throw new AppError(404, 'Pareja no encontrada', 'errors.partner.notFound');
     }
 
     return this.getUserActions(partnerId, filters);
@@ -147,17 +162,26 @@ export class ActionsService {
     const action = await this.getActionById(actionId);
 
     if (action.userId !== userId) {
-      throw new AppError(403, 'Solo puedes actualizar tus propias acciones');
+      throw new AppError(
+        403,
+        'Solo puedes actualizar tus propias acciones',
+        'errors.action.onlyOwnUpdate'
+      );
     }
 
     if (action.status !== ActionStatus.PENDING) {
-      throw new AppError(400, 'Solo puedes actualizar acciones pendientes');
+      throw new AppError(
+        400,
+        'Solo puedes actualizar acciones pendientes',
+        'errors.action.onlyPendingUpdate'
+      );
     }
 
     if (data.title !== undefined) action.title = data.title;
     if (data.description !== undefined) action.description = data.description;
     if (data.category !== undefined) action.category = data.category as ActionCategory;
-    if (data.metadata !== undefined) action.metadata = data.metadata as Record<string, unknown>;
+    if (data.metadata !== undefined)
+      action.metadata = data.metadata as Record<string, unknown>;
 
     await this.actionRepository.save(action);
 
@@ -169,39 +193,51 @@ export class ActionsService {
     approverId: string,
     pointsAwarded: number
   ): Promise<Action> {
-    // Verify approver exists and is the action owner's partner BEFORE entering tx
     const approver = await this.userRepository.findOne({ where: { id: approverId } });
     if (!approver) {
-      throw new AppError(404, 'Aprobador no encontrado');
+      throw new AppError(
+        404,
+        'Aprobador no encontrado',
+        'errors.generic.approverNotFound'
+      );
     }
     const partnerId = await this.partnerService.getPartnerId(approverId);
     if (!partnerId) {
-      throw new AppError(403, 'No tienes una pareja vinculada');
+      throw new AppError(
+        403,
+        'No tienes una pareja vinculada',
+        'errors.partner.notLinked'
+      );
     }
 
-    // Transaction: lock the action row, re-check status, apply mutation atomically.
     const action = await AppDataSource.transaction(async (manager) => {
       const actionRepo = manager.getRepository(Action);
       const userRepo = manager.getRepository(User);
       const logRepo = manager.getRepository(Log);
 
-      // Lock action row to prevent concurrent approve/reject of same action
       const lockedAction = await actionRepo.findOne({
         where: { id: actionId },
         lock: { mode: 'pessimistic_write' },
       });
 
       if (!lockedAction) {
-        throw new AppError(404, 'Acción no encontrada');
+        throw new AppError(404, 'Acción no encontrada', 'errors.action.notFound');
       }
 
       if (partnerId !== lockedAction.userId) {
-        throw new AppError(403, 'Solo puedes aprobar las acciones de tu pareja');
+        throw new AppError(
+          403,
+          'Solo puedes aprobar las acciones de tu pareja',
+          'errors.action.onlyPartnerApprove'
+        );
       }
 
-      // Re-check status inside the lock (the key race-fix)
       if (lockedAction.status !== ActionStatus.PENDING) {
-        throw new AppError(400, 'La acción no está pendiente');
+        throw new AppError(
+          400,
+          'La acción no está pendiente',
+          'errors.action.notPending'
+        );
       }
 
       lockedAction.status = ActionStatus.APPROVED;
@@ -211,23 +247,27 @@ export class ActionsService {
 
       await actionRepo.save(lockedAction);
 
-      // Lock user for points update to serialize concurrent point mutations
       const actionUser = await userRepo.findOne({
         where: { id: lockedAction.userId },
         lock: { mode: 'pessimistic_write' },
       });
-      if (!actionUser) throw new AppError(404, 'Usuario no encontrado');
+      if (!actionUser)
+        throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
 
       actionUser.totalPoints += pointsAwarded;
       actionUser.currentLevel = calculateLevel(actionUser.totalPoints);
-      actionUser.pointsInCurrentLevel = calculatePointsInCurrentLevel(actionUser.totalPoints);
+      actionUser.pointsInCurrentLevel = calculatePointsInCurrentLevel(
+        actionUser.totalPoints
+      );
       await userRepo.save(actionUser);
 
       await logRepo.save([
         logRepo.create({
           userId: lockedAction.userId,
           type: LogType.POINTS_EARNED,
-          message: `Puntos ganados: ${lockedAction.title}`,
+          message: translate('logs.pointsEarned', actionUser.locale, {
+            title: lockedAction.title,
+          }),
           pointsChange: pointsAwarded,
           relatedEntityId: lockedAction.id,
           relatedEntityType: 'Action',
@@ -235,14 +275,18 @@ export class ActionsService {
         logRepo.create({
           userId: lockedAction.userId,
           type: LogType.ACTION_APPROVED,
-          message: `Acción aprobada: ${lockedAction.title}`,
+          message: translate('logs.actionApproved', actionUser.locale, {
+            title: lockedAction.title,
+          }),
           relatedEntityId: lockedAction.id,
           relatedEntityType: 'Action',
         }),
         logRepo.create({
           userId: approverId,
           type: LogType.ACTION_APPROVED,
-          message: `Aprobaste acción: ${lockedAction.title}`,
+          message: translate('logs.actionApprovedByYou', approver.locale, {
+            title: lockedAction.title,
+          }),
           relatedEntityId: lockedAction.id,
           relatedEntityType: 'Action',
         }),
@@ -264,12 +308,15 @@ export class ActionsService {
     }
 
     try {
-      const actionCreator = await this.userRepository.findOne({ where: { id: action.userId } });
+      const actionCreator = await this.userRepository.findOne({
+        where: { id: action.userId },
+      });
       if (actionCreator?.pushToken) {
         await this.pushNotificationService.sendActionApprovedNotification(
           actionCreator.pushToken,
           action.title,
-          pointsAwarded
+          pointsAwarded,
+          actionCreator.locale
         );
       }
     } catch (err) {
@@ -286,17 +333,25 @@ export class ActionsService {
   ): Promise<Action> {
     const approver = await this.userRepository.findOne({ where: { id: approverId } });
     if (!approver) {
-      throw new AppError(404, 'Aprobador no encontrado');
+      throw new AppError(
+        404,
+        'Aprobador no encontrado',
+        'errors.generic.approverNotFound'
+      );
     }
     const partnerId = await this.partnerService.getPartnerId(approverId);
     if (!partnerId) {
-      throw new AppError(403, 'No tienes una pareja vinculada');
+      throw new AppError(
+        403,
+        'No tienes una pareja vinculada',
+        'errors.partner.notLinked'
+      );
     }
 
-    // Transaction: lock action, re-check status, save status + logs atomically
     const action = await AppDataSource.transaction(async (manager) => {
       const actionRepo = manager.getRepository(Action);
       const logRepo = manager.getRepository(Log);
+      const userRepo = manager.getRepository(User);
 
       const lockedAction = await actionRepo.findOne({
         where: { id: actionId },
@@ -304,15 +359,23 @@ export class ActionsService {
       });
 
       if (!lockedAction) {
-        throw new AppError(404, 'Acción no encontrada');
+        throw new AppError(404, 'Acción no encontrada', 'errors.action.notFound');
       }
 
       if (partnerId !== lockedAction.userId) {
-        throw new AppError(403, 'Solo puedes rechazar las acciones de tu pareja');
+        throw new AppError(
+          403,
+          'Solo puedes rechazar las acciones de tu pareja',
+          'errors.action.onlyPartnerReject'
+        );
       }
 
       if (lockedAction.status !== ActionStatus.PENDING) {
-        throw new AppError(400, 'La acción no está pendiente');
+        throw new AppError(
+          400,
+          'La acción no está pendiente',
+          'errors.action.notPending'
+        );
       }
 
       lockedAction.status = ActionStatus.REJECTED;
@@ -322,18 +385,27 @@ export class ActionsService {
 
       await actionRepo.save(lockedAction);
 
+      const actionOwner = await userRepo.findOne({
+        where: { id: lockedAction.userId },
+        select: { id: true, locale: true },
+      });
+
       await logRepo.save([
         logRepo.create({
           userId: lockedAction.userId,
           type: LogType.ACTION_REJECTED,
-          message: `Acción rechazada: ${lockedAction.title}`,
+          message: translate('logs.actionRejected', actionOwner?.locale, {
+            title: lockedAction.title,
+          }),
           relatedEntityId: lockedAction.id,
           relatedEntityType: 'Action',
         }),
         logRepo.create({
           userId: approverId,
           type: LogType.ACTION_REJECTED,
-          message: `Rechazaste acción: ${lockedAction.title}`,
+          message: translate('logs.actionRejectedByYou', approver.locale, {
+            title: lockedAction.title,
+          }),
           relatedEntityId: lockedAction.id,
           relatedEntityType: 'Action',
         }),
@@ -342,13 +414,15 @@ export class ActionsService {
       return lockedAction;
     });
 
-    // Fire-and-forget notification outside transaction
     try {
-      const actionCreator = await this.userRepository.findOne({ where: { id: action.userId } });
+      const actionCreator = await this.userRepository.findOne({
+        where: { id: action.userId },
+      });
       if (actionCreator?.pushToken) {
         await this.pushNotificationService.sendActionRejectedNotification(
           actionCreator.pushToken,
-          action.title
+          action.title,
+          actionCreator.locale
         );
       }
     } catch (err) {
@@ -362,11 +436,19 @@ export class ActionsService {
     const action = await this.getActionById(actionId);
 
     if (action.userId !== userId) {
-      throw new AppError(403, 'Solo puedes eliminar tus propias acciones');
+      throw new AppError(
+        403,
+        'Solo puedes eliminar tus propias acciones',
+        'errors.action.onlyOwnDelete'
+      );
     }
 
     if (action.status !== ActionStatus.PENDING) {
-      throw new AppError(400, 'Solo puedes eliminar acciones pendientes');
+      throw new AppError(
+        400,
+        'Solo puedes eliminar acciones pendientes',
+        'errors.action.onlyPendingDelete'
+      );
     }
 
     await this.actionRepository.remove(action);

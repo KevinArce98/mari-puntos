@@ -1,10 +1,16 @@
-import { AppDataSource } from '../config/db';
-import { User } from '../entities/User';
-import { Log, LogType } from '../entities/Log';
-import { Achievement, AchievementType } from '../entities/Achievement';
-import { AppError } from '../middlewares/errorMiddleware';
-import { calculateLevel, calculatePointsInCurrentLevel, getNowUTC6 } from '../utils/helpers';
 import { In } from 'typeorm';
+
+import { AppDataSource } from '../config/db';
+import { Achievement, AchievementType } from '../entities/Achievement';
+import { Log, LogType } from '../entities/Log';
+import { User } from '../entities/User';
+import { getAchievementCopy, translate } from '../i18n';
+import { AppError } from '../middlewares/errorMiddleware';
+import {
+  calculateLevel,
+  calculatePointsInCurrentLevel,
+  getNowUTC6,
+} from '../utils/helpers';
 import { logger } from '../utils/logger';
 import { StreakService } from './streak.service';
 
@@ -21,20 +27,24 @@ export class PointsService {
 
     if (!user) {
       logger.warn({ message: 'User not found for adding points', userId });
-      throw new AppError(404, 'Usuario no encontrado');
+      throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
     }
 
     const previousLevel = user.currentLevel;
 
-    // Update points
     user.totalPoints += points;
     user.currentLevel = calculateLevel(user.totalPoints);
     user.pointsInCurrentLevel = calculatePointsInCurrentLevel(user.totalPoints);
 
     const updatedUser = await this.userRepository.save(user);
-    logger.info({ message: 'Points added successfully', userId, points, newTotal: updatedUser.totalPoints, newLevel: updatedUser.currentLevel });
+    logger.info({
+      message: 'Points added successfully',
+      userId,
+      points,
+      newTotal: updatedUser.totalPoints,
+      newLevel: updatedUser.currentLevel,
+    });
 
-    // Create log
     await this.logRepository.save(
       this.logRepository.create({
         userId,
@@ -44,13 +54,16 @@ export class PointsService {
       })
     );
 
-    // Check for level up
     if (user.currentLevel > previousLevel) {
-      logger.info({ message: 'User leveled up', userId, fromLevel: previousLevel, toLevel: user.currentLevel });
+      logger.info({
+        message: 'User leveled up',
+        userId,
+        fromLevel: previousLevel,
+        toLevel: user.currentLevel,
+      });
       await this.handleLevelUp(user, previousLevel);
     }
 
-    // Check for achievements
     await this.checkAchievements(user);
 
     return updatedUser;
@@ -60,21 +73,19 @@ export class PointsService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!user) {
-      throw new AppError(404, 'Usuario no encontrado');
+      throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
     }
 
     if (user.totalPoints < points) {
-      throw new AppError(400, 'Puntos insuficientes');
+      throw new AppError(400, 'Puntos insuficientes', 'errors.points.insufficient');
     }
 
-    // Update points
     user.totalPoints -= points;
     user.currentLevel = calculateLevel(user.totalPoints);
     user.pointsInCurrentLevel = calculatePointsInCurrentLevel(user.totalPoints);
 
     await this.userRepository.save(user);
 
-    // Create log
     await this.logRepository.save(
       this.logRepository.create({
         userId,
@@ -98,7 +109,6 @@ export class PointsService {
     const limit = filters?.limit || 20;
     const skip = (page - 1) * limit;
 
-    // Only show relevant log types in history
     const relevantLogTypes = [
       LogType.POINTS_EARNED,
       LogType.POINTS_SPENT,
@@ -123,25 +133,28 @@ export class PointsService {
     return { logs, total };
   }
 
-  /**
-   * Returns global leaderboard across all active users, ordered by total points.
-   */
   async getLeaderboard(_requestingUserId: string, limit: number = 10): Promise<User[]> {
     return await this.userRepository.find({
       where: { isActive: true },
       order: { totalPoints: 'DESC' },
       take: limit,
-      select: ['id', 'firstName', 'lastName', 'avatarUrl', 'totalPoints', 'currentLevel'],
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        avatarUrl: true,
+        totalPoints: true,
+        currentLevel: true,
+      },
     });
   }
 
   private async handleLevelUp(user: User, previousLevel: number): Promise<void> {
-    // Create level up log
     await this.logRepository.save(
       this.logRepository.create({
         userId: user.id,
         type: LogType.LEVEL_UP,
-        message: `¡Subiste de nivel! Nivel ${user.currentLevel} alcanzado`,
+        message: translate('logs.levelUp', user.locale, { level: user.currentLevel }),
         metadata: {
           previousLevel,
           newLevel: user.currentLevel,
@@ -149,20 +162,13 @@ export class PointsService {
       })
     );
 
-    // Check for level milestone achievements
     await this.checkLevelAchievements(user);
   }
 
-  /**
-   * Called externally after a points-modifying transaction.
-   * Re-computes the expected level from current points and triggers level-up
-   * if the stored level is behind (possible when points were mutated outside addPoints).
-   */
   async checkAchievementsForUser(userId: string): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) return;
 
-    // Re-derive current level from totalPoints in case it diverged
     const expectedLevel = calculateLevel(user.totalPoints);
     if (expectedLevel > user.currentLevel) {
       const previousLevel = user.currentLevel;
@@ -175,31 +181,15 @@ export class PointsService {
     await this.checkAchievements(user);
   }
 
-  private achievementCopy(type: AchievementType, value: number): { title: string; description: string } {
-    switch (type) {
-      case AchievementType.POINTS_MILESTONE:
-        return { title: `Maestro de ${value} Puntos`, description: `Ganaste ${value} puntos totales` };
-      case AchievementType.LEVEL_MILESTONE:
-        return { title: `Campeón Nivel ${value}`, description: `Alcanzaste el nivel ${value}` };
-      case AchievementType.ACTIONS_COMPLETED:
-        return value === 1
-          ? { title: 'Primera Acción Completada', description: 'Completaste tu primera acción aprobada' }
-          : { title: `${value} Acciones Completadas`, description: `Completaste ${value} acciones aprobadas` };
-      case AchievementType.PERMISSIONS_GRANTED:
-        return value === 1
-          ? { title: 'Primer Permiso Otorgado', description: 'Obtuviste tu primer permiso aprobado' }
-          : { title: `${value} Permisos Otorgados`, description: `Obtuviste ${value} permisos aprobados` };
-      case AchievementType.STREAK:
-        return value === 1
-          ? { title: 'Racha de 1 Semana', description: 'Completaron acciones juntos esta semana' }
-          : { title: `Racha de ${value} Semanas`, description: `Completaron acciones juntos ${value} semanas seguidas` };
-      case AchievementType.SPECIAL:
-        return { title: `Logro Especial ${value}`, description: `Logro especial ${value}` };
-    }
+  private achievementCopy(
+    type: AchievementType,
+    value: number,
+    locale?: string | null
+  ): { title: string; description: string } {
+    return getAchievementCopy(type, value, locale);
   }
 
   private async checkAchievements(user: User): Promise<void> {
-    // Single query for all unlocked achievements
     const unlockedAchievements = await this.achievementRepository.find({
       where: { userId: user.id, isUnlocked: true },
     });
@@ -227,52 +217,119 @@ export class PointsService {
 
     const pointsMilestones = [250, 750, 1500, 3500, 7500];
     for (const milestone of pointsMilestones) {
-      if (user.totalPoints >= milestone && !unlockedKeys.has(`${AchievementType.POINTS_MILESTONE}_${milestone}`)) {
-        const copy = this.achievementCopy(AchievementType.POINTS_MILESTONE, milestone);
-        await this.unlockAchievement(user.id, copy.title, copy.description, AchievementType.POINTS_MILESTONE, milestone);
+      if (
+        user.totalPoints >= milestone &&
+        !unlockedKeys.has(`${AchievementType.POINTS_MILESTONE}_${milestone}`)
+      ) {
+        const copy = this.achievementCopy(
+          AchievementType.POINTS_MILESTONE,
+          milestone,
+          user.locale
+        );
+        await this.unlockAchievement(
+          user.id,
+          copy.title,
+          copy.description,
+          AchievementType.POINTS_MILESTONE,
+          milestone,
+          user.locale
+        );
       }
     }
 
     const actionsMilestones = [1, 5, 10, 25, 50, 100];
     for (const milestone of actionsMilestones) {
-      if (approvedActions >= milestone && !unlockedKeys.has(`${AchievementType.ACTIONS_COMPLETED}_${milestone}`)) {
-        const copy = this.achievementCopy(AchievementType.ACTIONS_COMPLETED, milestone);
-        await this.unlockAchievement(user.id, copy.title, copy.description, AchievementType.ACTIONS_COMPLETED, milestone);
+      if (
+        approvedActions >= milestone &&
+        !unlockedKeys.has(`${AchievementType.ACTIONS_COMPLETED}_${milestone}`)
+      ) {
+        const copy = this.achievementCopy(
+          AchievementType.ACTIONS_COMPLETED,
+          milestone,
+          user.locale
+        );
+        await this.unlockAchievement(
+          user.id,
+          copy.title,
+          copy.description,
+          AchievementType.ACTIONS_COMPLETED,
+          milestone,
+          user.locale
+        );
       } else if (approvedActions < milestone) {
-        await this.updateProgress(user.id, AchievementType.ACTIONS_COMPLETED, milestone, approvedActions);
+        await this.updateProgress(
+          user.id,
+          AchievementType.ACTIONS_COMPLETED,
+          milestone,
+          approvedActions,
+          user.locale
+        );
       }
     }
 
     const permissionsMilestones = [1, 5, 10, 25];
     for (const milestone of permissionsMilestones) {
-      if (approvedPermissions >= milestone && !unlockedKeys.has(`${AchievementType.PERMISSIONS_GRANTED}_${milestone}`)) {
-        const copy = this.achievementCopy(AchievementType.PERMISSIONS_GRANTED, milestone);
-        await this.unlockAchievement(user.id, copy.title, copy.description, AchievementType.PERMISSIONS_GRANTED, milestone);
+      if (
+        approvedPermissions >= milestone &&
+        !unlockedKeys.has(`${AchievementType.PERMISSIONS_GRANTED}_${milestone}`)
+      ) {
+        const copy = this.achievementCopy(
+          AchievementType.PERMISSIONS_GRANTED,
+          milestone,
+          user.locale
+        );
+        await this.unlockAchievement(
+          user.id,
+          copy.title,
+          copy.description,
+          AchievementType.PERMISSIONS_GRANTED,
+          milestone,
+          user.locale
+        );
       } else if (approvedPermissions < milestone) {
-        await this.updateProgress(user.id, AchievementType.PERMISSIONS_GRANTED, milestone, approvedPermissions);
+        await this.updateProgress(
+          user.id,
+          AchievementType.PERMISSIONS_GRANTED,
+          milestone,
+          approvedPermissions,
+          user.locale
+        );
       }
     }
 
     const streakMilestones = [2, 4, 8, 12];
     for (const milestone of streakMilestones) {
-      if (currentStreak >= milestone && !unlockedKeys.has(`${AchievementType.STREAK}_${milestone}`)) {
-        const copy = this.achievementCopy(AchievementType.STREAK, milestone);
-        await this.unlockAchievement(user.id, copy.title, copy.description, AchievementType.STREAK, milestone);
+      if (
+        currentStreak >= milestone &&
+        !unlockedKeys.has(`${AchievementType.STREAK}_${milestone}`)
+      ) {
+        const copy = this.achievementCopy(AchievementType.STREAK, milestone, user.locale);
+        await this.unlockAchievement(
+          user.id,
+          copy.title,
+          copy.description,
+          AchievementType.STREAK,
+          milestone,
+          user.locale
+        );
       } else if (currentStreak < milestone) {
-        await this.updateProgress(user.id, AchievementType.STREAK, milestone, currentStreak);
+        await this.updateProgress(
+          user.id,
+          AchievementType.STREAK,
+          milestone,
+          currentStreak,
+          user.locale
+        );
       }
     }
   }
 
-  /**
-   * Updates currentProgress on a locked achievement so the frontend progress bar is accurate.
-   * Creates the achievement row if it doesn't exist yet.
-   */
   private async updateProgress(
     userId: string,
     type: AchievementType,
     requiredValue: number,
-    currentProgress: number
+    currentProgress: number,
+    locale?: string | null
   ): Promise<void> {
     const existing = await this.achievementRepository.findOne({
       where: { userId, type, requiredValue },
@@ -284,8 +341,7 @@ export class PointsService {
         await this.achievementRepository.save(existing);
       }
     } else {
-      // Seed the locked achievement row so the frontend can show progress
-      const copy = this.achievementCopy(type, requiredValue);
+      const copy = this.achievementCopy(type, requiredValue, locale);
       await this.achievementRepository.save(
         this.achievementRepository.create({
           userId,
@@ -314,13 +370,18 @@ export class PointsService {
         });
 
         if (!existingAchievement || !existingAchievement.isUnlocked) {
-          const copy = this.achievementCopy(AchievementType.LEVEL_MILESTONE, milestone);
+          const copy = this.achievementCopy(
+            AchievementType.LEVEL_MILESTONE,
+            milestone,
+            user.locale
+          );
           await this.unlockAchievement(
             user.id,
             copy.title,
             copy.description,
             AchievementType.LEVEL_MILESTONE,
-            milestone
+            milestone,
+            user.locale
           );
         }
       }
@@ -332,11 +393,15 @@ export class PointsService {
     title: string,
     description: string,
     type: AchievementType,
-    requiredValue?: number
+    requiredValue?: number,
+    locale?: string | null
   ): Promise<void> {
-    // Check for existing to avoid duplicate — DB unique constraint is safety net
     const existing = await this.achievementRepository.findOne({
-      where: { userId, type, requiredValue: requiredValue ?? null as unknown as number },
+      where: {
+        userId,
+        type,
+        requiredValue: requiredValue ?? (null as unknown as number),
+      },
     });
     if (existing?.isUnlocked) return;
 
@@ -356,17 +421,12 @@ export class PointsService {
 
     await this.achievementRepository.save(achievement);
 
-    // Add bonus points
-    // TODO: Temporarily disabled - uncomment to re-enable bonus points for achievements
-    // await this.addPoints(userId, 50, `Logro desbloqueado: ${title}`);
-
-    // Create log
     await this.logRepository.save(
       this.logRepository.create({
         userId,
         type: LogType.ACHIEVEMENT_UNLOCKED,
-        message: `Logro desbloqueado: ${title}`,
-        pointsChange: 0, // TODO: Changed from 50 to 0 while bonus points are disabled
+        message: translate('logs.achievementUnlocked', locale, { title }),
+        pointsChange: 0,
         relatedEntityId: achievement.id,
         relatedEntityType: 'Achievement',
       })

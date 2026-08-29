@@ -1,4 +1,6 @@
 import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
+
+import { translate } from '../i18n';
 import { logger } from '../utils/logger';
 
 export interface PushNotificationPayload {
@@ -14,9 +16,6 @@ export class PushNotificationService {
     this.expo = new Expo();
   }
 
-  /**
-   * Send a push notification to a single device
-   */
   async sendNotification(
     pushToken: string,
     payload: PushNotificationPayload
@@ -35,14 +34,21 @@ export class PushNotificationService {
     };
 
     try {
-      logger.debug({ message: 'Sending push notification', pushToken, title: payload.title });
+      logger.debug({
+        message: 'Sending push notification',
+        pushToken,
+        title: payload.title,
+      });
 
       const ticketChunk = await this.expo.sendPushNotificationsAsync([message]);
 
-      // Check for errors in ticket
       ticketChunk.forEach((ticket) => {
         if (ticket.status === 'error') {
-          logger.error({ message: 'Error in push ticket', ticketMessage: ticket.message, ticketDetails: ticket.details });
+          logger.error({
+            message: 'Error in push ticket',
+            ticketMessage: ticket.message,
+            ticketDetails: ticket.details,
+          });
         }
       });
 
@@ -52,9 +58,6 @@ export class PushNotificationService {
     }
   }
 
-  /**
-   * Send push notifications to multiple devices
-   */
   async sendNotifications(
     pushTokens: string[],
     payload: PushNotificationPayload
@@ -99,34 +102,40 @@ export class PushNotificationService {
     }
   }
 
-  /**
-   * Send notification for new permission request
-   */
   async sendPermissionRequestedNotification(
     partnerPushToken: string,
     requesterName: string,
-    permissionTitle: string
+    permissionTitle: string,
+    locale?: string | null
   ): Promise<void> {
     await this.sendNotification(partnerPushToken, {
-      title: '🔔 Nueva solicitud de permiso',
-      body: `${requesterName} solicita permiso: ${permissionTitle}`,
+      title: translate('push.permissionRequestedTitle', locale),
+      body: translate('push.permissionRequestedBody', locale, {
+        name: requesterName,
+        title: permissionTitle,
+      }),
       data: {
         type: 'permission_requested',
       },
     });
   }
 
-  /**
-   * Send notification for permission response (approved/rejected)
-   */
   async sendPermissionResponseNotification(
     requesterPushToken: string,
     approved: boolean,
-    permissionTitle: string
+    permissionTitle: string,
+    locale?: string | null
   ): Promise<void> {
     await this.sendNotification(requesterPushToken, {
-      title: approved ? '✅ Permiso aprobado' : '❌ Permiso rechazado',
-      body: `Tu solicitud "${permissionTitle}" ha sido ${approved ? 'aprobada' : 'rechazada'}`,
+      title: translate(
+        approved ? 'push.permissionApprovedTitle' : 'push.permissionRejectedTitle',
+        locale
+      ),
+      body: translate(
+        approved ? 'push.permissionApprovedBody' : 'push.permissionRejectedBody',
+        locale,
+        { title: permissionTitle }
+      ),
       data: {
         type: 'permission_response',
         approved,
@@ -134,34 +143,36 @@ export class PushNotificationService {
     });
   }
 
-  /**
-   * Send notification for new action created
-   */
   async sendActionCreatedNotification(
     partnerPushToken: string,
     actionCreatorName: string,
-    actionTitle: string
+    actionTitle: string,
+    locale?: string | null
   ): Promise<void> {
     await this.sendNotification(partnerPushToken, {
-      title: '⭐ Nueva acción creada',
-      body: `${actionCreatorName} ha completado: ${actionTitle}`,
+      title: translate('push.actionCreatedTitle', locale),
+      body: translate('push.actionCreatedBody', locale, {
+        name: actionCreatorName,
+        title: actionTitle,
+      }),
       data: {
         type: 'action_created',
       },
     });
   }
 
-  /**
-   * Send notification for action approval
-   */
   async sendActionApprovedNotification(
     actionCreatorPushToken: string,
     actionTitle: string,
-    pointsAwarded: number
+    pointsAwarded: number,
+    locale?: string | null
   ): Promise<void> {
     await this.sendNotification(actionCreatorPushToken, {
-      title: '🎉 Acción aprobada',
-      body: `Tu acción "${actionTitle}" ha sido aprobada. +${pointsAwarded} puntos`,
+      title: translate('push.actionApprovedTitle', locale),
+      body: translate('push.actionApprovedBody', locale, {
+        title: actionTitle,
+        points: pointsAwarded,
+      }),
       data: {
         type: 'action_approved',
         pointsAwarded,
@@ -169,45 +180,41 @@ export class PushNotificationService {
     });
   }
 
-  /**
-   * Send notification for action rejection
-   */
   async sendActionRejectedNotification(
     actionCreatorPushToken: string,
-    actionTitle: string
+    actionTitle: string,
+    locale?: string | null
   ): Promise<void> {
     await this.sendNotification(actionCreatorPushToken, {
-      title: '❌ Acción rechazada',
-      body: `Tu acción "${actionTitle}" ha sido rechazada`,
+      title: translate('push.actionRejectedTitle', locale),
+      body: translate('push.actionRejectedBody', locale, { title: actionTitle }),
       data: {
         type: 'action_rejected',
       },
     });
   }
 
-  /**
-   * Send notification for partner linked
-   */
   async sendPartnerLinkedNotification(
     partnerPushToken: string,
-    partnerName: string
+    partnerName: string,
+    locale?: string | null
   ): Promise<void> {
     await this.sendNotification(partnerPushToken, {
-      title: '💕 ¡Pareja conectada!',
-      body: `${partnerName} se ha conectado contigo. ¡Ya pueden comenzar su viaje juntos!`,
+      title: translate('push.partnerLinkedTitle', locale),
+      body: translate('push.partnerLinkedBody', locale, { name: partnerName }),
       data: {
         type: 'partner_linked',
       },
     });
   }
 
-  /**
-   * Send notification for partner unlinked
-   */
-  async sendPartnerUnlinkedNotification(partnerPushToken: string): Promise<void> {
+  async sendPartnerUnlinkedNotification(
+    partnerPushToken: string,
+    locale?: string | null
+  ): Promise<void> {
     await this.sendNotification(partnerPushToken, {
-      title: '💔 Pareja desvinculada',
-      body: 'Tu pareja ha desvinculado la cuenta. Puedes volverte a vincular con otro código.',
+      title: translate('push.partnerUnlinkedTitle', locale),
+      body: translate('push.partnerUnlinkedBody', locale),
       data: {
         type: 'partner_unlinked',
       },

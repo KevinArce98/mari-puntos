@@ -1,13 +1,14 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
+  Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
-  JoinColumn,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
+
 import { PartnerLink } from './PartnerLink';
 import { Permission } from './Permission';
 
@@ -63,7 +64,6 @@ export class PermissionTemplate {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  // Relations
   @ManyToOne(() => PartnerLink, { nullable: true })
   @JoinColumn({ name: 'partnerLinkId' })
   partnerLink: PartnerLink | null;

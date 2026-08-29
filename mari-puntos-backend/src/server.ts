@@ -7,14 +7,11 @@ import { logger } from './utils/logger';
 
 const startServer = async () => {
   try {
-    // Initialize database
     await initializeDatabase();
     logger.info('Database initialized');
 
-    // Create Express app
     const app = createApp();
 
-    // Start server
     const server = app.listen(config.port, () => {
       logger.info('');
       logger.info('🚀 MariPuntos API Server Started');
@@ -30,7 +27,6 @@ const startServer = async () => {
       logger.info('');
     });
 
-    // Graceful shutdown
     const gracefulShutdown = async (signal: string) => {
       logger.info(`${signal} received. Starting graceful shutdown...`);
 
@@ -47,18 +43,15 @@ const startServer = async () => {
         }
       });
 
-      // Force shutdown after 10 seconds
       setTimeout(() => {
         logger.error('Forcing shutdown after timeout');
         process.exit(1);
       }, 10000);
     };
 
-    // Handle shutdown signals
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-    // Handle uncaught errors
     process.on('uncaughtException', (error) => {
       logger.error({ err: error }, 'Uncaught Exception');
       gracefulShutdown('UNCAUGHT_EXCEPTION');
@@ -74,5 +67,4 @@ const startServer = async () => {
   }
 };
 
-// Start the server
 startServer();

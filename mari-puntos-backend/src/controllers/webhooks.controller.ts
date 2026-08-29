@@ -1,5 +1,6 @@
-import { Request, Response } from 'express';
 import { verifyWebhook } from '@clerk/express/webhooks';
+import { Request, Response } from 'express';
+
 import { config } from '../config/env';
 import { UsersService } from '../services/users.service';
 import { logger } from '../utils/logger';

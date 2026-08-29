@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import dotenv from 'dotenv';
+import { z } from 'zod';
 
 dotenv.config();
 
@@ -7,17 +7,14 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3000'),
   HOST: z.string().default('http://localhost'),
-  // Database
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  
-  // Clerk
+
   CLERK_SECRET_KEY: z.string().min(1, 'CLERK_SECRET_KEY is required'),
   CLERK_PUBLISHABLE_KEY: z.string().min(1, 'CLERK_PUBLISHABLE_KEY is required'),
   CLERK_PEM_PUBLIC_KEY: z.string().min(1, 'CLERK_PEM_PUBLIC_KEY is required'),
   CLERK_ISSUER: z.string().min(1, 'CLERK_ISSUER is required'),
   CLERK_WEBHOOK_SIGNING_SECRET: z.string().optional(),
 
-  // App
   PARTNER_CODE_LENGTH: z.string().default('6'),
   POINTS_PER_LEVEL: z.string().default('100'),
   ALLOWED_ORIGINS: z.string().min(1, 'ALLOWED_ORIGINS is required'),

@@ -1,14 +1,19 @@
 import { AppDataSource } from '../config/db';
-import { User } from '../entities/User';
+import { Log, LogType } from '../entities/Log';
 import { Permission, PermissionStatus } from '../entities/Permission';
 import { PermissionTemplate } from '../entities/PermissionTemplate';
-import { Log, LogType } from '../entities/Log';
+import { User } from '../entities/User';
+import { translate } from '../i18n';
 import { AppError } from '../middlewares/errorMiddleware';
-import { getNowUTC6, calculateLevel, calculatePointsInCurrentLevel } from '../utils/helpers';
+import {
+  calculateLevel,
+  calculatePointsInCurrentLevel,
+  getNowUTC6,
+} from '../utils/helpers';
+import { logger } from '../utils/logger';
 import { PartnerService } from './partner.service';
 import { PointsService } from './points.service';
 import { PushNotificationService } from './push-notification.service';
-import { logger } from '../utils/logger';
 
 interface UpdatePermissionData {
   requestedDate?: Date;
@@ -42,33 +47,50 @@ export class PermissionsService {
 
     if (!user) {
       logger.warn({ message: 'User not found for permission creation', userId });
-      throw new AppError(404, 'Usuario no encontrado');
+      throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
     }
 
-    // Verify user has partner
     const partnerId = await this.partnerService.getPartnerId(userId);
     if (!partnerId) {
       logger.warn({ message: 'User has no partner for permission creation', userId });
-      throw new AppError(400, 'Debes tener una pareja para solicitar permisos');
+      throw new AppError(
+        400,
+        'Debes tener una pareja para solicitar permisos',
+        'errors.permission.partnerRequired'
+      );
     }
 
-    // Verify template exists and user has access
     const template = await this.templateRepository.findOne({
       where: { id: data.templateId },
-      relations: ['partnerLink'],
+      relations: { partnerLink: true },
     });
 
     if (!template || !template.isActive) {
-      logger.warn({ message: 'Permission template not found or inactive', userId, templateId: data.templateId });
-      throw new AppError(404, 'Plantilla de permiso no encontrada');
+      logger.warn({
+        message: 'Permission template not found or inactive',
+        userId,
+        templateId: data.templateId,
+      });
+      throw new AppError(
+        404,
+        'Plantilla de permiso no encontrada',
+        'errors.permissionTemplate.notFound'
+      );
     }
 
-    // Check access to custom templates
     if (!template.isSystemTemplate && template.partnerLinkId) {
       const partnerLink = await this.partnerService.getPartnerLink(userId);
       if (!partnerLink || partnerLink.id !== template.partnerLinkId) {
-        logger.warn({ message: 'User does not have access to template', userId, templateId: data.templateId });
-        throw new AppError(403, 'No tienes acceso a esta plantilla');
+        logger.warn({
+          message: 'User does not have access to template',
+          userId,
+          templateId: data.templateId,
+        });
+        throw new AppError(
+          403,
+          'No tienes acceso a esta plantilla',
+          'errors.permissionTemplate.noAccess'
+        );
       }
     }
 
@@ -77,32 +99,37 @@ export class PermissionsService {
       requesterId: userId,
       requestedDate: data.requestedDate,
       durationHours: data.durationHours,
-      pointsCost: 0, // Set by approver
+      pointsCost: 0,
       metadata: data.metadata,
       status: PermissionStatus.PENDING,
     });
 
     const savedPermission = await this.permissionRepository.save(permission);
-    logger.info({ message: 'Permission created successfully', userId, permissionId: savedPermission.id });
+    logger.info({
+      message: 'Permission created successfully',
+      userId,
+      permissionId: savedPermission.id,
+    });
 
-    // Create log
     await this.logRepository.save(
       this.logRepository.create({
         userId,
         type: LogType.PERMISSION_REQUESTED,
-        message: `Permiso solicitado: ${template.title}`,
+        message: translate('logs.permissionRequested', user.locale, {
+          title: template.title,
+        }),
         relatedEntityId: permission.id,
         relatedEntityType: 'Permission',
       })
     );
 
-    // Send push notification to partner
     const partner = await this.userRepository.findOne({ where: { id: partnerId } });
     if (partner?.pushToken) {
       await this.pushNotificationService.sendPermissionRequestedNotification(
         partner.pushToken,
         user.firstName || user.email,
-        template.title
+        template.title,
+        partner.locale
       );
     }
 
@@ -112,11 +139,11 @@ export class PermissionsService {
   async getPermissionById(permissionId: string): Promise<Permission> {
     const permission = await this.permissionRepository.findOne({
       where: { id: permissionId },
-      relations: ['requester', 'approver', 'template'],
+      relations: { requester: true, approver: true, template: true },
     });
 
     if (!permission) {
-      throw new AppError(404, 'Permiso no encontrado');
+      throw new AppError(404, 'Permiso no encontrado', 'errors.permission.notFound');
     }
 
     return permission;
@@ -164,7 +191,7 @@ export class PermissionsService {
     const partnerId = await this.partnerService.getPartnerId(userId);
 
     if (!partnerId) {
-      throw new AppError(404, 'Pareja no encontrada');
+      throw new AppError(404, 'Pareja no encontrada', 'errors.partner.notFound');
     }
 
     return this.getUserPermissions(partnerId, filters);
@@ -181,29 +208,48 @@ export class PermissionsService {
     const approver = await this.userRepository.findOne({ where: { id: approverId } });
 
     if (!approver) {
-      throw new AppError(404, 'Aprobador no encontrado');
+      throw new AppError(
+        404,
+        'Aprobador no encontrado',
+        'errors.generic.approverNotFound'
+      );
     }
 
-    // Verify approver is partner
     const partnerId = await this.partnerService.getPartnerId(approverId);
     if (partnerId !== permission.requesterId) {
-      throw new AppError(403, 'Solo puedes responder a los permisos de tu pareja');
+      throw new AppError(
+        403,
+        'Solo puedes responder a los permisos de tu pareja',
+        'errors.permission.onlyPartnerRespond'
+      );
     }
 
     if (permission.status !== PermissionStatus.PENDING) {
-      throw new AppError(400, 'El permiso no está pendiente');
+      throw new AppError(
+        400,
+        'El permiso no está pendiente',
+        'errors.permission.notPending'
+      );
     }
 
-    // If approving, validate pointsCost upfront before starting the transaction
     if (approved) {
       if (!pointsCost || pointsCost < 0) {
-        throw new AppError(400, 'El costo en puntos es requerido al aprobar');
+        throw new AppError(
+          400,
+          'El costo en puntos es requerido al aprobar',
+          'errors.permission.pointsCostRequired'
+        );
       }
       permission.pointsCost = pointsCost;
     }
 
-    // Capture template title before transaction — avoids stale relation after save
     const templateTitle = permission.template.title;
+
+    const requesterForLocale = await this.userRepository.findOne({
+      where: { id: permission.requesterId },
+      select: { id: true, locale: true },
+    });
+    const requesterLocale = requesterForLocale?.locale;
 
     permission.status = approved ? PermissionStatus.APPROVED : PermissionStatus.REJECTED;
     permission.approverId = approverId;
@@ -220,21 +266,37 @@ export class PermissionsService {
       await permissionRepo.save(permission);
 
       if (approved && permission.pointsCost > 0) {
-        const requesterUser = await userRepo.findOne({ where: { id: permission.requesterId } });
-        if (!requesterUser) throw new AppError(404, 'Solicitante no encontrado');
+        const requesterUser = await userRepo.findOne({
+          where: { id: permission.requesterId },
+        });
+        if (!requesterUser)
+          throw new AppError(
+            404,
+            'Solicitante no encontrado',
+            'errors.permission.requesterNotFound'
+          );
         if (requesterUser.totalPoints < permission.pointsCost) {
-          throw new AppError(400, `Puntos insuficientes (tiene ${requesterUser.totalPoints}, necesita ${permission.pointsCost}).`);
+          throw new AppError(
+            400,
+            `Puntos insuficientes (tiene ${requesterUser.totalPoints}, necesita ${permission.pointsCost}).`,
+            'errors.points.insufficientDetailed',
+            { have: requesterUser.totalPoints, need: permission.pointsCost }
+          );
         }
         requesterUser.totalPoints -= permission.pointsCost;
         requesterUser.currentLevel = calculateLevel(requesterUser.totalPoints);
-        requesterUser.pointsInCurrentLevel = calculatePointsInCurrentLevel(requesterUser.totalPoints);
+        requesterUser.pointsInCurrentLevel = calculatePointsInCurrentLevel(
+          requesterUser.totalPoints
+        );
         await userRepo.save(requesterUser);
 
         await logRepo.save(
           logRepo.create({
             userId: permission.requesterId,
             type: LogType.POINTS_SPENT,
-            message: `Puntos reducidos: ${templateTitle}`,
+            message: translate('logs.pointsSpent', requesterLocale, {
+              title: templateTitle,
+            }),
             pointsChange: -permission.pointsCost,
             relatedEntityId: permission.id,
             relatedEntityType: 'Permission',
@@ -246,9 +308,11 @@ export class PermissionsService {
         logRepo.create({
           userId: permission.requesterId,
           type: logType,
-          message: approved
-            ? `Permiso aprobado: ${templateTitle}`
-            : `Permiso rechazado: ${templateTitle}`,
+          message: translate(
+            approved ? 'logs.permissionApproved' : 'logs.permissionRejected',
+            requesterLocale,
+            { title: templateTitle }
+          ),
           pointsChange: 0,
           relatedEntityId: permission.id,
           relatedEntityType: 'Permission',
@@ -256,30 +320,33 @@ export class PermissionsService {
         logRepo.create({
           userId: approverId,
           type: logType,
-          message: approved
-            ? `Aprobaste permiso: ${templateTitle}`
-            : `Rechazaste permiso: ${templateTitle}`,
+          message: translate(
+            approved ? 'logs.permissionApprovedByYou' : 'logs.permissionRejectedByYou',
+            approver.locale,
+            { title: templateTitle }
+          ),
           relatedEntityId: permission.id,
           relatedEntityType: 'Permission',
         }),
       ]);
     });
 
-    // Non-critical: push notification + achievement check outside transaction
     try {
-      const requester = await this.userRepository.findOne({ where: { id: permission.requesterId } });
+      const requester = await this.userRepository.findOne({
+        where: { id: permission.requesterId },
+      });
       if (requester?.pushToken) {
         await this.pushNotificationService.sendPermissionResponseNotification(
           requester.pushToken,
           approved,
-          templateTitle
+          templateTitle,
+          requester.locale
         );
       }
     } catch (err) {
       logger.error({ err }, 'Push notification failed after respondToPermission');
     }
 
-    // Check achievements for requester (PERMISSIONS_GRANTED milestone)
     if (approved && permission.requesterId) {
       try {
         await this.pointsService.checkAchievementsForUser(permission.requesterId);
@@ -299,16 +366,25 @@ export class PermissionsService {
     const permission = await this.getPermissionById(permissionId);
 
     if (permission.requesterId !== userId) {
-      throw new AppError(403, 'Solo puedes actualizar tus propios permisos');
+      throw new AppError(
+        403,
+        'Solo puedes actualizar tus propios permisos',
+        'errors.permission.onlyOwnUpdate'
+      );
     }
 
     if (permission.status !== PermissionStatus.PENDING) {
-      throw new AppError(400, 'Solo puedes actualizar permisos pendientes');
+      throw new AppError(
+        400,
+        'Solo puedes actualizar permisos pendientes',
+        'errors.permission.onlyPendingUpdate'
+      );
     }
 
     if (data.requestedDate !== undefined) permission.requestedDate = data.requestedDate;
     if (data.durationHours !== undefined) permission.durationHours = data.durationHours;
-    if (data.metadata !== undefined) permission.metadata = data.metadata as Record<string, unknown>;
+    if (data.metadata !== undefined)
+      permission.metadata = data.metadata as Record<string, unknown>;
 
     await this.permissionRepository.save(permission);
 
@@ -319,11 +395,19 @@ export class PermissionsService {
     const permission = await this.getPermissionById(permissionId);
 
     if (permission.requesterId !== userId) {
-      throw new AppError(403, 'Solo puedes eliminar tus propios permisos');
+      throw new AppError(
+        403,
+        'Solo puedes eliminar tus propios permisos',
+        'errors.permission.onlyOwnDelete'
+      );
     }
 
     if (permission.status !== PermissionStatus.PENDING) {
-      throw new AppError(400, 'Solo puedes eliminar permisos pendientes');
+      throw new AppError(
+        400,
+        'Solo puedes eliminar permisos pendientes',
+        'errors.permission.onlyPendingDelete'
+      );
     }
 
     await this.permissionRepository.remove(permission);

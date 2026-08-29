@@ -1,14 +1,15 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import { User } from './User';
+
 import { PermissionTemplate } from './PermissionTemplate';
+import { User } from './User';
 
 export enum PermissionStatus {
   PENDING = 'pending',
@@ -62,7 +63,6 @@ export class Permission {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  // Relations
   @ManyToOne(() => PermissionTemplate)
   @JoinColumn({ name: 'templateId' })
   template: PermissionTemplate;
@@ -71,7 +71,10 @@ export class Permission {
   @JoinColumn({ name: 'requesterId' })
   requester: User;
 
-  @ManyToOne(() => User, (user) => user.permissionsApproved, { nullable: true, onDelete: 'SET NULL' })
+  @ManyToOne(() => User, (user) => user.permissionsApproved, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'approverId' })
   approver: User;
 }

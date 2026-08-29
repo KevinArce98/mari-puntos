@@ -1,25 +1,27 @@
 import { Response } from 'express';
+
+import { ActionStatus } from '../entities/Action';
 import { AuthRequest } from '../middlewares/authMiddleware';
 import { ActionsService } from '../services/actions.service';
-import {
-  createActionSchema,
-  updateActionSchema,
-  approveActionSchema,
-  rejectActionSchema,
-} from '../validators/schemas';
-import { sendSuccess, sendCreated, sendPaginated, createPaginationMeta } from '../utils/response';
-import { toActionDTO, toActionDTOList } from '../utils/mappers';
 import { PAGINATION_DEFAULTS } from '../shared/constants';
-import { ActionStatus } from '../entities/Action';
 import { logger } from '../utils/logger';
+import { toActionDTO, toActionDTOList } from '../utils/mappers';
+import {
+  createPaginationMeta,
+  sendCreated,
+  sendPaginated,
+  sendSuccess,
+} from '../utils/response';
+import {
+  approveActionSchema,
+  createActionSchema,
+  rejectActionSchema,
+  updateActionSchema,
+} from '../validators/schemas';
 
 export class ActionsController {
   private actionsService = new ActionsService();
 
-  /**
-   * POST /actions
-   * Create a new action (Husband only)
-   */
   createAction = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -29,7 +31,11 @@ export class ActionsController {
 
       const action = await this.actionsService.createAction(userId, data);
 
-      logger.info({ message: 'Action created successfully', userId, actionId: action.id });
+      logger.info({
+        message: 'Action created successfully',
+        userId,
+        actionId: action.id,
+      });
 
       sendCreated(res, toActionDTO(action), 'Action created successfully');
     } catch (error) {
@@ -38,10 +44,6 @@ export class ActionsController {
     }
   };
 
-  /**
-   * GET /actions/my
-   * Get current user's actions
-   */
   getMyActions = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -73,10 +75,6 @@ export class ActionsController {
     }
   };
 
-  /**
-   * GET /actions/partner
-   * Get partner's actions (Wife only - for evaluation)
-   */
   getPartnerActions = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -108,10 +106,6 @@ export class ActionsController {
     }
   };
 
-  /**
-   * GET /actions/:id
-   * Get action by ID
-   */
   getActionById = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -125,15 +119,14 @@ export class ActionsController {
 
       sendSuccess(res, toActionDTO(action));
     } catch (error) {
-      logger.error({ err: error, actionId: req.params.id, userId: req.userId }, 'Error getting action by ID');
+      logger.error(
+        { err: error, actionId: req.params.id, userId: req.userId },
+        'Error getting action by ID'
+      );
       throw error;
     }
   };
 
-  /**
-   * PUT /actions/:id
-   * Update an action (only pending actions, owner only)
-   */
   updateAction = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -148,15 +141,14 @@ export class ActionsController {
 
       sendSuccess(res, toActionDTO(action), 'Action updated successfully');
     } catch (error) {
-      logger.error({ err: error, actionId: req.params.id, userId: req.userId }, 'Error updating action');
+      logger.error(
+        { err: error, actionId: req.params.id, userId: req.userId },
+        'Error updating action'
+      );
       throw error;
     }
   };
 
-  /**
-   * POST /actions/:id/approve
-   * Approve action and award points (Wife only)
-   */
   approveAction = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -167,19 +159,23 @@ export class ActionsController {
 
       const action = await this.actionsService.approveAction(id, userId, pointsAwarded);
 
-      logger.info({ message: 'Action approved successfully', actionId: id, userId, pointsAwarded });
+      logger.info({
+        message: 'Action approved successfully',
+        actionId: id,
+        userId,
+        pointsAwarded,
+      });
 
       sendSuccess(res, toActionDTO(action), 'Action approved successfully');
     } catch (error) {
-      logger.error({ err: error, actionId: req.params.id, userId: req.userId }, 'Error approving action');
+      logger.error(
+        { err: error, actionId: req.params.id, userId: req.userId },
+        'Error approving action'
+      );
       throw error;
     }
   };
 
-  /**
-   * POST /actions/:id/reject
-   * Reject action (Wife only)
-   */
   rejectAction = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -194,15 +190,14 @@ export class ActionsController {
 
       sendSuccess(res, toActionDTO(action), 'Action rejected');
     } catch (error) {
-      logger.error({ err: error, actionId: req.params.id, userId: req.userId }, 'Error rejecting action');
+      logger.error(
+        { err: error, actionId: req.params.id, userId: req.userId },
+        'Error rejecting action'
+      );
       throw error;
     }
   };
 
-  /**
-   * DELETE /actions/:id
-   * Delete an action (only pending actions, owner only)
-   */
   deleteAction = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -216,7 +211,10 @@ export class ActionsController {
 
       sendSuccess(res, null, 'Action deleted successfully');
     } catch (error) {
-      logger.error({ err: error, actionId: req.params.id, userId: req.userId }, 'Error deleting action');
+      logger.error(
+        { err: error, actionId: req.params.id, userId: req.userId },
+        'Error deleting action'
+      );
       throw error;
     }
   };

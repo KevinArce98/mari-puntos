@@ -1,4 +1,5 @@
 import swaggerJsdoc from 'swagger-jsdoc';
+
 import { config } from './env';
 
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -7,7 +8,8 @@ const swaggerOptions: swaggerJsdoc.Options = {
     info: {
       title: 'MariPuntos API',
       version: '1.0.0',
-      description: 'Gamified relationship points system API - A professional backend for couples to track actions, award points, manage permissions.',
+      description:
+        'Gamified relationship points system API - A professional backend for couples to track actions, award points, manage permissions.',
       contact: {
         name: 'MariPuntos Team',
         email: 'support@maripuntos.com',
@@ -134,7 +136,14 @@ const swaggerOptions: swaggerJsdoc.Options = {
             },
             category: {
               type: 'string',
-              enum: ['household', 'childcare', 'errands', 'romantic', 'personal_growth', 'other'],
+              enum: [
+                'household',
+                'childcare',
+                'errands',
+                'romantic',
+                'personal_growth',
+                'other',
+              ],
             },
             status: {
               type: 'string',
@@ -187,7 +196,14 @@ const swaggerOptions: swaggerJsdoc.Options = {
             },
             type: {
               type: 'string',
-              enum: ['night_out', 'gaming_session', 'sports_event', 'friends_hangout', 'hobby_time', 'other'],
+              enum: [
+                'night_out',
+                'gaming_session',
+                'sports_event',
+                'friends_hangout',
+                'hobby_time',
+                'other',
+              ],
             },
             status: {
               type: 'string',
@@ -235,7 +251,14 @@ const swaggerOptions: swaggerJsdoc.Options = {
             },
             category: {
               type: 'string',
-              enum: ['personal_time', 'entertainment', 'gifts', 'experiences', 'privileges', 'other'],
+              enum: [
+                'personal_time',
+                'entertainment',
+                'gifts',
+                'experiences',
+                'privileges',
+                'other',
+              ],
             },
             pointsCost: {
               type: 'integer',
@@ -321,7 +344,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
       },
     ],
   },
-  apis: ['./src/routes/*.ts'], // Path to the API routes
+  apis: ['./src/routes/*.ts'],
 };
 
 export const swaggerSpec = swaggerJsdoc(swaggerOptions);

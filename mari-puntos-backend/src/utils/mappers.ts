@@ -1,7 +1,3 @@
-/**
- * Mapper functions to convert DB entities to API DTOs
- * These ensure we never leak raw DB models to the frontend
- */
 import { Achievement } from '../entities/Achievement';
 import { Action } from '../entities/Action';
 import { Level } from '../entities/Level';
@@ -24,14 +20,6 @@ import {
   UserStatsDTO,
 } from '../shared/dtos';
 
-// ============================================================================
-// USER MAPPERS
-// ============================================================================
-
-/**
- * Convert User entity to UserDTO
- * Matches frontend User interface exactly
- */
 export function toUserDTO(user: User, hasPartner: boolean = false): UserDTO {
   return {
     id: user.id,
@@ -45,14 +33,12 @@ export function toUserDTO(user: User, hasPartner: boolean = false): UserDTO {
     partnerCode: user.partnerCode || undefined,
     hasPartner,
     isActive: user.isActive,
+    locale: user.locale === 'en' ? 'en' : user.locale === 'es' ? 'es' : undefined,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };
 }
 
-/**
- * Convert user stats data to UserStatsDTO
- */
 export function toUserStatsDTO(stats: {
   totalPoints: number;
   currentLevel: number;
@@ -73,9 +59,6 @@ export function toUserStatsDTO(stats: {
   };
 }
 
-/**
- * Convert to LeaderboardEntryDTO
- */
 export function toLeaderboardEntryDTO(user: User): LeaderboardEntryDTO {
   return {
     id: user.id,
@@ -87,14 +70,6 @@ export function toLeaderboardEntryDTO(user: User): LeaderboardEntryDTO {
   };
 }
 
-// ============================================================================
-// ACTION MAPPERS
-// ============================================================================
-
-/**
- * Convert Action entity to ActionDTO
- * Matches frontend Action interface exactly
- */
 export function toActionDTO(action: Action): ActionDTO {
   return {
     id: action.id,
@@ -111,21 +86,10 @@ export function toActionDTO(action: Action): ActionDTO {
   };
 }
 
-/**
- * Convert array of Action entities to ActionDTOs
- */
 export function toActionDTOList(actions: Action[]): ActionDTO[] {
   return actions.map(toActionDTO);
 }
 
-// ============================================================================
-// PERMISSION MAPPERS
-// ============================================================================
-
-/**
- * Convert PermissionTemplate entity to PermissionTemplateDTO
- * Matches frontend PermissionTemplate interface exactly
- */
 export function toPermissionTemplateDTO(
   template: PermissionTemplate
 ): PermissionTemplateDTO {
@@ -145,10 +109,6 @@ export function toPermissionTemplateDTO(
   };
 }
 
-/**
- * Convert Permission entity to PermissionDTO
- * Matches frontend Permission interface exactly
- */
 export function toPermissionDTO(permission: Permission): PermissionDTO {
   return {
     id: permission.id,
@@ -189,29 +149,16 @@ export function toPermissionDTO(permission: Permission): PermissionDTO {
   };
 }
 
-/**
- * Convert array of Permission entities to PermissionDTOs
- */
 export function toPermissionDTOList(permissions: Permission[]): PermissionDTO[] {
   return permissions.map(toPermissionDTO);
 }
 
-/**
- * Convert array of PermissionTemplate entities to PermissionTemplateDTOs
- */
 export function toPermissionTemplateDTOList(
   templates: PermissionTemplate[]
 ): PermissionTemplateDTO[] {
   return templates.map(toPermissionTemplateDTO);
 }
 
-// ============================================================================
-// LEVEL MAPPERS
-// ============================================================================
-
-/**
- * Convert Level entity to LevelDTO
- */
 export function toLevelDTO(level: Level): LevelDTO {
   return {
     id: level.id,
@@ -224,13 +171,6 @@ export function toLevelDTO(level: Level): LevelDTO {
   };
 }
 
-// ============================================================================
-// ACHIEVEMENT MAPPERS
-// ============================================================================
-
-/**
- * Convert Achievement entity to AchievementDTO
- */
 export function toAchievementDTO(achievement: Achievement): AchievementDTO {
   return {
     id: achievement.id,
@@ -247,21 +187,10 @@ export function toAchievementDTO(achievement: Achievement): AchievementDTO {
   };
 }
 
-/**
- * Convert array of Achievement entities to AchievementDTOs
- */
 export function toAchievementDTOList(achievements: Achievement[]): AchievementDTO[] {
   return achievements.map(toAchievementDTO);
 }
 
-// ============================================================================
-// LOG MAPPERS
-// ============================================================================
-
-/**
- * Convert Log entity to PointsLogDTO
- * Matches frontend PointsLog interface exactly
- */
 export function toPointsLogDTO(log: Log): PointsLogDTO {
   return {
     id: log.id,
@@ -272,21 +201,10 @@ export function toPointsLogDTO(log: Log): PointsLogDTO {
   };
 }
 
-/**
- * Convert array of Log entities to PointsLogDTOs
- */
 export function toPointsLogDTOList(logs: Log[]): PointsLogDTO[] {
   return logs.map(toPointsLogDTO);
 }
 
-// ============================================================================
-// PARTNER MAPPERS
-// ============================================================================
-
-/**
- * Convert PartnerLink and partner User to PartnerInfoDTO
- * Matches frontend PartnerInfo interface exactly
- */
 export function toPartnerInfoDTO(
   partnerLink: PartnerLink,
   partner: User,

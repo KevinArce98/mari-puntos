@@ -1,7 +1,7 @@
 import pino from 'pino';
+
 import { config } from '../config/env';
 
-// Configuración del logger
 const loggerConfig = {
   level: config.isDevelopment ? 'debug' : 'info',
   ...(config.isDevelopment && {
@@ -16,11 +16,9 @@ const loggerConfig = {
   }),
 };
 
-// Crear instancia de logger
 export const logger = pino(loggerConfig);
 
-// Logger para HTTP requests (usado con pino-http)
 export const httpLogger = pino({
   ...loggerConfig,
-  level: config.isDevelopment ? 'info' : 'warn', // Menos verboso para HTTP
+  level: config.isDevelopment ? 'info' : 'warn',
 });
