@@ -36,10 +36,12 @@ export const PressableScale: React.FC<PressableScaleProps> = ({
       {...props}
       style={[style, animatedStyle]}
       onPressIn={(e) => {
+        // eslint-disable-next-line react-hooks/immutability -- Reanimated shared values are mutated via `.value` by design
         scale.value = reducedMotion ? 1 : withTiming(0.97, { duration: 100 });
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
+        // eslint-disable-next-line react-hooks/immutability -- Reanimated shared values are mutated via `.value` by design
         scale.value = reducedMotion ? 1 : withSpring(1, { damping: 18, stiffness: 350 });
         onPressOut?.(e);
       }}

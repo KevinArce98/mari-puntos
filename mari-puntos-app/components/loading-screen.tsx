@@ -19,9 +19,9 @@ import { spacing, typography } from '@/theme';
 export function LoadingScreen() {
   const { t } = useTranslation('common');
   const themeColors = useThemedColors();
-  const spinValue = React.useRef(new Animated.Value(0)).current;
-  const pulseValue = React.useRef(new Animated.Value(1)).current;
-  const fadeValue = React.useRef(new Animated.Value(0)).current;
+  const [spinValue] = useState(() => new Animated.Value(0));
+  const [pulseValue] = useState(() => new Animated.Value(1));
+  const [fadeValue] = useState(() => new Animated.Value(0));
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export function LoadingScreen() {
 }
 
 function AnimatedDot({ delay, color }: { delay: number; color: string }) {
-  const opacity = React.useRef(new Animated.Value(0.3)).current;
+  const [opacity] = useState(() => new Animated.Value(0.3));
 
   useEffect(() => {
     Animated.loop(
