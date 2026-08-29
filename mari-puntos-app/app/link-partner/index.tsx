@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   ActivityIndicator,
+  AppState,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -192,10 +193,19 @@ export default function LinkPartnerScreen() {
 
   useEffect(() => {
     if (!generatedCode || linkMode !== 'share') return;
+
     const interval = setInterval(() => {
-      checkPartnerLink(false);
+      if (AppState.currentState === 'active') checkPartnerLink(false);
     }, 5000);
-    return () => clearInterval(interval);
+
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') checkPartnerLink(false);
+    });
+
+    return () => {
+      clearInterval(interval);
+      subscription.remove();
+    };
   }, [checkPartnerLink, generatedCode, linkMode]);
 
   return (
