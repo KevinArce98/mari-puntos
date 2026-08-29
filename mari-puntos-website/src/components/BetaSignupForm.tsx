@@ -46,6 +46,7 @@ export function BetaSignupForm({ lang = defaultLang }: Props) {
           type="email"
           name="email"
           placeholder={dict['form.emailPlaceholder']}
+          aria-label={dict['form.emailPlaceholder']}
           required
           disabled={isPending}
           className="flex-1 px-6 py-4 rounded-full text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-white/30 transition-all disabled:opacity-50 bg-white shadow-lg"
@@ -53,20 +54,28 @@ export function BetaSignupForm({ lang = defaultLang }: Props) {
         <button
           type="submit"
           disabled={isPending}
-          className="px-10 py-4 bg-white text-[#0F766E] rounded-full font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          className="px-10 py-4 bg-white text-primary rounded-full font-bold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           {isPending ? dict['form.submitting'] : dict['form.submit']}
         </button>
       </div>
 
       {state.success && state.message && (
-        <div className="mt-4 p-4 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30">
+        <div
+          role="status"
+          aria-live="polite"
+          className="mt-4 p-4 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30"
+        >
           <p className="text-white font-semibold">{state.message}</p>
         </div>
       )}
 
       {!state.success && state.error && (
-        <div className="mt-4 p-4 bg-red-500/20 backdrop-blur-sm rounded-2xl border border-red-300/30">
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="mt-4 p-4 bg-red-500/20 backdrop-blur-sm rounded-2xl border border-red-300/30"
+        >
           <p className="text-white font-semibold">{state.error}</p>
         </div>
       )}

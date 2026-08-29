@@ -23,18 +23,21 @@ export function FaqAccordion({ lang = defaultLang }: Props) {
         <div key={i} className="border border-gray-200 rounded-2xl overflow-hidden">
           <button
             onClick={() => setOpen(open === i ? null : i)}
+            aria-expanded={open === i}
+            aria-controls={`faq-panel-${i}`}
             className="w-full flex items-center justify-between px-6 py-5 text-left bg-white hover:bg-gray-50 transition-colors"
           >
             <span className="font-semibold text-gray-900 pr-4">{faq.question}</span>
             <span
-              className="text-2xl text-[#0F766E] shrink-0 transition-transform duration-200"
+              aria-hidden="true"
+              className="text-2xl text-primary shrink-0 transition-transform duration-200"
               style={{ transform: open === i ? 'rotate(45deg)' : 'rotate(0deg)' }}
             >
               +
             </span>
           </button>
           {open === i && (
-            <div className="px-6 pb-5 bg-white">
+            <div id={`faq-panel-${i}`} className="px-6 pb-5 bg-white">
               <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
             </div>
           )}
