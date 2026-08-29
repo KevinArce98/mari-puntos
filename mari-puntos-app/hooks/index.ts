@@ -8,6 +8,7 @@ export * from './usePendingActionsCount';
 export * from './useAchievements';
 export * from './useStreak';
 export * from './useColorScheme';
+export * from './useDiscardConfirm';
 export * from './useKeyboardOffset';
 export * from './useThemeColor';
 export * from './useThemedColors';

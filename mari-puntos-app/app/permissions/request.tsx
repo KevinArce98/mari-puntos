@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 
 import {
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -12,8 +11,7 @@ import {
   View,
 } from 'react-native';
 
-import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
-import { usePreventRemove } from 'expo-router/react-navigation';
+import { useFocusEffect, useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -28,7 +26,13 @@ import {
   SkeletonList,
   TextAreaWithCounter,
 } from '@/components/ui';
-import { useKeyboardOffset, usePermissions, useThemedColors, useUser } from '@/hooks';
+import {
+  useDiscardConfirm,
+  useKeyboardOffset,
+  usePermissions,
+  useThemedColors,
+  useUser,
+} from '@/hooks';
 import { permissionsService } from '@/services';
 import { shadows, spacing, typography } from '@/theme';
 import { PermissionTemplate } from '@/types';
@@ -40,7 +44,6 @@ export default function RequestPermissionScreen() {
   const { t } = useTranslation(['permissions', 'common', 'errors']);
   const themeColors = useThemedColors();
   const router = useRouter();
-  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { user } = useUser();
   const { requestPermission } = usePermissions();
@@ -58,15 +61,12 @@ export default function RequestPermissionScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
 
-  usePreventRemove(Boolean(selectedTemplate || note.trim()) && !allowExit, ({ data }) => {
-    Alert.alert(t('request.discard.title'), t('request.discard.message'), [
-      { text: t('common:actions.keepEditing'), style: 'cancel' },
-      {
-        text: t('request.discard.confirm'),
-        style: 'destructive',
-        onPress: () => navigation.dispatch(data.action),
-      },
-    ]);
+  useDiscardConfirm({
+    enabled: Boolean(selectedTemplate || note.trim()) && !allowExit,
+    title: t('request.discard.title'),
+    message: t('request.discard.message'),
+    confirmLabel: t('request.discard.confirm'),
+    cancelLabel: t('common:actions.keepEditing'),
   });
 
   const loadTemplates = useCallback(async () => {

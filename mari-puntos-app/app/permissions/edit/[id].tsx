@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 
 import {
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -12,13 +11,7 @@ import {
   View,
 } from 'react-native';
 
-import {
-  useFocusEffect,
-  useLocalSearchParams,
-  useNavigation,
-  useRouter,
-} from 'expo-router';
-import { usePreventRemove } from 'expo-router/react-navigation';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -34,7 +27,7 @@ import {
   SkeletonList,
   TextAreaWithCounter,
 } from '@/components/ui';
-import { usePermissions, useThemedColors } from '@/hooks';
+import { useDiscardConfirm, usePermissions, useThemedColors } from '@/hooks';
 import { permissionsService } from '@/services';
 import { shadows, spacing, typography } from '@/theme';
 import { Permission } from '@/types';
@@ -46,7 +39,6 @@ export default function EditPermissionScreen() {
   const { t } = useTranslation(['permissions', 'common', 'errors']);
   const themeColors = useThemedColors();
   const router = useRouter();
-  const navigation = useNavigation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { updatePermission } = usePermissions();
@@ -62,15 +54,12 @@ export default function EditPermissionScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
 
-  usePreventRemove(hasEdited && !allowExit, ({ data }) => {
-    Alert.alert(t('edit.discard.title'), t('edit.discard.message'), [
-      { text: t('common:actions.keepEditing'), style: 'cancel' },
-      {
-        text: t('edit.discard.confirm'),
-        style: 'destructive',
-        onPress: () => navigation.dispatch(data.action),
-      },
-    ]);
+  useDiscardConfirm({
+    enabled: hasEdited && !allowExit,
+    title: t('edit.discard.title'),
+    message: t('edit.discard.message'),
+    confirmLabel: t('edit.discard.confirm'),
+    cancelLabel: t('common:actions.keepEditing'),
   });
 
   const loadPermission = useCallback(async () => {

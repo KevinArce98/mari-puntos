@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
 import {
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -12,8 +11,7 @@ import {
   View,
 } from 'react-native';
 
-import { useNavigation, useRouter } from 'expo-router';
-import { usePreventRemove } from 'expo-router/react-navigation';
+import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -31,7 +29,7 @@ import {
   Select,
 } from '@/components/ui';
 import { POINT_VALUE_PRESETS } from '@/constants/points';
-import { useKeyboardOffset, useThemedColors } from '@/hooks';
+import { useDiscardConfirm, useKeyboardOffset, useThemedColors } from '@/hooks';
 import { permissionsService } from '@/services';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { PermissionCategory } from '@/types';
@@ -51,7 +49,6 @@ export default function CreateTemplateScreen() {
   const { t } = useTranslation(['permissions', 'common', 'errors']);
   const themeColors = useThemedColors();
   const router = useRouter();
-  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
   const CATEGORY_OPTIONS = CATEGORY_VALUES.map((value) => ({
@@ -77,15 +74,12 @@ export default function CreateTemplateScreen() {
     suggestedPoints !== '50' ||
     selectedIcon !== 'sparkles-outline';
 
-  usePreventRemove(isDirty && !allowExit, ({ data }) => {
-    Alert.alert(t('createTemplate.discard.title'), t('createTemplate.discard.message'), [
-      { text: t('common:actions.keepEditing'), style: 'cancel' },
-      {
-        text: t('createTemplate.discard.confirm'),
-        style: 'destructive',
-        onPress: () => navigation.dispatch(data.action),
-      },
-    ]);
+  useDiscardConfirm({
+    enabled: isDirty && !allowExit,
+    title: t('createTemplate.discard.title'),
+    message: t('createTemplate.discard.message'),
+    confirmLabel: t('createTemplate.discard.confirm'),
+    cancelLabel: t('common:actions.keepEditing'),
   });
 
   const handleCreate = async () => {
