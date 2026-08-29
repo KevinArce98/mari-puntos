@@ -84,7 +84,17 @@
       "@sentry/react-native",
       "@react-native-community/datetimepicker",
       "expo-image",
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/PlusJakartaSans-Regular.ttf",
+            "./assets/fonts/PlusJakartaSans-Medium.ttf",
+            "./assets/fonts/PlusJakartaSans-SemiBold.ttf",
+            "./assets/fonts/PlusJakartaSans-Bold.ttf"
+          ]
+        }
+      ],
       "expo-secure-store",
       "expo-web-browser",
       "expo-status-bar",
