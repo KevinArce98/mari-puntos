@@ -1,5 +1,5 @@
 import { AppDataSource } from '../config/db';
-import { Log, LogType } from '../entities/Log';
+import { LogType } from '../entities/Log';
 import { Permission, PermissionStatus } from '../entities/Permission';
 import { PermissionTemplate } from '../entities/PermissionTemplate';
 import { User } from '../entities/User';
@@ -12,6 +12,7 @@ import {
 } from '../utils/helpers';
 import { logger } from '../utils/logger';
 import { AchievementsService } from './achievements.service';
+import { AuditLogService } from './audit-log.service';
 import { PartnerService } from './partner.service';
 import { PushNotificationService } from './push-notification.service';
 
@@ -32,9 +33,9 @@ export class PermissionsService {
   private permissionRepository = AppDataSource.getRepository(Permission);
   private templateRepository = AppDataSource.getRepository(PermissionTemplate);
   private userRepository = AppDataSource.getRepository(User);
-  private logRepository = AppDataSource.getRepository(Log);
   private partnerService = new PartnerService();
   private achievementsService = new AchievementsService();
+  private auditLog = new AuditLogService();
   private pushNotificationService = new PushNotificationService();
 
   async createPermission(
@@ -111,17 +112,15 @@ export class PermissionsService {
       permissionId: savedPermission.id,
     });
 
-    await this.logRepository.save(
-      this.logRepository.create({
-        userId,
-        type: LogType.PERMISSION_REQUESTED,
-        message: translate('logs.permissionRequested', user.locale, {
-          title: template.title,
-        }),
-        relatedEntityId: permission.id,
-        relatedEntityType: 'Permission',
-      })
-    );
+    await this.auditLog.record({
+      userId,
+      type: LogType.PERMISSION_REQUESTED,
+      message: translate('logs.permissionRequested', user.locale, {
+        title: template.title,
+      }),
+      relatedEntityId: permission.id,
+      relatedEntityType: 'Permission',
+    });
 
     const partner = await this.userRepository.findOne({ where: { id: partnerId } });
     if (partner?.pushToken) {
@@ -261,7 +260,6 @@ export class PermissionsService {
     await AppDataSource.transaction(async (manager) => {
       const permissionRepo = manager.getRepository(Permission);
       const userRepo = manager.getRepository(User);
-      const logRepo = manager.getRepository(Log);
 
       await permissionRepo.save(permission);
 
@@ -290,8 +288,8 @@ export class PermissionsService {
         );
         await userRepo.save(requesterUser);
 
-        await logRepo.save(
-          logRepo.create({
+        await this.auditLog.record(
+          {
             userId: permission.requesterId,
             type: LogType.POINTS_SPENT,
             message: translate('logs.pointsSpent', requesterLocale, {
@@ -300,35 +298,39 @@ export class PermissionsService {
             pointsChange: -permission.pointsCost,
             relatedEntityId: permission.id,
             relatedEntityType: 'Permission',
-          })
+          },
+          manager
         );
       }
 
-      await logRepo.save([
-        logRepo.create({
-          userId: permission.requesterId,
-          type: logType,
-          message: translate(
-            approved ? 'logs.permissionApproved' : 'logs.permissionRejected',
-            requesterLocale,
-            { title: templateTitle }
-          ),
-          pointsChange: 0,
-          relatedEntityId: permission.id,
-          relatedEntityType: 'Permission',
-        }),
-        logRepo.create({
-          userId: approverId,
-          type: logType,
-          message: translate(
-            approved ? 'logs.permissionApprovedByYou' : 'logs.permissionRejectedByYou',
-            approver.locale,
-            { title: templateTitle }
-          ),
-          relatedEntityId: permission.id,
-          relatedEntityType: 'Permission',
-        }),
-      ]);
+      await this.auditLog.recordMany(
+        [
+          {
+            userId: permission.requesterId,
+            type: logType,
+            message: translate(
+              approved ? 'logs.permissionApproved' : 'logs.permissionRejected',
+              requesterLocale,
+              { title: templateTitle }
+            ),
+            pointsChange: 0,
+            relatedEntityId: permission.id,
+            relatedEntityType: 'Permission',
+          },
+          {
+            userId: approverId,
+            type: logType,
+            message: translate(
+              approved ? 'logs.permissionApprovedByYou' : 'logs.permissionRejectedByYou',
+              approver.locale,
+              { title: templateTitle }
+            ),
+            relatedEntityId: permission.id,
+            relatedEntityType: 'Permission',
+          },
+        ],
+        manager
+      );
     });
 
     try {

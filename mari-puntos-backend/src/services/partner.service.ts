@@ -1,7 +1,7 @@
 import { FindOptionsRelations } from 'typeorm';
 
 import { AppDataSource } from '../config/db';
-import { Log, LogType } from '../entities/Log';
+import { LogType } from '../entities/Log';
 import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
 import { User } from '../entities/User';
 import { translate } from '../i18n';
@@ -9,12 +9,13 @@ import { AppError } from '../middlewares/errorMiddleware';
 import { generatePartnerCode, getNowUTC6 } from '../utils/helpers';
 import { logger } from '../utils/logger';
 import { activePartnerLinkWhere } from '../utils/partnerLink';
+import { AuditLogService } from './audit-log.service';
 import { PushNotificationService } from './push-notification.service';
 
 export class PartnerService {
   private partnerLinkRepository = AppDataSource.getRepository(PartnerLink);
   private userRepository = AppDataSource.getRepository(User);
-  private logRepository = AppDataSource.getRepository(Log);
+  private auditLog = new AuditLogService();
   private pushNotificationService = new PushNotificationService();
 
   async createPartnerLink(userId: string): Promise<PartnerLink> {
@@ -180,23 +181,25 @@ export class PartnerService {
           });
         }
 
-        const logRepo = manager.getRepository(Log);
-        await logRepo.save([
-          logRepo.create({
-            userId: saved.user1Id,
-            type: LogType.PARTNER_LINKED,
-            message: translate('logs.partnerLinked', user1.locale),
-            relatedEntityId: saved.id,
-            relatedEntityType: 'PartnerLink',
-          }),
-          logRepo.create({
-            userId,
-            type: LogType.PARTNER_LINKED,
-            message: translate('logs.partnerLinked', user.locale),
-            relatedEntityId: saved.id,
-            relatedEntityType: 'PartnerLink',
-          }),
-        ]);
+        await this.auditLog.recordMany(
+          [
+            {
+              userId: saved.user1Id,
+              type: LogType.PARTNER_LINKED,
+              message: translate('logs.partnerLinked', user1.locale),
+              relatedEntityId: saved.id,
+              relatedEntityType: 'PartnerLink',
+            },
+            {
+              userId,
+              type: LogType.PARTNER_LINKED,
+              message: translate('logs.partnerLinked', user.locale),
+              relatedEntityId: saved.id,
+              relatedEntityType: 'PartnerLink',
+            },
+          ],
+          manager
+        );
 
         return {
           savedPartnerLink: saved,
@@ -342,21 +345,21 @@ export class PartnerService {
     await this.partnerLinkRepository.remove(partnerLink);
     logger.info({ message: 'Partner link deleted successfully', userId, partnerLinkId });
 
-    await this.logRepository.save([
-      this.logRepository.create({
+    await this.auditLog.recordMany([
+      {
         userId,
         type: LogType.PARTNER_UNLINKED,
         message: translate('logs.partnerUnlinked', initiator?.locale),
         relatedEntityId: partnerLinkId,
         relatedEntityType: 'PartnerLink',
-      }),
-      this.logRepository.create({
+      },
+      {
         userId: partnerId,
         type: LogType.PARTNER_UNLINKED,
         message: translate('logs.partnerUnlinked', partner?.locale),
         relatedEntityId: partnerLinkId,
         relatedEntityType: 'PartnerLink',
-      }),
+      },
     ]);
 
     if (partner?.pushToken) {

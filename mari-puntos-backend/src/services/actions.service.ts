@@ -1,6 +1,6 @@
 import { AppDataSource } from '../config/db';
 import { Action, ActionCategory, ActionStatus } from '../entities/Action';
-import { Log, LogType } from '../entities/Log';
+import { LogType } from '../entities/Log';
 import { User } from '../entities/User';
 import { translate } from '../i18n';
 import { AppError } from '../middlewares/errorMiddleware';
@@ -12,6 +12,7 @@ import {
 import { logger } from '../utils/logger';
 import { CreateActionInput, UpdateActionInput } from '../validators/schemas';
 import { AchievementsService } from './achievements.service';
+import { AuditLogService } from './audit-log.service';
 import { PartnerService } from './partner.service';
 import { PushNotificationService } from './push-notification.service';
 import { StreakService } from './streak.service';
@@ -19,9 +20,9 @@ import { StreakService } from './streak.service';
 export class ActionsService {
   private actionRepository = AppDataSource.getRepository(Action);
   private userRepository = AppDataSource.getRepository(User);
-  private logRepository = AppDataSource.getRepository(Log);
   private partnerService = new PartnerService();
   private achievementsService = new AchievementsService();
+  private auditLog = new AuditLogService();
   private pushNotificationService = new PushNotificationService();
   private streakService = new StreakService();
 
@@ -51,15 +52,13 @@ export class ActionsService {
       actionId: savedAction.id,
     });
 
-    await this.logRepository.save(
-      this.logRepository.create({
-        userId,
-        type: LogType.ACTION_CREATED,
-        message: translate('logs.actionCreated', user.locale, { title: action.title }),
-        relatedEntityId: action.id,
-        relatedEntityType: 'Action',
-      })
-    );
+    await this.auditLog.record({
+      userId,
+      type: LogType.ACTION_CREATED,
+      message: translate('logs.actionCreated', user.locale, { title: action.title }),
+      relatedEntityId: action.id,
+      relatedEntityType: 'Action',
+    });
 
     try {
       const partnerIdForNotif = await this.partnerService.getPartnerId(userId);
@@ -213,7 +212,6 @@ export class ActionsService {
     const action = await AppDataSource.transaction(async (manager) => {
       const actionRepo = manager.getRepository(Action);
       const userRepo = manager.getRepository(User);
-      const logRepo = manager.getRepository(Log);
 
       const lockedAction = await actionRepo.findOne({
         where: { id: actionId },
@@ -261,36 +259,39 @@ export class ActionsService {
       );
       await userRepo.save(actionUser);
 
-      await logRepo.save([
-        logRepo.create({
-          userId: lockedAction.userId,
-          type: LogType.POINTS_EARNED,
-          message: translate('logs.pointsEarned', actionUser.locale, {
-            title: lockedAction.title,
-          }),
-          pointsChange: pointsAwarded,
-          relatedEntityId: lockedAction.id,
-          relatedEntityType: 'Action',
-        }),
-        logRepo.create({
-          userId: lockedAction.userId,
-          type: LogType.ACTION_APPROVED,
-          message: translate('logs.actionApproved', actionUser.locale, {
-            title: lockedAction.title,
-          }),
-          relatedEntityId: lockedAction.id,
-          relatedEntityType: 'Action',
-        }),
-        logRepo.create({
-          userId: approverId,
-          type: LogType.ACTION_APPROVED,
-          message: translate('logs.actionApprovedByYou', approver.locale, {
-            title: lockedAction.title,
-          }),
-          relatedEntityId: lockedAction.id,
-          relatedEntityType: 'Action',
-        }),
-      ]);
+      await this.auditLog.recordMany(
+        [
+          {
+            userId: lockedAction.userId,
+            type: LogType.POINTS_EARNED,
+            message: translate('logs.pointsEarned', actionUser.locale, {
+              title: lockedAction.title,
+            }),
+            pointsChange: pointsAwarded,
+            relatedEntityId: lockedAction.id,
+            relatedEntityType: 'Action',
+          },
+          {
+            userId: lockedAction.userId,
+            type: LogType.ACTION_APPROVED,
+            message: translate('logs.actionApproved', actionUser.locale, {
+              title: lockedAction.title,
+            }),
+            relatedEntityId: lockedAction.id,
+            relatedEntityType: 'Action',
+          },
+          {
+            userId: approverId,
+            type: LogType.ACTION_APPROVED,
+            message: translate('logs.actionApprovedByYou', approver.locale, {
+              title: lockedAction.title,
+            }),
+            relatedEntityId: lockedAction.id,
+            relatedEntityType: 'Action',
+          },
+        ],
+        manager
+      );
 
       return lockedAction;
     });
@@ -350,7 +351,6 @@ export class ActionsService {
 
     const action = await AppDataSource.transaction(async (manager) => {
       const actionRepo = manager.getRepository(Action);
-      const logRepo = manager.getRepository(Log);
       const userRepo = manager.getRepository(User);
 
       const lockedAction = await actionRepo.findOne({
@@ -390,26 +390,29 @@ export class ActionsService {
         select: { id: true, locale: true },
       });
 
-      await logRepo.save([
-        logRepo.create({
-          userId: lockedAction.userId,
-          type: LogType.ACTION_REJECTED,
-          message: translate('logs.actionRejected', actionOwner?.locale, {
-            title: lockedAction.title,
-          }),
-          relatedEntityId: lockedAction.id,
-          relatedEntityType: 'Action',
-        }),
-        logRepo.create({
-          userId: approverId,
-          type: LogType.ACTION_REJECTED,
-          message: translate('logs.actionRejectedByYou', approver.locale, {
-            title: lockedAction.title,
-          }),
-          relatedEntityId: lockedAction.id,
-          relatedEntityType: 'Action',
-        }),
-      ]);
+      await this.auditLog.recordMany(
+        [
+          {
+            userId: lockedAction.userId,
+            type: LogType.ACTION_REJECTED,
+            message: translate('logs.actionRejected', actionOwner?.locale, {
+              title: lockedAction.title,
+            }),
+            relatedEntityId: lockedAction.id,
+            relatedEntityType: 'Action',
+          },
+          {
+            userId: approverId,
+            type: LogType.ACTION_REJECTED,
+            message: translate('logs.actionRejectedByYou', approver.locale, {
+              title: lockedAction.title,
+            }),
+            relatedEntityId: lockedAction.id,
+            relatedEntityType: 'Action',
+          },
+        ],
+        manager
+      );
 
       return lockedAction;
     });
