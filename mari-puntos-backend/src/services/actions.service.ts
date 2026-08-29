@@ -1,3 +1,5 @@
+import { EntityManager } from 'typeorm';
+
 import { AppDataSource } from '../config/db';
 import { Action, ActionCategory, ActionStatus } from '../entities/Action';
 import { LogType } from '../entities/Log';
@@ -187,11 +189,9 @@ export class ActionsService {
     return action;
   }
 
-  async approveAction(
-    actionId: string,
-    approverId: string,
-    pointsAwarded: number
-  ): Promise<Action> {
+  private async resolveApproverAndPartner(
+    approverId: string
+  ): Promise<{ approver: User; partnerId: string }> {
     const approver = await this.userRepository.findOne({ where: { id: approverId } });
     if (!approver) {
       throw createError.approverNotFound();
@@ -204,31 +204,87 @@ export class ActionsService {
         'errors.partner.notLinked'
       );
     }
+    return { approver, partnerId };
+  }
+
+  private async lockPendingActionForPartner(
+    manager: EntityManager,
+    actionId: string,
+    partnerId: string,
+    ownershipMessage: string,
+    ownershipI18nKey: string
+  ): Promise<Action> {
+    const lockedAction = await manager.getRepository(Action).findOne({
+      where: { id: actionId },
+      lock: { mode: 'pessimistic_write' },
+    });
+
+    if (!lockedAction) {
+      throw createError.actionNotFound();
+    }
+
+    if (partnerId !== lockedAction.userId) {
+      throw new AppError(403, ownershipMessage, ownershipI18nKey);
+    }
+
+    if (lockedAction.status !== ActionStatus.PENDING) {
+      throw createError.actionNotPending();
+    }
+
+    return lockedAction;
+  }
+
+  private async runPostApprovalEffects(
+    action: Action,
+    pointsAwarded: number
+  ): Promise<void> {
+    try {
+      await this.streakService.recordAction(action.userId);
+    } catch (err) {
+      logger.error({ err }, 'Streak update failed after approveAction');
+    }
+
+    try {
+      await this.achievementsService.checkAchievementsForUser(action.userId);
+    } catch (err) {
+      logger.error({ err }, 'Achievement check failed after approveAction');
+    }
+
+    try {
+      const actionCreator = await this.userRepository.findOne({
+        where: { id: action.userId },
+      });
+      if (actionCreator?.pushToken) {
+        await this.pushNotificationService.sendActionApprovedNotification(
+          actionCreator.pushToken,
+          action.title,
+          pointsAwarded,
+          actionCreator.locale
+        );
+      }
+    } catch (err) {
+      logger.error({ err }, 'Push notification failed after approveAction');
+    }
+  }
+
+  async approveAction(
+    actionId: string,
+    approverId: string,
+    pointsAwarded: number
+  ): Promise<Action> {
+    const { approver, partnerId } = await this.resolveApproverAndPartner(approverId);
 
     const action = await AppDataSource.transaction(async (manager) => {
       const actionRepo = manager.getRepository(Action);
       const userRepo = manager.getRepository(User);
 
-      const lockedAction = await actionRepo.findOne({
-        where: { id: actionId },
-        lock: { mode: 'pessimistic_write' },
-      });
-
-      if (!lockedAction) {
-        throw createError.actionNotFound();
-      }
-
-      if (partnerId !== lockedAction.userId) {
-        throw new AppError(
-          403,
-          'Solo puedes aprobar las acciones de tu pareja',
-          'errors.action.onlyPartnerApprove'
-        );
-      }
-
-      if (lockedAction.status !== ActionStatus.PENDING) {
-        throw createError.actionNotPending();
-      }
+      const lockedAction = await this.lockPendingActionForPartner(
+        manager,
+        actionId,
+        partnerId,
+        'Solo puedes aprobar las acciones de tu pareja',
+        'errors.action.onlyPartnerApprove'
+      );
 
       lockedAction.status = ActionStatus.APPROVED;
       lockedAction.pointsAwarded = pointsAwarded;
@@ -287,33 +343,7 @@ export class ActionsService {
       return lockedAction;
     });
 
-    try {
-      await this.streakService.recordAction(action.userId);
-    } catch (err) {
-      logger.error({ err }, 'Streak update failed after approveAction');
-    }
-
-    try {
-      await this.achievementsService.checkAchievementsForUser(action.userId);
-    } catch (err) {
-      logger.error({ err }, 'Achievement check failed after approveAction');
-    }
-
-    try {
-      const actionCreator = await this.userRepository.findOne({
-        where: { id: action.userId },
-      });
-      if (actionCreator?.pushToken) {
-        await this.pushNotificationService.sendActionApprovedNotification(
-          actionCreator.pushToken,
-          action.title,
-          pointsAwarded,
-          actionCreator.locale
-        );
-      }
-    } catch (err) {
-      logger.error({ err }, 'Push notification failed after approveAction');
-    }
+    await this.runPostApprovalEffects(action, pointsAwarded);
 
     return action;
   }
@@ -323,43 +353,19 @@ export class ActionsService {
     approverId: string,
     rejectionReason?: string
   ): Promise<Action> {
-    const approver = await this.userRepository.findOne({ where: { id: approverId } });
-    if (!approver) {
-      throw createError.approverNotFound();
-    }
-    const partnerId = await this.partnerService.getPartnerId(approverId);
-    if (!partnerId) {
-      throw new AppError(
-        403,
-        'No tienes una pareja vinculada',
-        'errors.partner.notLinked'
-      );
-    }
+    const { approver, partnerId } = await this.resolveApproverAndPartner(approverId);
 
     const action = await AppDataSource.transaction(async (manager) => {
       const actionRepo = manager.getRepository(Action);
       const userRepo = manager.getRepository(User);
 
-      const lockedAction = await actionRepo.findOne({
-        where: { id: actionId },
-        lock: { mode: 'pessimistic_write' },
-      });
-
-      if (!lockedAction) {
-        throw createError.actionNotFound();
-      }
-
-      if (partnerId !== lockedAction.userId) {
-        throw new AppError(
-          403,
-          'Solo puedes rechazar las acciones de tu pareja',
-          'errors.action.onlyPartnerReject'
-        );
-      }
-
-      if (lockedAction.status !== ActionStatus.PENDING) {
-        throw createError.actionNotPending();
-      }
+      const lockedAction = await this.lockPendingActionForPartner(
+        manager,
+        actionId,
+        partnerId,
+        'Solo puedes rechazar las acciones de tu pareja',
+        'errors.action.onlyPartnerReject'
+      );
 
       lockedAction.status = ActionStatus.REJECTED;
       lockedAction.rejectionReason = rejectionReason || null;
