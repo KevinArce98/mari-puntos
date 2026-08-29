@@ -68,10 +68,19 @@ export default function HomeScreen() {
   ).length;
   const totalPending = pendingActionsCount + pendingPermissionsCount;
 
+  const [prevCreateActionParam, setPrevCreateActionParam] =
+    React.useState(createActionParam);
+  if (createActionParam !== prevCreateActionParam) {
+    setPrevCreateActionParam(createActionParam);
+    if (createActionParam === '1') {
+      setShowCreateActionModal(true);
+    }
+  }
+
   React.useEffect(() => {
-    if (createActionParam !== '1') return;
-    setShowCreateActionModal(true);
-    router.setParams({ createAction: '' });
+    if (createActionParam === '1') {
+      router.setParams({ createAction: '' });
+    }
   }, [createActionParam, router]);
 
   useFocusEffect(

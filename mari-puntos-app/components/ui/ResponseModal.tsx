@@ -65,9 +65,11 @@ export function ResponseModal({
   const [pendingAction, setPendingAction] = useState<'approve' | 'reject' | null>(null);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
-  useEffect(() => {
+  const [prevLoading, setPrevLoading] = useState(loading);
+  if (loading !== prevLoading) {
+    setPrevLoading(loading);
     if (!loading) setPendingAction(null);
-  }, [loading]);
+  }
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;
