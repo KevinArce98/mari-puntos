@@ -2,11 +2,7 @@
   "name": "mari-puntos",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "mari-puntos-app",
-    "mari-puntos-backend",
-    "mari-puntos-website"
-  ],
+  "packageManager": "pnpm@11.24.0",
   "scripts": {
     "prepare": "[ \"$CI\" = \"true\" ] && exit 0 || husky"
   },
@@ -16,9 +12,5 @@
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "husky": "^9.1.7",
     "prettier": "^3.9.5"
-  },
-  "overrides": {
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
   }
 }
