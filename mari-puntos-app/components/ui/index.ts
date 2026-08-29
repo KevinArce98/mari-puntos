@@ -2,6 +2,7 @@ export { ActionCard } from './ActionCard';
 export { ActionItemCard } from './ActionItemCard';
 export { Avatar } from './Avatar';
 export { Badge } from './Badge';
+export { BottomSheetModal } from './BottomSheetModal';
 export { Button } from './Button';
 export { Card } from './Card';
 export { Chip } from './Chip';

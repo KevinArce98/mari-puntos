@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
-import { Alert, Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -19,9 +19,9 @@ import {
   reviewActionSchema,
 } from '@/validators/action.schema';
 
+import { BottomSheetModal } from './BottomSheetModal';
 import { Button } from './Button';
 import { Chip } from './Chip';
-import { PressableScale } from './PressableScale';
 import { TextAreaWithCounter } from './TextAreaWithCounter';
 
 interface ReviewActionModalProps {
@@ -139,194 +139,129 @@ export function ReviewActionModal({
   const formattedDate = formatDateWithTime(action.createdAt);
 
   return (
-    <Modal
+    <BottomSheetModal
       visible={visible}
-      animationType="slide"
-      transparent
       onRequestClose={handleClose}
+      title={
+        mode === 'review' ? t('reviewAction.reviewTitle') : t('reviewAction.rejectTitle')
+      }
+      closeAccessibilityLabel={t('reviewAction.closeA11y')}
+      footer={
+        <View style={styles.actions}>
+          {mode === 'review' ? (
+            <>
+              <Button
+                title={t('reviewAction.reject')}
+                variant="outline"
+                onPress={() => setMode('reject')}
+                textStyle={{ color: themeColors.error }}
+                style={[styles.actionButton, { borderColor: themeColors.error }]}
+                disabled={loading}
+                icon="close-circle"
+              />
+              <Button
+                title={t('reviewAction.approve')}
+                onPress={handleApprove}
+                style={styles.actionButton}
+                disabled={loading}
+                loading={loading}
+                icon="checkmark-circle"
+              />
+            </>
+          ) : (
+            <>
+              <Button
+                title={t('reviewAction.back')}
+                variant="outline"
+                onPress={() => setMode('review')}
+                style={styles.actionButton}
+                disabled={loading}
+              />
+              <Button
+                title={t('reviewAction.confirmReject')}
+                onPress={handleSubmit(onSubmitReject)}
+                style={[styles.actionButton, { backgroundColor: themeColors.error }]}
+                disabled={loading}
+                loading={loading}
+              />
+            </>
+          )}
+        </View>
+      }
     >
-      <View style={styles.overlay}>
-        <View
-          style={[styles.container, { backgroundColor: themeColors.gray[100] }]}
-          accessibilityViewIsModal
-        >
-          <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
-            <Text style={[styles.title, { color: themeColors.text.primary }]}>
-              {mode === 'review'
-                ? t('reviewAction.reviewTitle')
-                : t('reviewAction.rejectTitle')}
-            </Text>
-            <PressableScale
-              onPress={handleClose}
-              style={styles.closeButton}
-              accessibilityRole="button"
-              accessibilityLabel={t('reviewAction.closeA11y')}
-            >
-              <Ionicons name="close" size={24} color={themeColors.text.primary} />
-            </PressableScale>
-          </View>
+      <View style={[styles.actionDetails, { backgroundColor: themeColors.gray[50] }]}>
+        <Text style={[styles.actionTitle, { color: themeColors.text.primary }]}>
+          {action.title}
+        </Text>
+        <Text style={[styles.actionCategory, { color: themeColors.primary }]}>
+          {t(CATEGORY_LABEL_KEYS[action.category])}
+        </Text>
+        {action.description && (
+          <Text style={[styles.actionDescription, { color: themeColors.text.secondary }]}>
+            {action.description}
+          </Text>
+        )}
+        <Text style={[styles.actionDate, { color: themeColors.gray[400] }]}>
+          {formattedDate}
+        </Text>
+      </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
+      {mode === 'review' ? (
+        <View style={styles.section}>
+          <View style={styles.pointsHeader}>
+            <Text style={[styles.label, { color: themeColors.text.primary }]}>
+              {t('reviewAction.pointsLabel')}
+            </Text>
             <View
-              style={[styles.actionDetails, { backgroundColor: themeColors.gray[50] }]}
+              style={[styles.pointsBadge, { backgroundColor: `${themeColors.accent}15` }]}
             >
-              <Text style={[styles.actionTitle, { color: themeColors.text.primary }]}>
-                {action.title}
-              </Text>
-              <Text style={[styles.actionCategory, { color: themeColors.primary }]}>
-                {t(CATEGORY_LABEL_KEYS[action.category])}
-              </Text>
-              {action.description && (
-                <Text
-                  style={[
-                    styles.actionDescription,
-                    { color: themeColors.text.secondary },
-                  ]}
-                >
-                  {action.description}
-                </Text>
-              )}
-              <Text style={[styles.actionDate, { color: themeColors.gray[400] }]}>
-                {formattedDate}
+              <Ionicons name="trophy" size={20} color={themeColors.accent} />
+              <Text style={[styles.pointsValue, { color: themeColors.accent }]}>
+                {points}
               </Text>
             </View>
-
-            {mode === 'review' ? (
-              <View style={styles.section}>
-                <View style={styles.pointsHeader}>
-                  <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                    {t('reviewAction.pointsLabel')}
-                  </Text>
-                  <View
-                    style={[
-                      styles.pointsBadge,
-                      { backgroundColor: `${themeColors.accent}15` },
-                    ]}
-                  >
-                    <Ionicons name="trophy" size={20} color={themeColors.accent} />
-                    <Text style={[styles.pointsValue, { color: themeColors.accent }]}>
-                      {points}
-                    </Text>
-                  </View>
-                </View>
-                <Text
-                  style={[styles.suggestedLabel, { color: themeColors.text.secondary }]}
-                >
-                  {t('reviewAction.pointsHint')}
-                </Text>
-                <View style={styles.pointsPresets}>
-                  {POINT_VALUE_PRESETS.map((value) => (
-                    <Chip
-                      key={value}
-                      label={String(value)}
-                      selected={points === value}
-                      onPress={() => setPoints(value)}
-                      style={styles.pointsPresetChip}
-                    />
-                  ))}
-                </View>
-              </View>
-            ) : (
-              <View style={styles.section}>
-                <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                  {t('reviewAction.rejectReasonLabel')}
-                </Text>
-                <Controller
-                  control={control}
-                  name="rejectionReason"
-                  render={({ field: { onChange, value } }) => (
-                    <TextAreaWithCounter
-                      placeholder={t('reviewAction.rejectReasonPlaceholder')}
-                      value={value ?? ''}
-                      onChangeText={onChange}
-                      numberOfLines={4}
-                      textAlignVertical="top"
-                      maxLength={500}
-                    />
-                  )}
-                />
-              </View>
-            )}
-          </ScrollView>
-
-          <View style={styles.actions}>
-            {mode === 'review' ? (
-              <>
-                <Button
-                  title={t('reviewAction.reject')}
-                  variant="outline"
-                  onPress={() => setMode('reject')}
-                  textStyle={{ color: themeColors.error }}
-                  style={[styles.actionButton, { borderColor: themeColors.error }]}
-                  disabled={loading}
-                  icon="close-circle"
-                />
-                <Button
-                  title={t('reviewAction.approve')}
-                  onPress={handleApprove}
-                  style={styles.actionButton}
-                  disabled={loading}
-                  loading={loading}
-                  icon="checkmark-circle"
-                />
-              </>
-            ) : (
-              <>
-                <Button
-                  title={t('reviewAction.back')}
-                  variant="outline"
-                  onPress={() => setMode('review')}
-                  style={styles.actionButton}
-                  disabled={loading}
-                />
-                <Button
-                  title={t('reviewAction.confirmReject')}
-                  onPress={handleSubmit(onSubmitReject)}
-                  style={[styles.actionButton, { backgroundColor: themeColors.error }]}
-                  disabled={loading}
-                  loading={loading}
-                />
-              </>
-            )}
+          </View>
+          <Text style={[styles.suggestedLabel, { color: themeColors.text.secondary }]}>
+            {t('reviewAction.pointsHint')}
+          </Text>
+          <View style={styles.pointsPresets}>
+            {POINT_VALUE_PRESETS.map((value) => (
+              <Chip
+                key={value}
+                label={String(value)}
+                selected={points === value}
+                onPress={() => setPoints(value)}
+                style={styles.pointsPresetChip}
+              />
+            ))}
           </View>
         </View>
-      </View>
-    </Modal>
+      ) : (
+        <View style={styles.section}>
+          <Text style={[styles.label, { color: themeColors.text.primary }]}>
+            {t('reviewAction.rejectReasonLabel')}
+          </Text>
+          <Controller
+            control={control}
+            name="rejectionReason"
+            render={({ field: { onChange, value } }) => (
+              <TextAreaWithCounter
+                placeholder={t('reviewAction.rejectReasonPlaceholder')}
+                value={value ?? ''}
+                onChangeText={onChange}
+                numberOfLines={4}
+                textAlignVertical="top"
+                maxLength={500}
+              />
+            )}
+          />
+        </View>
+      )}
+    </BottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  container: {
-    borderTopLeftRadius: borderRadius['2xl'],
-    borderTopRightRadius: borderRadius['2xl'],
-    maxHeight: '90%',
-    paddingBottom: spacing.xl,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: spacing.lg,
-    borderBottomWidth: 1,
-  },
-  title: {
-    ...typography.styles.h3,
-  },
-  closeButton: {
-    padding: spacing.sm,
-    minWidth: 44,
-    minHeight: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    maxHeight: 500,
-  },
   actionDetails: {
     padding: spacing.lg,
     margin: spacing.lg,
