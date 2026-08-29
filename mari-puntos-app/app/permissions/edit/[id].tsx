@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import {
   Alert,
@@ -22,11 +22,11 @@ import { usePreventRemove } from 'expo-router/react-navigation';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
+import { DateTimeField, DurationField } from '@/components/permissions';
 import {
   Button,
   Card,
@@ -35,10 +35,8 @@ import {
   TextAreaWithCounter,
 } from '@/components/ui';
 import { usePermissions, useThemedColors } from '@/hooks';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import i18n from '@/i18n';
 import { permissionsService } from '@/services';
-import { borderRadius, shadows, spacing, typography } from '@/theme';
+import { shadows, spacing, typography } from '@/theme';
 import { Permission } from '@/types';
 import { createUTC6DateTime } from '@/utils/dateUtils';
 import { getApiErrorMessage } from '@/utils/errorMessage';
@@ -47,7 +45,6 @@ import logger from '@/utils/logger';
 export default function EditPermissionScreen() {
   const { t } = useTranslation(['permissions', 'common', 'errors']);
   const themeColors = useThemedColors();
-  const colorScheme: 'light' | 'dark' = useColorScheme() === 'dark' ? 'dark' : 'light';
   const router = useRouter();
   const navigation = useNavigation();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -64,7 +61,6 @@ export default function EditPermissionScreen() {
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
-  const [showPicker, setShowPicker] = useState<'date' | 'time' | null>(null);
 
   usePreventRemove(hasEdited && !allowExit, ({ data }) => {
     Alert.alert(t('edit.discard.title'), t('edit.discard.message'), [
@@ -114,7 +110,7 @@ export default function EditPermissionScreen() {
 
     setLoading(true);
     try {
-      const requestedDateTime = getCombinedDateTime();
+      const requestedDateTime = createUTC6DateTime(selectedDate, selectedTime);
 
       await updatePermission(id, {
         requestedDate: requestedDateTime.toISOString(),
@@ -137,63 +133,6 @@ export default function EditPermissionScreen() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDurationChange = (change: number) => {
-    const currentDuration = isNaN(duration) ? 2 : duration;
-    const newDuration = Math.max(0.5, Math.min(8, currentDuration + change));
-    setDuration(newDuration);
-    setHasEdited(true);
-  };
-
-  const handleDateChange = (event: any, date?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowPicker(null);
-    }
-    if (date) {
-      setSelectedDate(date);
-      setHasEdited(true);
-    }
-  };
-
-  const handleTimeChange = (event: any, time?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowPicker(null);
-    }
-    if (time) {
-      setSelectedTime(time);
-      setHasEdited(true);
-    }
-  };
-
-  const formatDate = (date: Date) => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return t('dates.today');
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return t('dates.tomorrow');
-    } else {
-      return date.toLocaleDateString(i18n.language, {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      });
-    }
-  };
-
-  const formatTime = (time: Date) => {
-    return time.toLocaleTimeString(i18n.language, {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
-
-  const getCombinedDateTime = () => {
-    return createUTC6DateTime(selectedDate, selectedTime);
   };
 
   if (loadingPermission) {
@@ -278,127 +217,26 @@ export default function EditPermissionScreen() {
               </View>
             </Card>
 
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                {t('edit.whenLabel')}
-              </Text>
-              <View style={styles.dateTimeRow}>
-                <PressableScale
-                  style={[
-                    styles.dateTimeButton,
-                    { backgroundColor: themeColors.gray[100] },
-                  ]}
-                  onPress={() =>
-                    setShowPicker((show) => (show === 'date' ? null : 'date'))
-                  }
-                >
-                  <Ionicons
-                    name="calendar-outline"
-                    size={20}
-                    color={themeColors.primary}
-                  />
-                  <Text
-                    style={[styles.dateTimeText, { color: themeColors.text.primary }]}
-                  >
-                    {formatDate(selectedDate)}
-                  </Text>
-                </PressableScale>
-                <PressableScale
-                  style={[
-                    styles.dateTimeButton,
-                    { backgroundColor: themeColors.gray[100] },
-                  ]}
-                  onPress={() =>
-                    setShowPicker((show) => (show === 'time' ? null : 'time'))
-                  }
-                >
-                  <Ionicons name="time-outline" size={20} color={themeColors.primary} />
-                  <Text
-                    style={[styles.dateTimeText, { color: themeColors.text.primary }]}
-                  >
-                    {formatTime(selectedTime)}
-                  </Text>
-                </PressableScale>
-              </View>
+            <DateTimeField
+              date={selectedDate}
+              time={selectedTime}
+              onDateChange={(date) => {
+                setSelectedDate(date);
+                setHasEdited(true);
+              }}
+              onTimeChange={(time) => {
+                setSelectedTime(time);
+                setHasEdited(true);
+              }}
+            />
 
-              {showPicker && (
-                <View style={styles.calendarContainer}>
-                  <DateTimePicker
-                    value={showPicker === 'time' ? selectedTime : selectedDate}
-                    mode={showPicker}
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={showPicker === 'time' ? handleTimeChange : handleDateChange}
-                    minimumDate={showPicker === 'date' ? new Date() : undefined}
-                    locale={i18n.language === 'en' ? 'en-US' : 'es-CR'}
-                    textColor={themeColors.text.primary}
-                    themeVariant={colorScheme}
-                  />
-                </View>
-              )}
-
-              {Platform.OS === 'ios' && showPicker && (
-                <Button
-                  title={t('edit.confirm')}
-                  onPress={() => setShowPicker(null)}
-                  variant="secondary"
-                  style={{ marginTop: spacing.md }}
-                />
-              )}
-            </View>
-
-            <View style={styles.section}>
-              <View style={styles.durationHeader}>
-                <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                  {t('edit.durationLabel')}
-                </Text>
-                <Text style={[styles.durationValue, { color: themeColors.primary }]}>
-                  {t('edit.durationHours', { count: isNaN(duration) ? 0 : duration })}
-                </Text>
-              </View>
-
-              <View style={styles.durationControl}>
-                <PressableScale
-                  style={[
-                    styles.durationButton,
-                    { backgroundColor: themeColors.gray[100] },
-                  ]}
-                  onPress={() => handleDurationChange(-0.5)}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('edit.decreaseDuration')}
-                >
-                  <Ionicons name="remove" size={24} color={themeColors.primary} />
-                </PressableScale>
-
-                <View
-                  style={[
-                    styles.durationTrack,
-                    { backgroundColor: themeColors.gray[200] },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.durationFill,
-                      {
-                        backgroundColor: themeColors.accent,
-                        width: `${(duration / 8) * 100}%`,
-                      },
-                    ]}
-                  />
-                </View>
-
-                <PressableScale
-                  style={[
-                    styles.durationButton,
-                    { backgroundColor: themeColors.gray[100] },
-                  ]}
-                  onPress={() => handleDurationChange(0.5)}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('edit.increaseDuration')}
-                >
-                  <Ionicons name="add" size={24} color={themeColors.primary} />
-                </PressableScale>
-              </View>
-            </View>
+            <DurationField
+              value={duration}
+              onChange={(next) => {
+                setDuration(next);
+                setHasEdited(true);
+              }}
+            />
 
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
@@ -501,58 +339,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...typography.styles.h4,
     marginBottom: spacing.md,
-  },
-  calendarContainer: {
-    alignItems: 'center',
-  },
-  dateTimeRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  dateTimeButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: borderRadius.xl,
-    padding: spacing.md,
-    gap: spacing.sm,
-    ...shadows.sm,
-  },
-  dateTimeText: {
-    ...typography.styles.bodyMedium,
-  },
-  durationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  durationValue: {
-    ...typography.styles.h4,
-  },
-  durationControl: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  durationButton: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.full,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...shadows.sm,
-  },
-  durationTrack: {
-    flex: 1,
-    height: 8,
-    borderRadius: borderRadius.full,
-    overflow: 'hidden',
-  },
-  durationFill: {
-    height: '100%',
-    borderRadius: borderRadius.full,
   },
   noteInput: {
     marginBottom: 0,
