@@ -17,6 +17,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { borderRadius, spacing, typography } from '@/theme';
 import { Permission, PermissionStatus } from '@/types';
 import { formatDateOnly, getStatusColor, getStatusText } from '@/utils';
+import { getApiErrorMessage } from '@/utils/errorMessage';
 import { ResponseMessageFormData } from '@/validators/action.schema';
 
 type PermissionScope = 'received' | 'sent';
@@ -98,7 +99,7 @@ export default function PermissionsScreen() {
       toast.success(approved ? t('respond.approved') : t('respond.rejected'));
     } catch (error) {
       toast.error(t('errors:title'), {
-        description: (error as any)?.error ?? t('respond.error'),
+        description: getApiErrorMessage(error) ?? t('respond.error'),
       });
       throw error;
     } finally {

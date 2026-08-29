@@ -41,6 +41,7 @@ import { permissionsService } from '@/services';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { Permission } from '@/types';
 import { createUTC6DateTime } from '@/utils/dateUtils';
+import { getApiErrorMessage } from '@/utils/errorMessage';
 import logger from '@/utils/logger';
 
 export default function EditPermissionScreen() {
@@ -131,7 +132,7 @@ export default function EditPermissionScreen() {
       setTimeout(() => router.back(), 0);
     } catch (e) {
       toast.error(t('errors:title'), {
-        description: (e as any)?.error ?? t('edit.updateError'),
+        description: getApiErrorMessage(e) ?? t('edit.updateError'),
       });
     } finally {
       setLoading(false);

@@ -33,6 +33,7 @@ import {
   useUserStore,
 } from '@/stores';
 import { borderRadius, spacing, typography } from '@/theme';
+import { getApiErrorMessage } from '@/utils/errorMessage';
 import logger from '@/utils/logger';
 import { LinkPartnerFormData, linkPartnerSchema } from '@/validators';
 
@@ -93,7 +94,7 @@ export default function LinkPartnerScreen() {
     } catch (error) {
       logger.error('Failed to generate partner link code', error as Error);
       toast.error(t('errors:title'), {
-        description: (error as any)?.error ?? t('toast.generateError'),
+        description: getApiErrorMessage(error) ?? t('toast.generateError'),
       });
     } finally {
       setGenerating(false);
@@ -161,7 +162,7 @@ export default function LinkPartnerScreen() {
         partnerCode: data.partnerCode,
       });
       toast.error(t('errors:title'), {
-        description: (error as any)?.error ?? t('toast.joinError'),
+        description: getApiErrorMessage(error) ?? t('toast.joinError'),
       });
     }
   };

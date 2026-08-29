@@ -37,6 +37,7 @@ import { permissionsService } from '@/services';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { PermissionTemplate } from '@/types';
 import { createUTC6DateTime } from '@/utils/dateUtils';
+import { getApiErrorMessage } from '@/utils/errorMessage';
 import logger from '@/utils/logger';
 
 export default function RequestPermissionScreen() {
@@ -164,7 +165,7 @@ export default function RequestPermissionScreen() {
       setTimeout(() => router.back(), 0);
     } catch (e) {
       toast.error(t('errors:title'), {
-        description: (e as any)?.error ?? t('request.sendError'),
+        description: getApiErrorMessage(e) ?? t('request.sendError'),
       });
     } finally {
       setLoading(false);
