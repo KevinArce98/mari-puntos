@@ -82,7 +82,7 @@ fix(backend): corregir cálculo de puntos
 
 ## Licencia
 
-[MIT](LICENSE) © Kevin Arias
+Software propietario. © 2026 Kevin Arias — Todos los derechos reservados. Ver [LICENSE](LICENSE).
 
 ## Links
 
