@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import {
   Alert,
@@ -12,7 +12,12 @@ import {
   View,
 } from 'react-native';
 
-import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import {
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
 
 import { Ionicons } from '@expo/vector-icons';
@@ -71,12 +76,7 @@ export default function EditPermissionScreen() {
     ]);
   });
 
-  useEffect(() => {
-    loadPermission();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
-  const loadPermission = async () => {
+  const loadPermission = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -99,7 +99,14 @@ export default function EditPermissionScreen() {
     } finally {
       setLoadingPermission(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadPermission();
+    }, [loadPermission])
+  );
 
   const handleUpdate = async () => {
     if (!id || !permission) return;

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 import {
   ActivityIndicator,
@@ -57,31 +57,18 @@ export default function ActionsScreen() {
   const [selectedStatus, setSelectedStatus] = useState<ActionStatus | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const hasFocusedRef = useRef(false);
-  const selectedStatusRef = useRef(selectedStatus);
-  selectedStatusRef.current = selectedStatus;
 
   useFocusEffect(
     useCallback(() => {
       if (!user) return;
-      hasFocusedRef.current = true;
       setPage(1);
       refetchMyActions({
         page: 1,
         limit: 20,
-        status: selectedStatusRef.current ?? undefined,
+        status: selectedStatus ?? undefined,
       });
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user])
+    }, [user, selectedStatus, refetchMyActions])
   );
-
-  useEffect(() => {
-    if (!hasFocusedRef.current) return;
-    if (!user) return;
-    setPage(1);
-    refetchMyActions({ page: 1, limit: 20, status: selectedStatus ?? undefined });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStatus]);
 
   const handleLoadMore = async () => {
     if (loadingMore || !myActionsPagination) return;

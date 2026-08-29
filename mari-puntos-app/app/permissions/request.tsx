@@ -91,14 +91,7 @@ export default function RequestPermissionScreen() {
     };
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!user) return;
-      loadTemplates();
-    }, [user])
-  );
-
-  const loadTemplates = async () => {
+  const loadTemplates = useCallback(async () => {
     try {
       setLoadingTemplates(true);
       const result = await permissionsService.getTemplates();
@@ -115,7 +108,14 @@ export default function RequestPermissionScreen() {
     } finally {
       setLoadingTemplates(false);
     }
-  };
+  }, [t]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+      loadTemplates();
+    }, [user, loadTemplates])
+  );
 
   const allTemplatesSorted = [...templates].sort((a, b) =>
     a.title.localeCompare(b.title, i18n.language)

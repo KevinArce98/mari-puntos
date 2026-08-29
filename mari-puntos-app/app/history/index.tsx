@@ -26,7 +26,6 @@ export default function HistoryScreen() {
   const [refreshing, setRefreshing] = React.useState(false);
   const [page, setPage] = React.useState(1);
   const [loadingMore, setLoadingMore] = React.useState(false);
-  const [initialized, setInitialized] = React.useState(false);
 
   const hasMore = paginationMeta ? paginationMeta.page < paginationMeta.totalPages : true;
 
@@ -52,10 +51,12 @@ export default function HistoryScreen() {
   };
 
   React.useEffect(() => {
-    if (!initialized) {
-      loadHistory(1, true);
-      setInitialized(true);
-    }
+    fetchHistory({ page: 1, limit: 20 }, false).catch((error) => {
+      logger.error('Failed to load points history', error as Error, {
+        page: 1,
+        isRefresh: false,
+      });
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
