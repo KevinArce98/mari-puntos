@@ -19,7 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { isClerkAPIResponseError } from '@clerk/expo';
 import { useSignUp } from '@clerk/expo/legacy';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -49,7 +49,6 @@ export default function RegisterScreen() {
   const {
     control,
     handleSubmit,
-    watch,
     formState: { isSubmitting },
   } = useForm<RegisterFormData>({
     mode: 'onBlur',
@@ -63,8 +62,8 @@ export default function RegisterScreen() {
     },
   });
 
-  const password = watch('password');
-  const confirmPassword = watch('confirmPassword');
+  const password = useWatch({ control, name: 'password' });
+  const confirmPassword = useWatch({ control, name: 'confirmPassword' });
 
   const hasMinLength = password.length >= 8;
   const hasLowercase = hasPasswordLowercase(password);

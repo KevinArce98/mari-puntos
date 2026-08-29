@@ -16,7 +16,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { isClerkAPIResponseError } from '@clerk/expo';
 import { useSignIn } from '@clerk/expo/legacy';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -47,7 +47,6 @@ export default function ResetPasswordScreen() {
   const {
     control,
     handleSubmit,
-    watch,
     formState: { isSubmitting },
   } = useForm<ResetPasswordFormData>({
     mode: 'onBlur',
@@ -59,7 +58,7 @@ export default function ResetPasswordScreen() {
     },
   });
 
-  const password = watch('password');
+  const password = useWatch({ control, name: 'password' });
   const hasSymbol = hasPasswordSymbol(password);
 
   const onSubmit = async (data: ResetPasswordFormData) => {

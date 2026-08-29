@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useUser } from '@clerk/expo';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -64,7 +64,6 @@ export default function ChangePasswordScreen() {
   const {
     control,
     handleSubmit,
-    watch,
     reset,
     formState: { isDirty },
   } = useForm<ChangePasswordFormData>({
@@ -77,7 +76,7 @@ export default function ChangePasswordScreen() {
     },
   });
 
-  const newPassword = watch('newPassword');
+  const newPassword = useWatch({ control, name: 'newPassword' });
   const hasSymbol = hasPasswordSymbol(newPassword);
 
   usePreventRemove(isDirty && !allowExit, ({ data }) => {

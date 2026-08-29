@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -60,10 +60,9 @@ export default function LinkPartnerScreen() {
   const {
     handleSubmit,
     control,
-    watch,
     formState: { errors, isSubmitting },
   } = form;
-  const partnerCode = watch('partnerCode');
+  const partnerCode = useWatch({ control, name: 'partnerCode' });
 
   useEffect(() => {
     const loadExistingCode = async () => {
