@@ -26,17 +26,6 @@ export const PermissionStatus = {
 
 export type PermissionStatus = (typeof PermissionStatus)[keyof typeof PermissionStatus];
 
-export const PermissionType = {
-  NIGHT_OUT: 'night_out',
-  GAMING_SESSION: 'gaming_session',
-  SPORTS_EVENT: 'sports_event',
-  FRIENDS_HANGOUT: 'friends_hangout',
-  HOBBY_TIME: 'hobby_time',
-  OTHER: 'other',
-} as const;
-
-export type PermissionType = (typeof PermissionType)[keyof typeof PermissionType];
-
 export const PartnerLinkStatus = {
   PENDING: 'pending',
   ACTIVE: 'active',

@@ -20,7 +20,6 @@ const usersService = new UsersService();
 
 export interface AuthRequest extends Request {
   userId?: string;
-  user?: User;
   clerkId?: string;
 }
 
@@ -115,7 +114,6 @@ export const authMiddleware = async (
 
       cached = { userId: user.id, isActive: user.isActive };
       userCache.set(clerkId, cached);
-      req.user = user;
     }
 
     if (!cached.isActive) {

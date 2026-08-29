@@ -78,31 +78,11 @@ export function sendError(
   res.status(statusCode).json(response);
 }
 
-export function sendBadRequest(
-  res: Response,
-  error: string,
-  details?: { field: string; message: string }[]
-): void {
-  sendError(res, error, 400, details);
-}
-
-export function sendUnauthorized(res: Response, error: string = 'Unauthorized'): void {
-  sendError(res, error, 401);
-}
-
-export function sendForbidden(res: Response, error: string = 'Prohibido'): void {
-  sendError(res, error, 403);
-}
-
 export function sendNotFound(
   res: Response,
   error: string = 'Recurso no encontrado'
 ): void {
   sendError(res, error, 404);
-}
-
-export function sendConflict(res: Response, error: string): void {
-  sendError(res, error, 409);
 }
 
 export function sendInternalError(
