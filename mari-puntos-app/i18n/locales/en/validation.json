@@ -48,5 +48,14 @@
     "currentRequired": "Your current password is required",
     "confirmNewRequired": "You must confirm your new password",
     "mismatch": "Passwords don't match"
+  },
+  "permission": {
+    "templateRequired": "Select an activity",
+    "noteMax": "The note must be at most 500 characters",
+    "titleRequired": "The title is required",
+    "titleMax": "The title must be at most 100 characters",
+    "descriptionMax": "The description must be at most 500 characters",
+    "durationInvalid": "Enter a valid duration",
+    "pointsInvalid": "Enter valid points"
   }
 }

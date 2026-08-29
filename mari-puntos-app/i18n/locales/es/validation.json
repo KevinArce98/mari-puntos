@@ -48,5 +48,14 @@
     "currentRequired": "La contraseña actual es requerida",
     "confirmNewRequired": "Debes confirmar tu nueva contraseña",
     "mismatch": "Las contraseñas no coinciden"
+  },
+  "permission": {
+    "templateRequired": "Selecciona una actividad",
+    "noteMax": "La nota debe tener máximo 500 caracteres",
+    "titleRequired": "El título es requerido",
+    "titleMax": "El título debe tener máximo 100 caracteres",
+    "descriptionMax": "La descripción debe tener máximo 500 caracteres",
+    "durationInvalid": "Ingresa una duración válida",
+    "pointsInvalid": "Ingresa puntos válidos"
   }
 }
