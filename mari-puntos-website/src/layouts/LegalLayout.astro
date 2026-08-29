@@ -1,31 +1,42 @@
 ---
+import LanguageSwitcher from '@/components/LanguageSwitcher.astro';
+import { useTranslations, type Lang } from '@/i18n/ui';
+
 interface Props {
   title: string;
   lastUpdated: string;
+  lang?: Lang;
+  switchPath?: string;
 }
 
-const { title, lastUpdated } = Astro.props;
+const { title, lastUpdated, lang = 'es', switchPath = '/' } = Astro.props;
+const t = useTranslations(lang);
+
+const homeHref = lang === 'en' ? '/en/' : '/';
 ---
 
 <div class="min-h-screen bg-white">
   <header class="bg-[#0F766E] text-white py-6 shadow-lg">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-      <a
-        href="/"
-        class="inline-flex items-center text-white hover:text-gray-100 transition-colors mb-4"
-      >
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width={2}
-            d="M15 19l-7-7 7-7"
-          ></path>
-        </svg>
-        Volver al inicio
-      </a>
+      <div class="flex items-center justify-between mb-4">
+        <a
+          href={homeHref}
+          class="inline-flex items-center text-white hover:text-gray-100 transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width={2}
+              d="M15 19l-7-7 7-7"
+            ></path>
+          </svg>
+          {t('legal.backHome')}
+        </a>
+        <LanguageSwitcher lang={lang} path={switchPath} variant="dark" />
+      </div>
       <h1 class="text-3xl md:text-4xl font-bold">{title}</h1>
-      <p class="text-white/80 mt-2">Última actualización: {lastUpdated}</p>
+      <p class="text-white/80 mt-2">{t('legal.lastUpdated')} {lastUpdated}</p>
     </div>
   </header>
 
@@ -37,7 +48,7 @@ const { title, lastUpdated } = Astro.props;
 
   <footer class="bg-gray-900 text-white py-8 mt-20">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <p class="text-gray-400">© 2026 MariPuntos. Todos los derechos reservados.</p>
+      <p class="text-gray-400">{t('footer.rights')}</p>
     </div>
   </footer>
 </div>

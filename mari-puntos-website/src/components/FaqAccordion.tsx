@@ -1,45 +1,21 @@
 import { useState } from 'react';
 
-const faqs = [
-  {
-    question: '¿Es gratis MariPuntos?',
-    answer:
-      'Sí, MariPuntos es completamente gratis para descargar y usar. Sin cargos ocultos ni suscripciones obligatorias.',
-  },
-  {
-    question: '¿Cómo me vinculo con mi pareja?',
-    answer:
-      'Después de crear tu cuenta, recibirás un código único. Compártelo con tu pareja y en segundos estarán conectados.',
-  },
-  {
-    question: '¿Qué son los MariPuntos?',
-    answer:
-      'Son una moneda virtual que ganas al completar acciones positivas para tu pareja. Úsalos para solicitar permisos personalizados.',
-  },
-  {
-    question: '¿Puedo personalizar las acciones y permisos?',
-    answer:
-      'Sí. Tanto tú como tu pareja pueden crear, editar y eliminar acciones y permisos completamente a su gusto.',
-  },
-  {
-    question: '¿Está disponible para iOS y Android?',
-    answer:
-      'Sí, MariPuntos está disponible en App Store (iOS) y Google Play (Android). ¡Descárgala gratis hoy!',
-  },
-  {
-    question: '¿Qué son las rachas semanales?',
-    answer:
-      'Las rachas cuentan cuántas semanas consecutivas ambos completaron al menos una acción juntos. ¡Compiten para no romper la racha!',
-  },
-  {
-    question: '¿Qué son los niveles y logros?',
-    answer:
-      'A medida que suman MariPuntos, suben de nivel juntos y desbloquean logros que celebran su progreso como pareja.',
-  },
-];
+import { type Lang, defaultLang, ui } from '@/i18n/ui';
 
-export function FaqAccordion() {
+const QUESTION_KEYS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7'] as const;
+
+interface Props {
+  lang?: Lang;
+}
+
+export function FaqAccordion({ lang = defaultLang }: Props) {
   const [open, setOpen] = useState<number | null>(null);
+  const dict = ui[lang] ?? ui[defaultLang];
+
+  const faqs = QUESTION_KEYS.map((k) => ({
+    question: dict[`faq.${k}.question` as keyof typeof dict],
+    answer: dict[`faq.${k}.answer` as keyof typeof dict],
+  }));
 
   return (
     <div className="space-y-3 max-w-3xl mx-auto">

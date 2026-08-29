@@ -1,17 +1,25 @@
 ---
 import LegalLayout from '@/layouts/LegalLayout.astro';
 import Layout from '@/layouts/Layout.astro';
+import { useTranslations } from '@/i18n/ui';
 
 export const prerender = true;
+
+const lang = 'es';
+const t = useTranslations(lang);
 ---
 
 <Layout
-  title="Términos de Servicio - MariPuntos"
-  description="Términos de servicio de MariPuntos - Condiciones de uso de la aplicación."
+  title={t('legal.terms.metaTitle')}
+  description={t('legal.terms.metaDescription')}
+  lang={lang}
+  alternatePath="/terminos"
 >
   <LegalLayout
-    title="Términos de Servicio de MariPuntos"
-    lastUpdated="28 de abril de 2026"
+    title={t('legal.terms.title')}
+    lastUpdated={t('legal.terms.updated')}
+    lang={lang}
+    switchPath="/terminos"
   >
     <section class="mb-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-4">1. Aceptación de los Términos</h2>

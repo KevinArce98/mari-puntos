@@ -1,0 +1,218 @@
+---
+import LegalLayout from '@/layouts/LegalLayout.astro';
+import Layout from '@/layouts/Layout.astro';
+import { useTranslations } from '@/i18n/ui';
+
+export const prerender = true;
+
+const lang = 'en';
+const t = useTranslations(lang);
+---
+
+<Layout
+  title={t('legal.terms.metaTitle')}
+  description={t('legal.terms.metaDescription')}
+  lang={lang}
+  alternatePath="/terminos"
+>
+  <LegalLayout
+    title={t('legal.terms.title')}
+    lastUpdated={t('legal.terms.updated')}
+    lang={lang}
+    switchPath="/terminos"
+  >
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">1. Acceptance of the Terms</h2>
+      <p class="text-gray-700 leading-relaxed">
+        By downloading, installing or using MariPuntos ("the App"), you accept these Terms of
+        Service. If you do not agree, do not use the App.
+      </p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">2. Description of the Service</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">
+        MariPuntos is a mobile gamification app for couples that lets you:
+      </p>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Earn points for completing actions</li>
+        <li>Request and manage permissions</li>
+        <li>Keep weekly streaks</li>
+        <li>Level up and unlock achievements</li>
+        <li>Connect with your partner</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">3. Eligibility</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">To use MariPuntos you must:</p>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Be at least 18 years old</li>
+        <li>Have the legal capacity to accept these terms</li>
+        <li>Provide accurate and truthful information</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">4. User Account</h2>
+
+      <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">4.1 Creating an Account</h3>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>You must create an account with accurate information</li>
+        <li>You are responsible for keeping your account secure</li>
+        <li>You may not share your account with others</li>
+      </ul>
+
+      <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">4.2 Linking with a Partner</h3>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>You may link your account with a single partner at a time</li>
+        <li>Both parties must consent to the link</li>
+        <li>You may unlink your account at any time</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">5. Acceptable Use</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">You agree NOT to:</p>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Use the App for unlawful purposes</li>
+        <li>Harass, threaten or intimidate other users</li>
+        <li>Attempt to access other users' accounts</li>
+        <li>Manipulate the points or levels system</li>
+        <li>Share inappropriate or offensive content</li>
+        <li>Infringe intellectual property rights</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">6. Points and Levels</h2>
+
+      <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">6.1 Points System</h3>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Points are awarded for completed and approved actions</li>
+        <li>Points have no monetary value</li>
+        <li>Points are not transferable outside the App</li>
+      </ul>
+
+      <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">6.2 Levels and Achievements</h3>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Levels and achievements reflect accumulated activity in the App</li>
+        <li>Achievements are purely illustrative and have no monetary value</li>
+        <li>MariPuntos may adjust level requirements at any time</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">7. Permissions</h2>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Permissions are requests between linked partners</li>
+        <li>MariPuntos facilitates communication but does not mediate disputes</li>
+        <li>Users are responsible for their own decisions and agreements</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">8. Intellectual Property</h2>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>MariPuntos and all of its content are owned by its creators</li>
+        <li>Logos, trademarks and designs are protected</li>
+        <li>Users retain rights over their personal content</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">9. Privacy and Data</h2>
+      <p class="text-gray-700 leading-relaxed">
+        The use of data is governed by our
+        <a href="/en/privacidad" class="text-[#0F766E] hover:underline">Privacy Policy</a>. By
+        using the App, you accept the collection and use of data under that policy.
+      </p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">10. Termination</h2>
+
+      <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">10.1 By the User</h3>
+      <p class="text-gray-700 leading-relaxed">
+        You may delete your account at any time from the settings.
+      </p>
+
+      <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">10.2 By MariPuntos</h3>
+      <p class="text-gray-700 leading-relaxed mb-3">
+        We may suspend or terminate your account if:
+      </p>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>You violate these Terms of Service</li>
+        <li>You use the App fraudulently or harmfully</li>
+        <li>It is required by law</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">11. Limitation of Liability</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">
+        MariPuntos is provided "as is" without warranties of any kind. We are not responsible
+        for:
+      </p>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Disputes between partners</li>
+        <li>Loss of data or points</li>
+        <li>Service interruptions</li>
+        <li>Indirect or consequential damages</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">12. Changes</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">
+        We may change these Terms at any time. Significant changes will be notified through:
+      </p>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>An in-app notification</li>
+        <li>Email</li>
+      </ul>
+      <p class="text-gray-700 leading-relaxed mt-3">
+        Continued use after the changes constitutes acceptance.
+      </p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">13. Governing Law</h2>
+      <p class="text-gray-700 leading-relaxed">
+        These terms are governed by the laws of Costa Rica. Any dispute will be resolved in
+        the courts of Costa Rica.
+      </p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">14. Contact</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">For questions about these Terms:</p>
+      <ul class="list-none text-gray-700 space-y-2">
+        <li><strong>Email:</strong> arias9068@gmail.com</li>
+        <li><strong>Website:</strong> https://maripuntos.com/soporte</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">15. General Provisions</h2>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>If any provision is invalid, the rest remain in force</li>
+        <li>Failure to exercise a right does not constitute a waiver</li>
+        <li>These terms constitute the entire agreement</li>
+      </ul>
+    </section>
+
+    <div class="border-t border-gray-300 pt-8 mt-12">
+      <p class="text-gray-600">
+        <strong>MariPuntos</strong>
+        <br />
+        Costa Rica
+        <br />
+        arias9068@gmail.com
+      </p>
+      <p class="text-gray-700 font-semibold mt-4">
+        By using MariPuntos, you accept these Terms of Service.
+      </p>
+    </div>
+  </LegalLayout>
+</Layout>

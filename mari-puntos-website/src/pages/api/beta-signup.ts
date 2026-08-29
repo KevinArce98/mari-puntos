@@ -1,7 +1,12 @@
 import type { APIRoute } from 'astro';
 import nodemailer from 'nodemailer';
 
+import { type Lang, defaultLang, ui } from '@/i18n/ui';
+
 export const prerender = false;
+
+const resolveLang = (value: FormDataEntryValue | null): Lang =>
+  value === 'en' ? 'en' : defaultLang;
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_EMAIL_LENGTH = 254;
@@ -57,22 +62,20 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   const formData = await request.formData();
   const email = formData.get('email');
   const honeypot = formData.get('company');
+  const t = ui[resolveLang(formData.get('lang'))];
 
   if (typeof honeypot === 'string' && honeypot.trim() !== '') {
-    return jsonResponse(
-      { success: true, message: '¡Gracias! Te contactaremos pronto.' },
-      200
-    );
+    return jsonResponse({ success: true, message: t['api.thanks'] }, 200);
   }
 
   if (typeof email !== 'string' || !email) {
-    return jsonResponse({ success: false, error: 'Email es requerido' }, 400);
+    return jsonResponse({ success: false, error: t['api.emailRequired'] }, 400);
   }
 
   const normalizedEmail = email.trim().toLowerCase();
 
   if (normalizedEmail.length > MAX_EMAIL_LENGTH || !emailRegex.test(normalizedEmail)) {
-    return jsonResponse({ success: false, error: 'Email inválido' }, 400);
+    return jsonResponse({ success: false, error: t['api.emailInvalid'] }, 400);
   }
 
   const clientKey =
@@ -82,10 +85,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     'unknown';
 
   if (isRateLimited(clientKey)) {
-    return jsonResponse(
-      { success: false, error: 'Demasiados intentos. Intenta de nuevo en unos minutos.' },
-      429
-    );
+    return jsonResponse({ success: false, error: t['api.rateLimited'] }, 429);
   }
 
   try {
@@ -139,18 +139,9 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       `,
     });
 
-    return jsonResponse(
-      { success: true, message: '¡Gracias! Te contactaremos pronto.' },
-      200
-    );
+    return jsonResponse({ success: true, message: t['api.thanks'] }, 200);
   } catch (error) {
-    console.error('Error enviando email:', error);
-    return jsonResponse(
-      {
-        success: false,
-        error: 'Error al procesar la solicitud. Por favor intenta de nuevo.',
-      },
-      500
-    );
+    console.error('Error sending email:', error);
+    return jsonResponse({ success: false, error: t['api.serverError'] }, 500);
   }
 };

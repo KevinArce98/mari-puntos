@@ -1,17 +1,25 @@
 ---
 import LegalLayout from '@/layouts/LegalLayout.astro';
 import Layout from '@/layouts/Layout.astro';
+import { useTranslations } from '@/i18n/ui';
 
 export const prerender = true;
+
+const lang = 'es';
+const t = useTranslations(lang);
 ---
 
 <Layout
-  title="Política de Privacidad - MariPuntos"
-  description="Política de privacidad de MariPuntos - Cómo recopilamos, usamos y protegemos tu información personal."
+  title={t('legal.privacy.metaTitle')}
+  description={t('legal.privacy.metaDescription')}
+  lang={lang}
+  alternatePath="/privacidad"
 >
   <LegalLayout
-    title="Política de Privacidad de MariPuntos"
-    lastUpdated="19 de julio de 2026"
+    title={t('legal.privacy.title')}
+    lastUpdated={t('legal.privacy.updated')}
+    lang={lang}
+    switchPath="/privacidad"
   >
     <section class="mb-8">
       <h2 class="text-2xl font-bold text-gray-900 mb-4">1. Introducción</h2>
