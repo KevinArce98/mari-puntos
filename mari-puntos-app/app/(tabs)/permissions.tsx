@@ -6,6 +6,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -25,17 +26,18 @@ type StatusFilter =
   | PermissionStatus.APPROVED
   | PermissionStatus.REJECTED;
 
-const statusFilters: { value: StatusFilter; label: string }[] = [
-  { value: 'all', label: 'Todas' },
-  { value: PermissionStatus.PENDING, label: 'Pendientes' },
-  { value: PermissionStatus.APPROVED, label: 'Aprobadas' },
-  { value: PermissionStatus.REJECTED, label: 'Rechazadas' },
-];
-
 export default function PermissionsScreen() {
+  const { t } = useTranslation(['permissions', 'common', 'errors']);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const themeColors = useThemedColors();
+
+  const statusFilters: { value: StatusFilter; label: string }[] = [
+    { value: 'all', label: t('common:filters.all') },
+    { value: PermissionStatus.PENDING, label: t('common:filters.pending') },
+    { value: PermissionStatus.APPROVED, label: t('common:filters.approved') },
+    { value: PermissionStatus.REJECTED, label: t('common:filters.rejected') },
+  ];
   const colorScheme = useColorScheme();
   const { user } = useUser();
   const { myPermissions, partnerPermissions, respondToPermission, refetch, isLoading } =
@@ -93,10 +95,10 @@ export default function PermissionsScreen() {
         responseMessage: data.message || '',
         pointsCost: data.pointsCost,
       });
-      toast.success(approved ? 'Solicitud aprobada' : 'Solicitud rechazada');
+      toast.success(approved ? t('respond.approved') : t('respond.rejected'));
     } catch (error) {
-      toast.error('Error', {
-        description: (error as any)?.error ?? 'No se pudo procesar la solicitud',
+      toast.error(t('errors:title'), {
+        description: (error as any)?.error ?? t('respond.error'),
       });
       throw error;
     } finally {
@@ -114,7 +116,7 @@ export default function PermissionsScreen() {
       >
         <View style={styles.header}>
           <Text style={[styles.title, { color: themeColors.text.primary }]}>
-            Permisos
+            {t('title')}
           </Text>
         </View>
         <SkeletonList count={4} lines={2} style={{ padding: spacing.lg }} />
@@ -130,9 +132,11 @@ export default function PermissionsScreen() {
       ]}
     >
       <View style={styles.header}>
-        <Text style={[styles.title, { color: themeColors.text.primary }]}>Permisos</Text>
+        <Text style={[styles.title, { color: themeColors.text.primary }]}>
+          {t('title')}
+        </Text>
         <Button
-          title="Nueva"
+          title={t('new')}
           icon="add"
           size="sm"
           onPress={() => router.push('/permissions/request')}
@@ -144,13 +148,13 @@ export default function PermissionsScreen() {
         accessibilityRole="tablist"
       >
         <ScopeButton
-          label="Recibidas"
+          label={t('scope.received')}
           count={receivedPending}
           selected={scope === 'received'}
           onPress={() => setScope('received')}
         />
         <ScopeButton
-          label="Enviadas"
+          label={t('scope.sent')}
           count={sentPending}
           selected={scope === 'sent'}
           onPress={() => setScope('sent')}
@@ -219,6 +223,7 @@ function ScopeButton({
   selected: boolean;
   onPress: () => void;
 }) {
+  const { t } = useTranslation('permissions');
   const colors = useThemedColors();
 
   return (
@@ -230,7 +235,7 @@ function ScopeButton({
       onPress={onPress}
       accessibilityRole="tab"
       accessibilityState={{ selected }}
-      accessibilityLabel={`${label}${count > 0 ? `, ${count} pendientes` : ''}`}
+      accessibilityLabel={count > 0 ? t('scope.pendingA11y', { label, count }) : label}
     >
       <Text
         style={[
@@ -254,13 +259,14 @@ function SentPermissionCard({
   onEdit: () => void;
   colorScheme: ReturnType<typeof useColorScheme>;
 }) {
+  const { t } = useTranslation('permissions');
   const colors = useThemedColors();
 
   return (
     <Card style={styles.permissionCard}>
       <View style={styles.permissionHeader}>
         <Text style={[styles.permissionName, { color: colors.text.primary }]}>
-          {permission.template?.title || 'Permiso sin título'}
+          {permission.template?.title || t('card.untitled')}
         </Text>
         <Badge
           label={getStatusText(permission.status)}
@@ -284,10 +290,10 @@ function SentPermissionCard({
       <View style={styles.permissionFooter}>
         <View>
           <Text style={[styles.permissionDate, { color: colors.text.light }]}>
-            Solicitado: {formatDateOnly(permission.requestedDate)}
+            {t('card.requested', { date: formatDateOnly(permission.requestedDate) })}
           </Text>
           <Text style={[styles.permissionDate, { color: colors.text.light }]}>
-            Duración: {permission.durationHours} h
+            {t('card.duration', { hours: permission.durationHours })}
           </Text>
         </View>
         {(permission.pointsCost ?? 0) > 0 && (
@@ -300,7 +306,7 @@ function SentPermissionCard({
       {permission.responseMessage && (
         <View style={[styles.responseContainer, { backgroundColor: colors.gray[50] }]}>
           <Text style={[styles.responseLabel, { color: colors.text.secondary }]}>
-            Respuesta
+            {t('card.response')}
           </Text>
           <Text style={[styles.responseMessage, { color: colors.text.primary }]}>
             {permission.responseMessage}
@@ -310,7 +316,7 @@ function SentPermissionCard({
 
       {permission.status === PermissionStatus.PENDING && (
         <Button
-          title="Editar solicitud"
+          title={t('card.edit')}
           onPress={onEdit}
           variant="outline"
           size="sm"
@@ -331,6 +337,7 @@ function EmptyState({
   filtered: boolean;
   onCreate: () => void;
 }) {
+  const { t } = useTranslation('permissions');
   const colors = useThemedColors();
   const sent = scope === 'sent';
 
@@ -347,20 +354,25 @@ function EmptyState({
       </View>
       <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
         {filtered
-          ? 'No hay resultados'
+          ? t('empty.noResults')
           : sent
-            ? 'Aún no has enviado solicitudes'
-            : 'No tienes solicitudes recibidas'}
+            ? t('empty.sentTitle')
+            : t('empty.receivedTitle')}
       </Text>
       <Text style={[styles.emptyText, { color: colors.text.secondary }]}>
         {filtered
-          ? 'Prueba con otro estado.'
+          ? t('empty.noResultsHint')
           : sent
-            ? 'Crea una solicitud cuando necesites acordar una actividad.'
-            : 'Cuando tu pareja te envíe una, aparecerá aquí.'}
+            ? t('empty.sentHint')
+            : t('empty.receivedHint')}
       </Text>
       {sent && !filtered && (
-        <Button title="Nueva solicitud" onPress={onCreate} variant="outline" size="sm" />
+        <Button
+          title={t('empty.newRequest')}
+          onPress={onCreate}
+          variant="outline"
+          size="sm"
+        />
       )}
     </Card>
   );

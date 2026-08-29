@@ -1,0 +1,20 @@
+{
+  "title": "Pending",
+  "backA11y": "Go back",
+  "allClear": {
+    "title": "All caught up",
+    "text": "You have no actions or permissions to review."
+  },
+  "sections": {
+    "actions": "Actions to review",
+    "permissions": "Permissions to respond to"
+  },
+  "permissionApproved": "Request approved",
+  "permissionRejected": "Request rejected",
+  "permissionError": "Couldn't process the request",
+  "actionApproved": "Action approved",
+  "actionApprovedMessage": "The points were awarded",
+  "actionApproveError": "Couldn't approve the action",
+  "actionRejected": "Action rejected",
+  "actionRejectError": "Couldn't reject the action"
+}

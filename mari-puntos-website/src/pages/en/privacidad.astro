@@ -1,0 +1,195 @@
+---
+import LegalLayout from '@/layouts/LegalLayout.astro';
+import Layout from '@/layouts/Layout.astro';
+import { useTranslations } from '@/i18n/ui';
+
+export const prerender = true;
+
+const lang = 'en';
+const t = useTranslations(lang);
+---
+
+<Layout
+  title={t('legal.privacy.metaTitle')}
+  description={t('legal.privacy.metaDescription')}
+  lang={lang}
+  alternatePath="/privacidad"
+>
+  <LegalLayout
+    title={t('legal.privacy.title')}
+    lastUpdated={t('legal.privacy.updated')}
+    lang={lang}
+    switchPath="/privacidad"
+  >
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">1. Introduction</h2>
+      <p class="text-gray-700 leading-relaxed">
+        Welcome to MariPuntos. This Privacy Policy describes how we collect, use and protect
+        your personal information when you use our mobile app.
+      </p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">2. Information We Collect</h2>
+
+      <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">2.1 Account Information</h3>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Name</li>
+        <li>Email address</li>
+        <li>Profile information</li>
+      </ul>
+
+      <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">2.2 Usage Data</h3>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Completed actions</li>
+        <li>Requested and approved permissions</li>
+        <li>Points earned and current level</li>
+        <li>Unlocked achievements</li>
+        <li>Weekly streaks</li>
+      </ul>
+
+      <h3 class="text-xl font-semibold text-gray-900 mb-3 mt-6">2.3 Technical Information</h3>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Device type</li>
+        <li>Operating system</li>
+        <li>Unique device identifiers</li>
+        <li>App usage data</li>
+        <li>Error and crash reports</li>
+        <li>
+          A technical recording of the on-screen session when an error occurs, with all text
+          and images masked (real content is never captured)
+        </li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">3. How We Use Your Information</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">We use the collected information to:</p>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Provide and maintain our service</li>
+        <li>Manage your account and relationship with your partner</li>
+        <li>Calculate points and levels</li>
+        <li>Improve the user experience</li>
+        <li>Communicate with you about updates</li>
+        <li>Ensure the security of the app</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">4. Sharing Information</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">MariPuntos only shares information:</p>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>With your linked partner inside the app</li>
+        <li>When required by law</li>
+        <li>With trusted service providers (authentication, storage)</li>
+      </ul>
+      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-4">
+        <p class="text-gray-800 font-semibold">
+          We do NOT sell or share your information with third parties for advertising purposes.
+        </p>
+      </div>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">5. Data Security</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">
+        We implement technical and organizational security measures to protect your data:
+      </p>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Encryption of data in transit (HTTPS/TLS)</li>
+        <li>Secure authentication via Clerk</li>
+        <li>Secure storage of credentials</li>
+        <li>Restricted access to personal data</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">6. Your Rights</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">You have the right to:</p>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Access your personal data</li>
+        <li>Correct inaccurate information</li>
+        <li>Delete your account and data</li>
+        <li>Export your data</li>
+        <li>Withdraw consent</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">7. Data Retention</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">
+        We keep your personal information while:
+      </p>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>Your account is active</li>
+        <li>It is necessary to provide services</li>
+        <li>It is required by legal obligations</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">8. Third-Party Services</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">
+        MariPuntos uses the following third-party services:
+      </p>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li><strong>Clerk</strong>: User authentication</li>
+        <li>
+          <strong>Sentry</strong>: Error and crash monitoring to improve app stability,
+          including a technical screen recording with text and images masked when an error
+          occurs
+        </li>
+        <li><strong>Our own backend</strong>: Storage of app data</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">9. Minors</h2>
+      <p class="text-gray-700 leading-relaxed">
+        MariPuntos is designed for users over 18 years old. We do not knowingly collect
+        information from minors.
+      </p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">10. Changes to This Policy</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">
+        We may update this Privacy Policy from time to time. We will notify you of significant
+        changes through:
+      </p>
+      <ul class="list-disc list-inside text-gray-700 space-y-2">
+        <li>An in-app notification</li>
+        <li>Email</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">11. Contact</h2>
+      <p class="text-gray-700 leading-relaxed mb-3">
+        If you have questions about this Privacy Policy, contact us at:
+      </p>
+      <ul class="list-none text-gray-700 space-y-2">
+        <li><strong>Email:</strong> arias9068@gmail.com</li>
+        <li><strong>Website:</strong> https://maripuntos.com/contacto</li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-4">12. Jurisdiction</h2>
+      <p class="text-gray-700 leading-relaxed">
+        This app is designed primarily for users in Costa Rica and complies with applicable
+        data protection laws.
+      </p>
+    </section>
+
+    <div class="border-t border-gray-300 pt-8 mt-12">
+      <p class="text-gray-600">
+        <strong>MariPuntos</strong>
+        <br />
+        Costa Rica
+        <br />
+        arias9068@gmail.com
+      </p>
+    </div>
+  </LegalLayout>
+</Layout>

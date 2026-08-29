@@ -13,11 +13,11 @@ export class UsersService {
   async getUserById(userId: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['partnerLinkAsUser1', 'partnerLinkAsUser2'],
+      relations: { partnerLinkAsUser1: true, partnerLinkAsUser2: true },
     });
 
     if (!user) {
-      throw new AppError(404, 'Usuario no encontrado');
+      throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
     }
 
     return user;
@@ -26,37 +26,35 @@ export class UsersService {
   async getUserByClerkId(clerkId: string): Promise<User | null> {
     return await this.userRepository.findOne({
       where: { clerkId },
-      relations: ['partnerLinkAsUser1', 'partnerLinkAsUser2'],
+      relations: { partnerLinkAsUser1: true, partnerLinkAsUser2: true },
     });
   }
 
-  /**
-   * Create a new user
-   */
   async createUser(clerkId: string, data: CreateUserInput): Promise<User> {
     logger.info({ message: 'Creating user with clerkId', clerkId });
 
-    // Check if user already exists with this clerkId
     const existingUser = await this.userRepository.findOne({
       where: { clerkId },
     });
 
     if (existingUser) {
       logger.warn({ message: 'User already exists with clerkId', clerkId });
-      throw new AppError(409, 'El usuario ya existe');
+      throw new AppError(409, 'El usuario ya existe', 'errors.user.alreadyExists');
     }
 
-    // Check if email is already in use
     const emailInUse = await this.userRepository.findOne({
       where: { email: data.email },
     });
 
     if (emailInUse) {
       logger.warn({ message: 'Email already in use', email: data.email });
-      throw new AppError(409, 'El correo electrónico ya está en uso');
+      throw new AppError(
+        409,
+        'El correo electrónico ya está en uso',
+        'errors.user.emailInUse'
+      );
     }
 
-    // Fetch user from Clerk to get the imageUrl
     let avatarUrl: string | undefined = data.avatarUrl;
     try {
       const { clerkClient } = await import('../config/clerk');
@@ -78,15 +76,15 @@ export class UsersService {
       firstName: data.firstName,
       lastName: data.lastName,
       avatarUrl,
+      locale: data.locale ?? null,
     });
 
     let savedUser: User;
     try {
       savedUser = await this.userRepository.save(user);
     } catch (dbError) {
-      // Unique constraint violation — two concurrent requests raced; treat as duplicate
       if (dbError instanceof Error && 'code' in dbError && dbError.code === '23505') {
-        throw new AppError(409, 'El usuario ya existe');
+        throw new AppError(409, 'El usuario ya existe', 'errors.user.alreadyExists');
       }
       throw dbError;
     }
@@ -101,10 +99,16 @@ export class UsersService {
 
     const { clerkClient } = await import('../config/clerk');
     const clerkUser = await clerkClient.users.getUser(clerkId);
-    const email = clerkUser.primaryEmailAddress?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress;
+    const email =
+      clerkUser.primaryEmailAddress?.emailAddress ??
+      clerkUser.emailAddresses[0]?.emailAddress;
 
     if (!email) {
-      throw new AppError(500, 'El usuario de Clerk no tiene un correo electrónico asociado');
+      throw new AppError(
+        500,
+        'El usuario de Clerk no tiene un correo electrónico asociado',
+        'errors.user.clerkNoEmail'
+      );
     }
 
     const staleByEmail = await this.userRepository.findOne({ where: { email } });
@@ -129,7 +133,6 @@ export class UsersService {
       return await this.userRepository.save(user);
     } catch (dbError) {
       if (dbError instanceof Error && 'code' in dbError && dbError.code === '23505') {
-        // Raced with a concurrent request (another API call or the webhook) — re-fetch.
         const winner = await this.userRepository.findOne({ where: { clerkId } });
         if (winner) return winner;
         const winnerByEmail = await this.userRepository.findOne({ where: { email } });
@@ -138,7 +141,6 @@ export class UsersService {
       throw dbError;
     }
   }
-
 
   async updateUser(
     userId: string,
@@ -151,6 +153,7 @@ export class UsersService {
     if (data.firstName !== undefined) user.firstName = data.firstName;
     if (data.lastName !== undefined) user.lastName = data.lastName;
     if (data.pushToken !== undefined) user.pushToken = data.pushToken;
+    if (data.locale !== undefined) user.locale = data.locale;
 
     await this.userRepository.save(user);
 
@@ -165,7 +168,6 @@ export class UsersService {
         if (data.profileImage) {
           logger.debug({ message: 'Updating profile image in Clerk', userId });
 
-          // Convert base64 to Blob for Clerk API
           const base64Data = data.profileImage.replace(/^data:image\/\w+;base64,/, '');
           const buffer = Buffer.from(base64Data, 'base64');
           const blob = new Blob([buffer], { type: 'image/jpeg' });
@@ -185,7 +187,6 @@ export class UsersService {
 
         logger.info({ message: 'Clerk profile updated successfully', userId });
 
-        // Fetch updated user from Clerk to get the new imageUrl
         const clerkUser = await clerkClient.users.getUser(user.clerkId);
         if (clerkUser.imageUrl && clerkUser.imageUrl !== user.avatarUrl) {
           user.avatarUrl = clerkUser.imageUrl;
@@ -210,9 +211,6 @@ export class UsersService {
     return { user, hasPartner };
   }
 
-  /**
-   * Get user profile with hasPartner flag
-   */
   async getUserProfile(userId: string): Promise<{ user: User; hasPartner: boolean }> {
     const user = await this.getUserById(userId);
     const hasPartner = this.checkHasPartner(user);
@@ -220,9 +218,6 @@ export class UsersService {
     return { user, hasPartner };
   }
 
-  /**
-   * Check if user has an active partner link
-   */
   private checkHasPartner(user: User): boolean {
     const partnerLink = user.partnerLinkAsUser1 || user.partnerLinkAsUser2;
     return !!partnerLink && partnerLink.status === PartnerLinkStatus.ACTIVE;
@@ -239,7 +234,6 @@ export class UsersService {
   }> {
     const user = await this.getUserById(userId);
 
-    // Parallel queries — all fire simultaneously on a single connection slot
     const [actionsCount, approvedActionsCount, permissionsCount, achievementsCount] =
       await Promise.all([
         AppDataSource.query('SELECT COUNT(*) as count FROM actions WHERE "userId" = $1', [
@@ -271,7 +265,7 @@ export class UsersService {
   }
 
   async getUserAchievements(userId: string): Promise<Achievement[]> {
-    await this.getUserById(userId); // validates user exists
+    await this.getUserById(userId);
     const achievementRepository = AppDataSource.getRepository(Achievement);
     return achievementRepository.find({
       where: { userId },
@@ -288,7 +282,11 @@ export class UsersService {
       });
       if (!existingUser) return code;
     }
-    throw new AppError(500, 'No se pudo generar un código único. Intenta de nuevo.');
+    throw new AppError(
+      500,
+      'No se pudo generar un código único. Intenta de nuevo.',
+      'errors.user.codeGenerationFailed'
+    );
   }
 
   private async purgeLocalUserData(userId: string): Promise<void> {
@@ -357,7 +355,10 @@ export class UsersService {
   async purgeUserByClerkId(clerkId: string): Promise<void> {
     const user = await this.userRepository.findOne({ where: { clerkId } });
     if (!user) {
-      logger.debug({ clerkId }, 'user.deleted webhook: no matching local user, nothing to purge');
+      logger.debug(
+        { clerkId },
+        'user.deleted webhook: no matching local user, nothing to purge'
+      );
       return;
     }
     await this.purgeLocalUserData(user.id);

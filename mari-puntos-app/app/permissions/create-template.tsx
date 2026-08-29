@@ -17,6 +17,7 @@ import { usePreventRemove } from 'expo-router/react-navigation';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -36,21 +37,27 @@ import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { PermissionCategory } from '@/types';
 import logger from '@/utils/logger';
 
-const CATEGORY_OPTIONS = [
-  { label: 'Gaming', value: PermissionCategory.GAMING },
-  { label: 'Social', value: PermissionCategory.SOCIAL },
-  { label: 'Deportes', value: PermissionCategory.SPORTS },
-  { label: 'Hobbies', value: PermissionCategory.HOBBIES },
-  { label: 'Entretenimiento', value: PermissionCategory.ENTERTAINMENT },
-  { label: 'Tiempo Personal', value: PermissionCategory.PERSONAL_TIME },
-  { label: 'Otro', value: PermissionCategory.OTHER },
+const CATEGORY_VALUES = [
+  PermissionCategory.GAMING,
+  PermissionCategory.SOCIAL,
+  PermissionCategory.SPORTS,
+  PermissionCategory.HOBBIES,
+  PermissionCategory.ENTERTAINMENT,
+  PermissionCategory.PERSONAL_TIME,
+  PermissionCategory.OTHER,
 ];
 
 export default function CreateTemplateScreen() {
+  const { t } = useTranslation(['permissions', 'common', 'errors']);
   const themeColors = useThemedColors();
   const router = useRouter();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+
+  const CATEGORY_OPTIONS = CATEGORY_VALUES.map((value) => ({
+    label: t(`categories.${value}`),
+    value,
+  }));
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -71,18 +78,14 @@ export default function CreateTemplateScreen() {
     selectedIcon !== 'sparkles-outline';
 
   usePreventRemove(isDirty && !allowExit, ({ data }) => {
-    Alert.alert(
-      'Descartar actividad',
-      'Perderás los cambios que todavía no has guardado.',
-      [
-        { text: 'Seguir editando', style: 'cancel' },
-        {
-          text: 'Descartar',
-          style: 'destructive',
-          onPress: () => navigation.dispatch(data.action),
-        },
-      ]
-    );
+    Alert.alert(t('createTemplate.discard.title'), t('createTemplate.discard.message'), [
+      { text: t('common:actions.keepEditing'), style: 'cancel' },
+      {
+        text: t('createTemplate.discard.confirm'),
+        style: 'destructive',
+        onPress: () => navigation.dispatch(data.action),
+      },
+    ]);
   });
 
   useEffect(() => {
@@ -100,7 +103,7 @@ export default function CreateTemplateScreen() {
 
   const handleCreate = async () => {
     if (!title.trim()) {
-      toast.error('Error', { description: 'El título es requerido' });
+      toast.error(t('errors:title'), { description: t('createTemplate.titleRequired') });
       return;
     }
 
@@ -108,12 +111,16 @@ export default function CreateTemplateScreen() {
     const points = parseFloat(suggestedPoints);
 
     if (isNaN(duration) || duration <= 0) {
-      toast.error('Error', { description: 'La duración debe ser mayor a 0' });
+      toast.error(t('errors:title'), {
+        description: t('createTemplate.durationInvalid'),
+      });
       return;
     }
 
     if (isNaN(points) || points < 0) {
-      toast.error('Error', { description: 'Los puntos deben ser 0 o mayor' });
+      toast.error(t('errors:title'), {
+        description: t('createTemplate.pointsInvalid'),
+      });
       return;
     }
 
@@ -132,7 +139,9 @@ export default function CreateTemplateScreen() {
 
       logger.info('Permission template created', { title: title.trim(), category });
 
-      toast.success('Actividad creada', { description: 'Ya puedes seleccionarla' });
+      toast.success(t('createTemplate.createdTitle'), {
+        description: t('createTemplate.createdMessage'),
+      });
 
       setAllowExit(true);
       setTimeout(() => router.back(), 0);
@@ -143,7 +152,7 @@ export default function CreateTemplateScreen() {
         suggestedDurationHours: duration,
         suggestedPointsCost: points,
       });
-      toast.error('Error', { description: 'No se pudo crear la actividad' });
+      toast.error(t('errors:title'), { description: t('createTemplate.createError') });
     } finally {
       setLoading(false);
     }
@@ -159,18 +168,17 @@ export default function CreateTemplateScreen() {
         },
       ]}
     >
-      {/* Header */}
       <View style={styles.header}>
         <PressableScale
           onPress={() => router.back()}
           style={styles.backButton}
           accessibilityRole="button"
-          accessibilityLabel="Volver"
+          accessibilityLabel={t('createTemplate.backA11y')}
         >
           <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
         </PressableScale>
         <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
-          Nueva actividad
+          {t('createTemplate.headerTitle')}
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -185,10 +193,9 @@ export default function CreateTemplateScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Icon Selection */}
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                Icono
+                {t('createTemplate.iconLabel')}
               </Text>
               <PressableScale
                 style={[styles.iconButton, { backgroundColor: themeColors.gray[100] }]}
@@ -210,7 +217,7 @@ export default function CreateTemplateScreen() {
                   <Text
                     style={[styles.iconButtonText, { color: themeColors.text.primary }]}
                   >
-                    Seleccionar icono
+                    {t('createTemplate.iconButtonTitle')}
                   </Text>
                   <Text
                     style={[
@@ -218,7 +225,7 @@ export default function CreateTemplateScreen() {
                       { color: themeColors.text.secondary },
                     ]}
                   >
-                    Personaliza el icono de tu actividad
+                    {t('createTemplate.iconButtonSubtitle')}
                   </Text>
                 </View>
                 <Ionicons
@@ -229,26 +236,24 @@ export default function CreateTemplateScreen() {
               </PressableScale>
             </View>
 
-            {/* Title */}
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                Título *
+                {t('createTemplate.titleLabel')}
               </Text>
               <Input
-                placeholder="Ej: Noche de Poker, Día de Golf..."
+                placeholder={t('createTemplate.titlePlaceholder')}
                 value={title}
                 onChangeText={setTitle}
                 maxLength={100}
               />
             </View>
 
-            {/* Description */}
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                Descripción (opcional)
+                {t('createTemplate.descriptionLabel')}
               </Text>
               <Input
-                placeholder="Describe la actividad..."
+                placeholder={t('createTemplate.descriptionPlaceholder')}
                 value={description}
                 onChangeText={setDescription}
                 multiline
@@ -257,26 +262,24 @@ export default function CreateTemplateScreen() {
               />
             </View>
 
-            {/* Category */}
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                Categoría
+                {t('createTemplate.categoryLabel')}
               </Text>
               <Select
                 options={CATEGORY_OPTIONS}
                 value={category}
                 onValueChange={(value) => setCategory(value as PermissionCategory)}
-                placeholder="Selecciona una categoría"
+                placeholder={t('createTemplate.categoryPlaceholder')}
               />
             </View>
 
-            {/* Duration */}
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                Duración (hrs)
+                {t('createTemplate.durationLabel')}
               </Text>
               <Input
-                placeholder="2"
+                placeholder={t('createTemplate.durationPlaceholder')}
                 value={suggestedDuration}
                 onChangeText={setSuggestedDuration}
                 keyboardType="numeric"
@@ -285,7 +288,7 @@ export default function CreateTemplateScreen() {
 
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
-                Puntos sugeridos
+                {t('createTemplate.pointsLabel')}
               </Text>
               <View style={styles.pointsPresets}>
                 {POINT_VALUE_PRESETS.map((value) => (
@@ -300,7 +303,6 @@ export default function CreateTemplateScreen() {
               </View>
             </View>
 
-            {/* Info Card */}
             <Card
               style={[
                 styles.infoCard,
@@ -334,7 +336,6 @@ export default function CreateTemplateScreen() {
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 
-      {/* Bottom Button */}
       <View
         style={[
           styles.bottomContainer,
@@ -346,7 +347,7 @@ export default function CreateTemplateScreen() {
         ]}
       >
         <Button
-          title="Crear actividad"
+          title={t('createTemplate.submit')}
           onPress={handleCreate}
           loading={loading}
           disabled={!title.trim()}
@@ -355,7 +356,6 @@ export default function CreateTemplateScreen() {
         />
       </View>
 
-      {/* Icon Selector Modal */}
       <IconSelector
         visible={showIconSelector}
         selectedIcon={selectedIcon}

@@ -15,9 +15,6 @@ import {
 import * as Haptics from 'expo-haptics';
 import { useTheme } from 'expo-router';
 
-// expo-router no longer re-exports @react-navigation/elements' PlatformPressable
-// (SDK 56+), so this is copied locally per Expo's own migration guidance:
-// https://docs.expo.dev/router/migrate/sdk-55-to-56/
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const ANDROID_SUPPORTS_RIPPLE = Platform.OS === 'android' && Platform.Version >= 21;
 const useNativeDriver = Platform.OS !== 'web';
@@ -99,7 +96,6 @@ export function HapticTab(props: PlatformPressableProps) {
       {...props}
       onPressIn={(ev) => {
         if (process.env.EXPO_OS === 'ios') {
-          // Add a soft haptic feedback when pressing down on the tabs.
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
         props.onPressIn?.(ev);

@@ -1,17 +1,18 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
-  OneToOne,
+  Entity,
   OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-import { PartnerLink } from './PartnerLink';
-import { Action } from './Action';
-import { Permission } from './Permission';
-import { Log } from './Log';
+
 import { Achievement } from './Achievement';
+import { Action } from './Action';
+import { Log } from './Log';
+import { PartnerLink } from './PartnerLink';
+import { Permission } from './Permission';
 
 @Entity('users')
 export class User {
@@ -51,13 +52,15 @@ export class User {
   @Column({ nullable: true })
   pushToken: string;
 
+  @Column({ type: 'varchar', length: 5, nullable: true })
+  locale: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
 
-  // Relations
   @OneToOne(() => PartnerLink, (partnerLink) => partnerLink.user1)
   partnerLinkAsUser1: PartnerLink;
 

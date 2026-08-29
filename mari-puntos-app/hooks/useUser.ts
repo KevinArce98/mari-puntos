@@ -21,8 +21,6 @@ export const useUser = () => {
 
   const hasPartnerRef = useRef<boolean>(false);
 
-  // Only fetch partner info when user has a partner but partnerInfo is not loaded yet
-  // Don't fetch profile here - useClerkAuth handles that
   useEffect(() => {
     const currentHasPartner = user?.hasPartner ?? false;
 
@@ -30,7 +28,7 @@ export const useUser = () => {
       hasPartnerRef.current = true;
       fetchPartnerInfo().catch((error) => {
         logger.error('Failed to fetch partner info in useUser hook', error);
-        hasPartnerRef.current = false; // Reset on error to allow retry
+        hasPartnerRef.current = false;
       });
     }
 

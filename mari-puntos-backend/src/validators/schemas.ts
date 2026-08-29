@@ -1,7 +1,3 @@
-/**
- * Zod validation schemas for API requests
- * ⚠️ These MUST match the frontend request DTOs exactly
- */
 import { z } from 'zod';
 
 import { PermissionCategory } from '../entities/PermissionTemplate';
@@ -12,23 +8,22 @@ import {
   PermissionStatus,
 } from '../shared/constants';
 
-// ============================================================================
-// USER SCHEMAS (Matches frontend CreateUserRequest, UpdateProfileRequest)
-// ============================================================================
+export const localeSchema = z.enum(['es', 'en']);
 
 export const createUserSchema = z.object({
   email: z.email('Invalid email address'),
   firstName: z.string().min(1, 'First name is required').max(100),
   lastName: z.string().min(1, 'Last name is required').max(100),
   avatarUrl: z.url('Invalid URL').optional(),
-  // clerkId is intentionally NOT accepted from body — derived from JWT to prevent mass assignment
+  locale: localeSchema.optional(),
 });
 
 export const updateUserSchema = z.object({
   firstName: z.string().min(1).max(100).optional(),
   lastName: z.string().min(1).max(100).optional(),
   pushToken: z.string().optional(),
-  profileImage: z.string().optional(), // base64 encoded image
+  profileImage: z.string().optional(),
+  locale: localeSchema.optional(),
 });
 
 export const sendTestNotificationSchema = z.object({
@@ -38,17 +33,9 @@ export const sendTestNotificationSchema = z.object({
   data: z.record(z.string(), z.unknown()).optional(),
 });
 
-// ============================================================================
-// PARTNER SCHEMAS (Matches frontend CreatePartnerLinkRequest, JoinPartnerRequest)
-// ============================================================================
-
 export const joinPartnerLinkSchema = z.object({
   linkCode: z.string().length(6, 'Link code must be 6 characters'),
 });
-
-// ============================================================================
-// ACTION SCHEMAS (Matches frontend CreateActionRequest, ApproveActionRequest, RejectActionRequest)
-// ============================================================================
 
 export const createActionSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
@@ -90,21 +77,17 @@ export const rejectActionSchema = z.object({
   rejectionReason: z.string().min(1, 'Rejection reason is required').max(500),
 });
 
-// ============================================================================
-// PERMISSION SCHEMAS (Matches frontend CreatePermissionRequest, RespondPermissionRequest)
-// ============================================================================
-
 export const createPermissionSchema = z.object({
   templateId: z.uuid('Invalid template ID'),
   requestedDate: z.iso.datetime({ message: 'Invalid date format' }),
-  durationHours: z.number().min(0.5).max(168), // Min 0.5 hours, Max 1 week
+  durationHours: z.number().min(0.5).max(168),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const respondPermissionSchema = z.object({
   approved: z.boolean(),
   responseMessage: z.string().max(500).optional(),
-  pointsCost: z.number().int().min(0).optional(), // Set by approver when approving
+  pointsCost: z.number().int().min(0).optional(),
 });
 
 export const updatePermissionSchema = z.object({
@@ -112,10 +95,6 @@ export const updatePermissionSchema = z.object({
   durationHours: z.number().min(0.5).max(168).optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
-
-// ============================================================================
-// PERMISSION TEMPLATE SCHEMAS (Matches frontend CreatePermissionTemplateRequest, UpdatePermissionTemplateRequest)
-// ============================================================================
 
 export const createPermissionTemplateSchema = z.object({
   title: z.string().min(1).max(100),
@@ -127,10 +106,6 @@ export const createPermissionTemplateSchema = z.object({
 });
 
 export const updatePermissionTemplateSchema = createPermissionTemplateSchema.partial();
-
-// ============================================================================
-// QUERY SCHEMAS (Matches frontend pagination and filter params)
-// ============================================================================
 
 export const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).optional().default(PAGINATION_DEFAULTS.PAGE),
@@ -167,10 +142,6 @@ export const permissionsQuerySchema = z.object({
 export const leaderboardQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).optional().default(10),
 });
-
-// ============================================================================
-// TYPE EXPORTS
-// ============================================================================
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;

@@ -15,9 +15,10 @@ import { usePreventRemove } from 'expo-router/react-navigation';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { useUser } from '@clerk/clerk-expo';
+import { useUser } from '@clerk/expo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 import { z } from 'zod';
@@ -25,23 +26,29 @@ import { z } from 'zod';
 import { Button, PressableScale } from '@/components/ui';
 import { ControlledInput } from '@/components/ui/ControlledInput';
 import { useThemedColors } from '@/hooks';
+import i18n from '@/i18n';
 import { spacing, typography } from '@/theme';
 import { hasPasswordSymbol, passwordSchema } from '@/validators/password.rules';
 
 const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, 'La contraseña actual es requerida'),
+    currentPassword: z
+      .string()
+      .min(1, { error: () => i18n.t('validation:password.currentRequired') }),
     newPassword: passwordSchema,
-    confirmNewPassword: z.string().min(1, 'Debes confirmar tu nueva contraseña'),
+    confirmNewPassword: z
+      .string()
+      .min(1, { error: () => i18n.t('validation:password.confirmNewRequired') }),
   })
   .refine((data) => data.newPassword === data.confirmNewPassword, {
-    message: 'Las contraseñas no coinciden',
+    error: () => i18n.t('validation:password.mismatch'),
     path: ['confirmNewPassword'],
   });
 
 type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 
 export default function ChangePasswordScreen() {
+  const { t } = useTranslation(['profile', 'errors']);
   const colors = useThemedColors();
   const router = useRouter();
   const navigation = useNavigation();
@@ -74,18 +81,14 @@ export default function ChangePasswordScreen() {
   const hasSymbol = hasPasswordSymbol(newPassword);
 
   usePreventRemove(isDirty && !allowExit, ({ data }) => {
-    Alert.alert(
-      'Descartar cambios',
-      'Perderás las contraseñas que todavía no has guardado.',
-      [
-        { text: 'Seguir editando', style: 'cancel' },
-        {
-          text: 'Descartar',
-          style: 'destructive',
-          onPress: () => navigation.dispatch(data.action),
-        },
-      ]
-    );
+    Alert.alert(t('changePassword.discard.title'), t('changePassword.discard.message'), [
+      { text: t('changePassword.discard.stay'), style: 'cancel' },
+      {
+        text: t('changePassword.discard.confirm'),
+        style: 'destructive',
+        onPress: () => navigation.dispatch(data.action),
+      },
+    ]);
   });
 
   const onSubmit = async (data: ChangePasswordFormData) => {
@@ -98,8 +101,8 @@ export default function ChangePasswordScreen() {
         newPassword: data.newPassword,
       });
       reset();
-      toast.success('Contraseña actualizada', {
-        description: 'Tu contraseña ha sido cambiada correctamente',
+      toast.success(t('changePassword.successTitle'), {
+        description: t('changePassword.successMessage'),
       });
       setAllowExit(true);
       setTimeout(() => router.back(), 0);
@@ -107,8 +110,8 @@ export default function ChangePasswordScreen() {
       const message =
         error?.errors?.[0]?.longMessage ||
         error?.errors?.[0]?.message ||
-        'No se pudo cambiar la contraseña';
-      toast.error('Error', { description: message });
+        t('changePassword.errorMessage');
+      toast.error(t('errors:title'), { description: message });
     } finally {
       setLoading(false);
     }
@@ -124,18 +127,17 @@ export default function ChangePasswordScreen() {
         },
       ]}
     >
-      {/* Header */}
       <View style={styles.header}>
         <PressableScale
           onPress={() => router.back()}
           style={styles.backButton}
           accessibilityRole="button"
-          accessibilityLabel="Volver"
+          accessibilityLabel={t('changePassword.backA11y')}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </PressableScale>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
-          Cambiar contraseña
+          {t('changePassword.title')}
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -144,11 +146,10 @@ export default function ChangePasswordScreen() {
         <View style={styles.noPasswordContainer}>
           <Ionicons name="logo-google" size={48} color={colors.gray[400]} />
           <Text style={[styles.noPasswordTitle, { color: colors.text.primary }]}>
-            Cuenta externa
+            {t('changePassword.externalTitle')}
           </Text>
           <Text style={[styles.noPasswordText, { color: colors.text.secondary }]}>
-            Tu cuenta está vinculada con un proveedor externo (Google/Apple). No puedes
-            cambiar la contraseña desde aquí.
+            {t('changePassword.externalText')}
           </Text>
         </View>
       ) : (
@@ -164,14 +165,14 @@ export default function ChangePasswordScreen() {
             <ControlledInput
               control={control}
               name="currentPassword"
-              label="Contraseña actual"
+              label={t('changePassword.currentLabel')}
               secureTextEntry
               leftIcon="lock-closed-outline"
             />
             <ControlledInput
               control={control}
               name="newPassword"
-              label="Nueva contraseña"
+              label={t('changePassword.newLabel')}
               secureTextEntry
               leftIcon="lock-open-outline"
             />
@@ -181,18 +182,18 @@ export default function ChangePasswordScreen() {
                 { color: hasSymbol ? colors.success : colors.text.secondary },
               ]}
             >
-              Debe contener al menos un símbolo (ej. !@#$)
+              {t('changePassword.symbolRule')}
             </Text>
             <ControlledInput
               control={control}
               name="confirmNewPassword"
-              label="Confirmar nueva contraseña"
+              label={t('changePassword.confirmLabel')}
               secureTextEntry
               leftIcon="checkmark-circle-outline"
             />
 
             <Button
-              title="Guardar contraseña"
+              title={t('changePassword.submit')}
               onPress={handleSubmit(onSubmit)}
               loading={loading}
               fullWidth

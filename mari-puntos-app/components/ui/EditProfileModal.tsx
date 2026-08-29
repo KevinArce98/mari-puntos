@@ -23,6 +23,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
@@ -53,6 +54,7 @@ export function EditProfileModal({
   currentLastName = '',
   currentAvatarUrl,
 }: EditProfileModalProps) {
+  const { t } = useTranslation(['modals', 'common', 'errors']);
   const themeColors = useThemedColors();
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -89,10 +91,7 @@ export function EditProfileModal({
   const requestPermissions = async () => {
     const { status } = await requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
-        'Permisos requeridos',
-        'Necesitamos permisos para acceder a tu galería de fotos.'
-      );
+      Alert.alert(t('editProfile.permissionTitle'), t('editProfile.permissionMessage'));
       return false;
     }
     return true;
@@ -103,9 +102,6 @@ export function EditProfileModal({
     if (!hasPermission) return;
 
     try {
-      // Pick at full quality, then downscale/compress locally before encoding.
-      // Avatars are displayed at 120px, so 512px is plenty and keeps the
-      // base64 payload an order of magnitude smaller than the raw camera image.
       const result = await launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsEditing: true,
@@ -125,7 +121,7 @@ export function EditProfileModal({
       }
     } catch (error) {
       logger.error('Error selecting profile image', error as Error);
-      Alert.alert('Error', 'No se pudo seleccionar la imagen');
+      Alert.alert(t('errors:title'), t('editProfile.imageError'));
     }
   };
 
@@ -154,14 +150,14 @@ export function EditProfileModal({
     };
 
     if (isDirty || selectedImage) {
-      Alert.alert(
-        'Descartar cambios',
-        'Perderás los cambios que todavía no has guardado.',
-        [
-          { text: 'Seguir editando', style: 'cancel' },
-          { text: 'Descartar', style: 'destructive', onPress: close },
-        ]
-      );
+      Alert.alert(t('editProfile.discard.title'), t('editProfile.discard.message'), [
+        { text: t('editProfile.discard.stay'), style: 'cancel' },
+        {
+          text: t('editProfile.discard.confirm'),
+          style: 'destructive',
+          onPress: close,
+        },
+      ]);
       return;
     }
     close();
@@ -187,13 +183,13 @@ export function EditProfileModal({
           >
             <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
               <Text style={[styles.title, { color: themeColors.text.primary }]}>
-                Editar perfil
+                {t('editProfile.title')}
               </Text>
               <PressableScale
                 onPress={handleClose}
                 style={styles.closeButton}
                 accessibilityRole="button"
-                accessibilityLabel="Cerrar edición de perfil"
+                accessibilityLabel={t('editProfile.closeA11y')}
               >
                 <Ionicons name="close" size={24} color={themeColors.text.primary} />
               </PressableScale>
@@ -202,13 +198,13 @@ export function EditProfileModal({
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.section}>
                 <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                  Foto de perfil
+                  {t('editProfile.photoLabel')}
                 </Text>
                 <PressableScale
                   style={styles.avatarContainer}
                   onPress={pickImage}
                   accessibilityRole="button"
-                  accessibilityLabel="Cambiar foto de perfil"
+                  accessibilityLabel={t('editProfile.changePhotoA11y')}
                 >
                   {displayImage ? (
                     <Image
@@ -239,30 +235,30 @@ export function EditProfileModal({
                   </View>
                 </PressableScale>
                 <Text style={[styles.hint, { color: themeColors.text.secondary }]}>
-                  Toca para cambiar tu foto
+                  {t('editProfile.photoHint')}
                 </Text>
               </View>
 
               <View style={styles.section}>
                 <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                  Nombre *
+                  {t('editProfile.firstNameLabel')}
                 </Text>
                 <ControlledInput
                   control={control}
                   name="firstName"
-                  placeholder="Ej: Juan"
+                  placeholder={t('editProfile.firstNamePlaceholder')}
                   maxLength={100}
                 />
               </View>
 
               <View style={styles.section}>
                 <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                  Apellido *
+                  {t('editProfile.lastNameLabel')}
                 </Text>
                 <ControlledInput
                   control={control}
                   name="lastName"
-                  placeholder="Ej: Pérez"
+                  placeholder={t('editProfile.lastNamePlaceholder')}
                   maxLength={100}
                 />
               </View>
@@ -270,14 +266,14 @@ export function EditProfileModal({
 
             <View style={styles.actions}>
               <Button
-                title="Cancelar"
+                title={t('common:actions.cancel')}
                 variant="outline"
                 onPress={handleClose}
                 style={styles.actionButton}
                 disabled={loading}
               />
               <Button
-                title="Guardar"
+                title={t('editProfile.save')}
                 onPress={handleSubmit(onSubmitForm)}
                 style={styles.actionButton}
                 disabled={isSubmitting}

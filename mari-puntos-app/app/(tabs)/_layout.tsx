@@ -7,6 +7,7 @@ import type { BottomTabBarButtonProps } from 'expo-router/build/react-navigation
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
@@ -19,6 +20,7 @@ export default function TabLayout() {
   const { hasPartner } = useUser();
   const colors = useThemedColors();
   const router = useRouter();
+  const { t } = useTranslation('navigation');
 
   const userId = useUserStore((s) => s.user?.id);
   const pendingActionsCount = useActionsStore(
@@ -30,8 +32,6 @@ export default function TabLayout() {
   const fetchPartnerPermissions = usePermissionsStore((s) => s.fetchPartnerPermissions);
   const fetchPartnerActions = useActionsStore((s) => s.fetchPartnerActions);
 
-  // Pre-fetch both partner actions and permissions together so both badges
-  // are available at the same time on startup (avoids staggered badge updates).
   useEffect(() => {
     if (!userId || !hasPartner) return;
 
@@ -67,10 +67,6 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.gray[400],
         headerShown: false,
-        // expo-router's vendored BottomTabBarButtonProps type has drifted from the
-        // installed @react-navigation/elements version (duplicate HoverEffectProps/
-        // pressColor declarations), so the two are structurally compatible at runtime
-        // but not nominally assignable to TS.
         tabBarButton: HapticTab as (props: BottomTabBarButtonProps) => React.ReactNode,
         tabBarStyle: {
           backgroundColor: colors.surface,
@@ -90,7 +86,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Inicio',
+          title: t('tabs.home'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
           ),
@@ -99,7 +95,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="actions"
         options={{
-          title: 'Acciones',
+          title: t('tabs.actions'),
           tabBarIcon: ({ color, focused }) =>
             hasPartner ? (
               <Ionicons
@@ -130,7 +126,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="permissions"
         options={{
-          title: 'Permisos',
+          title: t('tabs.permissions'),
           tabBarIcon: ({ color, focused }) =>
             hasPartner ? (
               <Ionicons
@@ -157,7 +153,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="duel"
         options={{
-          title: 'Duelo',
+          title: t('tabs.duel'),
           tabBarIcon: ({ color, focused }) =>
             hasPartner ? (
               <Ionicons
@@ -188,7 +184,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Perfil',
+          title: t('tabs.profile'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'person' : 'person-outline'}

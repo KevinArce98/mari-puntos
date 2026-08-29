@@ -18,11 +18,9 @@ interface PermissionsState {
   isLoadingMyPermissions: boolean;
   isLoadingPartnerPermissions: boolean;
   isMutating: boolean;
-  /** Combined loading flag for backwards compatibility */
   isLoading: boolean;
   error: string | null;
 
-  // Actions
   fetchMyPermissions: (params?: GetPermissionsParams) => Promise<void>;
   fetchPartnerPermissions: (params?: GetPermissionsParams) => Promise<void>;
   createPermission: (data: CreatePermissionRequest) => Promise<void>;
@@ -153,7 +151,6 @@ export const usePermissionsStore = create<PermissionsState>((set, get) => ({
         pointsCost,
       });
       await get().fetchPartnerPermissions({ status: PermissionStatus.PENDING });
-      // Refresh both user stats (points deducted) and partner info
       useUserStore
         .getState()
         .fetchStats()

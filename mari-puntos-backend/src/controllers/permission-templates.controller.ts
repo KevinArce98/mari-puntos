@@ -1,16 +1,17 @@
 import { Response } from 'express';
+
+import { PermissionCategory } from '../entities/PermissionTemplate';
 import { AuthRequest } from '../middlewares/authMiddleware';
 import { PermissionTemplatesService } from '../services/permission-templates.service';
+import { PAGINATION_DEFAULTS } from '../shared/constants';
+import { logger } from '../utils/logger';
+import { toPermissionTemplateDTO, toPermissionTemplateDTOList } from '../utils/mappers';
 import {
-  sendSuccess,
+  createPaginationMeta,
   sendCreated,
   sendPaginated,
-  createPaginationMeta,
+  sendSuccess,
 } from '../utils/response';
-import { toPermissionTemplateDTO, toPermissionTemplateDTOList } from '../utils/mappers';
-import { PAGINATION_DEFAULTS } from '../shared/constants';
-import { PermissionCategory } from '../entities/PermissionTemplate';
-import { logger } from '../utils/logger';
 import {
   createPermissionTemplateSchema,
   updatePermissionTemplateSchema,
@@ -19,10 +20,6 @@ import {
 export class PermissionTemplatesController {
   private templatesService = new PermissionTemplatesService();
 
-  /**
-   * GET /permission-templates
-   * Get all templates (system + custom for user's partnership)
-   */
   getTemplates = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -75,10 +72,6 @@ export class PermissionTemplatesController {
     }
   };
 
-  /**
-   * GET /permission-templates/system
-   * Get system templates only
-   */
   getSystemTemplates = async (_req: AuthRequest, res: Response): Promise<void> => {
     try {
       logger.debug({ message: 'Getting system permission templates' });
@@ -97,10 +90,6 @@ export class PermissionTemplatesController {
     }
   };
 
-  /**
-   * GET /permission-templates/:id
-   * Get template by ID
-   */
   getTemplateById = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -130,10 +119,6 @@ export class PermissionTemplatesController {
     }
   };
 
-  /**
-   * POST /permission-templates
-   * Create custom template
-   */
   createTemplate = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -167,10 +152,6 @@ export class PermissionTemplatesController {
     }
   };
 
-  /**
-   * PATCH /permission-templates/:id
-   * Update custom template
-   */
   updateTemplate = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -206,10 +187,6 @@ export class PermissionTemplatesController {
     }
   };
 
-  /**
-   * DELETE /permission-templates/:id
-   * Delete (deactivate) custom template
-   */
   deleteTemplate = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;

@@ -13,9 +13,11 @@ import {
 
 import { useRouter } from 'expo-router';
 
-import { isClerkAPIResponseError, useSignIn } from '@clerk/clerk-expo';
+import { isClerkAPIResponseError } from '@clerk/expo';
+import { useSignIn } from '@clerk/expo/legacy';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -28,6 +30,7 @@ import { forgotPasswordSchema } from '@/validators/auth.schema';
 import type { ForgotPasswordFormData } from '@/validators/auth.schema';
 
 export default function ForgotPasswordScreen() {
+  const { t } = useTranslation(['auth', 'errors']);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const themeColors = useThemedColors();
@@ -56,14 +59,13 @@ export default function ForgotPasswordScreen() {
 
       if (result.status === 'needs_first_factor') {
         logger.info('Password reset email sent', { email: data.email });
-        // Navigate to reset password screen
         router.push({
           pathname: '/(auth)/reset-password',
           params: { email: data.email },
         });
       }
     } catch (error: any) {
-      let errorMessage = 'Error al enviar el correo de recuperación';
+      let errorMessage = t('auth:forgotPassword.failed');
 
       if (isClerkAPIResponseError(error)) {
         errorMessage = handleClerkErrors(error.errors);
@@ -74,7 +76,7 @@ export default function ForgotPasswordScreen() {
         errorMessage,
       });
 
-      toast.error('Error', { description: errorMessage });
+      toast.error(t('errors:title'), { description: errorMessage });
     }
   };
 
@@ -95,31 +97,28 @@ export default function ForgotPasswordScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
           <View style={styles.header}>
             <Text style={[styles.title, { color: themeColors.text.primary }]}>
-              Olvidé mi contraseña
+              {t('auth:forgotPassword.title')}
             </Text>
             <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
-              Ingresa tu correo electrónico y te enviaremos un código para restablecer tu
-              contraseña
+              {t('auth:forgotPassword.subtitle')}
             </Text>
           </View>
 
-          {/* Form */}
           <View style={styles.form}>
             <ControlledInput
               control={control}
               name="email"
-              label="Correo electrónico"
-              placeholder="tucorreo@ejemplo.com"
+              label={t('auth:fields.email')}
+              placeholder={t('auth:fields.emailPlaceholder')}
               keyboardType="email-address"
               autoCapitalize="none"
               leftIcon="mail-outline"
             />
 
             <Button
-              title="Enviar código"
+              title={t('auth:forgotPassword.submit')}
               onPress={handleSubmit(onSubmit)}
               loading={isSubmitting}
               fullWidth
@@ -127,11 +126,10 @@ export default function ForgotPasswordScreen() {
             />
           </View>
 
-          {/* Back to Login */}
           <View style={styles.backContainer}>
             <PressableScale onPress={() => router.back()}>
               <Text style={[styles.backLink, { color: themeColors.primary }]}>
-                Volver al inicio de sesión
+                {t('auth:forgotPassword.backToLogin')}
               </Text>
             </PressableScale>
           </View>

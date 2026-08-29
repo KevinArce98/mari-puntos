@@ -1,0 +1,39 @@
+{
+  "title": "Mis acciones",
+  "reviewA11y": "Revisar acciones pendientes",
+  "reviewA11yCount_one": "Revisar acciones pendientes, {{count}} pendiente",
+  "reviewA11yCount_other": "Revisar acciones pendientes, {{count}} pendientes",
+  "stats": {
+    "totalPoints": "Puntos totales",
+    "pending": "Pendientes"
+  },
+  "empty": {
+    "filtered": "No hay acciones con este estado",
+    "none": "No has creado acciones aún",
+    "hint": "Crea tu primera acción para empezar a ganar puntos",
+    "cta": "Registrar primera acción"
+  },
+  "fabA11y": "Crear nueva acción",
+  "created": "Acción creada",
+  "createdMessage": "Tu acción ha sido enviada para revisión",
+  "createError": "No se pudo crear la acción",
+  "review": {
+    "title": "Revisar acciones",
+    "stats": {
+      "pending": "Pendientes",
+      "total": "Total"
+    },
+    "empty": {
+      "noPending": "No hay acciones pendientes",
+      "filtered": "No hay acciones con este estado",
+      "none": "No hay acciones para revisar",
+      "pendingHint": "Las acciones de tu pareja aparecerán aquí"
+    },
+    "approved": "Acción aprobada",
+    "approvedMessage": "Los puntos han sido otorgados",
+    "approveError": "No se pudo aprobar la acción",
+    "rejected": "Acción rechazada",
+    "rejectedMessage": "Se ha notificado a tu pareja",
+    "rejectError": "No se pudo rechazar la acción"
+  }
+}

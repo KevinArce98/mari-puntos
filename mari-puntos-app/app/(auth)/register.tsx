@@ -16,9 +16,11 @@ import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { isClerkAPIResponseError, useSignUp } from '@clerk/clerk-expo';
+import { isClerkAPIResponseError } from '@clerk/expo';
+import { useSignUp } from '@clerk/expo/legacy';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -36,6 +38,7 @@ import {
 } from '@/validators/password.rules';
 
 export default function RegisterScreen() {
+  const { t } = useTranslation('auth');
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const themeColors = useThemedColors();
@@ -63,7 +66,6 @@ export default function RegisterScreen() {
   const password = watch('password');
   const confirmPassword = watch('confirmPassword');
 
-  // Password validation helpers
   const hasMinLength = password.length >= 8;
   const hasLowercase = hasPasswordLowercase(password);
   const hasUppercase = hasPasswordUppercase(password);
@@ -83,7 +85,6 @@ export default function RegisterScreen() {
         lastName: data.lastName || undefined,
       });
 
-      // Send verification code
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
 
       logger.info('User registration initiated', {
@@ -91,8 +92,8 @@ export default function RegisterScreen() {
         firstName: data.firstName,
       });
 
-      toast.success('¡Cuenta creada!', {
-        description: 'Revisa tu correo para el código de verificación',
+      toast.success(t('register.createdTitle'), {
+        description: t('register.createdMessage'),
       });
 
       router.replace({
@@ -100,7 +101,7 @@ export default function RegisterScreen() {
         params: { email: data.email },
       });
     } catch (error: any) {
-      let errorMessage = 'No se pudo crear la cuenta. Por favor intenta de nuevo.';
+      let errorMessage = t('register.failedMessage');
 
       if (isClerkAPIResponseError(error)) {
         errorMessage = handleClerkErrors(error.errors);
@@ -111,7 +112,7 @@ export default function RegisterScreen() {
         errorMessage,
       });
 
-      toast.error('Registro fallido', { description: errorMessage });
+      toast.error(t('register.failedTitle'), { description: errorMessage });
     }
   };
 
@@ -132,37 +133,34 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Back Button */}
           <PressableScale style={styles.backButton} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
           </PressableScale>
 
-          {/* Header */}
           <View style={styles.header}>
             <Text style={[styles.title, { color: themeColors.text.primary }]}>
-              Crear cuenta
+              {t('register.title')}
             </Text>
             <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
-              Únete a MariPuntos y comienza a ganar puntos con tu pareja
+              {t('register.subtitle')}
             </Text>
           </View>
 
-          {/* Form */}
           <View style={styles.form}>
             <View style={styles.nameRow}>
               <ControlledInput
                 control={control}
                 name="firstName"
-                label="Nombre"
-                placeholder="Juan"
+                label={t('fields.firstName')}
+                placeholder={t('fields.firstNamePlaceholder')}
                 containerStyle={styles.nameInput}
                 leftIcon="person-outline"
               />
               <ControlledInput
                 control={control}
                 name="lastName"
-                label="Apellido"
-                placeholder="Pérez"
+                label={t('fields.lastName')}
+                placeholder={t('fields.lastNamePlaceholder')}
                 containerStyle={styles.nameInput}
               />
             </View>
@@ -170,8 +168,8 @@ export default function RegisterScreen() {
             <ControlledInput
               control={control}
               name="email"
-              label="Correo electrónico"
-              placeholder="tucorreo@ejemplo.com"
+              label={t('fields.email')}
+              placeholder={t('fields.emailPlaceholder')}
               keyboardType="email-address"
               autoCapitalize="none"
               leftIcon="mail-outline"
@@ -180,8 +178,8 @@ export default function RegisterScreen() {
             <ControlledInput
               control={control}
               name="password"
-              label="Contraseña"
-              placeholder="Mín. 8 caracteres"
+              label={t('fields.password')}
+              placeholder={t('fields.minCharsPlaceholder')}
               autoComplete="off"
               secureTextEntry={!showPassword}
               leftIcon="lock-closed-outline"
@@ -192,14 +190,13 @@ export default function RegisterScreen() {
             <ControlledInput
               control={control}
               name="confirmPassword"
-              label="Confirmar contraseña"
+              label={t('fields.confirmPassword')}
               autoComplete="off"
-              placeholder="Repite tu contraseña"
+              placeholder={t('fields.confirmPasswordPlaceholder')}
               secureTextEntry={!showPassword}
               leftIcon="lock-closed-outline"
             />
 
-            {/* Password Requirements */}
             <View style={styles.requirements}>
               <View style={styles.requirementItem}>
                 <Ionicons
@@ -217,7 +214,7 @@ export default function RegisterScreen() {
                     },
                   ]}
                 >
-                  Al menos 8 caracteres
+                  {t('register.requirements.minLength')}
                 </Text>
               </View>
               <View style={styles.requirementItem}>
@@ -236,7 +233,7 @@ export default function RegisterScreen() {
                     },
                   ]}
                 >
-                  Una letra minúscula (a-z)
+                  {t('register.requirements.lowercase')}
                 </Text>
               </View>
               <View style={styles.requirementItem}>
@@ -255,7 +252,7 @@ export default function RegisterScreen() {
                     },
                   ]}
                 >
-                  Una letra mayúscula (A-Z)
+                  {t('register.requirements.uppercase')}
                 </Text>
               </View>
               <View style={styles.requirementItem}>
@@ -272,7 +269,7 @@ export default function RegisterScreen() {
                     },
                   ]}
                 >
-                  Un número (0-9)
+                  {t('register.requirements.number')}
                 </Text>
               </View>
               <View style={styles.requirementItem}>
@@ -289,7 +286,7 @@ export default function RegisterScreen() {
                     },
                   ]}
                 >
-                  Un símbolo (ej. !@#$)
+                  {t('register.requirements.symbol')}
                 </Text>
               </View>
               <View style={styles.requirementItem}>
@@ -308,12 +305,11 @@ export default function RegisterScreen() {
                     },
                   ]}
                 >
-                  Las contraseñas coinciden
+                  {t('register.requirements.match')}
                 </Text>
               </View>
             </View>
 
-            {/* Terms & Privacy acceptance */}
             <PressableScale
               style={styles.termsRow}
               onPress={() => setTermsAccepted(!termsAccepted)}
@@ -334,25 +330,25 @@ export default function RegisterScreen() {
                 )}
               </View>
               <Text style={[styles.termsText, { color: themeColors.text.secondary }]}>
-                Acepto los{' '}
+                {t('register.terms.prefix')}
                 <Text
                   style={{ color: themeColors.primary }}
                   onPress={() => Linking.openURL('https://maripuntos.com/terminos')}
                 >
-                  Términos de Servicio
-                </Text>{' '}
-                y la{' '}
+                  {t('register.terms.termsLink')}
+                </Text>
+                {t('register.terms.connector')}
                 <Text
                   style={{ color: themeColors.primary }}
                   onPress={() => Linking.openURL('https://maripuntos.com/privacidad')}
                 >
-                  Política de Privacidad
+                  {t('register.terms.privacyLink')}
                 </Text>
               </Text>
             </PressableScale>
 
             <Button
-              title="Crear cuenta"
+              title={t('register.submit')}
               onPress={handleSubmit(onSubmit)}
               loading={isSubmitting}
               disabled={!termsAccepted}
@@ -362,14 +358,13 @@ export default function RegisterScreen() {
             />
           </View>
 
-          {/* Login Link */}
           <View style={styles.loginContainer}>
             <Text style={[styles.loginText, { color: themeColors.text.secondary }]}>
-              ¿Ya tienes una cuenta?{' '}
+              {t('register.haveAccount')}
             </Text>
             <PressableScale onPress={() => router.push('/(auth)/login')}>
               <Text style={[styles.loginLink, { color: themeColors.primary }]}>
-                Inicia sesión
+                {t('register.loginLink')}
               </Text>
             </PressableScale>
           </View>

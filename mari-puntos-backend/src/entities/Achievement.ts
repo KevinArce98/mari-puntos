@@ -1,13 +1,14 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
   Unique,
+  UpdateDateColumn,
 } from 'typeorm';
+
 import { User } from './User';
 
 export enum AchievementType {
@@ -70,7 +71,6 @@ export class Achievement {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  // Relations
   @ManyToOne(() => User, (user) => user.achievements, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;

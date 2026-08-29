@@ -5,7 +5,6 @@ import { create } from 'zustand';
 import logger from '@/utils/logger';
 
 interface NotificationState {
-  // Actions
   clearAll: () => void;
 }
 

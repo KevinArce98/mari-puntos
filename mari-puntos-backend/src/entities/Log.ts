@@ -1,11 +1,12 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
+
 import { User } from './User';
 
 export enum LogType {
@@ -57,7 +58,6 @@ export class Log {
   @CreateDateColumn()
   createdAt: Date;
 
-  // Relations
   @ManyToOne(() => User, (user) => user.logs, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;

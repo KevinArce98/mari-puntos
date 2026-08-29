@@ -1,0 +1,19 @@
+{
+  "tabs": {
+    "home": "Home",
+    "actions": "Actions",
+    "permissions": "Permissions",
+    "duel": "Duel",
+    "profile": "Profile"
+  },
+  "screens": {
+    "history": "History",
+    "achievements": "Achievements",
+    "inbox": "Pending",
+    "linkPartner": "Link partner",
+    "changePassword": "Change password",
+    "requestPermission": "Request permission",
+    "createTemplate": "Create template",
+    "reviewAction": "Review action"
+  }
+}

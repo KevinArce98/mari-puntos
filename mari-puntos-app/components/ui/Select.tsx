@@ -12,6 +12,8 @@ import {
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
+
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
 
@@ -35,7 +37,7 @@ interface SelectProps {
 
 export const Select: React.FC<SelectProps> = ({
   label,
-  placeholder = 'Select an option',
+  placeholder,
   options,
   value,
   onValueChange,
@@ -43,6 +45,8 @@ export const Select: React.FC<SelectProps> = ({
   disabled = false,
   containerStyle,
 }) => {
+  const { t } = useTranslation('common');
+  const resolvedPlaceholder = placeholder ?? t('inputs.selectPlaceholder');
   const [isOpen, setIsOpen] = useState(false);
   const themeColors = useThemedColors();
 
@@ -69,8 +73,8 @@ export const Select: React.FC<SelectProps> = ({
         onPress={() => !disabled && setIsOpen(true)}
         disabled={disabled}
         accessibilityRole="button"
-        accessibilityLabel={label || placeholder}
-        accessibilityValue={{ text: selectedOption?.label || placeholder }}
+        accessibilityLabel={label || resolvedPlaceholder}
+        accessibilityValue={{ text: selectedOption?.label || resolvedPlaceholder }}
         accessibilityState={{ disabled, expanded: isOpen }}
       >
         <Text
@@ -80,7 +84,7 @@ export const Select: React.FC<SelectProps> = ({
             !selectedOption && { color: themeColors.gray[400] },
           ]}
         >
-          {selectedOption ? selectedOption.label : placeholder}
+          {selectedOption ? selectedOption.label : resolvedPlaceholder}
         </Text>
         <Ionicons
           name={isOpen ? 'chevron-up' : 'chevron-down'}
@@ -106,13 +110,13 @@ export const Select: React.FC<SelectProps> = ({
               style={[styles.modalHeader, { borderBottomColor: themeColors.gray[200] }]}
             >
               <Text style={[styles.modalTitle, { color: themeColors.text.primary }]}>
-                {label || 'Selecciona una opción'}
+                {label || resolvedPlaceholder}
               </Text>
               <PressableScale
                 onPress={() => setIsOpen(false)}
                 style={styles.modalCloseButton}
                 accessibilityRole="button"
-                accessibilityLabel="Cerrar opciones"
+                accessibilityLabel={t('inputs.closeOptions')}
               >
                 <Ionicons name="close" size={24} color={themeColors.text.primary} />
               </PressableScale>

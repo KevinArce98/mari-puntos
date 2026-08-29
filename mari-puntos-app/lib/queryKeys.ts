@@ -4,14 +4,6 @@ import type {
   GetPointsHistoryParams,
 } from '@/types';
 
-/**
- * Centralized React Query key factory.
- *
- * Keeping all keys in one place makes targeted invalidation safe and
- * discoverable (e.g. invalidating `queryKeys.user.stats()` after a mutation).
- * Hierarchical keys allow broad invalidation too: invalidating
- * `queryKeys.user.all` removes profile, stats and partner queries at once.
- */
 export const queryKeys = {
   user: {
     all: ['user'] as const,

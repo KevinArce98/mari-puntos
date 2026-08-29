@@ -1,0 +1,129 @@
+{
+  "title": "Permissions",
+  "new": "New",
+  "scope": {
+    "received": "Received",
+    "sent": "Sent",
+    "pendingA11y": "{{label}}, {{count}} pending"
+  },
+  "card": {
+    "untitled": "Untitled permission",
+    "requested": "Requested: {{date}}",
+    "duration": "Duration: {{hours}} h",
+    "response": "Response",
+    "edit": "Edit request"
+  },
+  "empty": {
+    "noResults": "No results",
+    "noResultsHint": "Try another status.",
+    "sentTitle": "You haven't sent any requests yet",
+    "sentHint": "Create a request when you need to agree on an activity.",
+    "receivedTitle": "You have no received requests",
+    "receivedHint": "When your partner sends you one, it'll show up here.",
+    "newRequest": "New request"
+  },
+  "respond": {
+    "approved": "Request approved",
+    "rejected": "Request rejected",
+    "error": "Couldn't process the request"
+  },
+  "cardFull": {
+    "untitled": "Untitled request",
+    "fallbackTitle": "Permission",
+    "requestedDate": "Requested date: {{date}}",
+    "duration": "Duration: {{hours}} hours",
+    "createdDate": "Created date: {{date}}",
+    "respond": "Respond"
+  },
+  "dates": {
+    "today": "Today",
+    "tomorrow": "Tomorrow"
+  },
+  "categories": {
+    "gaming": "Gaming",
+    "social": "Social",
+    "sports": "Sports",
+    "hobbies": "Hobbies",
+    "entertainment": "Entertainment",
+    "personal_time": "Personal time",
+    "other": "Other"
+  },
+  "request": {
+    "headerTitle": "New request",
+    "backA11y": "Go back",
+    "newActivity": "New activity",
+    "selectActivity": "Select an activity",
+    "noTemplatesAvailable": "No activities available",
+    "noTemplatesTitle": "No activities",
+    "noTemplatesMessage": "Contact the administrator to add templates",
+    "loadTemplatesError": "Couldn't load the templates",
+    "selectActivityError": "Please select an activity type",
+    "sentTitle": "Request sent",
+    "sentMessage": "Your partner will get a notification",
+    "sendError": "Couldn't send the request",
+    "whenLabel": "When",
+    "durationLabel": "Duration",
+    "durationHours": "{{count}} hours",
+    "noteLabel": "Note (optional)",
+    "confirm": "Confirm",
+    "decreaseDuration": "Decrease duration",
+    "increaseDuration": "Increase duration",
+    "messagePlaceholder": "Add a message for your partner...",
+    "submit": "Send request",
+    "discard": {
+      "title": "Discard request",
+      "message": "You'll lose the changes you haven't submitted yet.",
+      "confirm": "Discard"
+    }
+  },
+  "edit": {
+    "headerTitle": "Edit request",
+    "backA11y": "Go back",
+    "whenLabel": "When",
+    "durationLabel": "Duration",
+    "durationHours": "{{count}} hours",
+    "noteLabel": "Note (optional)",
+    "loadError": "Couldn't load the request",
+    "updatedTitle": "Request updated",
+    "updatedMessage": "Your changes have been saved",
+    "updateError": "Couldn't update the request",
+    "confirm": "Confirm",
+    "decreaseDuration": "Decrease duration",
+    "increaseDuration": "Increase duration",
+    "messagePlaceholder": "Add a message for your partner...",
+    "submit": "Save changes",
+    "discard": {
+      "title": "Discard changes",
+      "message": "You'll lose the changes you haven't saved yet.",
+      "confirm": "Discard"
+    }
+  },
+  "createTemplate": {
+    "headerTitle": "New activity",
+    "backA11y": "Go back",
+    "iconLabel": "Icon",
+    "iconButtonTitle": "Select icon",
+    "iconButtonSubtitle": "Customize your activity's icon",
+    "titleLabel": "Title *",
+    "descriptionLabel": "Description (optional)",
+    "categoryLabel": "Category",
+    "durationLabel": "Duration (hrs)",
+    "durationPlaceholder": "2",
+    "pointsLabel": "Suggested points",
+    "titleRequired": "The title is required",
+    "durationInvalid": "The duration must be greater than 0",
+    "pointsInvalid": "Points must be 0 or greater",
+    "createdTitle": "Activity created",
+    "createdMessage": "You can now select it",
+    "createError": "Couldn't create the activity",
+    "titlePlaceholder": "e.g. Poker night, Golf day...",
+    "descriptionPlaceholder": "Describe the activity...",
+    "categoryPlaceholder": "Select a category",
+    "submit": "Create activity",
+    "discard": {
+      "title": "Discard activity",
+      "message": "You'll lose the changes you haven't saved yet.",
+      "confirm": "Discard"
+    }
+  }
+}

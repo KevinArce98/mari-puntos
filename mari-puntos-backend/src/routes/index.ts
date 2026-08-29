@@ -12,32 +12,6 @@ import usersRoutes from './users.routes';
 
 const router: Router = Router();
 
-/**
- * @swagger
- * /health:
- *   get:
- *     summary: API Health Check
- *     description: Check if the API is running and healthy
- *     tags: [Health]
- *     responses:
- *       200:
- *         description: API is healthy and running
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: MariPuntos API is running
- *                 timestamp:
- *                   type: string
- *                   format: date-time
- *                   example: 2024-01-01T00:00:00.000Z
- */
 router.get('/health', (_req, res) => {
   res.json({
     success: true,
@@ -59,7 +33,6 @@ router.get('/ready', async (_req, res) => {
   }
 });
 
-// API routes
 router.use('/users', usersRoutes);
 router.use('/partner', partnerRoutes);
 router.use('/actions', actionsRoutes);

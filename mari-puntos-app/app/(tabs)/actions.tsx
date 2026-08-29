@@ -14,6 +14,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { LegendList } from '@legendapp/list/react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -29,17 +30,18 @@ import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { ActionStatus } from '@/types';
 import { CreateActionFormData } from '@/validators/action.schema';
 
-const STATUS_FILTERS = [
-  { label: 'Todas', value: null },
-  { label: 'Pendientes', value: ActionStatus.PENDING },
-  { label: 'Aprobadas', value: ActionStatus.APPROVED },
-  { label: 'Rechazadas', value: ActionStatus.REJECTED },
-];
-
 export default function ActionsScreen() {
+  const { t } = useTranslation(['actions', 'common', 'errors']);
   const colors = useThemedColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+
+  const STATUS_FILTERS = [
+    { label: t('common:filters.all'), value: null },
+    { label: t('common:filters.pending'), value: ActionStatus.PENDING },
+    { label: t('common:filters.approved'), value: ActionStatus.APPROVED },
+    { label: t('common:filters.rejected'), value: ActionStatus.REJECTED },
+  ];
   const { user } = useUser();
   const { myPoints } = usePoints();
   const {
@@ -55,9 +57,7 @@ export default function ActionsScreen() {
   const [selectedStatus, setSelectedStatus] = useState<ActionStatus | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  // Prevents selectedStatus useEffect from firing before the first useFocusEffect
   const hasFocusedRef = useRef(false);
-  // Ref so useFocusEffect always reads the latest selectedStatus without it being a dep
   const selectedStatusRef = useRef(selectedStatus);
   selectedStatusRef.current = selectedStatus;
 
@@ -76,7 +76,7 @@ export default function ActionsScreen() {
   );
 
   useEffect(() => {
-    if (!hasFocusedRef.current) return; // skip initial mount — useFocusEffect handles it
+    if (!hasFocusedRef.current) return;
     if (!user) return;
     setPage(1);
     refetchMyActions({ page: 1, limit: 20, status: selectedStatus ?? undefined });
@@ -102,11 +102,11 @@ export default function ActionsScreen() {
   const handleCreateAction = async (data: CreateActionFormData) => {
     try {
       await createAction(data);
-      toast.success('Acción creada', {
-        description: 'Tu acción ha sido enviada para revisión',
+      toast.success(t('created'), {
+        description: t('createdMessage'),
       });
     } catch (error) {
-      toast.error('Error', { description: 'No se pudo crear la acción' });
+      toast.error(t('errors:title'), { description: t('createError') });
       throw error;
     }
   };
@@ -131,16 +131,19 @@ export default function ActionsScreen() {
         { paddingTop: insets.top, backgroundColor: colors.background },
       ]}
     >
-      {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
-          Mis acciones
+          {t('title')}
         </Text>
         <PressableScale
           onPress={() => router.push('/actions/review')}
           style={styles.reviewButton}
           accessibilityRole="button"
-          accessibilityLabel={`Revisar acciones pendientes${pendingPartnerCount > 0 ? `, ${pendingPartnerCount} pendientes` : ''}`}
+          accessibilityLabel={
+            pendingPartnerCount > 0
+              ? t('reviewA11yCount', { count: pendingPartnerCount })
+              : t('reviewA11y')
+          }
         >
           <Ionicons name="checkmark-circle-outline" size={24} color={colors.primary} />
           {pendingPartnerCount > 0 && (
@@ -153,7 +156,6 @@ export default function ActionsScreen() {
         </PressableScale>
       </View>
 
-      {/* Stats Card */}
       <View style={[styles.statsCard, { backgroundColor: colors.gray[100] }]}>
         <View style={styles.statItem}>
           <Ionicons name="trophy" size={24} color={colors.accent} />
@@ -162,7 +164,7 @@ export default function ActionsScreen() {
               {myPoints.toLocaleString()}
             </Text>
             <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-              Puntos totales
+              {t('stats.totalPoints')}
             </Text>
           </View>
         </View>
@@ -174,7 +176,7 @@ export default function ActionsScreen() {
               {myActions.filter((a) => a.status === ActionStatus.PENDING).length}
             </Text>
             <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-              Pendientes
+              {t('stats.pending')}
             </Text>
           </View>
         </View>
@@ -216,17 +218,15 @@ export default function ActionsScreen() {
               color={colors.gray[300]}
             />
             <Text style={[styles.emptyText, { color: colors.text.primary }]}>
-              {selectedStatus
-                ? 'No hay acciones con este estado'
-                : 'No has creado acciones aún'}
+              {selectedStatus ? t('empty.filtered') : t('empty.none')}
             </Text>
             {!selectedStatus && (
               <>
                 <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>
-                  Crea tu primera acción para empezar a ganar puntos
+                  {t('empty.hint')}
                 </Text>
                 <Button
-                  title="Registrar primera acción"
+                  title={t('empty.cta')}
                   onPress={() => setShowCreateModal(true)}
                   size="sm"
                   icon="add-circle-outline"
@@ -247,17 +247,15 @@ export default function ActionsScreen() {
         estimatedItemSize={80}
       />
 
-      {/* Floating Action Button */}
       <PressableScale
         style={[styles.fab, { backgroundColor: colors.primary }]}
         onPress={() => setShowCreateModal(true)}
         accessibilityRole="button"
-        accessibilityLabel="Crear nueva acción"
+        accessibilityLabel={t('fabA11y')}
       >
         <Ionicons name="add" size={28} color={colors.text.white} />
       </PressableScale>
 
-      {/* Create Action Modal */}
       <CreateActionModal
         visible={showCreateModal}
         onClose={() => setShowCreateModal(false)}

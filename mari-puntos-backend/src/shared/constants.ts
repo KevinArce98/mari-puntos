@@ -1,12 +1,3 @@
-/**
- * Shared constants and enums for MariPuntos API
- * ⚠️ These MUST match the frontend types exactly - frontend is source of truth
- */
-
-// ============================================================================
-// ACTION ENUMS
-// ============================================================================
-
 export const ActionStatus = {
   PENDING: 'pending',
   APPROVED: 'approved',
@@ -15,7 +6,6 @@ export const ActionStatus = {
 
 export type ActionStatus = (typeof ActionStatus)[keyof typeof ActionStatus];
 
-// Matches frontend ActionCategory exactly
 export const ActionCategory = {
   HOUSEHOLD: 'household',
   CHILDCARE: 'childcare',
@@ -27,10 +17,6 @@ export const ActionCategory = {
 
 export type ActionCategory = (typeof ActionCategory)[keyof typeof ActionCategory];
 
-// ============================================================================
-// PERMISSION ENUMS
-// ============================================================================
-
 export const PermissionStatus = {
   PENDING: 'pending',
   APPROVED: 'approved',
@@ -40,7 +26,6 @@ export const PermissionStatus = {
 
 export type PermissionStatus = (typeof PermissionStatus)[keyof typeof PermissionStatus];
 
-// Matches frontend PermissionType exactly
 export const PermissionType = {
   NIGHT_OUT: 'night_out',
   GAMING_SESSION: 'gaming_session',
@@ -52,23 +37,14 @@ export const PermissionType = {
 
 export type PermissionType = (typeof PermissionType)[keyof typeof PermissionType];
 
-// ============================================================================
-// PARTNER LINK ENUMS
-// ============================================================================
-
-// Matches frontend partner status exactly
 export const PartnerLinkStatus = {
   PENDING: 'pending',
   ACTIVE: 'active',
 } as const;
 
-export type PartnerLinkStatus = (typeof PartnerLinkStatus)[keyof typeof PartnerLinkStatus];
+export type PartnerLinkStatus =
+  (typeof PartnerLinkStatus)[keyof typeof PartnerLinkStatus];
 
-// ============================================================================
-// LOG TYPE ENUMS
-// ============================================================================
-
-// Matches frontend LogType exactly
 export const LogType = {
   POINTS_EARNED: 'points_earned',
   POINTS_SPENT: 'points_spent',
@@ -88,33 +64,24 @@ export const LogType = {
 
 export type LogType = (typeof LogType)[keyof typeof LogType];
 
-// ============================================================================
-// ERROR CODES
-// ============================================================================
-
 export const ErrorCode = {
-  // Authentication errors
   UNAUTHORIZED: 'UNAUTHORIZED',
   INVALID_TOKEN: 'INVALID_TOKEN',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   USER_NOT_FOUND: 'USER_NOT_FOUND',
 
-  // Authorization errors
   FORBIDDEN: 'FORBIDDEN',
   INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
   ROLE_REQUIRED: 'ROLE_REQUIRED',
 
-  // Validation errors
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   INVALID_INPUT: 'INVALID_INPUT',
   MISSING_REQUIRED_FIELD: 'MISSING_REQUIRED_FIELD',
 
-  // Resource errors
   NOT_FOUND: 'NOT_FOUND',
   ALREADY_EXISTS: 'ALREADY_EXISTS',
   CONFLICT: 'CONFLICT',
 
-  // Business logic errors
   INSUFFICIENT_POINTS: 'INSUFFICIENT_POINTS',
   PARTNER_NOT_LINKED: 'PARTNER_NOT_LINKED',
   PARTNER_ALREADY_LINKED: 'PARTNER_ALREADY_LINKED',
@@ -127,17 +94,12 @@ export const ErrorCode = {
   CANNOT_EVALUATE_OWN_ACTION: 'CANNOT_EVALUATE_OWN_ACTION',
   CANNOT_RESPOND_OWN_PERMISSION: 'CANNOT_RESPOND_OWN_PERMISSION',
 
-  // Server errors
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   DATABASE_ERROR: 'DATABASE_ERROR',
   EXTERNAL_SERVICE_ERROR: 'EXTERNAL_SERVICE_ERROR',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
-
-// ============================================================================
-// HTTP STATUS MAPPING
-// ============================================================================
 
 export const ErrorCodeToHttpStatus: Record<ErrorCode, number> = {
   [ErrorCode.UNAUTHORIZED]: 401,
@@ -168,10 +130,6 @@ export const ErrorCodeToHttpStatus: Record<ErrorCode, number> = {
   [ErrorCode.DATABASE_ERROR]: 500,
   [ErrorCode.EXTERNAL_SERVICE_ERROR]: 502,
 };
-
-// ============================================================================
-// PAGINATION DEFAULTS
-// ============================================================================
 
 export const PAGINATION_DEFAULTS = {
   PAGE: 1,

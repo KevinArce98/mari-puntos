@@ -1,0 +1,16 @@
+{
+  "generic": "An unexpected error occurred",
+  "title": "Error",
+  "network": "Couldn't connect. Check your connection and try again.",
+  "timeout": "The request took too long. Try again.",
+  "server": "We had a server problem. Try again later.",
+  "unauthorized": "Your session expired. Please sign in again.",
+  "notFound": "We couldn't find what you were looking for.",
+  "session": "Something went wrong with your session",
+  "render": "Something went wrong",
+  "accessDenied": {
+    "title": "Access denied",
+    "message": "You need to sign in to access this page.",
+    "cta": "Go to sign in"
+  }
+}

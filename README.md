@@ -22,25 +22,24 @@ mari-puntos/
 ## Requisitos
 
 - **Node.js** >= 20
-- **npm** (app)
-- **pnpm** >= 10 (backend)
+- **pnpm** >= 11
 - **EAS CLI** (para builds de la app)
 
 ## Desarrollo local
+
+Este es un monorepo pnpm — corré `pnpm install` una sola vez desde la raíz para instalar las dependencias de los tres proyectos.
 
 ### App móvil
 
 ```bash
 cd mari-puntos-app
-npm install
-npm start
+pnpm start
 ```
 
 ### Backend
 
 ```bash
 cd mari-puntos-backend
-pnpm install
 pnpm dev
 ```
 
@@ -48,7 +47,6 @@ pnpm dev
 
 ```bash
 cd mari-puntos-website
-pnpm install
 pnpm run dev
 ```
 

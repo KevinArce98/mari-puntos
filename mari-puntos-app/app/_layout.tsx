@@ -10,10 +10,11 @@ import * as Updates from 'expo-updates';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { ClerkProvider } from '@clerk/clerk-expo';
-import { tokenCache } from '@clerk/clerk-expo/token-cache';
+import { ClerkProvider } from '@clerk/expo';
+import { tokenCache } from '@clerk/expo/token-cache';
 import * as Sentry from '@sentry/react-native';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { I18nextProvider, useTranslation } from 'react-i18next';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,19 +23,25 @@ import { Toaster } from 'sonner-native';
 import { AuthGuard } from '@/components';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useNotifications } from '@/hooks/useNotifications';
+import i18n from '@/i18n';
 import { queryClient, setupQueryFocusManager } from '@/lib/queryClient';
+import { useLanguageStore, useUserStore } from '@/stores';
 import { borderRadius, colors, spacing, typography } from '@/theme';
 import logger from '@/utils/logger';
 
-// Route-level error boundary — catches React render errors that Sentry.wrap cannot catch
 export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
+  const { t } = useTranslation('common');
   logger.error('Render error caught by ErrorBoundary', error);
   return (
     <View style={errorBoundaryStyles.container}>
-      <Text style={errorBoundaryStyles.title}>Algo salió mal</Text>
+      <Text style={errorBoundaryStyles.title}>
+        {t('errorBoundary.title', { defaultValue: 'Algo salió mal' })}
+      </Text>
       <Text style={errorBoundaryStyles.message}>{error.message}</Text>
       <TouchableOpacity style={errorBoundaryStyles.button} onPress={retry}>
-        <Text style={errorBoundaryStyles.buttonText}>Reintentar</Text>
+        <Text style={errorBoundaryStyles.buttonText}>
+          {t('errorBoundary.retry', { defaultValue: 'Reintentar' })}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -63,48 +70,33 @@ const errorBoundaryStyles = StyleSheet.create({
   buttonText: { ...typography.styles.button, color: colors.light.text.white },
 });
 
-// Keep the native splash screen visible until we explicitly hide it
 SplashScreen.preventAutoHideAsync();
 
-// Wire React Query's focus manager to RN AppState so refetchOnWindowFocus works
 setupQueryFocusManager();
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
 
-  // Do not send PII (IP addresses, cookies) by default.
-  // Enable only if your privacy policy covers it.
   sendDefaultPii: false,
 
-  // Set environment
   environment: process.env.EXPO_PUBLIC_ENV,
 
-  // Enable tracing for performance monitoring
-  tracesSampleRate: __DEV__ ? 1.0 : 0.2, // 100% in dev, 20% in prod
+  tracesSampleRate: __DEV__ ? 1.0 : 0.2,
 
-  // Profile the JS/native threads of sampled traces (same rate as tracesSampleRate)
   profilesSampleRate: __DEV__ ? 1.0 : 0.2,
 
-  // Session Replay: low sample rate for normal sessions, always capture on error
   replaysSessionSampleRate: __DEV__ ? 1.0 : 0.1,
   replaysOnErrorSampleRate: 1.0,
 
   integrations: [Sentry.hermesProfilingIntegration(), Sentry.mobileReplayIntegration()],
 
-  // Enable session tracking
   enableAutoSessionTracking: true,
 
-  // Enable native crash tracking
   enableNativeCrashHandling: true,
 
-  // Enable Logs
   enableLogs: true,
-
-  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
-  // spotlight: __DEV__,
 });
 
-// Log Sentry initialization
 logger.info('Sentry initialized', {
   environment: process.env.EXPO_PUBLIC_ENV,
 });
@@ -119,6 +111,17 @@ function RootLayoutNav() {
   const themeColors = colors[colorScheme === 'dark' ? 'dark' : 'light'];
   const insets = useSafeAreaInsets();
   useNotifications();
+  const userId = useUserStore((s) => s.user?.id);
+  const backendLocale = useUserStore((s) => s.user?.locale);
+
+  useEffect(() => {
+    useLanguageStore.getState().hydrate();
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    useLanguageStore.getState().reconcileWithBackend(backendLocale);
+  }, [userId, backendLocale]);
 
   useEffect(() => {
     if (__DEV__) return;
@@ -128,20 +131,16 @@ function RootLayoutNav() {
         logger.info('OTA update available — fetching');
         return Updates.fetchUpdateAsync().then(() => {
           logger.info('OTA update fetched — prompting user to reload');
-          Alert.alert(
-            'Actualización disponible',
-            'Hay una nueva versión de MariPuntos. ¿Deseas reiniciar la app para aplicarla?',
-            [
-              { text: 'Ahora no', style: 'cancel' },
-              {
-                text: 'Reiniciar',
-                onPress: () =>
-                  Updates.reloadAsync().catch((err) =>
-                    logger.warn('OTA reload failed', err as Error)
-                  ),
-              },
-            ]
-          );
+          Alert.alert(i18n.t('common:update.title'), i18n.t('common:update.message'), [
+            { text: i18n.t('common:update.later'), style: 'cancel' },
+            {
+              text: i18n.t('common:update.restart'),
+              onPress: () =>
+                Updates.reloadAsync().catch((err) =>
+                  logger.warn('OTA reload failed', err as Error)
+                ),
+            },
+          ]);
         });
       })
       .catch((err) => {
@@ -228,10 +227,12 @@ function RootLayoutNav() {
 
 export default Sentry.wrap(function RootLayout() {
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
-      <QueryClientProvider client={queryClient}>
-        <RootLayoutNav />
-      </QueryClientProvider>
-    </ClerkProvider>
+    <I18nextProvider i18n={i18n}>
+      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
+        <QueryClientProvider client={queryClient}>
+          <RootLayoutNav />
+        </QueryClientProvider>
+      </ClerkProvider>
+    </I18nextProvider>
   );
 });

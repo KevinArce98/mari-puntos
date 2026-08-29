@@ -1,0 +1,39 @@
+{
+  "greeting": "Hola, {{name}}",
+  "greetingFallback": "Hola",
+  "subtitle": "Vamos a ganar puntos hoy",
+  "noPartner": {
+    "title": "Vincula a tu pareja",
+    "text": "Conéctate con tu pareja para empezar a ganar y gastar MariPuntos juntos",
+    "cta": "Vincular ahora"
+  },
+  "guide": {
+    "howItWorksTitle": "¿Cómo funciona MariPuntos?",
+    "firstStepsTitle": "Primeros pasos",
+    "noPartner1": "Vincula tu cuenta con la de tu pareja (ambos necesitan la app)",
+    "noPartner2": "Gana puntos registrando acciones que tu pareja aprueba",
+    "noPartner3": "Usa tus puntos para solicitar permisos",
+    "first1": "Registra una acción cuando hagas algo por tu pareja o el hogar",
+    "first2": "Tu pareja la revisa, la aprueba y ganas puntos",
+    "first3": "Gasta tus puntos solicitando permisos"
+  },
+  "pending_one": "{{count}} pendiente por revisar",
+  "pending_other": "{{count}} pendientes por revisar",
+  "pendingSubtitle": "Responde acciones y permisos de tu pareja",
+  "quickActionsTitle": "Acciones rápidas",
+  "quickActionsFirstTitle": "Empieza por aquí",
+  "requestPermission": "Solicitar permiso",
+  "requestPermissionSubtitle": "Solicitar permiso para una actividad",
+  "logAction": "Registrar acción",
+  "logActionSubtitle": "Registrar una actividad para ganar puntos",
+  "progressTitle": "Tu progreso",
+  "seeAchievements": "Ver logros",
+  "seeAchievementsA11y": "Ver todos los logros",
+  "balanceLabel": "Saldo actual",
+  "recentHistoryTitle": "Historial reciente",
+  "noRecentActivity": "No hay actividad reciente",
+  "logFirstAction": "Registra tu primera acción",
+  "actionCreated": "Acción creada",
+  "actionCreatedMessage": "Tu acción ha sido enviada para revisión",
+  "actionCreateError": "No se pudo crear la acción"
+}

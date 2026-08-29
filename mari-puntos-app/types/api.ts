@@ -1,7 +1,3 @@
-// ============================================
-// API Response Types
-// ============================================
-
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -15,6 +11,7 @@ export interface ApiError {
     field: string;
     message: string;
   }[];
+  code?: string;
 }
 
 export interface PaginationParams {
@@ -32,10 +29,6 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
-
-// ============================================
-// Enums
-// ============================================
 
 export enum ActionCategory {
   HOUSEHOLD = 'household',
@@ -108,9 +101,7 @@ export enum LogType {
   OTHER = 'other',
 }
 
-// ============================================
-// User Types
-// ============================================
+export type AppLocale = 'es' | 'en';
 
 export interface User {
   id: string;
@@ -124,6 +115,7 @@ export interface User {
   partnerCode?: string;
   hasPartner: boolean;
   isActive: boolean;
+  locale?: AppLocale;
   createdAt: string;
   updatedAt: string;
 }
@@ -142,20 +134,17 @@ export interface UpdateProfileRequest {
   firstName?: string;
   lastName?: string;
   pushToken?: string;
-  profileImage?: string; // base64 encoded image
+  profileImage?: string;
+  locale?: AppLocale;
 }
 
 export interface CreateUserRequest {
   email: string;
   firstName: string;
   lastName: string;
-  clerkId?: string; // Optional - comes from auth token on backend
+  clerkId?: string;
   avatarUrl?: string;
 }
-
-// ============================================
-// Partner Types
-// ============================================
 
 export interface CreatePartnerLinkResponse {
   linkCode: string;
@@ -193,10 +182,6 @@ export interface PartnerInfo {
   };
 }
 
-// ============================================
-// Action Types
-// ============================================
-
 export interface Action {
   id: string;
   userId: string;
@@ -232,10 +217,6 @@ export interface GetActionsParams extends PaginationParams {
   status?: ActionStatus;
 }
 
-// ============================================
-// Permission Template Types
-// ============================================
-
 export interface PermissionTemplate {
   id: string;
   title: string;
@@ -250,10 +231,6 @@ export interface PermissionTemplate {
   createdAt: string;
   updatedAt: string;
 }
-
-// ============================================
-// Permission Types
-// ============================================
 
 export interface Permission {
   id: string;
@@ -311,16 +288,12 @@ export interface GetPermissionTemplatesParams extends PaginationParams {
 export interface RespondPermissionRequest {
   approved: boolean;
   responseMessage?: string;
-  pointsCost?: number; // Required when approving
+  pointsCost?: number;
 }
 
 export interface GetPermissionsParams extends PaginationParams {
   status?: PermissionStatus;
 }
-
-// ============================================
-// Points Types
-// ============================================
 
 export interface PointsLog {
   id: string;

@@ -87,7 +87,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 4,
     borderWidth: 2,
-    // borderColor set inline from theme to support dark mode
   },
   badgeText: {
     ...typography.styles.caption,

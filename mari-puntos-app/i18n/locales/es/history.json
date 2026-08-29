@@ -1,0 +1,10 @@
+{
+  "title": "Historial",
+  "back": "Atrás",
+  "empty": {
+    "title": "No hay historial",
+    "subtitle": "Tus actividades y transacciones aparecerán aquí"
+  },
+  "loadingMore": "Cargando más...",
+  "pointsUnit": "pts"
+}

@@ -1,23 +1,22 @@
-import express, { Application } from 'express';
 import cors from 'cors';
+import express, { Application } from 'express';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import swaggerUi from 'swagger-ui-express';
+
 import { config } from './config/env';
 import { swaggerSpec } from './config/swagger';
-import routes from './routes';
-import webhooksRoutes from './routes/webhooks.routes';
 import { errorMiddleware, notFoundMiddleware } from './middlewares/errorMiddleware';
 import { rateLimitMiddleware } from './middlewares/rateLimitMiddleware';
+import routes from './routes';
+import webhooksRoutes from './routes/webhooks.routes';
 import { httpLogger } from './utils/logger';
 
 export const createApp = (): Application => {
   const app = express();
 
-  // Disable x-powered-by header
   app.disable('x-powered-by');
 
-  // Security middleware
   app.use(
     helmet({
       contentSecurityPolicy: config.isDevelopment ? false : true,
@@ -31,7 +30,6 @@ export const createApp = (): Application => {
     })
   );
 
-  // CORS configuration
   app.use(
     cors({
       origin: config.isDevelopment ? '*' : config.app.allowedOrigins,
@@ -70,14 +68,13 @@ export const createApp = (): Application => {
         if (res.statusCode >= 400) return `${req.method} ${req.url} - ${res.statusCode}`;
         return `${req.method} ${req.url} - ${res.statusCode}`;
       },
-      customErrorMessage: (req, res, err) => `${req.method} ${req.url} - ${res.statusCode} - ${err?.message || 'Unknown error'}`,
+      customErrorMessage: (req, res, err) =>
+        `${req.method} ${req.url} - ${res.statusCode} - ${err?.message || 'Unknown error'}`,
     })
   );
 
-  // Rate limiting (apply to all routes)
   app.use(rateLimitMiddleware);
 
-  // Swagger documentation - ONLY in development
   if (config.isDevelopment) {
     app.use(
       '/api-docs',
@@ -88,17 +85,14 @@ export const createApp = (): Application => {
       })
     );
 
-    // Swagger JSON
     app.get('/api-docs.json', (_req, res) => {
       res.setHeader('Content-Type', 'application/json');
       res.send(swaggerSpec);
     });
   }
 
-  // API routes
   app.use('/api', routes);
 
-  // Root endpoint
   app.get('/', (_req, res) => {
     res.json({
       success: true,
@@ -111,10 +105,8 @@ export const createApp = (): Application => {
     });
   });
 
-  // 404 handler
   app.use(notFoundMiddleware);
 
-  // Error handler (must be last)
   app.use(errorMiddleware);
 
   return app;

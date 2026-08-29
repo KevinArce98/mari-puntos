@@ -1,0 +1,52 @@
+---
+import { languages, ui, type Lang } from '@/i18n/ui';
+
+interface Props {
+  lang: Lang;
+  path?: string;
+  class?: string;
+  variant?: 'light' | 'dark';
+}
+
+const { lang, path = '/', class: className = '', variant = 'light' } = Astro.props;
+
+const clean = path.startsWith('/') ? path : `/${path}`;
+const hrefFor = (target: Lang) => (target === 'es' ? clean : `/en${clean === '/' ? '' : clean}`);
+
+const tabs: Lang[] = ['es', 'en'];
+
+const trackClass =
+  variant === 'dark'
+    ? 'bg-white/10'
+    : 'bg-gray-100';
+
+const activeTabClass =
+  variant === 'dark' ? 'bg-white text-gray-900 shadow-sm' : 'bg-white text-[#0F766E] shadow-sm';
+
+const inactiveTabClass =
+  variant === 'dark'
+    ? 'text-white/70 hover:text-white'
+    : 'text-gray-500 hover:text-gray-700';
+---
+
+<div
+  role="group"
+  aria-label={ui[lang]['lang.selectorLabel']}
+  class={`inline-flex items-center rounded-full p-1 gap-0.5 ${trackClass} ${className}`}
+>
+  {
+    tabs.map((tab) => (
+      <a
+        href={hrefFor(tab)}
+        hreflang={tab}
+        aria-label={languages[tab]}
+        aria-current={lang === tab ? 'page' : undefined}
+        class={`rounded-full px-2 sm:px-2.5 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wide transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ${
+          lang === tab ? activeTabClass : inactiveTabClass
+        }`}
+      >
+        {tab}
+      </a>
+    ))
+  }
+</div>

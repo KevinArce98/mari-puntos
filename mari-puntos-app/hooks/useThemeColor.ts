@@ -1,14 +1,6 @@
-/**
- * Learn more about light and dark modes:
- * https://docs.expo.dev/guides/color-schemes/
- */
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { colors } from '@/theme/colors';
 
-/**
- * Permite acceder a cualquier color definido en la paleta extendida para light/dark.
- * colorPath puede ser 'text.primary', 'gray.200', etc.
- */
 export function useThemeColor(
   props: { light?: string; dark?: string },
   colorPath: string
@@ -19,7 +11,6 @@ export function useThemeColor(
   if (colorFromProps) {
     return colorFromProps;
   }
-  // Permite acceder a propiedades anidadas como 'text.primary', 'gray.200', etc.
   const segments = colorPath.split('.');
   let value: any = colors[theme];
   for (const seg of segments) {

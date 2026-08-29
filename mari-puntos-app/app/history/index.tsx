@@ -7,6 +7,7 @@ import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { LegendList } from '@legendapp/list/react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HistoryItem } from '@/components';
@@ -17,6 +18,7 @@ import { PointsLog } from '@/types';
 import logger from '@/utils/logger';
 
 export default function HistoryScreen() {
+  const { t } = useTranslation('history');
   const insets = useSafeAreaInsets();
   const colors = useThemedColors();
   const { pointsHistory, fetchHistory, isLoading, paginationMeta } = usePoints();
@@ -25,7 +27,6 @@ export default function HistoryScreen() {
   const [loadingMore, setLoadingMore] = React.useState(false);
   const [initialized, setInitialized] = React.useState(false);
 
-  // Derive hasMore directly from store — no effect lag
   const hasMore = paginationMeta ? paginationMeta.page < paginationMeta.totalPages : true;
 
   const loadHistory = async (pageNum: number, isRefresh = false) => {
@@ -37,7 +38,6 @@ export default function HistoryScreen() {
     }
 
     try {
-      // If refresh, replace data. If loading more, append data
       await fetchHistory({ page: pageNum, limit: 20 }, !isRefresh);
     } catch (error) {
       logger.error('Failed to load points history', error as Error, {
@@ -50,7 +50,6 @@ export default function HistoryScreen() {
     }
   };
 
-  // Load initial data
   React.useEffect(() => {
     if (!initialized) {
       loadHistory(1, true);
@@ -81,10 +80,10 @@ export default function HistoryScreen() {
     <View style={styles.emptyContainer}>
       <Ionicons name="time-outline" size={64} color={colors.text.secondary} />
       <Text style={[styles.emptyText, { color: colors.text.primary }]}>
-        No hay historial
+        {t('empty.title')}
       </Text>
       <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>
-        Tus actividades y transacciones aparecerán aquí
+        {t('empty.subtitle')}
       </Text>
     </View>
   );
@@ -96,7 +95,7 @@ export default function HistoryScreen() {
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color={colors.primary} />
         <Text style={[styles.loadingText, { color: colors.text.secondary }]}>
-          Cargando más...
+          {t('loadingMore')}
         </Text>
       </View>
     );
@@ -106,8 +105,8 @@ export default function HistoryScreen() {
     <View style={styles.container}>
       <Stack.Screen
         options={{
-          title: 'Historial',
-          headerBackTitle: 'Atrás',
+          title: t('title'),
+          headerBackTitle: t('back'),
           headerStyle: {
             backgroundColor: colors.background,
           },

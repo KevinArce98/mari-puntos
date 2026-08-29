@@ -1,31 +1,27 @@
 export const colors = {
   light: {
-    // Design System v2 - MariPuntos Color Palette
-    primary: '#0F766E', // Teal 700 (5.7:1 sobre blanco)
-    primaryDark: '#115E59', // Teal 800
-    primaryTint: '#F0FDFA', // Teal 50 - fondos tonales (botón secundario, chips)
-    accent: '#D97706', // Amber 600 - SOLO logros, trofeos y niveles
-    love: '#FB7185', // Rose 400 - momentos de pareja: racha, duelo, romance
+    primary: '#0F766E',
+    primaryDark: '#115E59',
+    primaryTint: '#F0FDFA',
+    accent: '#D97706',
+    love: '#FB7185',
     white: '#FFFFFF',
-    background: '#FAFAF9', // Stone 50
-    surface: '#FFFFFF', // Cards - siempre más claras que el fondo
-    border: '#E7E5E4', // Stone 200 - separación de cards
+    background: '#FAFAF9',
+    surface: '#FFFFFF',
+    border: '#E7E5E4',
 
-    // Text colors
     text: {
       primary: '#1C1917',
-      secondary: '#57534E', // Stone 600 (7.3:1)
-      light: '#78716C', // Stone 500 (4.5:1) - mínimo permitido
+      secondary: '#57534E',
+      light: '#78716C',
       white: '#FFFFFF',
     },
 
-    // States
     success: '#16A34A',
     error: '#DC2626',
     warning: '#D97706',
     info: '#2563EB',
 
-    // Grays - warm neutrals (stone)
     gray: {
       50: '#FAFAF9',
       100: '#F5F5F4',
@@ -39,11 +35,9 @@ export const colors = {
       900: '#1C1917',
     },
 
-    // Transparencies
     overlay: 'rgba(0, 0, 0, 0.5)',
     overlayLight: 'rgba(0, 0, 0, 0.3)',
 
-    // Gamification levels
     level: {
       bronze: '#B45309',
       silver: '#78716C',
@@ -52,28 +46,24 @@ export const colors = {
       diamond: '#0891B2',
     },
 
-    // Category colors for actions (sistema único, tonos de igual saturación)
     category: {
-      chores: '#0EA5E9', // Sky
-      romance: '#FB7185', // Rose
-      gifts: '#A78BFA', // Violet
-      activities: '#F59E0B', // Amber
-      naughty: '#F43F5E', // Red rose
+      chores: '#0EA5E9',
+      romance: '#FB7185',
+      gifts: '#A78BFA',
+      activities: '#F59E0B',
+      naughty: '#F43F5E',
     },
 
-    // Points colors
     points: {
       positive: '#0F766E',
       negative: '#DC2626',
     },
 
-    // Streak states
     streak: {
-      active: '#F97316', // Orange 500 - racha completada
-      warm: '#FBBF24', // Amber 400 - racha en curso
+      active: '#F97316',
+      warm: '#FBBF24',
     },
 
-    // Action category icon colors (alineado al sistema de categorías)
     actionCategory: {
       childcare: '#FB7185',
       errands: '#F59E0B',
@@ -83,13 +73,12 @@ export const colors = {
   },
 
   dark: {
-    // Dark diseñado (no invertido): primario desaturado sobre superficies cálidas
-    primary: '#2DD4BF', // Teal 400
-    primaryDark: '#14B8A6', // Teal 500
-    primaryTint: '#134E4A', // Teal 900 - fondo tonal en oscuro
-    accent: '#F59E0B', // Amber 500 - más luminoso sobre oscuro
+    primary: '#2DD4BF',
+    primaryDark: '#14B8A6',
+    primaryTint: '#134E4A',
+    accent: '#F59E0B',
     love: '#FB7185',
-    white: '#1C1917', // Superficie (compat: se usa como bg de cards)
+    white: '#1C1917',
     background: '#0C0A09',
     surface: '#1C1917',
     border: '#292524',

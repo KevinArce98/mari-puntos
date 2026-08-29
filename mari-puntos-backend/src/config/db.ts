@@ -17,13 +17,12 @@ export const AppDataSource = new DataSource({
   ssl: !config.isDevelopment ? { rejectUnauthorized: false } : false,
   synchronize: false,
   logging: config.isDevelopment,
-  // Connection pool config to avoid cold-start latency under load
   extra: {
-    max: 10, // max pool connections
-    min: 2, // keep warm connections alive
+    max: 10,
+    min: 2,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
-    statement_timeout: 30000, // 30s max query time before error
+    statement_timeout: 30000,
   },
   entities: !config.isDevelopment
     ? ['dist/entities/**/*.js']

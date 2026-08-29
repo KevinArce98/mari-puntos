@@ -1,0 +1,52 @@
+{
+  "email": {
+    "invalid": "The email address is not valid",
+    "required": "The email address is required"
+  },
+  "auth": {
+    "firstNameRequired": "First name is required",
+    "firstNameMax": "First name must be at most 50 characters",
+    "firstNameLetters": "First name can only contain letters",
+    "lastNameMax": "Last name must be at most 50 characters",
+    "lastNameLetters": "Last name can only contain letters",
+    "confirmPasswordRequired": "You must confirm your password",
+    "passwordsMismatch": "Passwords don't match",
+    "passwordRequired": "Password is required",
+    "codeLength": "The code must be 6 digits",
+    "codeDigits": "The code can only contain numbers"
+  },
+  "passwordRules": {
+    "min": "Password must be at least 8 characters",
+    "max": "Password must be at most 100 characters",
+    "lowercase": "Password must contain at least one lowercase letter",
+    "uppercase": "Password must contain at least one uppercase letter",
+    "number": "Password must contain at least one number",
+    "symbol": "Password must contain at least one symbol"
+  },
+  "action": {
+    "titleRequired": "The title is required",
+    "titleMax": "The title must be at most 100 characters",
+    "descriptionMax": "The description must be at most 500 characters",
+    "categoryRequired": "The category is required",
+    "messageMax": "The message must be at most 500 characters",
+    "pointsMin": "Points must be 0 or more",
+    "pointsMax": "Maximum 1000 points",
+    "reasonRequired": "The reason is required",
+    "reasonMax": "The reason must be at most 500 characters"
+  },
+  "profile": {
+    "firstNameRequired": "First name is required",
+    "firstNameMax": "First name is too long",
+    "lastNameRequired": "Last name is required",
+    "lastNameMax": "Last name is too long"
+  },
+  "linkPartner": {
+    "codeLength": "The code must be exactly 6 characters",
+    "codeFormat": "The code can only contain uppercase letters and numbers"
+  },
+  "password": {
+    "currentRequired": "Your current password is required",
+    "confirmNewRequired": "You must confirm your new password",
+    "mismatch": "Passwords don't match"
+  }
+}

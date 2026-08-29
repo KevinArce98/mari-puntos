@@ -1,3 +1,4 @@
+import i18n from '@/i18n';
 import { colors } from '@/theme';
 import { ActionStatus, PermissionStatus } from '@/types';
 
@@ -7,14 +8,14 @@ export const getStatusText = (
   switch (status) {
     case ActionStatus.APPROVED:
     case PermissionStatus.APPROVED:
-      return 'Aprobado';
+      return i18n.t('common:status.approved');
     case ActionStatus.REJECTED:
     case PermissionStatus.REJECTED:
-      return 'Rechazado';
+      return i18n.t('common:status.rejected');
     case PermissionStatus.EXPIRED:
-      return 'Expirado';
+      return i18n.t('common:status.expired');
     default:
-      return 'Pendiente';
+      return i18n.t('common:status.pending');
   }
 };
 

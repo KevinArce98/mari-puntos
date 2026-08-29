@@ -4,6 +4,8 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
+
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
 import { PointsLog } from '@/types';
@@ -20,8 +22,8 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({
   showBorder = false,
   compact = true,
 }) => {
+  const { t } = useTranslation('common');
   const colors = useThemedColors();
-  // Get icon based on log type
   const getHistoryIcon = (type: string): keyof typeof Ionicons.glyphMap => {
     if (type.includes('action') || type.includes('earned')) {
       return 'checkmark-circle-outline';
@@ -99,7 +101,9 @@ export const HistoryItem: React.FC<HistoryItemProps> = ({
             {item.pointsChange >= 0 ? '+' : ''}
             {item.pointsChange}
           </Text>
-          <Text style={[styles.pointsLabel, { color: colors.text.secondary }]}>pts</Text>
+          <Text style={[styles.pointsLabel, { color: colors.text.secondary }]}>
+            {t('units.points')}
+          </Text>
         </View>
       ) : null}
     </View>

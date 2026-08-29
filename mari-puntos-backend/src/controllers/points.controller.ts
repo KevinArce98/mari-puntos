@@ -1,18 +1,15 @@
 import { Response } from 'express';
+
 import { AuthRequest } from '../middlewares/authMiddleware';
 import { PointsService } from '../services/points.service';
-import { sendSuccess, sendPaginated, createPaginationMeta } from '../utils/response';
-import { toPointsLogDTOList, toLeaderboardEntryDTO } from '../utils/mappers';
 import { PAGINATION_DEFAULTS } from '../shared/constants';
 import { logger } from '../utils/logger';
+import { toLeaderboardEntryDTO, toPointsLogDTOList } from '../utils/mappers';
+import { createPaginationMeta, sendPaginated, sendSuccess } from '../utils/response';
 
 export class PointsController {
   private pointsService = new PointsService();
 
-  /**
-   * GET /points/history
-   * Get current user's points history
-   */
   getHistory = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
@@ -42,17 +39,10 @@ export class PointsController {
     }
   };
 
-  /**
-   * GET /points/leaderboard
-   * Get points leaderboard
-   */
   getLeaderboard = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.userId!;
-      const limit = Math.min(
-        parseInt(req.query.limit as string) || 10,
-        50
-      );
+      const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
 
       logger.debug({ message: 'Getting points leaderboard', userId, limit });
 

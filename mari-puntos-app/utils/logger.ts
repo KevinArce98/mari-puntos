@@ -8,7 +8,6 @@ const config = {
     warn: 2,
     error: 3,
   },
-  // Dev: all levels to console. Prod: only warn/error to console (info/debug go to Sentry only).
   severity: __DEV__ ? 'debug' : 'warn',
   transport: consoleTransport,
   transportOptions: {
@@ -36,7 +35,6 @@ const customLogger = {
     log.debug(message, ...args);
   },
 
-  // Sends a breadcrumb + Sentry Log entry for flow tracing — does NOT create a Sentry issue.
   info: (message: string, ...args: any[]) => {
     log.info(message, ...args);
     if (!__DEV__) {
@@ -46,7 +44,6 @@ const customLogger = {
     }
   },
 
-  // Sends a breadcrumb + Sentry Log entry for unexpected-but-handled situations — does NOT create a Sentry issue.
   warn: (message: string, ...args: any[]) => {
     log.warn(message, ...args);
     if (!__DEV__) {
@@ -56,7 +53,6 @@ const customLogger = {
     }
   },
 
-  // Creates a Sentry issue. Use only for unexpected errors that need investigation.
   error: (message: string, error?: Error | any, ...args: any[]) => {
     log.error(message, error, ...args);
 

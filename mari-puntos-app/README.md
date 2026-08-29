@@ -51,7 +51,7 @@ MariPuntos es una aplicación móvil innovadora que transforma la dinámica de p
 ### Prerrequisitos
 
 - Node.js 18+
-- npm o yarn
+- pnpm >= 11
 - Expo CLI
 - Cuenta de Clerk (para autenticación)
 - Proyecto Firebase con app Android configurada (para notificaciones push)
@@ -63,15 +63,17 @@ MariPuntos es una aplicación móvil innovadora que transforma la dinámica de p
 git clone <repository-url>
 cd mari-puntos-app
 
-# 2. Instalar dependencias
-npm install
+# 2. Instalar dependencias (desde la raíz del monorepo)
+cd ..
+pnpm install
+cd mari-puntos-app
 
 # 3. Configurar variables de entorno
 cp .env.example .env
 # Edita .env con tus credenciales de Clerk
 
 # 4. Iniciar la aplicación
-npm start
+pnpm start
 ```
 
 ### Configuración de notificaciones push (Android)
@@ -96,7 +98,7 @@ android/app/google-services.json
 **Paso 3 — Rebuild nativo:**
 
 ```bash
-npx expo run:android
+pnpm exec expo run:android
 # o con EAS
 eas build --platform android
 ```
@@ -168,18 +170,18 @@ Para más detalles, consulta [ARCHITECTURE.md](./ARCHITECTURE.md)
 ## 🔧 Scripts Disponibles
 
 ```bash
-npm start          # Iniciar Expo dev server
-npm run android    # Abrir en Android
-npm run ios        # Abrir en iOS
-npm run web        # Abrir en navegador
-npm run lint       # Ejecutar ESLint
+pnpm start          # Iniciar Expo dev server
+pnpm run android    # Abrir en Android
+pnpm run ios        # Abrir en iOS
+pnpm run web        # Abrir en navegador
+pnpm run lint       # Ejecutar ESLint
 ```
 
 ### Ejecutar en dispositivo físico
 
 ```bash
-npx expo run:android --device
-npx expo run:ios --device
+pnpm exec expo run:android --device
+pnpm exec expo run:ios --device
 ```
 
 ## 📦 Builds y distribución (EAS)

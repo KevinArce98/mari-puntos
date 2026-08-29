@@ -11,6 +11,8 @@ import {
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
+
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
 
@@ -33,11 +35,12 @@ export const Input: React.FC<InputProps> = ({
   leftIcon,
   rightIcon,
   onRightIconPress,
-  rightIconAccessibilityLabel = 'Acción',
+  rightIconAccessibilityLabel,
   containerStyle,
   secureTextEntry,
   ...props
 }) => {
+  const { t } = useTranslation('common');
   const colors = useThemedColors();
   const [isSecure, setIsSecure] = useState(secureTextEntry);
   const [isFocused, setIsFocused] = useState(false);
@@ -96,7 +99,9 @@ export const Input: React.FC<InputProps> = ({
             onPress={toggleSecure}
             style={styles.rightIcon}
             accessibilityRole="button"
-            accessibilityLabel={isSecure ? 'Mostrar contraseña' : 'Ocultar contraseña'}
+            accessibilityLabel={
+              isSecure ? t('inputs.showPassword') : t('inputs.hidePassword')
+            }
           >
             <Ionicons
               name={isSecure ? 'eye-off-outline' : 'eye-outline'}
@@ -111,7 +116,7 @@ export const Input: React.FC<InputProps> = ({
             onPress={onRightIconPress}
             style={styles.rightIcon}
             accessibilityRole="button"
-            accessibilityLabel={rightIconAccessibilityLabel}
+            accessibilityLabel={rightIconAccessibilityLabel ?? t('inputs.action')}
           >
             <Ionicons name={rightIcon} size={20} color={colors.gray[500]} />
           </PressableScale>

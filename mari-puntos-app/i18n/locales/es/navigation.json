@@ -1,0 +1,19 @@
+{
+  "tabs": {
+    "home": "Inicio",
+    "actions": "Acciones",
+    "permissions": "Permisos",
+    "duel": "Duelo",
+    "profile": "Perfil"
+  },
+  "screens": {
+    "history": "Historial",
+    "achievements": "Logros",
+    "inbox": "Pendientes",
+    "linkPartner": "Vincular pareja",
+    "changePassword": "Cambiar contraseña",
+    "requestPermission": "Solicitar permiso",
+    "createTemplate": "Crear plantilla",
+    "reviewAction": "Revisar acción"
+  }
+}

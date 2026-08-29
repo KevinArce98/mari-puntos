@@ -1,0 +1,94 @@
+{
+  "createAction": {
+    "title": "Crear acción",
+    "closeA11y": "Cerrar creación de acción",
+    "titleLabel": "Título *",
+    "titlePlaceholder": "Ej: Preparé la cena",
+    "descriptionLabel": "Descripción (opcional)",
+    "descriptionPlaceholder": "Agrega detalles sobre lo que hiciste...",
+    "categoryLabel": "Categoría *",
+    "submit": "Crear",
+    "discard": {
+      "title": "Descartar acción",
+      "message": "Perderás los cambios que todavía no has guardado.",
+      "stay": "Seguir editando",
+      "confirm": "Descartar"
+    }
+  },
+  "reviewAction": {
+    "reviewTitle": "Revisar acción",
+    "rejectTitle": "Rechazar acción",
+    "closeA11y": "Cerrar revisión de acción",
+    "pointsLabel": "Puntos a otorgar",
+    "pointsHint": "Valores fijos — mantiene los puntos consistentes entre acciones",
+    "rejectReasonLabel": "Motivo del rechazo *",
+    "rejectReasonPlaceholder": "Explica por qué estás rechazando esta acción...",
+    "reject": "Rechazar",
+    "approve": "Aprobar",
+    "back": "Volver",
+    "confirmReject": "Confirmar rechazo",
+    "approvePrompt": {
+      "title": "Confirmar aprobación",
+      "message": "Se otorgarán {{points}} MariPuntos a tu pareja. Esta acción no se puede deshacer.",
+      "cancel": "Cancelar",
+      "confirm": "Aprobar"
+    },
+    "discard": {
+      "title": "Descartar rechazo",
+      "message": "Perderás el motivo que todavía no has enviado.",
+      "stay": "Seguir editando",
+      "confirm": "Descartar"
+    }
+  },
+  "response": {
+    "title": "Responder permiso",
+    "closeA11y": "Cerrar respuesta",
+    "requestLabel": "Solicitud:",
+    "pointsCostLabel": "Costo en puntos *",
+    "selectCost": "Selecciona un costo en puntos",
+    "partnerBudget": "Tu pareja tiene {{points}} puntos disponibles",
+    "availableBalance": "Saldo disponible: {{points}} MariPuntos",
+    "messageLabel": "Mensaje de respuesta (opcional)",
+    "messagePlaceholder": "Escribe un mensaje para tu pareja...",
+    "reject": "Rechazar",
+    "approve": "Aprobar",
+    "approvePrompt": {
+      "title": "Confirmar aprobación",
+      "message": "Se descontarán {{points}} MariPuntos del saldo de tu pareja. Esta acción no se puede deshacer.",
+      "cancel": "Cancelar",
+      "confirm": "Aprobar"
+    },
+    "discard": {
+      "title": "Descartar respuesta",
+      "message": "Perderás los cambios que todavía no has enviado.",
+      "stay": "Seguir editando",
+      "confirm": "Descartar"
+    }
+  },
+  "editProfile": {
+    "title": "Editar perfil",
+    "closeA11y": "Cerrar edición de perfil",
+    "photoLabel": "Foto de perfil",
+    "changePhotoA11y": "Cambiar foto de perfil",
+    "photoHint": "Toca para cambiar tu foto",
+    "firstNameLabel": "Nombre *",
+    "firstNamePlaceholder": "Ej: Juan",
+    "lastNameLabel": "Apellido *",
+    "lastNamePlaceholder": "Ej: Pérez",
+    "save": "Guardar",
+    "permissionTitle": "Permisos requeridos",
+    "permissionMessage": "Necesitamos permisos para acceder a tu galería de fotos.",
+    "imageError": "No se pudo seleccionar la imagen",
+    "discard": {
+      "title": "Descartar cambios",
+      "message": "Perderás los cambios que todavía no has guardado.",
+      "stay": "Seguir editando",
+      "confirm": "Descartar"
+    }
+  },
+  "iconSelector": {
+    "title": "Seleccionar icono",
+    "closeA11y": "Cerrar selector de iconos",
+    "searchPlaceholder": "Buscar icono..."
+  }
+}

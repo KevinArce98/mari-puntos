@@ -12,7 +12,6 @@ export const useStreak = () => {
   const appState = useRef(AppState.currentState);
   const hasPartner = !!user?.hasPartner;
 
-  // Initial fetch when user loads
   useEffect(() => {
     if (!user || !hasPartner) return;
     fetchStreak().catch((err) => {
@@ -20,7 +19,6 @@ export const useStreak = () => {
     });
   }, [user?.id, hasPartner]);
 
-  // Refetch whenever the app comes back to the foreground
   useEffect(() => {
     if (!user || !hasPartner) return;
 

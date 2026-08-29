@@ -1,0 +1,32 @@
+---
+import LandingPage from '@/components/LandingPage.astro';
+import Layout from '@/layouts/Layout.astro';
+import { useTranslations } from '@/i18n/ui';
+
+export const prerender = true;
+
+const lang = 'en';
+const t = useTranslations(lang);
+---
+
+<Layout
+  title={t('meta.title')}
+  description={t('meta.description')}
+  keywords={[
+    'relationship app',
+    'gamification',
+    'app for couples',
+    'points for couples',
+    'couples game',
+    'free app',
+    'iOS',
+    'Android',
+  ]}
+  ogTitle={t('meta.ogTitle')}
+  ogDescription={t('meta.ogDescription')}
+  twitterDescription={t('meta.twitterDescription')}
+  lang={lang}
+  alternatePath="/"
+>
+  <LandingPage lang={lang} />
+</Layout>

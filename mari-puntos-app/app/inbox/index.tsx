@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -24,6 +25,7 @@ import logger from '@/utils/logger';
 import { ResponseMessageFormData } from '@/validators/action.schema';
 
 export default function InboxScreen() {
+  const { t } = useTranslation(['inbox', 'errors']);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colors = useThemedColors();
@@ -73,9 +75,9 @@ export default function InboxScreen() {
         responseMessage: data.message || '',
         pointsCost: data.pointsCost,
       });
-      toast.success(approved ? 'Solicitud aprobada' : 'Solicitud rechazada');
+      toast.success(approved ? t('permissionApproved') : t('permissionRejected'));
     } catch (error) {
-      toast.error('Error', { description: 'No se pudo procesar la solicitud' });
+      toast.error(t('errors:title'), { description: t('permissionError') });
       throw error;
     } finally {
       setPermissionLoading(null);
@@ -87,13 +89,13 @@ export default function InboxScreen() {
       await approveAction(actionId, points);
       await Promise.all([refetchPartnerActions(), refetchStreak().catch(() => {})]);
       setSelectedAction(null);
-      toast.success('Acción aprobada', { description: 'Los puntos fueron otorgados' });
+      toast.success(t('actionApproved'), { description: t('actionApprovedMessage') });
     } catch (error) {
       logger.error('Failed to approve action from inbox', error as Error, {
         actionId,
         points,
       });
-      toast.error('Error', { description: 'No se pudo aprobar la acción' });
+      toast.error(t('errors:title'), { description: t('actionApproveError') });
       throw error;
     }
   };
@@ -103,10 +105,10 @@ export default function InboxScreen() {
       await rejectAction(actionId, reason);
       await refetchPartnerActions();
       setSelectedAction(null);
-      toast.success('Acción rechazada');
+      toast.success(t('actionRejected'));
     } catch (error) {
       logger.error('Failed to reject action from inbox', error as Error, { actionId });
-      toast.error('Error', { description: 'No se pudo rechazar la acción' });
+      toast.error(t('errors:title'), { description: t('actionRejectError') });
       throw error;
     }
   };
@@ -123,11 +125,11 @@ export default function InboxScreen() {
           onPress={() => router.back()}
           style={styles.headerButton}
           accessibilityRole="button"
-          accessibilityLabel="Volver"
+          accessibilityLabel={t('backA11y')}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </PressableScale>
-        <Text style={[styles.title, { color: colors.text.primary }]}>Pendientes</Text>
+        <Text style={[styles.title, { color: colors.text.primary }]}>{t('title')}</Text>
         <View style={styles.headerButton}>
           {totalPending > 0 && <Badge label={totalPending} variant="error" size="sm" />}
         </View>
@@ -147,10 +149,10 @@ export default function InboxScreen() {
               <Ionicons name="checkmark-done" size={36} color={colors.primary} />
             </View>
             <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
-              Todo al día
+              {t('allClear.title')}
             </Text>
             <Text style={[styles.emptyText, { color: colors.text.secondary }]}>
-              No tienes acciones ni permisos por revisar.
+              {t('allClear.text')}
             </Text>
           </Card>
         ) : (
@@ -159,7 +161,7 @@ export default function InboxScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-                    Acciones por revisar
+                    {t('sections.actions')}
                   </Text>
                   <Badge label={pendingActions.length} variant="warning" size="sm" />
                 </View>
@@ -177,7 +179,7 @@ export default function InboxScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-                    Permisos por responder
+                    {t('sections.permissions')}
                   </Text>
                   <Badge label={pendingPermissions.length} variant="warning" size="sm" />
                 </View>

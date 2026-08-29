@@ -80,7 +80,6 @@ export const getPreviousWeekId = (weekId: string): string => {
     return `${year}-W${String(week - 1).padStart(2, '0')}`;
   }
 
-  // Week 1 → last ISO week of previous year. Dec 28 is always in the final ISO week.
   year -= 1;
   week = dayjs(new Date(year, 11, 28))
     .tz(TIMEZONE)

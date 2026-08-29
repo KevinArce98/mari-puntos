@@ -1,0 +1,98 @@
+{
+  "title": "Perfil",
+  "errorScreen": {
+    "title": "No pudimos cargar tu perfil",
+    "message": "Revisa tu conexión e intenta de nuevo. Si el problema continúa, cierra sesión y vuelve a iniciar sesión.",
+    "retry": "Reintentar",
+    "signOut": "Cerrar sesión"
+  },
+  "stats": {
+    "points": "Puntos",
+    "level": "Nivel"
+  },
+  "level": {
+    "current": "Nivel {{level}}",
+    "toNext": "{{points}} pts para nivel {{level}}"
+  },
+  "partner": {
+    "title": "Tu pareja",
+    "linked": "Vinculado",
+    "points": "{{points}} MariPuntos",
+    "noneTitle": "No hay pareja vinculada",
+    "noneText": "Conéctate con tu pareja para comenzar a ganar puntos juntos",
+    "linkCta": "Vincular pareja",
+    "unlinkA11y": "Desvincular pareja"
+  },
+  "editA11y": "Editar perfil",
+  "sections": {
+    "progress": "Progreso",
+    "settings": "Configuración",
+    "dangerZone": "Zona de peligro"
+  },
+  "menu": {
+    "achievements": "Logros",
+    "achievementsSubtitle": "Revisa lo que has desbloqueado",
+    "history": "Historial",
+    "historySubtitle": "Consulta todos tus movimientos",
+    "language": "Idioma",
+    "notifications": "Notificaciones",
+    "changePassword": "Cambiar contraseña",
+    "privacy": "Privacidad",
+    "support": "Ayuda y soporte",
+    "deleteAccount": "Eliminar cuenta"
+  },
+  "language": {
+    "title": "Idioma",
+    "system": "Automático (según el dispositivo)",
+    "es": "Español",
+    "en": "English"
+  },
+  "signOut": "Cerrar sesión",
+  "version": "MariPuntos v{{version}}",
+  "unlink": {
+    "title": "Desvincular pareja",
+    "message": "¿Estás seguro de que deseas desvincular a tu pareja? Esta acción no se puede deshacer.",
+    "confirm": "Desvincular",
+    "successTitle": "Desvinculado",
+    "successMessage": "Tu pareja ha sido desvinculada",
+    "errorMessage": "No se pudo desvincular a la pareja"
+  },
+  "edit": {
+    "successTitle": "Perfil actualizado",
+    "successMessage": "Tu perfil se ha actualizado correctamente",
+    "errorMessage": "No se pudo actualizar el perfil"
+  },
+  "delete": {
+    "title": "Eliminar cuenta",
+    "message": "¿Estás seguro de que deseas eliminar tu cuenta? Todos tus datos, puntos y progreso se perderán permanentemente. Esta acción no se puede deshacer.",
+    "confirm": "Eliminar",
+    "confirmTitle": "Confirmar eliminación",
+    "confirmMessage": "Esta es tu última oportunidad. ¿Deseas eliminar tu cuenta definitivamente?",
+    "confirmCta": "Sí, eliminar",
+    "errorMessage": "No se pudo eliminar la cuenta. Intenta de nuevo."
+  },
+  "signOutPrompt": {
+    "title": "Cerrar sesión",
+    "message": "¿Estás seguro de que deseas cerrar sesión?"
+  },
+  "changePassword": {
+    "title": "Cambiar contraseña",
+    "backA11y": "Volver",
+    "externalTitle": "Cuenta externa",
+    "externalText": "Tu cuenta está vinculada con un proveedor externo (Google/Apple). No puedes cambiar la contraseña desde aquí.",
+    "currentLabel": "Contraseña actual",
+    "newLabel": "Nueva contraseña",
+    "confirmLabel": "Confirmar nueva contraseña",
+    "symbolRule": "Debe contener al menos un símbolo (ej. !@#$)",
+    "submit": "Guardar contraseña",
+    "successTitle": "Contraseña actualizada",
+    "successMessage": "Tu contraseña ha sido cambiada correctamente",
+    "errorMessage": "No se pudo cambiar la contraseña",
+    "discard": {
+      "title": "Descartar cambios",
+      "message": "Perderás las contraseñas que todavía no has guardado.",
+      "stay": "Seguir editando",
+      "confirm": "Descartar"
+    }
+  }
+}

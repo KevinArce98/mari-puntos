@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import i18n from '@/i18n';
+
 export const PASSWORD_PATTERNS = {
   lowercase: /[a-z]/,
   uppercase: /[A-Z]/,
@@ -9,18 +11,20 @@ export const PASSWORD_PATTERNS = {
 
 export const passwordSchema = z
   .string()
-  .min(8, 'La contraseña debe tener al menos 8 caracteres')
-  .max(100, 'La contraseña debe tener máximo 100 caracteres')
-  .regex(
-    PASSWORD_PATTERNS.lowercase,
-    'La contraseña debe contener al menos una letra minúscula'
-  )
-  .regex(
-    PASSWORD_PATTERNS.uppercase,
-    'La contraseña debe contener al menos una letra mayúscula'
-  )
-  .regex(PASSWORD_PATTERNS.number, 'La contraseña debe contener al menos un número')
-  .regex(PASSWORD_PATTERNS.symbol, 'La contraseña debe contener al menos un símbolo');
+  .min(8, { error: () => i18n.t('validation:passwordRules.min') })
+  .max(100, { error: () => i18n.t('validation:passwordRules.max') })
+  .regex(PASSWORD_PATTERNS.lowercase, {
+    error: () => i18n.t('validation:passwordRules.lowercase'),
+  })
+  .regex(PASSWORD_PATTERNS.uppercase, {
+    error: () => i18n.t('validation:passwordRules.uppercase'),
+  })
+  .regex(PASSWORD_PATTERNS.number, {
+    error: () => i18n.t('validation:passwordRules.number'),
+  })
+  .regex(PASSWORD_PATTERNS.symbol, {
+    error: () => i18n.t('validation:passwordRules.symbol'),
+  });
 
 export const hasPasswordLowercase = (password: string) =>
   PASSWORD_PATTERNS.lowercase.test(password);

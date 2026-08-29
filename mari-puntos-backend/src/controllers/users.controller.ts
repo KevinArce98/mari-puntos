@@ -1,24 +1,21 @@
 import { Response } from 'express';
+
 import { AuthRequest } from '../middlewares/authMiddleware';
-import { UsersService } from '../services/users.service';
 import { PushNotificationService } from '../services/push-notification.service';
+import { UsersService } from '../services/users.service';
+import { logger } from '../utils/logger';
+import { toAchievementDTOList, toUserDTO, toUserStatsDTO } from '../utils/mappers';
+import { sendCreated, sendSuccess } from '../utils/response';
 import {
   createUserSchema,
-  updateUserSchema,
   sendTestNotificationSchema,
+  updateUserSchema,
 } from '../validators/schemas';
-import { sendSuccess, sendCreated } from '../utils/response';
-import { toUserDTO, toUserStatsDTO, toAchievementDTOList } from '../utils/mappers';
-import { logger } from '../utils/logger';
 
 export class UsersController {
   private usersService = new UsersService();
   private pushNotificationService = new PushNotificationService();
 
-  /**
-   * GET /users/profile
-   * Get current user's profile
-   */
   getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId!;
     const { user, hasPartner } = await this.usersService.getUserProfile(userId);
@@ -26,10 +23,6 @@ export class UsersController {
     sendSuccess(res, toUserDTO(user, hasPartner));
   };
 
-  /**
-   * POST /users/profile
-   * Create user profile (called after Clerk signup)
-   */
   createProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       logger.info({
@@ -40,7 +33,6 @@ export class UsersController {
       const data = createUserSchema.parse(req.body);
       logger.debug({ message: 'Schema validation passed' });
 
-      // clerkId ALWAYS derived from verified JWT — never trust body
       const clerkId = req.clerkId!;
 
       const user = await this.usersService.createUser(clerkId, data);
@@ -53,10 +45,6 @@ export class UsersController {
     }
   };
 
-  /**
-   * PUT /users/profile
-   * Update current user's profile
-   */
   updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId!;
     try {
@@ -75,10 +63,6 @@ export class UsersController {
     }
   };
 
-  /**
-   * GET /users/stats
-   * Get current user's statistics
-   */
   getStats = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId!;
     const stats = await this.usersService.getUserStats(userId);
@@ -86,20 +70,12 @@ export class UsersController {
     sendSuccess(res, toUserStatsDTO(stats));
   };
 
-  /**
-   * GET /users/achievements
-   * Get current user's achievements
-   */
   getAchievements = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId!;
     const achievements = await this.usersService.getUserAchievements(userId);
     sendSuccess(res, toAchievementDTOList(achievements));
   };
 
-  /**
-   * DELETE /users/account
-   * Permanently delete current user's account and all associated data
-   */
   deleteAccount = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId!;
     try {
@@ -113,10 +89,6 @@ export class UsersController {
     }
   };
 
-  /**
-   * DELETE /users/profile
-   * Deactivate current user's account
-   */
   deactivateAccount = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId!;
     try {
@@ -133,10 +105,6 @@ export class UsersController {
     }
   };
 
-  /**
-   * POST /users/test-notification
-   * Send a test push notification to verify the push token works
-   */
   sendTestNotification = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const { pushToken, title, body, data } = sendTestNotificationSchema.parse(req.body);

@@ -1,0 +1,39 @@
+{
+  "title": "My actions",
+  "reviewA11y": "Review pending actions",
+  "reviewA11yCount_one": "Review pending actions, {{count}} pending",
+  "reviewA11yCount_other": "Review pending actions, {{count}} pending",
+  "stats": {
+    "totalPoints": "Total points",
+    "pending": "Pending"
+  },
+  "empty": {
+    "filtered": "No actions with this status",
+    "none": "You haven't created any actions yet",
+    "hint": "Create your first action to start earning points",
+    "cta": "Log first action"
+  },
+  "fabA11y": "Create new action",
+  "created": "Action created",
+  "createdMessage": "Your action has been sent for review",
+  "createError": "Couldn't create the action",
+  "review": {
+    "title": "Review actions",
+    "stats": {
+      "pending": "Pending",
+      "total": "Total"
+    },
+    "empty": {
+      "noPending": "No pending actions",
+      "filtered": "No actions with this status",
+      "none": "No actions to review",
+      "pendingHint": "Your partner's actions will show up here"
+    },
+    "approved": "Action approved",
+    "approvedMessage": "The points have been awarded",
+    "approveError": "Couldn't approve the action",
+    "rejected": "Action rejected",
+    "rejectedMessage": "Your partner has been notified",
+    "rejectError": "Couldn't reject the action"
+  }
+}

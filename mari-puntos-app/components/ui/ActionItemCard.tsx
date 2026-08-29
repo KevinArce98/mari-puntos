@@ -86,7 +86,6 @@ export function ActionItemCard({
         accessibilityLabel={`${action.title}, ${statusConfig.label}`}
       >
         <View style={styles.row}>
-          {/* Icon */}
           <View
             style={[
               styles.iconContainer,
@@ -100,7 +99,6 @@ export function ActionItemCard({
             />
           </View>
 
-          {/* Content */}
           <View style={styles.content}>
             <View style={styles.header}>
               <Text
@@ -152,7 +150,6 @@ export function ActionItemCard({
             </View>
           </View>
 
-          {/* Arrow */}
           {onPress && (
             <Ionicons name="chevron-forward" size={20} color={themeColors.gray[400]} />
           )}

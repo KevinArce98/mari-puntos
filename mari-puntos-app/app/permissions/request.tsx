@@ -19,6 +19,7 @@ import { usePreventRemove } from 'expo-router/react-navigation';
 import { Ionicons } from '@expo/vector-icons';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -31,6 +32,7 @@ import {
 } from '@/components/ui';
 import { usePermissions, useThemedColors, useUser } from '@/hooks';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import i18n from '@/i18n';
 import { permissionsService } from '@/services';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { PermissionTemplate } from '@/types';
@@ -38,6 +40,7 @@ import { createUTC6DateTime } from '@/utils/dateUtils';
 import logger from '@/utils/logger';
 
 export default function RequestPermissionScreen() {
+  const { t } = useTranslation(['permissions', 'common', 'errors']);
   const themeColors = useThemedColors();
   const colorScheme: 'light' | 'dark' = useColorScheme() === 'dark' ? 'dark' : 'light';
   const router = useRouter();
@@ -52,34 +55,27 @@ export default function RequestPermissionScreen() {
     null
   );
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
-  const [duration, setDuration] = useState(2); // hours
+  const [duration, setDuration] = useState(2);
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
   const [allowExit, setAllowExit] = useState(false);
 
-  // Date & Time pickers state
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(new Date());
   const [showPicker, setShowPicker] = useState<'date' | 'time' | null>(null);
 
   usePreventRemove(Boolean(selectedTemplate || note.trim()) && !allowExit, ({ data }) => {
-    Alert.alert(
-      'Descartar solicitud',
-      'Perderás los cambios que todavía no has enviado.',
-      [
-        { text: 'Seguir editando', style: 'cancel' },
-        {
-          text: 'Descartar',
-          style: 'destructive',
-          onPress: () => navigation.dispatch(data.action),
-        },
-      ]
-    );
+    Alert.alert(t('request.discard.title'), t('request.discard.message'), [
+      { text: t('common:actions.keepEditing'), style: 'cancel' },
+      {
+        text: t('request.discard.confirm'),
+        style: 'destructive',
+        onPress: () => navigation.dispatch(data.action),
+      },
+    ]);
   });
 
-  // Keep the floating bottom button above the keyboard (the button is
-  // absolute-positioned outside KeyboardAvoidingView on both platforms).
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
@@ -95,7 +91,6 @@ export default function RequestPermissionScreen() {
     };
   }, []);
 
-  // Load templates on mount and on every focus (useFocusEffect fires on initial mount too)
   useFocusEffect(
     useCallback(() => {
       if (!user) return;
@@ -110,21 +105,20 @@ export default function RequestPermissionScreen() {
       setTemplates(result.data || []);
       logger.debug('Permission templates loaded', { count: result.data?.length || 0 });
       if (!result.data || result.data.length === 0) {
-        toast.info('No hay actividades', {
-          description: 'Contacta al administrador para agregar plantillas',
+        toast.info(t('request.noTemplatesTitle'), {
+          description: t('request.noTemplatesMessage'),
         });
       }
     } catch (error) {
       logger.error('Failed to load permission templates', error as Error);
-      toast.error('Error', { description: 'No se pudieron cargar las plantillas' });
+      toast.error(t('errors:title'), { description: t('request.loadTemplatesError') });
     } finally {
       setLoadingTemplates(false);
     }
   };
 
-  // Combine and sort all templates alphabetically
   const allTemplatesSorted = [...templates].sort((a, b) =>
-    a.title.localeCompare(b.title, 'es')
+    a.title.localeCompare(b.title, i18n.language)
   );
 
   const handleTemplateSelect = (template: PermissionTemplate) => {
@@ -140,7 +134,9 @@ export default function RequestPermissionScreen() {
 
   const handleRequest = async () => {
     if (!selectedTemplate) {
-      toast.error('Error', { description: 'Por favor selecciona un tipo de actividad' });
+      toast.error(t('errors:title'), {
+        description: t('request.selectActivityError'),
+      });
       return;
     }
 
@@ -160,15 +156,15 @@ export default function RequestPermissionScreen() {
         durationHours: duration,
       });
 
-      toast.success('Solicitud enviada', {
-        description: 'Tu pareja recibirá una notificación',
+      toast.success(t('request.sentTitle'), {
+        description: t('request.sentMessage'),
       });
 
       setAllowExit(true);
       setTimeout(() => router.back(), 0);
     } catch (e) {
-      toast.error('Error', {
-        description: (e as any)?.error ?? 'No se pudo enviar la solicitud',
+      toast.error(t('errors:title'), {
+        description: (e as any)?.error ?? t('request.sendError'),
       });
     } finally {
       setLoading(false);
@@ -206,11 +202,11 @@ export default function RequestPermissionScreen() {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return 'Hoy';
+      return t('dates.today');
     } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Mañana';
+      return t('dates.tomorrow');
     } else {
-      return date.toLocaleDateString('es-ES', {
+      return date.toLocaleDateString(i18n.language, {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
@@ -219,7 +215,7 @@ export default function RequestPermissionScreen() {
   };
 
   const formatTime = (time: Date) => {
-    return time.toLocaleTimeString('es-ES', {
+    return time.toLocaleTimeString(i18n.language, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
@@ -240,18 +236,17 @@ export default function RequestPermissionScreen() {
         },
       ]}
     >
-      {/* Header */}
       <View style={styles.header}>
         <PressableScale
           onPress={() => router.back()}
           style={styles.backButton}
           accessibilityRole="button"
-          accessibilityLabel="Volver"
+          accessibilityLabel={t('request.backA11y')}
         >
           <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
         </PressableScale>
         <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
-          Nueva solicitud
+          {t('request.headerTitle')}
         </Text>
         <View style={{ width: 40 }} />
       </View>
@@ -270,7 +265,6 @@ export default function RequestPermissionScreen() {
               <SkeletonList count={4} lines={2} showAvatar={false} />
             ) : (
               <>
-                {/* Activity Type */}
                 <View style={styles.section}>
                   <View style={styles.sectionHeader}>
                     <PressableScale
@@ -285,12 +279,11 @@ export default function RequestPermissionScreen() {
                       <Text
                         style={[styles.addButtonText, { color: themeColors.primary }]}
                       >
-                        Nueva actividad
+                        {t('request.newActivity')}
                       </Text>
                     </PressableScale>
                   </View>
 
-                  {/* All Templates Dropdown */}
                   <View style={styles.allTemplatesSection}>
                     {showTemplatePicker && (
                       <Pressable
@@ -331,7 +324,7 @@ export default function RequestPermissionScreen() {
                       >
                         {selectedTemplate
                           ? selectedTemplate.title
-                          : 'Selecciona una actividad'}
+                          : t('request.selectActivity')}
                       </Text>
                       <Ionicons
                         name={showTemplatePicker ? 'chevron-up' : 'chevron-down'}
@@ -355,7 +348,7 @@ export default function RequestPermissionScreen() {
                                 { color: themeColors.text.primary },
                               ]}
                             >
-                              No hay actividades disponibles
+                              {t('request.noTemplatesAvailable')}
                             </Text>
                           </View>
                         ) : (
@@ -438,12 +431,11 @@ export default function RequestPermissionScreen() {
                   </View>
                 </View>
 
-                {/* Date & Time */}
                 <View style={styles.section}>
                   <Text
                     style={[styles.sectionTitle, { color: themeColors.text.primary }]}
                   >
-                    Cuándo
+                    {t('request.whenLabel')}
                   </Text>
                   <View style={styles.dateTimeRow}>
                     <PressableScale
@@ -502,17 +494,16 @@ export default function RequestPermissionScreen() {
                           showPicker === 'time' ? handleTimeChange : handleDateChange
                         }
                         minimumDate={showPicker === 'date' ? new Date() : undefined}
-                        locale="es-CR"
+                        locale={i18n.language === 'en' ? 'en-US' : 'es-CR'}
                         textColor={themeColors.text.primary}
                         themeVariant={colorScheme}
                       />
                     </View>
                   )}
 
-                  {/* iOS Confirm Button */}
                   {Platform.OS === 'ios' && showPicker && (
                     <Button
-                      title="Confirmar"
+                      title={t('request.confirm')}
                       onPress={() => {
                         setShowPicker(null);
                       }}
@@ -522,16 +513,17 @@ export default function RequestPermissionScreen() {
                   )}
                 </View>
 
-                {/* Duration Control */}
                 <View style={styles.section}>
                   <View style={styles.durationHeader}>
                     <Text
                       style={[styles.sectionTitle, { color: themeColors.text.primary }]}
                     >
-                      Duración
+                      {t('request.durationLabel')}
                     </Text>
                     <Text style={[styles.durationValue, { color: themeColors.primary }]}>
-                      {isNaN(duration) ? 0 : duration} horas
+                      {t('request.durationHours', {
+                        count: isNaN(duration) ? 0 : duration,
+                      })}
                     </Text>
                   </View>
 
@@ -543,7 +535,7 @@ export default function RequestPermissionScreen() {
                       ]}
                       onPress={() => handleDurationChange(-0.5)}
                       accessibilityRole="button"
-                      accessibilityLabel="Reducir duración"
+                      accessibilityLabel={t('request.decreaseDuration')}
                     >
                       <Ionicons name="remove" size={24} color={themeColors.primary} />
                     </PressableScale>
@@ -570,22 +562,21 @@ export default function RequestPermissionScreen() {
                       ]}
                       onPress={() => handleDurationChange(0.5)}
                       accessibilityRole="button"
-                      accessibilityLabel="Aumentar duración"
+                      accessibilityLabel={t('request.increaseDuration')}
                     >
                       <Ionicons name="add" size={24} color={themeColors.primary} />
                     </PressableScale>
                   </View>
                 </View>
 
-                {/* Optional Note */}
                 <View style={styles.section}>
                   <Text
                     style={[styles.sectionTitle, { color: themeColors.text.primary }]}
                   >
-                    Nota (opcional)
+                    {t('request.noteLabel')}
                   </Text>
                   <TextAreaWithCounter
-                    placeholder="Agrega un mensaje para tu pareja..."
+                    placeholder={t('request.messagePlaceholder')}
                     value={note}
                     onChangeText={setNote}
                     numberOfLines={3}
@@ -599,7 +590,6 @@ export default function RequestPermissionScreen() {
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 
-      {/* Bottom Button */}
       <View
         style={[
           styles.bottomContainer,
@@ -614,7 +604,7 @@ export default function RequestPermissionScreen() {
         ]}
       >
         <Button
-          title="Enviar solicitud"
+          title={t('request.submit')}
           onPress={handleRequest}
           loading={loading}
           disabled={!selectedTemplate || loadingTemplates}

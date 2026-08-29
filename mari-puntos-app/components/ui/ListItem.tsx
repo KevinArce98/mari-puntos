@@ -17,18 +17,12 @@ interface ListItemProps {
   leftComponent?: React.ReactNode;
   rightComponent?: React.ReactNode;
   onPress?: () => void;
-  /** Bottom separator — use for every row except the last in a group. */
   showBorder?: boolean;
   style?: ViewStyle;
   titleStyle?: TextStyle;
   leftIconColor?: string;
 }
 
-/**
- * Fila de menú/lista. Sin superficie ni borde propios — está pensada para
- * vivir dentro de un `Card padding="none"` que aporta el contenedor;
- * usa `showBorder` para separar filas consecutivas con una línea inferior.
- */
 export const ListItem: React.FC<ListItemProps> = ({
   title,
   subtitle,

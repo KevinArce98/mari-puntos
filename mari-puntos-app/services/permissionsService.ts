@@ -13,14 +13,6 @@ import {
 import { apiService } from './api';
 
 class PermissionsService {
-  // ============================================
-  // Permission Templates
-  // ============================================
-
-  /**
-   * Get permission templates
-   * GET /permission-templates
-   */
   async getTemplates(
     params?: GetPermissionTemplatesParams
   ): Promise<PaginatedResponse<PermissionTemplate>> {
@@ -30,10 +22,6 @@ class PermissionsService {
     );
   }
 
-  /**
-   * Get system permission templates (predefined)
-   * GET /permission-templates/system
-   */
   async getSystemTemplates(): Promise<PermissionTemplate[]> {
     const response = await apiService.get<ApiResponse<PermissionTemplate[]>>(
       '/permission-templates/system'
@@ -41,10 +29,6 @@ class PermissionsService {
     return response.data;
   }
 
-  /**
-   * Create custom permission template
-   * POST /permission-templates
-   */
   async createTemplate(
     data: CreatePermissionTemplateRequest
   ): Promise<PermissionTemplate> {
@@ -55,10 +39,6 @@ class PermissionsService {
     return response.data;
   }
 
-  /**
-   * Update permission template
-   * PATCH /permission-templates/:id
-   */
   async updateTemplate(
     templateId: string,
     data: Partial<CreatePermissionTemplateRequest>
@@ -70,51 +50,27 @@ class PermissionsService {
     return response.data;
   }
 
-  /**
-   * Delete permission template
-   * DELETE /permission-templates/:id
-   */
   async deleteTemplate(templateId: string): Promise<{ success: boolean }> {
     return apiService.delete<{ success: boolean }>(`/permission-templates/${templateId}`);
   }
 
-  // ============================================
-  // Permissions
-  // ============================================
-
-  /**
-   * Request permission (Husband only)
-   * POST /permissions
-   */
   async createPermission(data: CreatePermissionRequest): Promise<Permission> {
     const response = await apiService.post<ApiResponse<Permission>>('/permissions', data);
     return response.data;
   }
 
-  /**
-   * Get my permission requests
-   * GET /permissions/my
-   */
   async getMyPermissions(
     params?: GetPermissionsParams
   ): Promise<PaginatedResponse<Permission>> {
     return apiService.get<PaginatedResponse<Permission>>('/permissions/my', params);
   }
 
-  /**
-   * Get partner's permission requests (Wife only)
-   * GET /permissions/partner
-   */
   async getPartnerPermissions(
     params?: GetPermissionsParams
   ): Promise<PaginatedResponse<Permission>> {
     return apiService.get<PaginatedResponse<Permission>>('/permissions/partner', params);
   }
 
-  /**
-   * Respond to permission (Wife only)
-   * POST /permissions/:id/respond
-   */
   async respondToPermission(
     permissionId: string,
     data: RespondPermissionRequest
@@ -126,10 +82,6 @@ class PermissionsService {
     return response.data;
   }
 
-  /**
-   * Get permission by id
-   * GET /permissions/:id
-   */
   async getPermissionById(permissionId: string): Promise<Permission> {
     const response = await apiService.get<ApiResponse<Permission>>(
       `/permissions/${permissionId}`
@@ -137,10 +89,6 @@ class PermissionsService {
     return response.data;
   }
 
-  /**
-   * Update permission (only pending)
-   * PATCH /permissions/:id
-   */
   async updatePermission(
     permissionId: string,
     data: Partial<CreatePermissionRequest>
@@ -152,10 +100,6 @@ class PermissionsService {
     return response.data;
   }
 
-  /**
-   * Cancel permission (Husband only)
-   * DELETE /permissions/:id
-   */
   async cancelPermission(permissionId: string): Promise<{ success: boolean }> {
     return apiService.delete<{ success: boolean }>(`/permissions/${permissionId}`);
   }

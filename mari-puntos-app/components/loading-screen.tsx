@@ -11,10 +11,13 @@ import {
 
 import { Image } from 'expo-image';
 
+import { useTranslation } from 'react-i18next';
+
 import { useThemedColors } from '@/hooks';
 import { spacing, typography } from '@/theme';
 
 export function LoadingScreen() {
+  const { t } = useTranslation('common');
   const themeColors = useThemedColors();
   const spinValue = React.useRef(new Animated.Value(0)).current;
   const pulseValue = React.useRef(new Animated.Value(1)).current;
@@ -28,7 +31,6 @@ export function LoadingScreen() {
   }, []);
 
   useEffect(() => {
-    // Fade in always runs (not motion-heavy)
     Animated.timing(fadeValue, {
       toValue: 1,
       duration: 500,
@@ -37,7 +39,6 @@ export function LoadingScreen() {
 
     if (reduceMotion) return;
 
-    // Rotation animation
     Animated.loop(
       Animated.timing(spinValue, {
         toValue: 1,
@@ -47,7 +48,6 @@ export function LoadingScreen() {
       })
     ).start();
 
-    // Subtle pulse animation (1.05x — not jarring)
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseValue, {
@@ -76,7 +76,6 @@ export function LoadingScreen() {
           },
         ]}
       >
-        {/* Animated Logo + Spinner stacked in a relative wrapper */}
         <View style={styles.logoWrapper}>
           <Animated.View style={{ transform: [{ scale: pulseValue }] }}>
             <Image
@@ -87,15 +86,12 @@ export function LoadingScreen() {
           </Animated.View>
         </View>
 
-        {/* App Name */}
         <Text style={[styles.appName, { color: themeColors.primary }]}>MariPuntos</Text>
 
-        {/* Loading Text */}
         <Text style={[styles.loadingText, { color: themeColors.text.secondary }]}>
-          Cargando...
+          {t('actions.loading')}
         </Text>
 
-        {/* Animated Dots */}
         <View style={styles.dotsContainer}>
           <AnimatedDot delay={0} color={themeColors.primary} />
           <AnimatedDot delay={200} color={themeColors.primary} />

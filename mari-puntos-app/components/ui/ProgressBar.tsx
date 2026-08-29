@@ -6,7 +6,7 @@ import { useThemedColors } from '@/hooks';
 import { borderRadius } from '@/theme';
 
 interface ProgressBarProps {
-  progress: number; // 0 to 100
+  progress: number;
   color?: string;
   backgroundColor?: string;
   height?: number;

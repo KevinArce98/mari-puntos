@@ -1,18 +1,19 @@
-import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '@clerk/express';
-import { AppDataSource } from '../config/db';
-import { User } from '../entities/User';
-import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
+import { NextFunction, Request, Response } from 'express';
 import { LRUCache } from 'lru-cache';
-import { config } from '../config/env';
-import { sendError } from '../utils/response';
-import { logger } from '../utils/logger';
-import { UsersService } from '../services/users.service';
 
-/** LRU cache: clerkId → { userId, isActive }. TTL 5 min. Max 500 entries. */
+import { AppDataSource } from '../config/db';
+import { config } from '../config/env';
+import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
+import { User } from '../entities/User';
+import { getRequestLocale, translate } from '../i18n';
+import { UsersService } from '../services/users.service';
+import { logger } from '../utils/logger';
+import { sendError } from '../utils/response';
+
 const userCache = new LRUCache<string, { userId: string; isActive: boolean }>({
   max: 500,
-  ttl: 1000 * 60 * 5, // 5 minutes
+  ttl: 1000 * 60 * 5,
 });
 
 const usersService = new UsersService();
@@ -52,10 +53,6 @@ async function verifyClerkJWT(token: string) {
   return payload;
 }
 
-/**
- * Authentication middleware
- * Validates Clerk JWT token and attaches user to request
- */
 export const authMiddleware = async (
   req: AuthRequest,
   res: Response,
@@ -65,7 +62,7 @@ export const authMiddleware = async (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      sendError(res, 'Autenticación requerida', 401);
+      sendError(res, translate('errors.auth.required', getRequestLocale(req)), 401);
       return;
     }
 
@@ -77,12 +74,13 @@ export const authMiddleware = async (
     } catch (jwtError: unknown) {
       logger.error({ err: jwtError }, 'JWT verification failed');
       const errName = jwtError instanceof Error ? jwtError.name : '';
+      const locale = getRequestLocale(req);
       if (errName === 'TokenExpiredError') {
-        sendError(res, 'El token ha expirado', 401);
+        sendError(res, translate('errors.auth.tokenExpired', locale), 401);
       } else if (errName === 'TokenNotBeforeError') {
-        sendError(res, 'El token aún no es válido', 401);
+        sendError(res, translate('errors.auth.tokenNotYetValid', locale), 401);
       } else {
-        sendError(res, 'Token inválido o expirado', 401);
+        sendError(res, translate('errors.auth.invalidToken', locale), 401);
       }
       return;
     }
@@ -97,13 +95,20 @@ export const authMiddleware = async (
       if (!user) {
         try {
           user = await usersService.findOrCreateByClerkId(clerkId);
-          logger.info({ clerkId, userId: user.id }, 'JIT-provisioned user on first request');
+          logger.info(
+            { clerkId, userId: user.id },
+            'JIT-provisioned user on first request'
+          );
         } catch (provisionError) {
           logger.error(
             { err: provisionError, clerkId },
             'JIT provisioning failed for authenticated Clerk session'
           );
-          sendError(res, 'No se pudo preparar tu cuenta. Intenta de nuevo.', 500);
+          sendError(
+            res,
+            translate('errors.auth.provisioningFailed', getRequestLocale(req)),
+            500
+          );
           return;
         }
       }
@@ -114,28 +119,31 @@ export const authMiddleware = async (
     }
 
     if (!cached.isActive) {
-      userCache.delete(clerkId); // Evict deactivated users immediately
-      sendError(res, 'La cuenta está desactivada', 403);
+      userCache.delete(clerkId);
+      sendError(
+        res,
+        translate('errors.auth.accountDisabled', getRequestLocale(req)),
+        403
+      );
       return;
     }
 
-    // Attach user context to request
     req.userId = cached.userId;
     req.clerkId = clerkId;
 
-    logger.debug({ message: 'User authenticated successfully', userId: cached.userId, clerkId });
+    logger.debug({
+      message: 'User authenticated successfully',
+      userId: cached.userId,
+      clerkId,
+    });
 
     next();
   } catch (error) {
     logger.error({ err: error }, 'Auth middleware error');
-    sendError(res, 'Autenticación fallida', 401);
+    sendError(res, translate('errors.auth.failed', getRequestLocale(req)), 401);
   }
 };
 
-/**
- * Optional auth middleware - doesn't fail if no token provided
- * Useful for endpoints that work differently for authenticated users
- */
 export const optionalAuthMiddleware = async (
   req: AuthRequest,
   res: Response,
@@ -144,26 +152,20 @@ export const optionalAuthMiddleware = async (
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    // No token - continue without user context
     next();
     return;
   }
 
-  // Token provided - validate it
   return authMiddleware(req, res, next);
 };
 
-/**
- * Middleware to require an active linked partner.
- * Must be used after authMiddleware.
- */
 export const requirePartner = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   if (!req.userId) {
-    sendError(res, 'Authentication required', 401);
+    sendError(res, translate('errors.auth.required', getRequestLocale(req)), 401);
     return;
   }
 
@@ -176,18 +178,13 @@ export const requirePartner = async (
   });
 
   if (!partnerLink) {
-    sendError(res, 'No tienes una pareja vinculada. Por favor vincula a tu pareja primero.', 400);
+    sendError(res, translate('errors.auth.partnerRequired', getRequestLocale(req)), 400);
     return;
   }
 
   next();
 };
 
-/**
- * Auth middleware for profile creation.
- * Requires a valid Clerk JWT. Extracts clerkId from the token only — never from the request body.
- * Used for POST /users/profile endpoint.
- */
 export const clerkOnlyAuthMiddleware = async (
   req: AuthRequest,
   res: Response,
@@ -197,7 +194,7 @@ export const clerkOnlyAuthMiddleware = async (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      sendError(res, 'Autenticación requerida', 401);
+      sendError(res, translate('errors.auth.required', getRequestLocale(req)), 401);
       return;
     }
 
@@ -210,12 +207,13 @@ export const clerkOnlyAuthMiddleware = async (
     } catch (jwtError: unknown) {
       logger.error({ err: jwtError }, 'JWT verification failed (clerk-only)');
       const errName = jwtError instanceof Error ? jwtError.name : '';
+      const locale = getRequestLocale(req);
       if (errName === 'TokenExpiredError') {
-        sendError(res, 'El token ha expirado', 401);
+        sendError(res, translate('errors.auth.tokenExpired', locale), 401);
       } else if (errName === 'TokenNotBeforeError') {
-        sendError(res, 'El token aún no es válido', 401);
+        sendError(res, translate('errors.auth.tokenNotYetValid', locale), 401);
       } else {
-        sendError(res, 'Token inválido o expirado', 401);
+        sendError(res, translate('errors.auth.invalidToken', locale), 401);
       }
       return;
     }
@@ -227,6 +225,6 @@ export const clerkOnlyAuthMiddleware = async (
     next();
   } catch (error) {
     logger.error({ err: error }, 'Clerk auth middleware error');
-    sendError(res, 'Autenticación fallida', 401);
+    sendError(res, translate('errors.auth.failed', getRequestLocale(req)), 401);
   }
 };

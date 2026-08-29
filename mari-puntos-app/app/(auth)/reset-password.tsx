@@ -13,9 +13,11 @@ import {
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { isClerkAPIResponseError, useSignIn } from '@clerk/clerk-expo';
+import { isClerkAPIResponseError } from '@clerk/expo';
+import { useSignIn } from '@clerk/expo/legacy';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -33,6 +35,7 @@ import type { ResetPasswordFormData } from '@/validators/auth.schema';
 import { hasPasswordSymbol } from '@/validators/password.rules';
 
 export default function ResetPasswordScreen() {
+  const { t } = useTranslation(['auth', 'common', 'errors']);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const themeColors = useThemedColors();
@@ -63,14 +66,12 @@ export default function ResetPasswordScreen() {
     if (!isLoaded) return;
 
     try {
-      // First, attempt the first factor with the code
       const attemptResult = await signIn.attemptFirstFactor({
         strategy: 'reset_password_email_code',
         code: data.code,
       });
 
       if (attemptResult.status === 'needs_new_password') {
-        // Now reset the password
         const resetResult = await signIn.resetPassword({
           password: data.password,
         });
@@ -78,19 +79,19 @@ export default function ResetPasswordScreen() {
         if (resetResult.status === 'complete') {
           await setActive({ session: resetResult.createdSessionId });
           router.replace('/(tabs)');
-          toast.success('Contraseña restablecida', {
-            description: 'Tu contraseña ha sido cambiada exitosamente',
+          toast.success(t('auth:resetPassword.successTitle'), {
+            description: t('auth:resetPassword.successMessage'),
           });
         }
       }
     } catch (error: any) {
-      let errorMessage = 'Error al restablecer la contraseña';
+      let errorMessage = t('auth:resetPassword.failed');
 
       if (isClerkAPIResponseError(error)) {
         errorMessage = handleClerkErrors(error.errors);
       }
 
-      toast.error('Error', { description: errorMessage });
+      toast.error(t('errors:title'), { description: errorMessage });
     }
   };
 
@@ -111,23 +112,21 @@ export default function ResetPasswordScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
           <View style={styles.header}>
             <Text style={[styles.title, { color: themeColors.text.primary }]}>
-              Restablecer contraseña
+              {t('auth:resetPassword.title')}
             </Text>
             <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
-              Ingresa el código que enviamos a {email} y tu nueva contraseña
+              {t('auth:resetPassword.subtitle', { email })}
             </Text>
           </View>
 
-          {/* Form */}
           <View style={styles.form}>
             <ControlledInput
               control={control}
               name="password"
-              label="Nueva contraseña"
-              placeholder="Ingresa tu nueva contraseña"
+              label={t('auth:fields.newPassword')}
+              placeholder={t('auth:fields.newPasswordPlaceholder')}
               secureTextEntry={!showPassword}
               leftIcon="lock-closed-outline"
               rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
@@ -140,14 +139,14 @@ export default function ResetPasswordScreen() {
                 { color: hasSymbol ? themeColors.success : themeColors.text.secondary },
               ]}
             >
-              Debe contener al menos un símbolo (ej. !@#$)
+              {t('auth:resetPassword.symbolRule')}
             </Text>
 
             <ControlledInput
               control={control}
               name="confirmPassword"
-              label="Confirmar contraseña"
-              placeholder="Confirma tu nueva contraseña"
+              label={t('auth:fields.confirmPassword')}
+              placeholder={t('auth:fields.confirmNewPasswordPlaceholder')}
               secureTextEntry={!showConfirmPassword}
               leftIcon="lock-closed-outline"
               rightIcon={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
@@ -156,7 +155,7 @@ export default function ResetPasswordScreen() {
 
             <View style={styles.codeInputContainer}>
               <Text style={[styles.codeLabel, { color: themeColors.text.primary }]}>
-                Código de verificación
+                {t('auth:fields.verificationCode')}
               </Text>
               <ControlledCodeInput
                 control={control}
@@ -167,7 +166,7 @@ export default function ResetPasswordScreen() {
             </View>
 
             <Button
-              title="Restablecer contraseña"
+              title={t('auth:resetPassword.submit')}
               onPress={handleSubmit(onSubmit)}
               loading={isSubmitting}
               fullWidth
@@ -175,11 +174,10 @@ export default function ResetPasswordScreen() {
             />
           </View>
 
-          {/* Back */}
           <View style={styles.backContainer}>
             <PressableScale onPress={() => router.back()}>
               <Text style={[styles.backLink, { color: themeColors.primary }]}>
-                Volver
+                {t('common:actions.goBack')}
               </Text>
             </PressableScale>
           </View>

@@ -47,7 +47,6 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantStyles = {
     primary: { backgroundColor: colors.primary },
-    // Tonal: tinte del primario, no dorado
     secondary: { backgroundColor: colors.primaryTint },
     outline: {
       backgroundColor: 'transparent',
@@ -152,7 +151,6 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
 
-  // Sizes
   size_sm: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -169,7 +167,6 @@ const styles = StyleSheet.create({
     minHeight: 56,
   },
 
-  // States
   disabled: {
     opacity: 0.4,
   },
@@ -177,12 +174,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
-  // Text styles
   text: {
     ...typography.styles.button,
   },
 
-  // Text sizes
   textSize_sm: {
     ...typography.styles.buttonSmall,
   },

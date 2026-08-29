@@ -1,9 +1,10 @@
 import { Repository } from 'typeorm';
+
 import { AppDataSource } from '../config/db';
-import { PermissionTemplate } from '../entities/PermissionTemplate';
 import { PartnerLink } from '../entities/PartnerLink';
-import { AppError } from '../middlewares/errorMiddleware';
+import { PermissionTemplate } from '../entities/PermissionTemplate';
 import { PermissionCategory } from '../entities/PermissionTemplate';
+import { AppError } from '../middlewares/errorMiddleware';
 import { logger } from '../utils/logger';
 
 interface CreatePermissionTemplateData {
@@ -31,14 +32,10 @@ export class PermissionTemplatesService {
     this.partnerLinkRepository = AppDataSource.getRepository(PartnerLink);
   }
 
-  /**
-   * Get all permission templates (system + custom for user's partnership)
-   */
   async getTemplates(userId: string, params: GetTemplatesParams = {}) {
     logger.debug({ message: 'Getting permission templates', userId, params });
     const { category, isSystemTemplate, page = 1, limit = 50 } = params;
 
-    // Get user's partner link
     const partnerLink = await this.partnerLinkRepository.findOne({
       where: [{ user1Id: userId }, { user2Id: userId }],
     });
@@ -47,18 +44,15 @@ export class PermissionTemplatesService {
       .createQueryBuilder('template')
       .where('template.isActive = :isActive', { isActive: true });
 
-    // Filter by category if provided
     if (category) {
       query.andWhere('template.category = :category', { category });
     }
 
-    // Filter by system/custom if specified
     if (isSystemTemplate !== undefined) {
       query.andWhere('template.isSystemTemplate = :isSystemTemplate', {
         isSystemTemplate,
       });
     } else {
-      // Show system templates + custom templates for this partnership
       query.andWhere(
         '(template.isSystemTemplate = true OR template.partnerLinkId = :partnerLinkId)',
         { partnerLinkId: partnerLink?.id || null }
@@ -78,9 +72,6 @@ export class PermissionTemplatesService {
     return { templates, total };
   }
 
-  /**
-   * Get system permission templates only
-   */
   async getSystemTemplates() {
     logger.debug({ message: 'Getting system permission templates' });
     const templates = await this.templateRepository.find({
@@ -90,26 +81,29 @@ export class PermissionTemplatesService {
         title: 'ASC',
       },
     });
-    logger.info({ message: 'System permission templates retrieved', count: templates.length });
+    logger.info({
+      message: 'System permission templates retrieved',
+      count: templates.length,
+    });
     return templates;
   }
 
-  /**
-   * Get template by ID
-   */
   async getTemplateById(templateId: string, userId: string) {
     logger.debug({ message: 'Getting template by ID', templateId, userId });
     const template = await this.templateRepository.findOne({
       where: { id: templateId },
-      relations: ['partnerLink'],
+      relations: { partnerLink: true },
     });
 
     if (!template) {
       logger.warn({ message: 'Template not found', templateId });
-      throw new AppError(404, 'Plantilla de permiso no encontrada');
+      throw new AppError(
+        404,
+        'Plantilla de permiso no encontrada',
+        'errors.permissionTemplate.notFound'
+      );
     }
 
-    // Check access: system templates are public, custom templates only for the partnership
     if (!template.isSystemTemplate && template.partnerLinkId) {
       const partnerLink = await this.partnerLinkRepository.findOne({
         where: [
@@ -120,7 +114,11 @@ export class PermissionTemplatesService {
 
       if (!partnerLink) {
         logger.warn({ message: 'Access denied to template', templateId, userId });
-        throw new AppError(403, 'No tienes acceso a esta plantilla');
+        throw new AppError(
+          403,
+          'No tienes acceso a esta plantilla',
+          'errors.permissionTemplate.noAccess'
+        );
       }
     }
 
@@ -128,12 +126,8 @@ export class PermissionTemplatesService {
     return template;
   }
 
-  /**
-   * Create custom permission template for partnership
-   */
   async createTemplate(userId: string, data: CreatePermissionTemplateData) {
     logger.info({ message: 'Creating permission template', userId, templateData: data });
-    // Get user's partner link
     const partnerLink = await this.partnerLinkRepository.findOne({
       where: [{ user1Id: userId }, { user2Id: userId }],
     });
@@ -142,7 +136,8 @@ export class PermissionTemplatesService {
       logger.warn({ message: 'No partner link found for template creation', userId });
       throw new AppError(
         400,
-        'Debes estar vinculado a una pareja para crear plantillas personalizadas'
+        'Debes estar vinculado a una pareja para crear plantillas personalizadas',
+        'errors.permissionTemplate.partnerRequired'
       );
     }
 
@@ -154,28 +149,36 @@ export class PermissionTemplatesService {
     });
 
     const savedTemplate = await this.templateRepository.save(template);
-    logger.info({ message: 'Permission template created', userId, templateId: savedTemplate.id });
+    logger.info({
+      message: 'Permission template created',
+      userId,
+      templateId: savedTemplate.id,
+    });
     return savedTemplate;
   }
 
-  /**
-   * Update custom permission template
-   */
   async updateTemplate(
     templateId: string,
     userId: string,
     data: Partial<CreatePermissionTemplateData>
   ) {
-    logger.info({ message: 'Updating permission template', templateId, userId, updateData: data });
+    logger.info({
+      message: 'Updating permission template',
+      templateId,
+      userId,
+      updateData: data,
+    });
     const template = await this.getTemplateById(templateId, userId);
 
-    // Can't edit system templates
     if (template.isSystemTemplate) {
       logger.warn({ message: 'Attempt to edit system template', templateId, userId });
-      throw new AppError(403, 'No se pueden editar plantillas del sistema');
+      throw new AppError(
+        403,
+        'No se pueden editar plantillas del sistema',
+        'errors.permissionTemplate.systemNotEditable'
+      );
     }
 
-    // Verify ownership
     const partnerLink = await this.partnerLinkRepository.findOne({
       where: [
         { id: template.partnerLinkId!, user1Id: userId },
@@ -185,30 +188,32 @@ export class PermissionTemplatesService {
 
     if (!partnerLink) {
       logger.warn({ message: 'No permission to edit template', templateId, userId });
-      throw new AppError(403, 'No tienes permisos para editar esta plantilla');
+      throw new AppError(
+        403,
+        'No tienes permisos para editar esta plantilla',
+        'errors.permissionTemplate.noEditPermission'
+      );
     }
 
-    // Update template
     Object.assign(template, data);
     const updatedTemplate = await this.templateRepository.save(template);
     logger.info({ message: 'Permission template updated', templateId, userId });
     return updatedTemplate;
   }
 
-  /**
-   * Delete (deactivate) custom permission template
-   */
   async deleteTemplate(templateId: string, userId: string) {
     logger.info({ message: 'Deleting permission template', templateId, userId });
     const template = await this.getTemplateById(templateId, userId);
 
-    // Can't delete system templates
     if (template.isSystemTemplate) {
       logger.warn({ message: 'Attempt to delete system template', templateId, userId });
-      throw new AppError(403, 'No se pueden eliminar plantillas del sistema');
+      throw new AppError(
+        403,
+        'No se pueden eliminar plantillas del sistema',
+        'errors.permissionTemplate.systemNotDeletable'
+      );
     }
 
-    // Verify ownership
     const partnerLink = await this.partnerLinkRepository.findOne({
       where: [
         { id: template.partnerLinkId!, user1Id: userId },
@@ -218,10 +223,13 @@ export class PermissionTemplatesService {
 
     if (!partnerLink) {
       logger.warn({ message: 'No permission to delete template', templateId, userId });
-      throw new AppError(403, 'No tienes permisos para eliminar esta plantilla');
+      throw new AppError(
+        403,
+        'No tienes permisos para eliminar esta plantilla',
+        'errors.permissionTemplate.noDeletePermission'
+      );
     }
 
-    // Soft delete by deactivating
     template.isActive = false;
     await this.templateRepository.save(template);
     logger.info({ message: 'Permission template deleted', templateId, userId });

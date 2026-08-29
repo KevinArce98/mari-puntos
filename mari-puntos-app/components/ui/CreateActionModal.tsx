@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useThemedColors } from '@/hooks';
@@ -37,31 +38,42 @@ interface CreateActionModalProps {
   onSubmit: (data: CreateActionFormData) => Promise<void>;
 }
 
-const CATEGORIES: {
-  value: ActionCategory;
-  label: string;
-  icon: keyof typeof Ionicons.glyphMap;
-}[] = [
-  { value: ActionCategory.HOUSEHOLD, label: 'Hogar', icon: 'home' },
-  { value: ActionCategory.CHILDCARE, label: 'Cuidado de niños', icon: 'people' },
-  { value: ActionCategory.ERRANDS, label: 'Mandados', icon: 'cart' },
-  { value: ActionCategory.ROMANTIC, label: 'Romántico', icon: 'heart' },
-  { value: ActionCategory.PERSONAL_GROWTH, label: 'Crecimiento', icon: 'trending-up' },
-  { value: ActionCategory.OTHER, label: 'Otro', icon: 'ellipsis-horizontal' },
-];
+const CATEGORY_ICONS: Record<ActionCategory, keyof typeof Ionicons.glyphMap> = {
+  [ActionCategory.HOUSEHOLD]: 'home',
+  [ActionCategory.CHILDCARE]: 'people',
+  [ActionCategory.ERRANDS]: 'cart',
+  [ActionCategory.ROMANTIC]: 'heart',
+  [ActionCategory.PERSONAL_GROWTH]: 'trending-up',
+  [ActionCategory.OTHER]: 'ellipsis-horizontal',
+};
 
 export function CreateActionModal({
   visible,
   onClose,
   onSubmit,
 }: CreateActionModalProps) {
+  const { t } = useTranslation(['modals', 'common']);
   const themeColors = useThemedColors();
   const insets = useSafeAreaInsets();
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
-  // Track the keyboard manually on both platforms so the bottom-sheet sits
-  // above it (Android Modal doesn't inherit adjustResize; iOS gets a smoother
-  // sync via keyboardWillShow than relying on KeyboardAvoidingView padding).
+  const CATEGORIES: {
+    value: ActionCategory;
+    label: string;
+    icon: keyof typeof Ionicons.glyphMap;
+  }[] = [
+    ActionCategory.HOUSEHOLD,
+    ActionCategory.CHILDCARE,
+    ActionCategory.ERRANDS,
+    ActionCategory.ROMANTIC,
+    ActionCategory.PERSONAL_GROWTH,
+    ActionCategory.OTHER,
+  ].map((value) => ({
+    value,
+    label: t(`common:actionCategories.${value}`),
+    icon: CATEGORY_ICONS[value],
+  }));
+
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
@@ -98,7 +110,7 @@ export function CreateActionModal({
       reset();
       onClose();
     } catch {
-      // errors are handled by the caller (Toast)
+      void 0;
     }
   };
 
@@ -109,14 +121,14 @@ export function CreateActionModal({
     };
 
     if (isDirty) {
-      Alert.alert(
-        'Descartar acción',
-        'Perderás los cambios que todavía no has guardado.',
-        [
-          { text: 'Seguir editando', style: 'cancel' },
-          { text: 'Descartar', style: 'destructive', onPress: close },
-        ]
-      );
+      Alert.alert(t('createAction.discard.title'), t('createAction.discard.message'), [
+        { text: t('createAction.discard.stay'), style: 'cancel' },
+        {
+          text: t('createAction.discard.confirm'),
+          style: 'destructive',
+          onPress: close,
+        },
+      ]);
       return;
     }
     close();
@@ -152,46 +164,43 @@ export function CreateActionModal({
             ]}
             accessibilityViewIsModal
           >
-            {/* Header */}
             <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
               <Text style={[styles.title, { color: themeColors.text.primary }]}>
-                Crear acción
+                {t('createAction.title')}
               </Text>
               <PressableScale
                 onPress={handleClose}
                 style={styles.closeButton}
                 accessibilityRole="button"
-                accessibilityLabel="Cerrar creación de acción"
+                accessibilityLabel={t('createAction.closeA11y')}
               >
                 <Ionicons name="close" size={24} color={themeColors.text.primary} />
               </PressableScale>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Title Input */}
               <View style={styles.section}>
                 <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                  Título *
+                  {t('createAction.titleLabel')}
                 </Text>
                 <ControlledInput
                   control={control}
                   name="title"
-                  placeholder="Ej: Preparé la cena"
+                  placeholder={t('createAction.titlePlaceholder')}
                   maxLength={100}
                 />
               </View>
 
-              {/* Description Input */}
               <View style={styles.section}>
                 <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                  Descripción (opcional)
+                  {t('createAction.descriptionLabel')}
                 </Text>
                 <Controller
                   control={control}
                   name="description"
                   render={({ field: { onChange, value } }) => (
                     <TextAreaWithCounter
-                      placeholder="Agrega detalles sobre lo que hiciste..."
+                      placeholder={t('createAction.descriptionPlaceholder')}
                       value={value ?? ''}
                       onChangeText={onChange}
                       numberOfLines={4}
@@ -202,10 +211,9 @@ export function CreateActionModal({
                 />
               </View>
 
-              {/* Category Selection */}
               <View style={styles.section}>
                 <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                  Categoría *
+                  {t('createAction.categoryLabel')}
                 </Text>
                 <Controller
                   control={control}
@@ -260,17 +268,16 @@ export function CreateActionModal({
               </View>
             </ScrollView>
 
-            {/* Actions */}
             <View style={styles.actions}>
               <Button
-                title="Cancelar"
+                title={t('common:actions.cancel')}
                 variant="outline"
                 onPress={handleClose}
                 style={styles.actionButton}
                 disabled={isSubmitting}
               />
               <Button
-                title="Crear"
+                title={t('createAction.submit')}
                 onPress={handleSubmit(onSubmitForm)}
                 style={styles.actionButton}
                 disabled={isSubmitting || !isValid}

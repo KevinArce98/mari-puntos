@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { authMiddleware } from '../middlewares/authMiddleware';
+
 import { getStreak } from '../controllers/streak.controller';
+import { authMiddleware } from '../middlewares/authMiddleware';
 
 const router: Router = Router();
 

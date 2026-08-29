@@ -1,0 +1,129 @@
+{
+  "title": "Permisos",
+  "new": "Nueva",
+  "scope": {
+    "received": "Recibidas",
+    "sent": "Enviadas",
+    "pendingA11y": "{{label}}, {{count}} pendientes"
+  },
+  "card": {
+    "untitled": "Permiso sin título",
+    "requested": "Solicitado: {{date}}",
+    "duration": "Duración: {{hours}} h",
+    "response": "Respuesta",
+    "edit": "Editar solicitud"
+  },
+  "empty": {
+    "noResults": "No hay resultados",
+    "noResultsHint": "Prueba con otro estado.",
+    "sentTitle": "Aún no has enviado solicitudes",
+    "sentHint": "Crea una solicitud cuando necesites acordar una actividad.",
+    "receivedTitle": "No tienes solicitudes recibidas",
+    "receivedHint": "Cuando tu pareja te envíe una, aparecerá aquí.",
+    "newRequest": "Nueva solicitud"
+  },
+  "respond": {
+    "approved": "Solicitud aprobada",
+    "rejected": "Solicitud rechazada",
+    "error": "No se pudo procesar la solicitud"
+  },
+  "cardFull": {
+    "untitled": "Solicitud sin título",
+    "fallbackTitle": "Permiso",
+    "requestedDate": "Fecha solicitada: {{date}}",
+    "duration": "Duración: {{hours}} horas",
+    "createdDate": "Fecha creación: {{date}}",
+    "respond": "Responder"
+  },
+  "dates": {
+    "today": "Hoy",
+    "tomorrow": "Mañana"
+  },
+  "categories": {
+    "gaming": "Gaming",
+    "social": "Social",
+    "sports": "Deportes",
+    "hobbies": "Hobbies",
+    "entertainment": "Entretenimiento",
+    "personal_time": "Tiempo Personal",
+    "other": "Otro"
+  },
+  "request": {
+    "headerTitle": "Nueva solicitud",
+    "backA11y": "Volver",
+    "newActivity": "Nueva actividad",
+    "selectActivity": "Selecciona una actividad",
+    "noTemplatesAvailable": "No hay actividades disponibles",
+    "noTemplatesTitle": "No hay actividades",
+    "noTemplatesMessage": "Contacta al administrador para agregar plantillas",
+    "loadTemplatesError": "No se pudieron cargar las plantillas",
+    "selectActivityError": "Por favor selecciona un tipo de actividad",
+    "sentTitle": "Solicitud enviada",
+    "sentMessage": "Tu pareja recibirá una notificación",
+    "sendError": "No se pudo enviar la solicitud",
+    "whenLabel": "Cuándo",
+    "durationLabel": "Duración",
+    "durationHours": "{{count}} horas",
+    "noteLabel": "Nota (opcional)",
+    "confirm": "Confirmar",
+    "decreaseDuration": "Reducir duración",
+    "increaseDuration": "Aumentar duración",
+    "messagePlaceholder": "Agrega un mensaje para tu pareja...",
+    "submit": "Enviar solicitud",
+    "discard": {
+      "title": "Descartar solicitud",
+      "message": "Perderás los cambios que todavía no has enviado.",
+      "confirm": "Descartar"
+    }
+  },
+  "edit": {
+    "headerTitle": "Editar solicitud",
+    "backA11y": "Volver",
+    "whenLabel": "Cuándo",
+    "durationLabel": "Duración",
+    "durationHours": "{{count}} horas",
+    "noteLabel": "Nota (opcional)",
+    "loadError": "No se pudo cargar la solicitud",
+    "updatedTitle": "Solicitud actualizada",
+    "updatedMessage": "Los cambios se han guardado",
+    "updateError": "No se pudo actualizar la solicitud",
+    "confirm": "Confirmar",
+    "decreaseDuration": "Reducir duración",
+    "increaseDuration": "Aumentar duración",
+    "messagePlaceholder": "Agrega un mensaje para tu pareja...",
+    "submit": "Guardar cambios",
+    "discard": {
+      "title": "Descartar cambios",
+      "message": "Perderás los cambios que todavía no has guardado.",
+      "confirm": "Descartar"
+    }
+  },
+  "createTemplate": {
+    "headerTitle": "Nueva actividad",
+    "backA11y": "Volver",
+    "iconLabel": "Icono",
+    "iconButtonTitle": "Seleccionar icono",
+    "iconButtonSubtitle": "Personaliza el icono de tu actividad",
+    "titleLabel": "Título *",
+    "descriptionLabel": "Descripción (opcional)",
+    "categoryLabel": "Categoría",
+    "durationLabel": "Duración (hrs)",
+    "durationPlaceholder": "2",
+    "pointsLabel": "Puntos sugeridos",
+    "titleRequired": "El título es requerido",
+    "durationInvalid": "La duración debe ser mayor a 0",
+    "pointsInvalid": "Los puntos deben ser 0 o mayor",
+    "createdTitle": "Actividad creada",
+    "createdMessage": "Ya puedes seleccionarla",
+    "createError": "No se pudo crear la actividad",
+    "titlePlaceholder": "Ej: Noche de Poker, Día de Golf...",
+    "descriptionPlaceholder": "Describe la actividad...",
+    "categoryPlaceholder": "Selecciona una categoría",
+    "submit": "Crear actividad",
+    "discard": {
+      "title": "Descartar actividad",
+      "message": "Perderás los cambios que todavía no has guardado.",
+      "confirm": "Descartar"
+    }
+  }
+}

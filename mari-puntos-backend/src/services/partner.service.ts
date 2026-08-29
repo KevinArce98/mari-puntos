@@ -1,11 +1,12 @@
 import { AppDataSource } from '../config/db';
+import { Log, LogType } from '../entities/Log';
 import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
 import { User } from '../entities/User';
-import { Log, LogType } from '../entities/Log';
+import { translate } from '../i18n';
 import { AppError } from '../middlewares/errorMiddleware';
 import { generatePartnerCode, getNowUTC6 } from '../utils/helpers';
-import { PushNotificationService } from './push-notification.service';
 import { logger } from '../utils/logger';
+import { PushNotificationService } from './push-notification.service';
 
 export class PartnerService {
   private partnerLinkRepository = AppDataSource.getRepository(PartnerLink);
@@ -20,7 +21,6 @@ export class PartnerService {
       const userRepo = manager.getRepository(User);
       const partnerLinkRepo = manager.getRepository(PartnerLink);
 
-      // Lock user row to serialize concurrent create attempts
       const user = await userRepo.findOne({
         where: { id: userId },
         lock: { mode: 'pessimistic_write' },
@@ -28,10 +28,9 @@ export class PartnerService {
 
       if (!user) {
         logger.error({ message: 'User not found for partner link creation', userId });
-        throw new AppError(404, 'Usuario no encontrado');
+        throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
       }
 
-      // Block only if user already has an ACTIVE link
       const existingActiveLink = await partnerLinkRepo.findOne({
         where: [
           { user1Id: userId, status: PartnerLinkStatus.ACTIVE },
@@ -41,20 +40,25 @@ export class PartnerService {
 
       if (existingActiveLink) {
         logger.warn({ message: 'User already has an active partner link', userId });
-        throw new AppError(400, 'El usuario ya tiene un enlace de pareja activo');
+        throw new AppError(
+          400,
+          'El usuario ya tiene un enlace de pareja activo',
+          'errors.partner.userAlreadyLinked'
+        );
       }
 
-      // If user already has a pending link, return it instead of creating a new one
       const existingPendingLink = await partnerLinkRepo.findOne({
         where: [{ user1Id: userId, status: PartnerLinkStatus.PENDING }],
       });
 
       if (existingPendingLink) {
-        logger.info({ message: 'User already has a pending partner link, returning existing', userId });
+        logger.info({
+          message: 'User already has a pending partner link, returning existing',
+          userId,
+        });
         return existingPendingLink;
       }
 
-      // Generate unique link code (uses default repo — independent lookup is fine)
       const linkCode = await this.generateUniqueLinkCode();
 
       if (!user.partnerCode) {
@@ -69,7 +73,11 @@ export class PartnerService {
       });
 
       const saved = await partnerLinkRepo.save(partnerLink);
-      logger.info({ message: 'Partner link created successfully', userId, partnerLinkId: saved.id });
+      logger.info({
+        message: 'Partner link created successfully',
+        userId,
+        partnerLinkId: saved.id,
+      });
       return saved;
     });
   }
@@ -77,24 +85,20 @@ export class PartnerService {
   async joinPartnerLink(userId: string, linkCode: string): Promise<PartnerLink> {
     logger.info({ message: 'Joining partner link', userId, linkCode });
 
-    // Execute transaction with pessimistic locks to prevent race conditions
-    // where two users could simultaneously join the same link code.
-    const { savedPartnerLink, joiningUser, creatorPushToken } = await AppDataSource.transaction(
-      async (manager) => {
+    const { savedPartnerLink, joiningUser, creatorPushToken, creatorLocale } =
+      await AppDataSource.transaction(async (manager) => {
         const userRepo = manager.getRepository(User);
         const partnerLinkRepo = manager.getRepository(PartnerLink);
 
-        // Lock the joining user row first (by stable order: joining user, then link)
         const user = await userRepo.findOne({
           where: { id: userId },
           lock: { mode: 'pessimistic_write' },
         });
 
         if (!user) {
-          throw new AppError(404, 'Usuario no encontrado');
+          throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
         }
 
-        // Block only if joining user already has an ACTIVE link
         const existingActiveLink = await partnerLinkRepo.findOne({
           where: [
             { user1Id: userId, status: PartnerLinkStatus.ACTIVE },
@@ -103,38 +107,59 @@ export class PartnerService {
         });
 
         if (existingActiveLink) {
-          throw new AppError(400, 'El usuario ya tiene un enlace de pareja activo');
+          throw new AppError(
+            400,
+            'El usuario ya tiene un enlace de pareja activo',
+            'errors.partner.userAlreadyLinked'
+          );
         }
 
-        // Lock the partner link row to prevent double-join race
         const partnerLink = await partnerLinkRepo.findOne({
           where: { linkCode },
           lock: { mode: 'pessimistic_write' },
         });
 
         if (!partnerLink) {
-          throw new AppError(404, 'Enlace de pareja no encontrado');
+          throw new AppError(
+            404,
+            'Enlace de pareja no encontrado',
+            'errors.partner.linkNotFound'
+          );
         }
 
         if (partnerLink.user1Id === userId) {
-          throw new AppError(400, 'No puedes unirte a tu propio enlace de pareja');
+          throw new AppError(
+            400,
+            'No puedes unirte a tu propio enlace de pareja',
+            'errors.partner.cannotJoinOwn'
+          );
         }
 
         if (partnerLink.status !== PartnerLinkStatus.PENDING) {
-          throw new AppError(400, 'El enlace de pareja no está disponible');
+          throw new AppError(
+            400,
+            'El enlace de pareja no está disponible',
+            'errors.partner.linkNotAvailable'
+          );
         }
 
         if (!partnerLink.user1Id || partnerLink.user2Id) {
-          throw new AppError(400, 'Estado de enlace de pareja inválido');
+          throw new AppError(
+            400,
+            'Estado de enlace de pareja inválido',
+            'errors.partner.invalidLinkStatus'
+          );
         }
 
-        // Load creator (user1) for notification
         const user1 = await userRepo.findOne({ where: { id: partnerLink.user1Id } });
         if (!user1) {
-          throw new AppError(404, 'Usuario creador del enlace no encontrado');
+          throw new AppError(
+            404,
+            'Usuario creador del enlace no encontrado',
+            'errors.partner.creatorNotFound'
+          );
         }
 
-        // Mutate inside the transaction
         partnerLink.user2Id = userId;
         partnerLink.status = PartnerLinkStatus.ACTIVE;
         partnerLink.linkedAt = getNowUTC6();
@@ -146,29 +171,31 @@ export class PartnerService {
         await userRepo.save(user);
         const saved = await partnerLinkRepo.save(partnerLink);
 
-        // Clean up any orphaned PENDING links from the joining user
         const joinerPendingLinks = await partnerLinkRepo.find({
           where: [{ user1Id: userId, status: PartnerLinkStatus.PENDING }],
         });
         if (joinerPendingLinks.length > 0) {
           await partnerLinkRepo.remove(joinerPendingLinks);
-          logger.info({ message: 'Removed orphaned pending links from joining user', userId, count: joinerPendingLinks.length });
+          logger.info({
+            message: 'Removed orphaned pending links from joining user',
+            userId,
+            count: joinerPendingLinks.length,
+          });
         }
 
-        // Create link logs for both users in the same transaction
         const logRepo = manager.getRepository(Log);
         await logRepo.save([
           logRepo.create({
             userId: saved.user1Id,
             type: LogType.PARTNER_LINKED,
-            message: 'Vinculado exitosamente con pareja',
+            message: translate('logs.partnerLinked', user1.locale),
             relatedEntityId: saved.id,
             relatedEntityType: 'PartnerLink',
           }),
           logRepo.create({
             userId,
             type: LogType.PARTNER_LINKED,
-            message: 'Vinculado exitosamente con pareja',
+            message: translate('logs.partnerLinked', user.locale),
             relatedEntityId: saved.id,
             relatedEntityType: 'PartnerLink',
           }),
@@ -178,23 +205,27 @@ export class PartnerService {
           savedPartnerLink: saved,
           joiningUser: user,
           creatorPushToken: user1.pushToken,
+          creatorLocale: user1.locale,
         };
-      }
-    );
+      });
 
-    // Fire-and-forget notification (outside transaction)
     if (creatorPushToken) {
       try {
         await this.pushNotificationService.sendPartnerLinkedNotification(
           creatorPushToken,
-          joiningUser.firstName
+          joiningUser.firstName,
+          creatorLocale
         );
       } catch (error) {
         logger.error({ message: 'Error sending partner linked notification', error });
       }
     }
 
-    logger.info({ message: 'Partner link joined successfully', userId, partnerLinkId: savedPartnerLink.id });
+    logger.info({
+      message: 'Partner link joined successfully',
+      userId,
+      partnerLinkId: savedPartnerLink.id,
+    });
     return savedPartnerLink;
   }
 
@@ -207,18 +238,13 @@ export class PartnerService {
     return partnerLink;
   }
 
-  /**
-   * Get partner link with partner details
-   * Returns structure matching controller expectations
-   * Returns null if no active partner link exists
-   */
   async getPartnerLinkWithDetails(
     userId: string
   ): Promise<{ partnerLink: PartnerLink; partner: User } | null> {
     logger.debug({ message: 'Getting partner link with details', userId });
     const partnerLink = await this.partnerLinkRepository.findOne({
       where: [{ user1Id: userId }, { user2Id: userId }],
-      relations: ['user1', 'user2'],
+      relations: { user1: true, user2: true },
     });
 
     if (!partnerLink) {
@@ -226,9 +252,12 @@ export class PartnerService {
       return null;
     }
 
-    // Only return partner info if link is active
     if (partnerLink.status !== PartnerLinkStatus.ACTIVE) {
-      logger.info({ message: 'Partner link not active', userId, status: partnerLink.status });
+      logger.info({
+        message: 'Partner link not active',
+        userId,
+        status: partnerLink.status,
+      });
       return null;
     }
 
@@ -236,11 +265,19 @@ export class PartnerService {
       partnerLink.user1Id === userId ? partnerLink.user2 : partnerLink.user1;
 
     if (!partner) {
-      logger.warn({ message: 'Partner not found in link', userId, partnerLinkId: partnerLink.id });
+      logger.warn({
+        message: 'Partner not found in link',
+        userId,
+        partnerLinkId: partnerLink.id,
+      });
       return null;
     }
 
-    logger.info({ message: 'Partner link with details retrieved', userId, partnerId: partner.id });
+    logger.info({
+      message: 'Partner link with details retrieved',
+      userId,
+      partnerId: partner.id,
+    });
     return { partnerLink, partner };
   }
 
@@ -255,7 +292,8 @@ export class PartnerService {
       return null;
     }
 
-    const partnerId = partnerLink.user1Id === userId ? partnerLink.user2Id : partnerLink.user1Id;
+    const partnerId =
+      partnerLink.user1Id === userId ? partnerLink.user2Id : partnerLink.user1Id;
     logger.info({ message: 'Partner ID retrieved', userId, partnerId });
     return partnerId;
   }
@@ -271,7 +309,11 @@ export class PartnerService {
       return null;
     }
 
-    logger.info({ message: 'Partner link retrieved', userId, partnerLinkId: partnerLink.id });
+    logger.info({
+      message: 'Partner link retrieved',
+      userId,
+      partnerLinkId: partnerLink.id,
+    });
     return partnerLink;
   }
 
@@ -283,50 +325,68 @@ export class PartnerService {
 
     if (!partnerLink) {
       logger.error({ message: 'Partner link not found for unlinking', userId });
-      throw new AppError(404, 'Enlace de pareja no encontrado');
+      throw new AppError(
+        404,
+        'Enlace de pareja no encontrado',
+        'errors.partner.linkNotFound'
+      );
     }
 
     if (partnerLink.status !== PartnerLinkStatus.ACTIVE) {
-      logger.warn({ message: 'Partner link is not active, cannot unlink', userId, status: partnerLink.status });
-      throw new AppError(400, 'No tienes una pareja vinculada activa');
+      logger.warn({
+        message: 'Partner link is not active, cannot unlink',
+        userId,
+        status: partnerLink.status,
+      });
+      throw new AppError(
+        400,
+        'No tienes una pareja vinculada activa',
+        'errors.partner.noActiveLink'
+      );
     }
 
     const partnerId =
       partnerLink.user1Id === userId ? partnerLink.user2Id : partnerLink.user1Id;
     const partnerLinkId = partnerLink.id;
 
-    // Get the partner's push token for notification
     const partner = await this.userRepository.findOne({ where: { id: partnerId } });
+    const initiator = await this.userRepository.findOne({
+      where: { id: userId },
+      select: { id: true, locale: true },
+    });
 
-    // Delete the partner link — both users remain with their partnerCode intact
     await this.partnerLinkRepository.remove(partnerLink);
     logger.info({ message: 'Partner link deleted successfully', userId, partnerLinkId });
 
-    // Create unlink logs for both users
     await this.logRepository.save([
       this.logRepository.create({
         userId,
         type: LogType.PARTNER_UNLINKED,
-        message: 'Desvinculado de pareja',
+        message: translate('logs.partnerUnlinked', initiator?.locale),
         relatedEntityId: partnerLinkId,
         relatedEntityType: 'PartnerLink',
       }),
       this.logRepository.create({
         userId: partnerId,
         type: LogType.PARTNER_UNLINKED,
-        message: 'Desvinculado de pareja',
+        message: translate('logs.partnerUnlinked', partner?.locale),
         relatedEntityId: partnerLinkId,
         relatedEntityType: 'PartnerLink',
       }),
     ]);
 
-    // Notify the other partner
     if (partner?.pushToken) {
       try {
-        await this.pushNotificationService.sendPartnerUnlinkedNotification(partner.pushToken);
+        await this.pushNotificationService.sendPartnerUnlinkedNotification(
+          partner.pushToken,
+          partner.locale
+        );
       } catch (error) {
-        logger.error({ message: 'Error sending partner unlinked notification', error, partnerId });
-        // Don't fail the unlink process if notification fails
+        logger.error({
+          message: 'Error sending partner unlinked notification',
+          error,
+          partnerId,
+        });
       }
     }
   }
@@ -340,7 +400,11 @@ export class PartnerService {
       });
       if (!existingLink) return code;
     }
-    throw new AppError(500, 'No se pudo generar un código de enlace único. Intenta de nuevo.');
+    throw new AppError(
+      500,
+      'No se pudo generar un código de enlace único. Intenta de nuevo.',
+      'errors.partner.linkCodeGenerationFailed'
+    );
   }
 
   private async generateUniquePartnerCode(): Promise<string> {
@@ -352,6 +416,10 @@ export class PartnerService {
       });
       if (!existingUser) return code;
     }
-    throw new AppError(500, 'No se pudo generar un código de pareja único. Intenta de nuevo.');
+    throw new AppError(
+      500,
+      'No se pudo generar un código de pareja único. Intenta de nuevo.',
+      'errors.partner.codeGenerationFailed'
+    );
   }
 }

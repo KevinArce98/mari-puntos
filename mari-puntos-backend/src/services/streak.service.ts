@@ -40,21 +40,17 @@ export class StreakService {
     const currentWeekId = getISOWeekId();
     const isUser1 = link.user1Id === userId;
 
-    // Apply week transition before any other check
     this.applyWeekTransition(link, currentWeekId);
 
-    // Already marked done this week — nothing to update
     const alreadyDone = isUser1 ? link.user1WeekDone : link.user2WeekDone;
     if (alreadyDone) return;
 
-    // Mark this user as done
     if (isUser1) {
       link.user1WeekDone = true;
     } else {
       link.user2WeekDone = true;
     }
 
-    // Both done → extend streak
     if (link.user1WeekDone && link.user2WeekDone) {
       link.currentStreak += 1;
       if (link.currentStreak > link.longestStreak) {
@@ -70,10 +66,6 @@ export class StreakService {
     await this.partnerLinkRepo.save(link);
   }
 
-  /**
-   * Checks if a new ISO week has started and resets/updates the link accordingly.
-   * Returns true if the link was mutated (caller must persist).
-   */
   private applyWeekTransition(link: PartnerLink, currentWeekId: string): boolean {
     if (link.currentWeekId === currentWeekId) return false;
 

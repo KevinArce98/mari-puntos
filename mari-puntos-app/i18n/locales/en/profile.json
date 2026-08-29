@@ -1,0 +1,98 @@
+{
+  "title": "Profile",
+  "errorScreen": {
+    "title": "We couldn't load your profile",
+    "message": "Check your connection and try again. If the problem persists, sign out and sign back in.",
+    "retry": "Retry",
+    "signOut": "Sign out"
+  },
+  "stats": {
+    "points": "Points",
+    "level": "Level"
+  },
+  "level": {
+    "current": "Level {{level}}",
+    "toNext": "{{points}} pts to level {{level}}"
+  },
+  "partner": {
+    "title": "Your partner",
+    "linked": "Linked",
+    "points": "{{points}} MariPuntos",
+    "noneTitle": "No partner linked",
+    "noneText": "Connect with your partner to start earning points together",
+    "linkCta": "Link partner",
+    "unlinkA11y": "Unlink partner"
+  },
+  "editA11y": "Edit profile",
+  "sections": {
+    "progress": "Progress",
+    "settings": "Settings",
+    "dangerZone": "Danger zone"
+  },
+  "menu": {
+    "achievements": "Achievements",
+    "achievementsSubtitle": "See what you've unlocked",
+    "history": "History",
+    "historySubtitle": "Review all your activity",
+    "language": "Language",
+    "notifications": "Notifications",
+    "changePassword": "Change password",
+    "privacy": "Privacy",
+    "support": "Help & support",
+    "deleteAccount": "Delete account"
+  },
+  "language": {
+    "title": "Language",
+    "system": "Automatic (match device)",
+    "es": "Español",
+    "en": "English"
+  },
+  "signOut": "Sign out",
+  "version": "MariPuntos v{{version}}",
+  "unlink": {
+    "title": "Unlink partner",
+    "message": "Are you sure you want to unlink your partner? This action can't be undone.",
+    "confirm": "Unlink",
+    "successTitle": "Unlinked",
+    "successMessage": "Your partner has been unlinked",
+    "errorMessage": "Couldn't unlink your partner"
+  },
+  "edit": {
+    "successTitle": "Profile updated",
+    "successMessage": "Your profile was updated successfully",
+    "errorMessage": "Couldn't update your profile"
+  },
+  "delete": {
+    "title": "Delete account",
+    "message": "Are you sure you want to delete your account? All your data, points and progress will be lost permanently. This action can't be undone.",
+    "confirm": "Delete",
+    "confirmTitle": "Confirm deletion",
+    "confirmMessage": "This is your last chance. Do you want to delete your account for good?",
+    "confirmCta": "Yes, delete",
+    "errorMessage": "Couldn't delete your account. Try again."
+  },
+  "signOutPrompt": {
+    "title": "Sign out",
+    "message": "Are you sure you want to sign out?"
+  },
+  "changePassword": {
+    "title": "Change password",
+    "backA11y": "Go back",
+    "externalTitle": "External account",
+    "externalText": "Your account is linked to an external provider (Google/Apple). You can't change the password here.",
+    "currentLabel": "Current password",
+    "newLabel": "New password",
+    "confirmLabel": "Confirm new password",
+    "symbolRule": "Must contain at least one symbol (e.g. !@#$)",
+    "submit": "Save password",
+    "successTitle": "Password updated",
+    "successMessage": "Your password has been changed successfully",
+    "errorMessage": "Couldn't change the password",
+    "discard": {
+      "title": "Discard changes",
+      "message": "You'll lose the passwords you haven't saved yet.",
+      "stay": "Keep editing",
+      "confirm": "Discard"
+    }
+  }
+}

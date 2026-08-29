@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -21,27 +22,29 @@ import { borderRadius, spacing, typography } from '@/theme';
 import { Achievement, AchievementType } from '@/types';
 import { formatDateOnly } from '@/utils/dateUtils';
 
-const FILTERS = [
-  { label: 'Todos', value: 'all' },
-  { label: 'Desbloqueados', value: 'unlocked' },
-  { label: 'Bloqueados', value: 'locked' },
-] as const;
+const FILTER_VALUES = ['all', 'unlocked', 'locked'] as const;
 
-type FilterValue = (typeof FILTERS)[number]['value'];
-
-const ACHIEVEMENT_TYPE_LABELS: Record<AchievementType, string> = {
-  [AchievementType.POINTS_MILESTONE]: 'Puntos',
-  [AchievementType.LEVEL_MILESTONE]: 'Nivel',
-  [AchievementType.ACTIONS_COMPLETED]: 'Acciones',
-  [AchievementType.PERMISSIONS_GRANTED]: 'Permisos',
-  [AchievementType.STREAK]: 'Racha',
-  [AchievementType.SPECIAL]: 'Especial',
-};
+type FilterValue = (typeof FILTER_VALUES)[number];
 
 export function AchievementsScreenContent({ showBack = false }: { showBack?: boolean }) {
+  const { t } = useTranslation('achievements');
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const colors = useThemedColors();
+
+  const FILTERS = FILTER_VALUES.map((value) => ({
+    value,
+    label: t(`filters.${value}`),
+  }));
+
+  const ACHIEVEMENT_TYPE_LABELS: Record<AchievementType, string> = {
+    [AchievementType.POINTS_MILESTONE]: t('types.points_milestone'),
+    [AchievementType.LEVEL_MILESTONE]: t('types.level_milestone'),
+    [AchievementType.ACTIONS_COMPLETED]: t('types.actions_completed'),
+    [AchievementType.PERMISSIONS_GRANTED]: t('types.permissions_granted'),
+    [AchievementType.STREAK]: t('types.streak'),
+    [AchievementType.SPECIAL]: t('types.special'),
+  };
   const { achievements, unlockedAchievements, lockedAchievements, isLoading, error } =
     useAchievements();
   const [selectedFilter, setSelectedFilter] = React.useState<FilterValue>('all');
@@ -121,7 +124,7 @@ export function AchievementsScreenContent({ showBack = false }: { showBack?: boo
             </View>
           ) : !isLocked && achievement.unlockedAt ? (
             <Text style={[styles.achievementDate, { color: colors.success }]}>
-              Desbloqueado el {formatDateOnly(achievement.unlockedAt)}
+              {t('unlockedOn', { date: formatDateOnly(achievement.unlockedAt) })}
             </Text>
           ) : null}
         </View>
@@ -148,7 +151,7 @@ export function AchievementsScreenContent({ showBack = false }: { showBack?: boo
             onPress={() => router.back()}
             style={styles.headerButton}
             accessibilityRole="button"
-            accessibilityLabel="Volver"
+            accessibilityLabel={t('backA11y')}
           >
             <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
           </PressableScale>
@@ -160,7 +163,7 @@ export function AchievementsScreenContent({ showBack = false }: { showBack?: boo
             showBack && styles.centeredHeaderTitle,
           ]}
         >
-          Logros
+          {t('title')}
         </Text>
         {showBack && <View style={styles.headerButton} />}
       </View>
@@ -174,17 +177,19 @@ export function AchievementsScreenContent({ showBack = false }: { showBack?: boo
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Progress Card */}
           <Card style={styles.progressCard}>
             <View style={styles.progressCardHeader}>
               <View>
                 <Text style={[styles.progressCardTitle, { color: colors.text.primary }]}>
-                  Tu progreso
+                  {t('progressTitle')}
                 </Text>
                 <Text
                   style={[styles.progressCardSubtitle, { color: colors.text.secondary }]}
                 >
-                  {unlockedAchievements.length} de {total} logros
+                  {t('progressSubtitle', {
+                    unlocked: unlockedAchievements.length,
+                    total,
+                  })}
                 </Text>
               </View>
               <View
@@ -208,7 +213,7 @@ export function AchievementsScreenContent({ showBack = false }: { showBack?: boo
                   {unlockedAchievements.length}
                 </Text>
                 <Text style={[styles.miniStatLabel, { color: colors.text.secondary }]}>
-                  Ganados
+                  {t('stats.earned')}
                 </Text>
               </View>
               <View
@@ -220,7 +225,7 @@ export function AchievementsScreenContent({ showBack = false }: { showBack?: boo
                   {lockedAchievements.length}
                 </Text>
                 <Text style={[styles.miniStatLabel, { color: colors.text.secondary }]}>
-                  Pendientes
+                  {t('stats.pending')}
                 </Text>
               </View>
               <View
@@ -232,13 +237,12 @@ export function AchievementsScreenContent({ showBack = false }: { showBack?: boo
                   {total}
                 </Text>
                 <Text style={[styles.miniStatLabel, { color: colors.text.secondary }]}>
-                  Total
+                  {t('stats.total')}
                 </Text>
               </View>
             </View>
           </Card>
 
-          {/* Filter Chips */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -255,12 +259,11 @@ export function AchievementsScreenContent({ showBack = false }: { showBack?: boo
             ))}
           </ScrollView>
 
-          {/* Unlocked */}
           {unlocked.length > 0 && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-                  Desbloqueados
+                  {t('sections.unlocked')}
                 </Text>
                 <Text style={[styles.sectionCount, { color: colors.text.secondary }]}>
                   {unlocked.length}
@@ -270,12 +273,11 @@ export function AchievementsScreenContent({ showBack = false }: { showBack?: boo
             </View>
           )}
 
-          {/* Locked */}
           {locked.length > 0 && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-                  Por desbloquear
+                  {t('sections.locked')}
                 </Text>
                 <Text style={[styles.sectionCount, { color: colors.text.secondary }]}>
                   {locked.length}
@@ -289,10 +291,10 @@ export function AchievementsScreenContent({ showBack = false }: { showBack?: boo
             <View style={styles.emptyContainer}>
               <Ionicons name="trophy-outline" size={64} color={colors.gray[300]} />
               <Text style={[styles.emptyTitle, { color: colors.text.primary }]}>
-                Sin logros aún
+                {t('empty.title')}
               </Text>
               <Text style={[styles.emptySubtitle, { color: colors.text.secondary }]}>
-                ¡Empieza a completar acciones para desbloquear logros!
+                {t('empty.subtitle')}
               </Text>
             </View>
           )}

@@ -120,7 +120,6 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.bold,
   },
 
-  // Sizes
   size_sm: {
     width: 32,
     height: 32,
@@ -138,7 +137,6 @@ const styles = StyleSheet.create({
     height: 80,
   },
 
-  // Initials sizes
   initials_sm: {
     fontSize: typography.fontSize.xs,
   },
