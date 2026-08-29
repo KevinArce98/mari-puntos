@@ -51,7 +51,14 @@ export const Avatar: React.FC<AvatarProps> = ({
         style={[styles.container, sizeStyles, { backgroundColor: themeColors.gray[200] }]}
       >
         {imageUri ? (
-          <ExpoImage source={{ uri: imageUri }} style={styles.image} contentFit="cover" />
+          <ExpoImage
+            source={{ uri: imageUri }}
+            style={styles.image}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
+            recyclingKey={imageUri}
+          />
         ) : (
           <Text
             style={[
