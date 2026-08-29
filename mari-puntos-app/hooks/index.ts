@@ -2,6 +2,7 @@ export * from './useUser';
 export * from './usePoints';
 export * from './usePointsHistory';
 export * from './usePermissions';
+export * from './useTemplates';
 export * from './usePendingPermissionsCount';
 export * from './useActions';
 export * from './usePendingActionsCount';

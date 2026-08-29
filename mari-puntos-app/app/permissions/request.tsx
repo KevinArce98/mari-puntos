@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   Keyboard,
@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -32,10 +32,9 @@ import {
   useDiscardConfirm,
   useKeyboardOffset,
   usePermissions,
+  useTemplates,
   useThemedColors,
-  useUser,
 } from '@/hooks';
-import { permissionsService } from '@/services';
 import { shadows, spacing, typography } from '@/theme';
 import { PermissionTemplate } from '@/types';
 import { createUTC6DateTime } from '@/utils/dateUtils';
@@ -48,12 +47,14 @@ export default function RequestPermissionScreen() {
   const themeColors = useThemedColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { user } = useUser();
   const { requestPermission } = usePermissions();
   const keyboardOffset = useKeyboardOffset();
+  const {
+    templates,
+    isLoading: loadingTemplates,
+    error: templatesError,
+  } = useTemplates();
 
-  const [templates, setTemplates] = useState<PermissionTemplate[]>([]);
-  const [loadingTemplates, setLoadingTemplates] = useState(true);
   const [allowExit, setAllowExit] = useState(false);
 
   const {
@@ -88,31 +89,16 @@ export default function RequestPermissionScreen() {
     cancelLabel: t('common:actions.keepEditing'),
   });
 
-  const loadTemplates = useCallback(async () => {
-    try {
-      setLoadingTemplates(true);
-      const result = await permissionsService.getTemplates();
-      setTemplates(result.data || []);
-      logger.debug('Permission templates loaded', { count: result.data?.length || 0 });
-      if (!result.data || result.data.length === 0) {
-        toast.info(t('request.noTemplatesTitle'), {
-          description: t('request.noTemplatesMessage'),
-        });
-      }
-    } catch (error) {
-      logger.error('Failed to load permission templates', error as Error);
+  useEffect(() => {
+    if (loadingTemplates) return;
+    if (templatesError) {
       toast.error(t('errors:title'), { description: t('request.loadTemplatesError') });
-    } finally {
-      setLoadingTemplates(false);
+    } else if (templates.length === 0) {
+      toast.info(t('request.noTemplatesTitle'), {
+        description: t('request.noTemplatesMessage'),
+      });
     }
-  }, [t]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!user) return;
-      loadTemplates();
-    }, [user, loadTemplates])
-  );
+  }, [loadingTemplates, templatesError, templates.length, t]);
 
   const handleTemplateSelect = (template: PermissionTemplate) => {
     setValue('templateId', template.id, { shouldDirty: true, shouldValidate: true });
