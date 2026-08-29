@@ -12,8 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { queryClient } from '@/lib/queryClient';
 import { queryKeys } from '@/lib/queryKeys';
-import { useActionsStore, useUserStore } from '@/stores';
-import { ActionStatus } from '@/types';
+import { useUserStore } from '@/stores';
 import logger from '@/utils/logger';
 import { type NotificationData, parseNotificationData } from '@/validators';
 
@@ -131,22 +130,11 @@ export function useNotifications() {
         const data = parseNotificationData(notification.request.content.data);
         if (!data) return;
         logger.info('Foreground notification received', { type: data.type });
-        const hasPartner = !!useUserStore.getState().user?.hasPartner;
         switch (data.type) {
           case 'action_created':
-            if (hasPartner) {
-              useActionsStore
-                .getState()
-                .fetchPartnerActions({ status: ActionStatus.PENDING })
-                .catch(() => {});
-            }
-            break;
           case 'action_approved':
           case 'action_rejected':
-            useActionsStore
-              .getState()
-              .fetchMyActions({ status: ActionStatus.PENDING })
-              .catch(() => {});
+            queryClient.invalidateQueries({ queryKey: queryKeys.actions.all });
             break;
           case 'permission_requested':
           case 'permission_response':

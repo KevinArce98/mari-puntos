@@ -3,6 +3,7 @@ export * from './usePoints';
 export * from './usePermissions';
 export * from './usePendingPermissionsCount';
 export * from './useActions';
+export * from './usePendingActionsCount';
 export * from './useAchievements';
 export * from './useStreak';
 export * from './useColorScheme';

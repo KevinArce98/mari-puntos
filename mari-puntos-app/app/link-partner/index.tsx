@@ -27,7 +27,7 @@ import { useThemedColors, useUser } from '@/hooks';
 import { queryClient } from '@/lib/queryClient';
 import { queryKeys } from '@/lib/queryKeys';
 import { userService } from '@/services';
-import { useActionsStore, usePointsStore, useStreakStore, useUserStore } from '@/stores';
+import { usePointsStore, useStreakStore, useUserStore } from '@/stores';
 import { borderRadius, spacing, typography } from '@/theme';
 import { getApiErrorMessage } from '@/utils/errorMessage';
 import logger from '@/utils/logger';
@@ -126,14 +126,7 @@ export default function LinkPartnerScreen() {
     try {
       await joinPartnerLink(data.partnerCode);
       queryClient.invalidateQueries({ queryKey: queryKeys.permissions.all });
-      useActionsStore
-        .getState()
-        .fetchMyActions()
-        .catch(() => {});
-      useActionsStore
-        .getState()
-        .fetchPartnerActions()
-        .catch(() => {});
+      queryClient.invalidateQueries({ queryKey: queryKeys.actions.all });
       usePointsStore
         .getState()
         .fetchPointsHistory()
@@ -173,14 +166,7 @@ export default function LinkPartnerScreen() {
           });
           useUserStore.setState({ user, partnerInfo });
           queryClient.invalidateQueries({ queryKey: queryKeys.permissions.all });
-          useActionsStore
-            .getState()
-            .fetchMyActions()
-            .catch(() => {});
-          useActionsStore
-            .getState()
-            .fetchPartnerActions()
-            .catch(() => {});
+          queryClient.invalidateQueries({ queryKey: queryKeys.actions.all });
           usePointsStore
             .getState()
             .fetchPointsHistory()

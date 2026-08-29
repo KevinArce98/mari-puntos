@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 import {
   ActivityIndicator,
@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -25,7 +25,7 @@ import {
   CreateActionModal,
   PressableScale,
 } from '@/components/ui';
-import { useActions, usePoints, useThemedColors, useUser } from '@/hooks';
+import { useActions, usePoints, useThemedColors } from '@/hooks';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { ActionStatus } from '@/types';
 import { CreateActionFormData } from '@/validators/action.schema';
@@ -42,49 +42,20 @@ export default function ActionsScreen() {
     { label: t('common:filters.approved'), value: ActionStatus.APPROVED },
     { label: t('common:filters.rejected'), value: ActionStatus.REJECTED },
   ];
-  const { user } = useUser();
   const { myPoints } = usePoints();
-  const {
-    myActions,
-    partnerActions,
-    createAction,
-    refetchMyActions,
-    myActionsPagination,
-  } = useActions();
-  const [page, setPage] = React.useState(1);
-  const [loadingMore, setLoadingMore] = React.useState(false);
 
   const [selectedStatus, setSelectedStatus] = useState<ActionStatus | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!user) return;
-      setPage(1);
-      refetchMyActions({
-        page: 1,
-        limit: 20,
-        status: selectedStatus ?? undefined,
-      });
-    }, [user, selectedStatus, refetchMyActions])
-  );
-
-  const handleLoadMore = async () => {
-    if (loadingMore || !myActionsPagination) return;
-    if (myActionsPagination.page >= myActionsPagination.totalPages) return;
-    const nextPage = page + 1;
-    setLoadingMore(true);
-    setPage(nextPage);
-    try {
-      await refetchMyActions(
-        { page: nextPage, limit: 20, status: selectedStatus ?? undefined },
-        true
-      );
-    } finally {
-      setLoadingMore(false);
-    }
-  };
+  const {
+    myActions,
+    partnerActions,
+    createAction,
+    loadMoreMyActions,
+    isFetchingMoreMyActions,
+    refetchMyActions,
+  } = useActions({ myStatus: selectedStatus });
 
   const handleCreateAction = async (data: CreateActionFormData) => {
     try {
@@ -178,7 +149,7 @@ export default function ActionsScreen() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
-        onEndReached={handleLoadMore}
+        onEndReached={loadMoreMyActions}
         onEndReachedThreshold={0.5}
         ListHeaderComponent={
           <ScrollView
@@ -224,7 +195,7 @@ export default function ActionsScreen() {
           </View>
         }
         ListFooterComponent={
-          loadingMore ? (
+          isFetchingMoreMyActions ? (
             <View style={styles.footerLoader}>
               <ActivityIndicator size="small" color={colors.primary} />
             </View>

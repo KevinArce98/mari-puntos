@@ -41,11 +41,11 @@ export default function ReviewActionsScreen() {
     approveAction,
     rejectAction,
     refetchPartnerActions,
+    loadMorePartnerActions,
+    isFetchingMorePartnerActions,
     partnerActionsPagination,
   } = useActions();
   const { refetch: refetchStreak } = useStreak();
-  const [page, setPage] = useState(1);
-  const [loadingMore, setLoadingMore] = useState(false);
 
   const [selectedStatus, setSelectedStatus] = useState<ActionStatus | null>(
     ActionStatus.PENDING
@@ -69,24 +69,10 @@ export default function ReviewActionsScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    setPage(1);
     try {
-      await refetchPartnerActions({ page: 1, limit: 20 });
+      await refetchPartnerActions();
     } finally {
       setRefreshing(false);
-    }
-  };
-
-  const handleLoadMore = async () => {
-    if (loadingMore || !partnerActionsPagination) return;
-    if (partnerActionsPagination.page >= partnerActionsPagination.totalPages) return;
-    const nextPage = page + 1;
-    setLoadingMore(true);
-    setPage(nextPage);
-    try {
-      await refetchPartnerActions({ page: nextPage, limit: 20 }, true);
-    } finally {
-      setLoadingMore(false);
     }
   };
 
@@ -188,7 +174,7 @@ export default function ReviewActionsScreen() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
-        onEndReached={handleLoadMore}
+        onEndReached={loadMorePartnerActions}
         onEndReachedThreshold={0.5}
         ListHeaderComponent={
           <ScrollView
@@ -229,7 +215,7 @@ export default function ReviewActionsScreen() {
           </View>
         }
         ListFooterComponent={
-          loadingMore ? (
+          isFetchingMorePartnerActions ? (
             <View style={styles.footerLoader}>
               <ActivityIndicator size="small" color={colors.primary} />
             </View>

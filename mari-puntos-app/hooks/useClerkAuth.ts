@@ -6,7 +6,7 @@ import * as Sentry from '@sentry/react-native';
 import { queryClient } from '@/lib/queryClient';
 import { queryKeys } from '@/lib/queryKeys';
 import { apiService } from '@/services';
-import { useActionsStore, usePointsStore, useStreakStore, useUserStore } from '@/stores';
+import { usePointsStore, useStreakStore, useUserStore } from '@/stores';
 import { useNotificationStore } from '@/stores/notificationStore';
 import logger from '@/utils/logger';
 
@@ -14,7 +14,6 @@ export function useClerkAuth() {
   const { getToken, isSignedIn, isLoaded, signOut, userId } = useAuth();
   const { fetchProfile, clearUser, user } = useUserStore();
   const { clearAll: clearNotifications } = useNotificationStore();
-  const { clearActions } = useActionsStore();
   const { clearPoints } = usePointsStore();
   const { clearStreak } = useStreakStore();
   const hasFetchedProfile = useRef(false);
@@ -58,7 +57,7 @@ export function useClerkAuth() {
         Sentry.setUser(null);
         apiService.clearTokenGetter();
         clearUser();
-        clearActions();
+        queryClient.removeQueries({ queryKey: queryKeys.actions.all });
         queryClient.removeQueries({ queryKey: queryKeys.permissions.all });
         clearPoints();
         clearStreak();

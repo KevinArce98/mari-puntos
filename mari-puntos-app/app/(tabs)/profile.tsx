@@ -27,7 +27,6 @@ import { queryKeys } from '@/lib/queryKeys';
 import { userService } from '@/services/userService';
 import {
   LanguagePreference,
-  useActionsStore,
   useLanguageStore,
   usePointsStore,
   useStreakStore,
@@ -78,7 +77,7 @@ export default function ProfileScreen() {
           setLoading(true);
           try {
             await unlinkPartner();
-            useActionsStore.getState().clearActions();
+            queryClient.removeQueries({ queryKey: queryKeys.actions.all });
             queryClient.removeQueries({ queryKey: queryKeys.permissions.all });
             usePointsStore.getState().clearPoints();
             useStreakStore.getState().clearStreak();

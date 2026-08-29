@@ -1,73 +1,77 @@
-import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { useActionsStore, useUserStore } from '@/stores';
-import { CreateActionRequest, GetActionsParams } from '@/types';
-import logger from '@/utils/logger';
+import { queryKeys } from '@/lib/queryKeys';
+import { actionsService } from '@/services';
+import { useUserStore } from '@/stores';
+import { ActionStatus, CreateActionRequest } from '@/types';
 
-export const useActions = () => {
-  const {
-    myActions,
-    partnerActions,
-    isLoading,
-    error,
-    myActionsPagination,
-    partnerActionsPagination,
-    fetchMyActions,
-    fetchPartnerActions,
-    createAction,
-    approveAction,
-    rejectAction,
-  } = useActionsStore();
-  const { user } = useUserStore();
+import { useInfiniteList } from './useInfiniteList';
 
-  useEffect(() => {
-    if (!user) return;
+interface UseActionsOptions {
+  myStatus?: ActionStatus | null;
+}
 
-    const store = useActionsStore.getState();
-    if (!store.isLoadingMyActions) {
-      fetchMyActions().catch((error) => {
-        logger.error('Failed to fetch my actions in useActions hook', error);
-      });
-    }
-    if (user.hasPartner && !store.isLoadingPartnerActions) {
-      fetchPartnerActions().catch((error) => {
-        logger.error('Failed to fetch partner actions in useActions hook', error);
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, user?.hasPartner]);
+export const useActions = (options?: UseActionsOptions) => {
+  const user = useUserStore((s) => s.user);
+  const queryClient = useQueryClient();
+  const myStatus = options?.myStatus ?? undefined;
 
-  const handleCreateAction = async (data: CreateActionRequest) => {
-    await createAction(data);
+  const mine = useInfiniteList({
+    queryKey: queryKeys.actions.mine({ status: myStatus }),
+    fetchPage: ({ page, limit }) =>
+      actionsService.getMyActions({ page, limit, status: myStatus }),
+    enabled: !!user,
+  });
+
+  const partner = useInfiniteList({
+    queryKey: queryKeys.actions.partner(),
+    fetchPage: ({ page, limit }) => actionsService.getPartnerActions({ page, limit }),
+    enabled: !!user?.hasPartner,
+  });
+
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: queryKeys.actions.all });
+
+  const createAction = async (data: CreateActionRequest) => {
+    await actionsService.createAction(data);
+    await invalidate();
   };
 
-  const handleApproveAction = async (actionId: string, pointsAwarded: number) => {
-    await approveAction(actionId, pointsAwarded);
+  const approveAction = async (actionId: string, pointsAwarded: number) => {
+    await actionsService.approveAction(actionId, { pointsAwarded });
+    await invalidate();
+    useUserStore
+      .getState()
+      .fetchStats()
+      .catch(() => {});
   };
 
-  const handleRejectAction = async (actionId: string, rejectionReason: string) => {
-    await rejectAction(actionId, rejectionReason);
-  };
-
-  const fetchPartnerActionsForReview = async (
-    params?: GetActionsParams,
-    append = false
-  ) => {
-    await fetchPartnerActions(params, append);
+  const rejectAction = async (actionId: string, rejectionReason: string) => {
+    await actionsService.rejectAction(actionId, { rejectionReason });
+    await invalidate();
+    useUserStore
+      .getState()
+      .fetchStats()
+      .catch(() => {});
   };
 
   return {
-    myActions,
-    partnerActions,
-    isLoading,
-    error,
-    myActionsPagination,
-    partnerActionsPagination,
-    createAction: handleCreateAction,
-    approveAction: handleApproveAction,
-    rejectAction: handleRejectAction,
-    fetchPartnerActions: fetchPartnerActionsForReview,
-    refetchMyActions: fetchMyActions,
-    refetchPartnerActions: fetchPartnerActions,
+    myActions: mine.items,
+    partnerActions: partner.items,
+    myActionsPagination: mine.pagination,
+    partnerActionsPagination: partner.pagination,
+    isLoading: mine.isLoading || partner.isLoading,
+    error: mine.error ?? partner.error,
+    isFetchingMoreMyActions: mine.isFetchingNextPage,
+    isFetchingMorePartnerActions: partner.isFetchingNextPage,
+    hasMoreMyActions: mine.hasNextPage,
+    hasMorePartnerActions: partner.hasNextPage,
+    loadMoreMyActions: mine.loadMore,
+    loadMorePartnerActions: partner.loadMore,
+    createAction,
+    approveAction,
+    rejectAction,
+    refetchMyActions: mine.refetch,
+    refetchPartnerActions: partner.refetch,
   };
 };

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 
 import { TouchableOpacity, View } from 'react-native';
 
@@ -11,9 +11,12 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { usePendingPermissionsCount, useThemedColors, useUser } from '@/hooks';
-import { useActionsStore, useUserStore } from '@/stores';
-import logger from '@/utils/logger';
+import {
+  usePendingActionsCount,
+  usePendingPermissionsCount,
+  useThemedColors,
+  useUser,
+} from '@/hooks';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -22,24 +25,8 @@ export default function TabLayout() {
   const router = useRouter();
   const { t } = useTranslation('navigation');
 
-  const userId = useUserStore((s) => s.user?.id);
-  const pendingActionsCount = useActionsStore(
-    (s) => s.partnerActions.filter((a) => a.status === 'pending').length
-  );
+  const pendingActionsCount = usePendingActionsCount();
   const pendingPermissionsCount = usePendingPermissionsCount();
-  const fetchPartnerActions = useActionsStore((s) => s.fetchPartnerActions);
-
-  useEffect(() => {
-    if (!userId || !hasPartner) return;
-
-    const actStore = useActionsStore.getState();
-
-    if (!actStore.isLoadingPartnerActions) {
-      fetchPartnerActions().catch((error) => {
-        logger.error('Failed to pre-fetch partner actions in TabLayout', error);
-      });
-    }
-  }, [userId, hasPartner, fetchPartnerActions]);
 
   const lockedTabButton = useCallback(
     (props: any) => (
