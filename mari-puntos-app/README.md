@@ -4,9 +4,9 @@
 
 MariPuntos es una aplicación móvil innovadora que transforma la dinámica de permisos entre parejas en una experiencia divertida y gamificada. Gana puntos por acciones, solicita permisos, mantén rachas semanales y desbloquea logros junto a tu pareja.
 
-![React Native](https://img.shields.io/badge/React_Native-0.81-61DAFB?logo=react)
-![Expo](https://img.shields.io/badge/Expo-~54.0-000020?logo=expo)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript)
+![React Native](https://img.shields.io/badge/React_Native-0.86-61DAFB?logo=react)
+![Expo](https://img.shields.io/badge/Expo-~57.0-000020?logo=expo)
+![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript)
 ![License](https://img.shields.io/badge/License-Proprietary-red)
 
 🌐 **Website:** [maripuntos.com](https://maripuntos.com)  
@@ -50,8 +50,8 @@ MariPuntos es una aplicación móvil innovadora que transforma la dinámica de p
 
 ### Prerrequisitos
 
-- Node.js 18+
-- pnpm >= 11
+- Node.js 20+ (requerido por Expo SDK 57)
+- pnpm 11 (`packageManager: pnpm@11`)
 - Expo CLI
 - Cuenta de Clerk (para autenticación)
 - Proyecto Firebase con app Android configurada (para notificaciones push)
@@ -109,10 +109,11 @@ Para instrucciones detalladas, consulta [SETUP.md](./SETUP.md)
 
 ### Frontend
 
-- **React Native** 0.81.5 - Framework móvil
-- **Expo** ~54.0 - Plataforma de desarrollo
-- **TypeScript** 5.9 - Lenguaje tipado
-- **Expo Router** 6.0 - Navegación file-based
+- **React Native** 0.86 - Framework móvil
+- **Expo** ~57.0 (SDK 57) - Plataforma de desarrollo
+- **TypeScript** 6.0 - Lenguaje tipado
+- **Expo Router** 57 - Navegación file-based
+- **React Compiler** - Memoización automática (habilitado; no hace falta `memo`/`useMemo` manual)
 
 ### Autenticación
 
@@ -121,29 +122,35 @@ Para instrucciones detalladas, consulta [SETUP.md](./SETUP.md)
 
 ### Estado y Datos
 
-- **Zustand** - Estado global
+- **TanStack Query (react-query) v5** - Estado de servidor: caché, `useInfiniteQuery` e invalidación
+- **Zustand** - Estado de cliente/sesión (usuario, idioma, notificaciones)
+- **React Hook Form + Zod** - Formularios y validación por esquemas
 - **Axios** - Cliente HTTP
 - **AsyncStorage** - Persistencia local
 
 ### UI/UX
 
 - **Ionicons** - Iconos
-- **React Native Toast** - Notificaciones
+- **sonner-native** - Toasts / notificaciones in-app
+- **@legendapp/list** - Listas virtualizadas (LegendList)
+- **expo-image** - Imágenes con caché
 - **Custom Components** - Sistema de diseño propio
 
 ## 🎨 Diseño
 
 ### Paleta de Colores
 
-- **Turquesa Claro** (#24C6B0) - Color principal
-- **Turquesa Oscuro** (#118B82) - Color principal oscuro
-- **Amarillo MariPunto** (#F8C822) - Color de acento
-- **Gris Neutro** (#F4F4F4) - Fondo
-- **Blanco** (#FFFFFF) - Contenido
+- **Teal** (#0F766E) - Color principal
+- **Teal Oscuro** (#115E59) - Color principal oscuro
+- **Ámbar** (#D97706) - Color de acento
+- **Rosa "love"** (#FB7185) - Acento afectivo
+- **Neutro** (#FAFAF9) - Fondo
+- **Blanco** (#FFFFFF) - Superficie / contenido
 
 ### Tipografía
 
-- **Familia**: Poppins (Regular, Medium, SemiBold, Bold)
+- **Familia**: Plus Jakarta Sans (Regular, Medium, SemiBold, Bold)
+- **Carga**: embebida en build vía el config plugin `expo-font` (fuentes en `assets/fonts/`)
 - **Estilo**: Moderno, limpio, legible
 
 ## 📂 Estructura del Proyecto
@@ -270,7 +277,7 @@ Las contribuciones son bienvenidas. Por favor:
 
 ## 📄 Licencia
 
-© 2024 MariPuntos - Todos los derechos reservados
+© 2026 MariPuntos - Todos los derechos reservados
 
 ## 👨‍💻 Autor
 

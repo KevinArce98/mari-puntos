@@ -8,20 +8,20 @@ Gamifica los permisos en tu relación de pareja. Gana puntos por acciones, solic
 mari-puntos/
 ├── mari-puntos-app/        # App móvil (Expo / React Native)
 ├── mari-puntos-backend/    # API REST (Express / TypeORM / PostgreSQL)
-└── mari-puntos-website/    # Landing page (Next.js)
+└── mari-puntos-website/    # Landing page (Astro)
 ```
 
 ## Tech Stack
 
-| Proyecto | Tecnologías |
-|---|---|
-| **App** | Expo SDK 55, React Native, TypeScript, Zustand, Clerk, Sentry |
-| **Backend** | Express 5, TypeORM, PostgreSQL, Clerk, Zod, Pino |
-| **Website** | Next.js 16, React 19, Tailwind CSS 4 |
+| Proyecto    | Tecnologías                                                                        |
+| ----------- | ---------------------------------------------------------------------------------- |
+| **App**     | Expo SDK 57, React Native 0.86, TypeScript, TanStack Query, Zustand, Clerk, Sentry |
+| **Backend** | Express 5, TypeORM, PostgreSQL, Clerk, Zod, Pino                                   |
+| **Website** | Astro 7, React 19 (islands), Tailwind CSS 4                                        |
 
 ## Requisitos
 
-- **Node.js** >= 20
+- **Node.js** >= 22 (el backend requiere 22.13)
 - **pnpm** >= 11
 - **EAS CLI** (para builds de la app)
 

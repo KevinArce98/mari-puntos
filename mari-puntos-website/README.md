@@ -1,4 +1,4 @@
-This is an [Astro](https://astro.build) project with React islands for interactive components.
+MariPuntos marketing site — an [Astro](https://astro.build) 7 project with React islands, Tailwind CSS v4, and bilingual (ES/EN) content.
 
 ## Getting Started
 
@@ -17,6 +17,8 @@ The beta signup endpoint (`src/pages/api/beta-signup.ts`) sends email via Gmail 
 
 - `GMAIL_USER`
 - `GMAIL_APP_PASSWORD`
+
+The endpoint is protected with per-IP + per-email rate limiting (in-memory, best-effort on serverless) and a honeypot field.
 
 ## Deploy on Vercel
 

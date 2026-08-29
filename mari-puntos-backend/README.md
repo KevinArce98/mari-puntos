@@ -17,30 +17,34 @@ A professional gamified relationship points system backend built with Node.js, E
 
 ## 📋 Prerequisites
 
-- Node.js >= 18.0.0
-- pnpm >= 8.0.0
+- Node.js >= 22.13.0
+- pnpm >= 11
 - PostgreSQL database (Neon recommended)
 - Clerk account for authentication
 
 ## 🛠️ Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone <repository-url>
 cd mari-puntos-backend
 ```
 
 2. **Install dependencies**
+
 ```bash
 pnpm install
 ```
 
 3. **Configure environment variables**
+
 ```bash
 cp .env.example .env
 ```
 
 Edit `.env` with your configuration:
+
 ```env
 NODE_ENV=development
 PORT=3000
@@ -52,11 +56,13 @@ POINTS_PER_LEVEL=100
 ```
 
 4. **Run database migrations**
+
 ```bash
 pnpm run migration:run
 ```
 
 5. **Seed initial data (optional)**
+
 ```bash
 # Seed system permission templates
 psql $DATABASE_URL < scripts/seed-permission-templates.sql
@@ -69,6 +75,7 @@ psql $DATABASE_URL < scripts/seed-levels.sql
 ```
 
 6. **Run the development server**
+
 ```bash
 pnpm dev
 ```
@@ -107,30 +114,46 @@ mari-puntos-backend/
 │   │   ├── partner.service.ts
 │   │   ├── actions.service.ts
 │   │   ├── permissions.service.ts
+│   │   ├── permission-templates.service.ts
 │   │   ├── streak.service.ts
-│   │   └── points.service.ts
+│   │   ├── points.service.ts
+│   │   ├── achievements.service.ts
+│   │   ├── audit-log.service.ts
+│   │   └── push-notification.service.ts
 │   ├── controllers/      # Request handlers
 │   │   ├── users.controller.ts
 │   │   ├── partner.controller.ts
 │   │   ├── actions.controller.ts
 │   │   ├── permissions.controller.ts
+│   │   ├── permission-templates.controller.ts
 │   │   ├── streak.controller.ts
-│   │   └── points.controller.ts
+│   │   ├── points.controller.ts
+│   │   └── webhooks.controller.ts
 │   ├── routes/           # API routes
 │   │   ├── users.routes.ts
 │   │   ├── partner.routes.ts
 │   │   ├── actions.routes.ts
 │   │   ├── permissions.routes.ts
+│   │   ├── permission-templates.routes.ts
 │   │   ├── streak.routes.ts
 │   │   ├── points.routes.ts
+│   │   ├── webhooks.routes.ts
 │   │   └── index.ts
 │   ├── middlewares/      # Express middlewares
 │   │   ├── authMiddleware.ts
-│   │   └── errorMiddleware.ts
+│   │   ├── errorMiddleware.ts
+│   │   └── rateLimitMiddleware.ts
 │   ├── validators/       # Zod schemas
 │   │   └── schemas.ts
-│   ├── utils/            # Helper functions
-│   │   └── helpers.ts
+│   ├── utils/            # Helpers (logger, mappers, response, ...)
+│   │   ├── helpers.ts
+│   │   ├── logger.ts
+│   │   ├── mappers.ts
+│   │   ├── response.ts
+│   │   └── partnerLink.ts
+│   ├── i18n/             # Server-side i18n (ES/EN)
+│   ├── migrations/       # TypeORM migrations
+│   ├── shared/           # Constants & DTOs
 │   ├── app.ts            # Express app setup
 │   └── server.ts         # Server entry point
 ├── .env.example          # Environment variables template
@@ -143,39 +166,45 @@ mari-puntos-backend/
 ## 🔌 API Endpoints
 
 ### Authentication
+
 All endpoints require authentication via Clerk token in `Authorization: Bearer <token>` header.
 
 ### Users
+
 - `GET /api/users/profile` - Get current user profile
 - `PUT /api/users/profile` - Update user profile
 - `GET /api/users/stats` - Get user statistics
 - `POST /api/users/deactivate` - Deactivate account
 
 ### Partner
+
 - `POST /api/partner/create` - Create partner link (generates code)
 - `POST /api/partner/join` - Join partner link with code
 - `GET /api/partner` - Get partner information
 - `POST /api/partner/unlink` - Unlink from partner
 
 ### Actions
-- `POST /api/actions` - Create action (husband only)
+
+- `POST /api/actions` - Create action
 - `GET /api/actions/my` - Get my actions
-- `GET /api/actions/partner` - Get partner's actions (wife only)
+- `GET /api/actions/partner` - Get partner's actions
 - `GET /api/actions/:id` - Get action by ID
 - `PUT /api/actions/:id` - Update action
-- `POST /api/actions/:id/approve` - Approve action (wife only)
-- `POST /api/actions/:id/reject` - Reject action (wife only)
+- `POST /api/actions/:id/approve` - Approve partner's action
+- `POST /api/actions/:id/reject` - Reject partner's action
 - `DELETE /api/actions/:id` - Delete action
 
 ### Permissions
-- `POST /api/permissions` - Request permission (husband only)
+
+- `POST /api/permissions` - Request permission
 - `GET /api/permissions/my` - Get my permission requests
-- `GET /api/permissions/partner` - Get partner's requests (wife only)
+- `GET /api/permissions/partner` - Get partner's requests
 - `GET /api/permissions/:id` - Get permission by ID
-- `POST /api/permissions/:id/respond` - Approve/reject permission (wife only)
+- `POST /api/permissions/:id/respond` - Approve/reject partner's permission
 - `DELETE /api/permissions/:id` - Delete permission request
 
 ### Permission Templates
+
 - `GET /api/permission-templates` - Get all templates (system + custom)
 - `GET /api/permission-templates/system` - Get system templates only
 - `GET /api/permission-templates/:id` - Get template by ID
@@ -184,48 +213,58 @@ All endpoints require authentication via Clerk token in `Authorization: Bearer <
 - `DELETE /api/permission-templates/:id` - Delete custom template
 
 ### Streak
+
 - `GET /api/streak` - Get current streak info for the authenticated user's partner link
 
 ### Points
+
 - `GET /api/points/history` - Get points history
 - `GET /api/points/leaderboard` - Get leaderboard
 
 ## 🗄️ Database Schema
 
 ### User
+
 - Stores user information from Clerk
-- Tracks total points, current level, and role (husband/wife)
+- Tracks total points and current level
 - Unique partner code for linking
 
 ### PartnerLink
-- Manages relationship between husband and wife
+
+- Manages the relationship between two partners
 - Unique link code for joining
 - Status tracking (pending/active/inactive)
 
 ### Action
-- Actions created by husband
-- Approved/rejected by wife with points awarded
+
+- Actions created by a user
+- Approved/rejected by their partner with points awarded
 - Categories: household, childcare, errands, romantic, etc.
 
 ### Permission
-- Permission requests from husband
-- Approved/rejected by wife
+
+- Permission requests from a user
+- Approved/rejected by their partner
 - Optional point cost and duration
 
 ### PartnerLink (streak columns)
+
 - `currentStreak` — consecutive weeks both partners completed actions
 - `longestStreak` — all-time record streak
 - `currentWeekId` — ISO week identifier for current tracking window (e.g. `2026-W17`)
 - `user1WeekDone` / `user2WeekDone` — whether each partner completed an action this week
 
 ### Log
+
 - Complete audit trail of all activities
 - Points changes, level ups, achievements
 
 ### Level
+
 - Level definitions with point requirements
 
 ### Achievement
+
 - Milestone-based achievements
 - Automatic unlocking with bonus points
 
@@ -240,22 +279,26 @@ All endpoints require authentication via Clerk token in `Authorization: Bearer <
 ## 🎮 Game Mechanics
 
 ### Points System
+
 - Users earn points by completing actions approved by their partner
 - Points can be spent on permissions
 - Default: 100 points per level
 
 ### Streak System
+
 - Both partners must have at least one approved action per ISO week
 - When both complete their week, `currentStreak` increments
 - If a week is skipped, streak resets to 0
 - `longestStreak` tracks the all-time record
 
 ### Levels
+
 - Automatic calculation based on total points
 - Level = floor(totalPoints / pointsPerLevel) + 1
 - Track progress within current level
 
 ### Achievements
+
 - Automatically unlocked based on milestones
 - Award bonus points when unlocked
 - Types: points milestones, level milestones, action counts, etc.
@@ -263,18 +306,21 @@ All endpoints require authentication via Clerk token in `Authorization: Bearer <
 ## 🚀 Deployment
 
 ### Production Build
+
 ```bash
 pnpm build
 pnpm start
 ```
 
 ### Environment Variables (Production)
+
 - Set `NODE_ENV=production`
 - Use production database URL
 - Configure `ALLOWED_ORIGINS` for CORS
 - Use production Clerk keys
 
 ### Recommended Platforms
+
 - **Backend**: Railway, Render, Fly.io, Heroku
 - **Database**: Neon, Supabase, Railway Postgres
 - **Authentication**: Clerk
@@ -282,6 +328,7 @@ pnpm start
 ## 🔧 Development
 
 ### Database Migrations
+
 ```bash
 # Generate migration
 pnpm migration:generate src/migrations/MigrationName
@@ -294,6 +341,7 @@ pnpm migration:revert
 ```
 
 ### Code Quality
+
 ```bash
 # Type checking
 pnpm typecheck
@@ -319,6 +367,7 @@ pnpm format
 The application uses **Pino** for structured logging throughout the entire codebase.
 
 ### Features
+
 - **Structured Logging**: All logs are JSON objects for easy parsing and analysis
 - **Pretty Output**: Human-readable logs in development with colors and formatting
 - **HTTP Request Logging**: Automatic logging of all HTTP requests with response times
@@ -326,12 +375,14 @@ The application uses **Pino** for structured logging throughout the entire codeb
 - **Performance**: High-performance logging that doesn't block the event loop
 
 ### Log Levels
+
 - `debug`: Detailed information for development
 - `info`: General information about application operation
 - `warn`: Warning messages for potential issues
 - `error`: Error messages for failures
 
 ### Usage in Code
+
 ```typescript
 import { logger } from '../utils/logger';
 
@@ -346,7 +397,9 @@ logger.debug({ message: 'Processing request', data });
 ```
 
 ### Log Output
+
 **Development** (with pino-pretty):
+
 ```
 [2024-01-15 10:30:45] INFO: User created
     userId: "123"
@@ -358,12 +411,22 @@ logger.debug({ message: 'Processing request', data });
 ```
 
 **Production** (JSON):
+
 ```json
-{"level":30,"time":1705312245000,"msg":"User created","userId":"123","pid":1234,"hostname":"server"}
+{
+  "level": 30,
+  "time": 1705312245000,
+  "msg": "User created",
+  "userId": "123",
+  "pid": 1234,
+  "hostname": "server"
+}
 ```
 
 ### Coverage
+
 Logging is **FULLY IMPLEMENTED** across:
+
 - **Server startup/shutdown**: Database initialization, server start, graceful shutdown
 - **HTTP requests**: Automatic logging via pino-http middleware
 - **Authentication**: JWT verification, user attachment
@@ -381,21 +444,22 @@ Logging is **FULLY IMPLEMENTED** across:
 
 ## 📄 License
 
-MIT License - see LICENSE file for details
+Proprietary — © 2026 Kevin Arias, all rights reserved. See the LICENSE file for details.
 
 ## 🆘 Support
 
 For issues and questions:
+
 - Create an issue on GitHub
 - Check existing documentation
 - Review API endpoint documentation
 
 ## 🎯 Roadmap
 
+- [x] Add API documentation (Swagger/OpenAPI) — live at `/api-docs`
+- [x] Add rate limiting — `rateLimitMiddleware`
 - [ ] Add unit tests
 - [ ] Add integration tests
-- [ ] Add API documentation (Swagger/OpenAPI)
-- [ ] Add rate limiting
 - [ ] Add caching layer
 - [ ] Add real-time notifications (WebSockets)
 - [ ] Add email notifications
