@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import {
   Alert,
@@ -31,7 +31,7 @@ import {
   Select,
 } from '@/components/ui';
 import { POINT_VALUE_PRESETS } from '@/constants/points';
-import { useThemedColors } from '@/hooks';
+import { useKeyboardOffset, useThemedColors } from '@/hooks';
 import { permissionsService } from '@/services';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { PermissionCategory } from '@/types';
@@ -67,8 +67,8 @@ export default function CreateTemplateScreen() {
   const [selectedIcon, setSelectedIcon] = useState('sparkles-outline');
   const [showIconSelector, setShowIconSelector] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [allowExit, setAllowExit] = useState(false);
+  const keyboardHeight = useKeyboardOffset();
 
   const isDirty =
     Boolean(title.trim() || description.trim()) ||
@@ -87,19 +87,6 @@ export default function CreateTemplateScreen() {
       },
     ]);
   });
-
-  useEffect(() => {
-    const showListener = Keyboard.addListener('keyboardDidShow', (e) => {
-      setKeyboardHeight(e.endCoordinates.height);
-    });
-    const hideListener = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardHeight(0);
-    });
-    return () => {
-      showListener.remove();
-      hideListener.remove();
-    };
-  }, []);
 
   const handleCreate = async () => {
     if (!title.trim()) {
