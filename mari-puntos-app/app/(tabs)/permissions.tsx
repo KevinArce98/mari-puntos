@@ -1,18 +1,26 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { LegendList } from '@legendapp/list/react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 import { PermissionCard } from '@/components';
 import { Badge, Button, Card, Chip, PressableScale, SkeletonList } from '@/components/ui';
-import { usePermissions, useThemedColors, useUser } from '@/hooks';
+import { usePendingPermissionsCount, usePermissions, useThemedColors } from '@/hooks';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { borderRadius, spacing, typography } from '@/theme';
 import { Permission, PermissionStatus } from '@/types';
@@ -40,43 +48,40 @@ export default function PermissionsScreen() {
     { value: PermissionStatus.REJECTED, label: t('common:filters.rejected') },
   ];
   const colorScheme = useColorScheme();
-  const { user } = useUser();
-  const { myPermissions, partnerPermissions, respondToPermission, refetch, isLoading } =
-    usePermissions();
   const [scope, setScope] = useState<PermissionScope>('received');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!user) return;
-      refetch();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user])
-  );
+  const {
+    myPermissions,
+    partnerPermissions,
+    respondToPermission,
+    refetch,
+    isLoading,
+    loadMoreMyPermissions,
+    loadMorePartnerPermissions,
+    isFetchingMoreMyPermissions,
+    isFetchingMorePartnerPermissions,
+  } = usePermissions({ status: statusFilter === 'all' ? null : statusFilter });
 
-  const receivedPending = partnerPermissions.filter(
-    (permission) => permission.status === PermissionStatus.PENDING
-  ).length;
-  const sentPending = myPermissions.filter(
-    (permission) => permission.status === PermissionStatus.PENDING
-  ).length;
+  const receivedPending = usePendingPermissionsCount('partner');
+  const sentPending = usePendingPermissionsCount('mine');
+
+  const activePermissions = scope === 'received' ? partnerPermissions : myPermissions;
+  const isFetchingMore =
+    scope === 'received' ? isFetchingMorePartnerPermissions : isFetchingMoreMyPermissions;
+  const loadMore =
+    scope === 'received' ? loadMorePartnerPermissions : loadMoreMyPermissions;
 
   const visiblePermissions = useMemo(() => {
-    const source = scope === 'received' ? partnerPermissions : myPermissions;
-    const filtered =
-      statusFilter === 'all'
-        ? source
-        : source.filter((permission) => permission.status === statusFilter);
-
-    return [...filtered].sort((first, second) => {
+    return [...activePermissions].sort((first, second) => {
       const firstPending = first.status === PermissionStatus.PENDING ? 1 : 0;
       const secondPending = second.status === PermissionStatus.PENDING ? 1 : 0;
       if (firstPending !== secondPending) return secondPending - firstPending;
       return new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime();
     });
-  }, [myPermissions, partnerPermissions, scope, statusFilter]);
+  }, [activePermissions]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -178,37 +183,45 @@ export default function PermissionsScreen() {
         ))}
       </ScrollView>
 
-      <ScrollView
+      <LegendList
+        data={visiblePermissions}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) =>
+          scope === 'received' ? (
+            <PermissionCard
+              permission={item}
+              handleRespond={handleRespond}
+              loading={loading}
+            />
+          ) : (
+            <SentPermissionCard
+              permission={item}
+              onEdit={() => router.push(`/permissions/edit/${item.id}`)}
+              colorScheme={colorScheme}
+            />
+          )
+        }
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
-      >
-        {visiblePermissions.length === 0 ? (
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListEmptyComponent={
           <EmptyState
             scope={scope}
             filtered={statusFilter !== 'all'}
             onCreate={() => router.push('/permissions/request')}
           />
-        ) : scope === 'received' ? (
-          visiblePermissions.map((permission) => (
-            <PermissionCard
-              key={permission.id}
-              permission={permission}
-              handleRespond={handleRespond}
-              loading={loading}
-            />
-          ))
-        ) : (
-          visiblePermissions.map((permission) => (
-            <SentPermissionCard
-              key={permission.id}
-              permission={permission}
-              onEdit={() => router.push(`/permissions/edit/${permission.id}`)}
-              colorScheme={colorScheme}
-            />
-          ))
-        )}
-      </ScrollView>
+        }
+        ListFooterComponent={
+          isFetchingMore ? (
+            <View style={{ paddingVertical: spacing.lg, alignItems: 'center' }}>
+              <ActivityIndicator size="small" color={themeColors.primary} />
+            </View>
+          ) : null
+        }
+        estimatedItemSize={140}
+      />
     </View>
   );
 }
