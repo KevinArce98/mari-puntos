@@ -245,7 +245,14 @@ function ScopeButton({
       >
         {label}
       </Text>
-      {count > 0 && <Badge label={count} variant="error" size="sm" />}
+      {count > 0 && (
+        <Badge
+          label={count}
+          variant="error"
+          size="sm"
+          style={{ marginTop: spacing.xs }}
+        />
+      )}
     </PressableScale>
   );
 }
