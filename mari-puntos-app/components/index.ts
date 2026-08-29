@@ -2,7 +2,6 @@ export { AuthGuard } from './auth-guard';
 export { ExternalLink } from './external-link';
 export { HapticTab } from './haptic-tab';
 export { LoadingScreen } from './loading-screen';
-export { ParallaxScrollView } from './parallax-scroll-view';
 export { ThemedText } from './themed-text';
 export { ThemedView } from './themed-view';
 export { PermissionCard } from './permission-card';
