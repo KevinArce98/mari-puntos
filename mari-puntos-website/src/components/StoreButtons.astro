@@ -1,0 +1,75 @@
+---
+import { APP_STORE_URL, PLAY_STORE_URL } from '@/constants/site';
+import { useTranslations, type Lang } from '@/i18n/ui';
+
+interface Props {
+  lang: Lang;
+  variant?: 'badge' | 'solid';
+  size?: 'md' | 'lg';
+  containerClass?: string;
+}
+
+const {
+  lang,
+  variant = 'badge',
+  size = 'md',
+  containerClass = 'flex flex-col sm:flex-row gap-4',
+} = Astro.props;
+
+const t = useTranslations(lang);
+
+const badgeSize =
+  size === 'lg' ? 'gap-4 px-8 py-4 shadow-xl' : 'gap-3 px-6 py-3.5 shadow-lg';
+const badgeClass = `inline-flex items-center bg-gray-900 text-white rounded-2xl hover:bg-gray-800 transition-all duration-300 hover:scale-105 ${badgeSize}`;
+const badgeIcon = size === 'lg' ? 'w-8 h-8 shrink-0' : 'w-7 h-7 shrink-0';
+const badgeName =
+  size === 'lg' ? 'font-bold text-xl leading-tight' : 'font-bold text-base leading-tight';
+
+const solidClass =
+  'inline-flex items-center gap-3 px-6 py-3.5 bg-white text-gray-900 rounded-2xl font-semibold text-sm hover:bg-gray-100 transition-all duration-300 hover:scale-105 shadow-xl shadow-black/30';
+
+const stores = [
+  {
+    href: APP_STORE_URL,
+    icon: '/apple.svg',
+    iconAlt: 'Apple',
+    top: t('store.appStoreTop'),
+    name: t('store.appStore'),
+    solidBrightness: true,
+  },
+  {
+    href: PLAY_STORE_URL,
+    icon: '/googleplay.svg',
+    iconAlt: 'Google Play',
+    top: t('store.googlePlayTop'),
+    name: t('store.googlePlay'),
+    solidBrightness: false,
+  },
+];
+---
+
+<div class={containerClass}>
+  {
+    stores.map((store) =>
+      variant === 'solid' ? (
+        <a href={store.href} target="_blank" rel="noopener noreferrer" class={solidClass}>
+          <img
+            src={store.icon}
+            alt={store.iconAlt}
+            class="w-6 h-6 shrink-0"
+            style={store.solidBrightness ? 'filter: brightness(0)' : undefined}
+          />
+          {store.name}
+        </a>
+      ) : (
+        <a href={store.href} target="_blank" rel="noopener noreferrer" class={badgeClass}>
+          <img src={store.icon} alt={store.iconAlt} class={badgeIcon} />
+          <div class="text-left">
+            <div class="text-xs opacity-75">{store.top}</div>
+            <div class={badgeName}>{store.name}</div>
+          </div>
+        </a>
+      )
+    )
+  }
+</div>

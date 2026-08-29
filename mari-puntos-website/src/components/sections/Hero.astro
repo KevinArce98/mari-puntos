@@ -1,5 +1,6 @@
 ---
-import { APP_STORE_URL, PLAY_STORE_URL, screenshotPath } from '@/constants/site';
+import StoreButtons from '@/components/StoreButtons.astro';
+import { screenshotPath } from '@/constants/site';
 import { useTranslations, type Lang } from '@/i18n/ui';
 
 interface Props {
@@ -37,32 +38,7 @@ const shot = (name: string) => screenshotPath(name, lang);
         <p class="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
           {t('hero.subtitle')}
         </p>
-        <div class="flex flex-col sm:flex-row gap-4">
-          <a
-            href={APP_STORE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center gap-3 px-6 py-3.5 bg-gray-900 text-white rounded-2xl hover:bg-gray-800 transition-all duration-300 hover:scale-105 shadow-lg"
-          >
-            <img src="/apple.svg" alt="Apple" class="w-7 h-7 shrink-0" />
-            <div>
-              <div class="text-xs opacity-75">{t('store.appStoreTop')}</div>
-              <div class="font-bold text-base leading-tight">{t('store.appStore')}</div>
-            </div>
-          </a>
-          <a
-            href={PLAY_STORE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center gap-3 px-6 py-3.5 bg-gray-900 text-white rounded-2xl hover:bg-gray-800 transition-all duration-300 hover:scale-105 shadow-lg"
-          >
-            <img src="/googleplay.svg" alt="Google Play" class="w-7 h-7 shrink-0" />
-            <div>
-              <div class="text-xs opacity-75">{t('store.googlePlayTop')}</div>
-              <div class="font-bold text-base leading-tight">{t('store.googlePlay')}</div>
-            </div>
-          </a>
-        </div>
+        <StoreButtons lang={lang} size="md" />
       </div>
       <div class="flex justify-center pb-0">
         <div class="relative animate-float">
