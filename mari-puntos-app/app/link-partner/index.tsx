@@ -210,6 +210,16 @@ export default function LinkPartnerScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <View style={styles.header}>
+        <PressableScale
+          onPress={() => router.back()}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel={t('backA11y')}
+        >
+          <Ionicons name="arrow-back" size={24} color={themeColors.text.primary} />
+        </PressableScale>
+      </View>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -404,17 +414,6 @@ export default function LinkPartnerScreen() {
               />
             </>
           )}
-
-          <PressableScale
-            style={styles.skipButton}
-            onPress={() => router.replace('/(tabs)')}
-            accessibilityRole="button"
-            accessibilityLabel={t('backA11y')}
-          >
-            <Text style={[styles.skipText, { color: themeColors.text.secondary }]}>
-              {t('back')}
-            </Text>
-          </PressableScale>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -424,6 +423,19 @@ export default function LinkPartnerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: -spacing.sm,
   },
   keyboardView: {
     flex: 1,
@@ -516,14 +528,6 @@ const styles = StyleSheet.create({
   },
   linkButton: {
     marginTop: spacing.lg,
-  },
-  skipButton: {
-    alignItems: 'center',
-    marginTop: spacing.lg,
-    padding: spacing.sm,
-  },
-  skipText: {
-    ...typography.styles.body,
   },
   loadingContainer: {
     flexDirection: 'row',

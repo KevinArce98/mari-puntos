@@ -20,7 +20,6 @@
     "label": "Enter your partner's code",
     "submit": "Link accounts"
   },
-  "back": "Go back",
   "backA11y": "Return to home",
   "toast": {
     "generatedTitle": "Code generated!",

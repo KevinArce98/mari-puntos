@@ -20,7 +20,6 @@
     "label": "Ingresa el código de tu pareja",
     "submit": "Vincular cuentas"
   },
-  "back": "Regresar",
   "backA11y": "Regresar a inicio",
   "toast": {
     "generatedTitle": "¡Código generado!",
