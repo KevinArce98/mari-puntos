@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import { useAuth } from '@clerk/clerk-expo';
+import { useAuth } from '@clerk/expo';
 import * as Sentry from '@sentry/react-native';
 
 import { apiService } from '@/services';

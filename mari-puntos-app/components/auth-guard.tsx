@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { useRootNavigationState, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 
-import { useSignUp } from '@clerk/clerk-expo';
+import { useSignUp } from '@clerk/expo/legacy';
 
 import { LoadingScreen } from '@/components/loading-screen';
 import { ProfileErrorScreen } from '@/components/profile-error-screen';

@@ -14,7 +14,8 @@ import {
 
 import { useRouter } from 'expo-router';
 
-import { isClerkAPIResponseError, useAuth, useSignIn } from '@clerk/clerk-expo';
+import { isClerkAPIResponseError, useAuth } from '@clerk/expo';
+import { useSignIn } from '@clerk/expo/legacy';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';

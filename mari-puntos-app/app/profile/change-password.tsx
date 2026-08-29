@@ -15,7 +15,7 @@ import { usePreventRemove } from 'expo-router/react-navigation';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { useUser } from '@clerk/clerk-expo';
+import { useUser } from '@clerk/expo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';

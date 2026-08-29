@@ -16,7 +16,8 @@ import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { isClerkAPIResponseError, useSignUp } from '@clerk/clerk-expo';
+import { isClerkAPIResponseError } from '@clerk/expo';
+import { useSignUp } from '@clerk/expo/legacy';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';

@@ -17,7 +17,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { isClerkAPIResponseError, useAuth, useSignUp } from '@clerk/clerk-expo';
+import { isClerkAPIResponseError, useAuth } from '@clerk/expo';
+import { useSignUp } from '@clerk/expo/legacy';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as Sentry from '@sentry/react-native';
 import { useForm, useWatch } from 'react-hook-form';
