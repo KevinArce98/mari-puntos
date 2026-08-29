@@ -21,7 +21,14 @@ import {
   PressableScale,
   StreakCard,
 } from '@/components/ui';
-import { usePermissions, usePoints, useStreak, useThemedColors, useUser } from '@/hooks';
+import {
+  usePermissions,
+  usePoints,
+  usePointsHistory,
+  useStreak,
+  useThemedColors,
+  useUser,
+} from '@/hooks';
 import { useActions } from '@/hooks/useActions';
 import { borderRadius, spacing, typography } from '@/theme';
 import { ActionStatus } from '@/types';
@@ -56,7 +63,8 @@ export default function HomeScreen() {
   }>();
   const insets = useSafeAreaInsets();
   const { user, hasPartner, refetch: refetchUser } = useUser();
-  const { myPoints, myLevel, pointsHistory, fetchHistory } = usePoints();
+  const { myPoints, myLevel } = usePoints();
+  const { pointsHistory, refetch: refetchHistory } = usePointsHistory({ limit: 3 });
   const { streak, refetch: refetchStreak } = useStreak();
   const { createAction, partnerActions, refetchPartnerActions } = useActions();
   const { pendingCount: pendingPermissionsCount, refetch: refetchPermissions } =
@@ -86,7 +94,7 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       if (!user || !hasPartner) return;
-      fetchHistory({ limit: 3 });
+      refetchHistory().catch(() => {});
       refetchStreak().catch(() => {});
       refetchPartnerActions().catch(() => {});
       refetchPermissions().catch(() => {});
@@ -99,7 +107,7 @@ export default function HomeScreen() {
     try {
       await Promise.all([
         refetchUser(),
-        hasPartner ? fetchHistory({ limit: 3 }) : Promise.resolve(),
+        hasPartner ? refetchHistory() : Promise.resolve(),
         hasPartner ? refetchStreak() : Promise.resolve(),
         hasPartner ? refetchPartnerActions() : Promise.resolve(),
         hasPartner ? refetchPermissions() : Promise.resolve(),
@@ -119,7 +127,7 @@ export default function HomeScreen() {
       toast.success(t('actionCreated'), {
         description: t('actionCreatedMessage'),
       });
-      await fetchHistory({ limit: 3 });
+      await refetchHistory();
     } catch (error) {
       toast.error(t('errors:title'), { description: t('actionCreateError') });
       throw error;

@@ -1,14 +1,11 @@
 import { useMemo } from 'react';
 
-import { usePointsStore } from '@/stores';
-import { GetPointsHistoryParams } from '@/types';
-
 import { useUser } from './useUser';
+
+const getPointsForNextLevel = (currentLevel: number) => currentLevel * 100;
 
 export const usePoints = () => {
   const { user, partnerInfo } = useUser();
-  const { pointsHistory, isLoading, error, paginationMeta, fetchPointsHistory } =
-    usePointsStore();
 
   const myPoints = user?.totalPoints || 0;
   const myLevel = user?.currentLevel || 1;
@@ -16,8 +13,6 @@ export const usePoints = () => {
 
   const partnerPoints = partnerInfo?.partner?.totalPoints || 0;
   const partnerLevel = partnerInfo?.partner?.currentLevel || 1;
-
-  const getPointsForNextLevel = (currentLevel: number) => currentLevel * 100;
 
   const pointsToNextLevel = useMemo(
     () => getPointsForNextLevel(myLevel) - myPointsInCurrentLevel,
@@ -28,10 +23,6 @@ export const usePoints = () => {
     [myLevel, myPointsInCurrentLevel]
   );
 
-  const loadHistory = async (params?: GetPointsHistoryParams, append = false) => {
-    await fetchPointsHistory(params, append);
-  };
-
   return {
     myPoints,
     partnerPoints,
@@ -39,10 +30,5 @@ export const usePoints = () => {
     partnerLevel,
     pointsToNextLevel,
     progressToNextLevel,
-    pointsHistory,
-    isLoading,
-    error,
-    paginationMeta,
-    fetchHistory: loadHistory,
   };
 };

@@ -27,7 +27,7 @@ import { useThemedColors, useUser } from '@/hooks';
 import { queryClient } from '@/lib/queryClient';
 import { queryKeys } from '@/lib/queryKeys';
 import { userService } from '@/services';
-import { usePointsStore, useStreakStore, useUserStore } from '@/stores';
+import { useUserStore } from '@/stores';
 import { borderRadius, spacing, typography } from '@/theme';
 import { getApiErrorMessage } from '@/utils/errorMessage';
 import logger from '@/utils/logger';
@@ -127,14 +127,8 @@ export default function LinkPartnerScreen() {
       await joinPartnerLink(data.partnerCode);
       queryClient.invalidateQueries({ queryKey: queryKeys.permissions.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.actions.all });
-      usePointsStore
-        .getState()
-        .fetchPointsHistory()
-        .catch(() => {});
-      useStreakStore
-        .getState()
-        .fetchStreak()
-        .catch(() => {});
+      queryClient.invalidateQueries({ queryKey: queryKeys.points.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.streak.all });
       toast.success(t('toast.linkedTitle'), {
         description: t('toast.linkedMessage'),
       });
@@ -167,14 +161,8 @@ export default function LinkPartnerScreen() {
           useUserStore.setState({ user, partnerInfo });
           queryClient.invalidateQueries({ queryKey: queryKeys.permissions.all });
           queryClient.invalidateQueries({ queryKey: queryKeys.actions.all });
-          usePointsStore
-            .getState()
-            .fetchPointsHistory()
-            .catch(() => {});
-          useStreakStore
-            .getState()
-            .fetchStreak()
-            .catch(() => {});
+          queryClient.invalidateQueries({ queryKey: queryKeys.points.all });
+          queryClient.invalidateQueries({ queryKey: queryKeys.streak.all });
 
           toast.success(t('toast.linkedSuccessTitle'), {
             description: t('toast.linkedSuccessMessage', {

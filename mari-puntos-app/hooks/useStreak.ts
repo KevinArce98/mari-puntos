@@ -1,41 +1,25 @@
-import { useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
-import { AppState, AppStateStatus } from 'react-native';
-
+import { queryKeys } from '@/lib/queryKeys';
+import { streakService } from '@/services/streakService';
 import { useUserStore } from '@/stores';
-import { useStreakStore } from '@/stores/streakStore';
-import logger from '@/utils/logger';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 export const useStreak = () => {
-  const { streak, isLoading, error, fetchStreak } = useStreakStore();
-  const { user } = useUserStore();
-  const appState = useRef(AppState.currentState);
-  const hasPartner = !!user?.hasPartner;
+  const hasPartner = useUserStore((s) => s.user?.hasPartner ?? false);
 
-  useEffect(() => {
-    if (!user || !hasPartner) return;
-    fetchStreak().catch((err) => {
-      logger.error('Failed to fetch streak on mount', err);
-    });
-  }, [user?.id, hasPartner]);
+  const query = useQuery({
+    queryKey: queryKeys.streak.current(),
+    queryFn: () => streakService.getStreak(),
+    enabled: hasPartner,
+  });
 
-  useEffect(() => {
-    if (!user || !hasPartner) return;
-
-    const subscription = AppState.addEventListener(
-      'change',
-      (nextState: AppStateStatus) => {
-        if (appState.current !== 'active' && nextState === 'active') {
-          fetchStreak().catch((err) => {
-            logger.error('Failed to fetch streak on foreground', err);
-          });
-        }
-        appState.current = nextState;
-      }
-    );
-
-    return () => subscription.remove();
-  }, [user?.id, hasPartner]);
-
-  return { streak, isLoading, error, refetch: fetchStreak };
+  return {
+    streak: query.data ?? null,
+    isLoading: query.isLoading,
+    error: query.error ? getErrorMessage(query.error) : null,
+    refetch: async () => {
+      await query.refetch();
+    },
+  };
 };

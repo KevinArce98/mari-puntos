@@ -1,5 +1,6 @@
 export * from './useUser';
 export * from './usePoints';
+export * from './usePointsHistory';
 export * from './usePermissions';
 export * from './usePendingPermissionsCount';
 export * from './useActions';

@@ -25,12 +25,7 @@ import { usePoints, useThemedColors, useUser } from '@/hooks';
 import { queryClient } from '@/lib/queryClient';
 import { queryKeys } from '@/lib/queryKeys';
 import { userService } from '@/services/userService';
-import {
-  LanguagePreference,
-  useLanguageStore,
-  usePointsStore,
-  useStreakStore,
-} from '@/stores';
+import { LanguagePreference, useLanguageStore } from '@/stores';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 
 const SUPPORT_EMAIL = 'arias9068@gmail.com';
@@ -79,8 +74,8 @@ export default function ProfileScreen() {
             await unlinkPartner();
             queryClient.removeQueries({ queryKey: queryKeys.actions.all });
             queryClient.removeQueries({ queryKey: queryKeys.permissions.all });
-            usePointsStore.getState().clearPoints();
-            useStreakStore.getState().clearStreak();
+            queryClient.removeQueries({ queryKey: queryKeys.points.all });
+            queryClient.removeQueries({ queryKey: queryKeys.streak.all });
             toast.success(t('unlink.successTitle'), {
               description: t('unlink.successMessage'),
             });

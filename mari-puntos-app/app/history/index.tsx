@@ -12,63 +12,25 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HistoryItem } from '@/components';
 import { Card, PressableScale, SkeletonList } from '@/components/ui';
-import { usePoints, useThemedColors } from '@/hooks';
+import { usePointsHistory, useThemedColors } from '@/hooks';
 import { spacing, typography } from '@/theme';
 import { PointsLog } from '@/types';
-import logger from '@/utils/logger';
 
 export default function HistoryScreen() {
   const { t } = useTranslation('history');
   const insets = useSafeAreaInsets();
   const colors = useThemedColors();
   const router = useRouter();
-  const { pointsHistory, fetchHistory, isLoading, paginationMeta } = usePoints();
+  const { pointsHistory, isLoading, loadMore, isFetchingNextPage, refetch } =
+    usePointsHistory({ limit: 20 });
   const [refreshing, setRefreshing] = React.useState(false);
-  const [page, setPage] = React.useState(1);
-  const [loadingMore, setLoadingMore] = React.useState(false);
 
-  const hasMore = paginationMeta ? paginationMeta.page < paginationMeta.totalPages : true;
-
-  const loadHistory = async (pageNum: number, isRefresh = false) => {
-    if (isRefresh) {
-      setRefreshing(true);
-      setPage(1);
-    } else {
-      setLoadingMore(true);
-    }
-
+  const handleRefresh = async () => {
+    setRefreshing(true);
     try {
-      await fetchHistory({ page: pageNum, limit: 20 }, !isRefresh);
-    } catch (error) {
-      logger.error('Failed to load points history', error as Error, {
-        page: pageNum,
-        isRefresh,
-      });
+      await refetch();
     } finally {
       setRefreshing(false);
-      setLoadingMore(false);
-    }
-  };
-
-  React.useEffect(() => {
-    fetchHistory({ page: 1, limit: 20 }, false).catch((error) => {
-      logger.error('Failed to load points history', error as Error, {
-        page: 1,
-        isRefresh: false,
-      });
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleRefresh = () => {
-    loadHistory(1, true);
-  };
-
-  const handleLoadMore = () => {
-    if (!loadingMore && hasMore && !isLoading) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      loadHistory(nextPage);
     }
   };
 
@@ -91,7 +53,7 @@ export default function HistoryScreen() {
   );
 
   const renderFooter = () => {
-    if (!loadingMore) return null;
+    if (!isFetchingNextPage) return null;
 
     return (
       <View style={styles.footerLoader}>
@@ -139,7 +101,7 @@ export default function HistoryScreen() {
             tintColor={colors.primary}
           />
         }
-        onEndReached={handleLoadMore}
+        onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
