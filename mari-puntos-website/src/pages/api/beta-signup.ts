@@ -12,28 +12,35 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_EMAIL_LENGTH = 254;
 
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
-const RATE_LIMIT_MAX_PER_WINDOW = 3;
+const RATE_LIMIT_MAX_PER_IP = 3;
+const RATE_LIMIT_MAX_PER_EMAIL = 3;
 const MAX_TRACKED_CLIENTS = 5000;
 
 const requestLog = new Map<string, number[]>();
 
-const isRateLimited = (clientKey: string): boolean => {
+const pruneTrackedClients = (now: number): void => {
+  if (requestLog.size <= MAX_TRACKED_CLIENTS) return;
+  for (const [key, timestamps] of requestLog) {
+    if (timestamps.every((timestamp) => now - timestamp >= RATE_LIMIT_WINDOW_MS)) {
+      requestLog.delete(key);
+    }
+  }
+};
+
+const registerHit = (key: string, max: number): number => {
   const now = Date.now();
-  const recent = (requestLog.get(clientKey) ?? []).filter(
+  const recent = (requestLog.get(key) ?? []).filter(
     (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS
   );
   recent.push(now);
-  requestLog.set(clientKey, recent);
+  requestLog.set(key, recent);
+  pruneTrackedClients(now);
 
-  if (requestLog.size > MAX_TRACKED_CLIENTS) {
-    for (const [key, timestamps] of requestLog) {
-      if (timestamps.every((timestamp) => now - timestamp >= RATE_LIMIT_WINDOW_MS)) {
-        requestLog.delete(key);
-      }
-    }
-  }
+  if (recent.length <= max) return 0;
 
-  return recent.length > RATE_LIMIT_MAX_PER_WINDOW;
+  const blockingTimestamp = recent[recent.length - max - 1];
+  const retryAfterMs = blockingTimestamp + RATE_LIMIT_WINDOW_MS - now;
+  return Math.max(1, Math.ceil(retryAfterMs / 1000));
 };
 
 const escapeHtml = (value: string): string =>
@@ -52,10 +59,14 @@ const escapeHtml = (value: string): string =>
     }
   });
 
-const jsonResponse = (body: Record<string, unknown>, status: number): Response =>
+const jsonResponse = (
+  body: Record<string, unknown>,
+  status: number,
+  extraHeaders?: Record<string, string>
+): Response =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...extraHeaders },
   });
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
@@ -84,8 +95,15 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     request.headers.get('x-real-ip') ||
     'unknown';
 
-  if (isRateLimited(clientKey)) {
-    return jsonResponse({ success: false, error: t['api.rateLimited'] }, 429);
+  const retryAfterSeconds = Math.max(
+    registerHit(`ip:${clientKey}`, RATE_LIMIT_MAX_PER_IP),
+    registerHit(`email:${normalizedEmail}`, RATE_LIMIT_MAX_PER_EMAIL)
+  );
+
+  if (retryAfterSeconds > 0) {
+    return jsonResponse({ success: false, error: t['api.rateLimited'] }, 429, {
+      'Retry-After': String(retryAfterSeconds),
+    });
   }
 
   try {
