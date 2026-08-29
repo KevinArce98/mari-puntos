@@ -64,7 +64,7 @@ export class PermissionTemplate {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => PartnerLink, { nullable: true })
+  @ManyToOne(() => PartnerLink, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'partnerLinkId' })
   partnerLink: PartnerLink | null;
 

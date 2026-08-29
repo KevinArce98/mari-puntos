@@ -63,7 +63,7 @@ export class Permission {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => PermissionTemplate)
+  @ManyToOne(() => PermissionTemplate, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'templateId' })
   template: PermissionTemplate;
 
