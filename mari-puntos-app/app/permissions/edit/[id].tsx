@@ -15,6 +15,8 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -34,6 +36,7 @@ import { Permission } from '@/types';
 import { createUTC6DateTime } from '@/utils/dateUtils';
 import { getApiErrorMessage } from '@/utils/errorMessage';
 import logger from '@/utils/logger';
+import { EditPermissionFormData, editPermissionSchema } from '@/validators';
 
 export default function EditPermissionScreen() {
   const { t } = useTranslation(['permissions', 'common', 'errors']);
@@ -45,17 +48,31 @@ export default function EditPermissionScreen() {
 
   const [permission, setPermission] = useState<Permission | null>(null);
   const [loadingPermission, setLoadingPermission] = useState(true);
-  const [duration, setDuration] = useState(2);
-  const [note, setNote] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [hasEdited, setHasEdited] = useState(false);
   const [allowExit, setAllowExit] = useState(false);
 
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState(new Date());
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { isDirty, isSubmitting },
+  } = useForm<EditPermissionFormData>({
+    mode: 'onChange',
+    resolver: zodResolver(editPermissionSchema),
+    defaultValues: {
+      requestedDate: new Date(),
+      requestedTime: new Date(),
+      durationHours: 2,
+      note: '',
+    },
+  });
+
+  const requestedDate = useWatch({ control, name: 'requestedDate' });
+  const requestedTime = useWatch({ control, name: 'requestedTime' });
+  const durationHours = useWatch({ control, name: 'durationHours' });
 
   useDiscardConfirm({
-    enabled: hasEdited && !allowExit,
+    enabled: isDirty && !allowExit,
     title: t('edit.discard.title'),
     message: t('edit.discard.message'),
     confirmLabel: t('edit.discard.confirm'),
@@ -70,12 +87,13 @@ export default function EditPermissionScreen() {
       const data = await permissionsService.getPermissionById(id);
       setPermission(data);
 
-      const requestedDate = new Date(data.requestedDate);
-      setSelectedDate(requestedDate);
-      setSelectedTime(requestedDate);
-      setDuration(Number(data.durationHours) || 2);
-      setNote(data.metadata?.note || '');
-      setHasEdited(false);
+      const requested = new Date(data.requestedDate);
+      reset({
+        requestedDate: requested,
+        requestedTime: requested,
+        durationHours: Number(data.durationHours) || 2,
+        note: data.metadata?.note || '',
+      });
     } catch (error) {
       logger.error('Failed to load permission for editing', error as Error, {
         permissionId: id,
@@ -94,20 +112,25 @@ export default function EditPermissionScreen() {
     }, [loadPermission])
   );
 
-  const handleUpdate = async () => {
-    if (!id || !permission) return;
+  const onSubmit = handleSubmit(async (data) => {
+    if (!id) return;
 
-    setLoading(true);
     try {
-      const requestedDateTime = createUTC6DateTime(selectedDate, selectedTime);
+      const requestedDateTime = createUTC6DateTime(
+        data.requestedDate,
+        data.requestedTime
+      );
 
       await updatePermission(id, {
         requestedDate: requestedDateTime.toISOString(),
-        durationHours: duration,
-        metadata: note.trim() ? { note: note.trim() } : undefined,
+        durationHours: data.durationHours,
+        metadata: data.note?.trim() ? { note: data.note.trim() } : undefined,
       });
 
-      logger.info('Permission updated', { permissionId: id, durationHours: duration });
+      logger.info('Permission updated', {
+        permissionId: id,
+        durationHours: data.durationHours,
+      });
 
       toast.success(t('edit.updatedTitle'), {
         description: t('edit.updatedMessage'),
@@ -119,10 +142,8 @@ export default function EditPermissionScreen() {
       toast.error(t('errors:title'), {
         description: getApiErrorMessage(e) ?? t('edit.updateError'),
       });
-    } finally {
-      setLoading(false);
     }
-  };
+  });
 
   if (loadingPermission) {
     return (
@@ -207,40 +228,38 @@ export default function EditPermissionScreen() {
             </Card>
 
             <DateTimeField
-              date={selectedDate}
-              time={selectedTime}
-              onDateChange={(date) => {
-                setSelectedDate(date);
-                setHasEdited(true);
-              }}
-              onTimeChange={(time) => {
-                setSelectedTime(time);
-                setHasEdited(true);
-              }}
+              date={requestedDate}
+              time={requestedTime}
+              onDateChange={(date) =>
+                setValue('requestedDate', date, { shouldDirty: true })
+              }
+              onTimeChange={(time) =>
+                setValue('requestedTime', time, { shouldDirty: true })
+              }
             />
 
             <DurationField
-              value={duration}
-              onChange={(next) => {
-                setDuration(next);
-                setHasEdited(true);
-              }}
+              value={durationHours}
+              onChange={(next) => setValue('durationHours', next, { shouldDirty: true })}
             />
 
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
                 {t('edit.noteLabel')}
               </Text>
-              <TextAreaWithCounter
-                placeholder={t('edit.messagePlaceholder')}
-                value={note}
-                onChangeText={(value) => {
-                  setNote(value);
-                  setHasEdited(true);
-                }}
-                numberOfLines={3}
-                maxLength={500}
-                containerStyle={styles.noteInput}
+              <Controller
+                control={control}
+                name="note"
+                render={({ field: { onChange, value } }) => (
+                  <TextAreaWithCounter
+                    placeholder={t('edit.messagePlaceholder')}
+                    value={value ?? ''}
+                    onChangeText={onChange}
+                    numberOfLines={3}
+                    maxLength={500}
+                    containerStyle={styles.noteInput}
+                  />
+                )}
               />
             </View>
           </ScrollView>
@@ -258,8 +277,8 @@ export default function EditPermissionScreen() {
       >
         <Button
           title={t('edit.submit')}
-          onPress={handleUpdate}
-          loading={loading}
+          onPress={onSubmit}
+          loading={isSubmitting}
           fullWidth
           icon="checkmark"
         />

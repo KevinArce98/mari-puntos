@@ -15,6 +15,8 @@ import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -34,6 +36,7 @@ import { permissionsService } from '@/services';
 import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { PermissionCategory } from '@/types';
 import logger from '@/utils/logger';
+import { CreateTemplateFormData, createTemplateSchema } from '@/validators';
 
 const CATEGORY_VALUES = [
   PermissionCategory.GAMING,
@@ -56,23 +59,30 @@ export default function CreateTemplateScreen() {
     value,
   }));
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<PermissionCategory>(PermissionCategory.OTHER);
-  const [suggestedDuration, setSuggestedDuration] = useState('2');
-  const [suggestedPoints, setSuggestedPoints] = useState('50');
-  const [selectedIcon, setSelectedIcon] = useState('sparkles-outline');
   const [showIconSelector, setShowIconSelector] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [allowExit, setAllowExit] = useState(false);
   const keyboardHeight = useKeyboardOffset();
 
-  const isDirty =
-    Boolean(title.trim() || description.trim()) ||
-    category !== PermissionCategory.OTHER ||
-    suggestedDuration !== '2' ||
-    suggestedPoints !== '50' ||
-    selectedIcon !== 'sparkles-outline';
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    formState: { isDirty, isValid, isSubmitting },
+  } = useForm<CreateTemplateFormData>({
+    mode: 'onChange',
+    resolver: zodResolver(createTemplateSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      category: PermissionCategory.OTHER,
+      suggestedDuration: '2',
+      suggestedPoints: '50',
+      icon: 'sparkles-outline',
+    },
+  });
+
+  const selectedIcon = useWatch({ control, name: 'icon' });
+  const suggestedPoints = useWatch({ control, name: 'suggestedPoints' });
 
   useDiscardConfirm({
     enabled: isDirty && !allowExit,
@@ -82,43 +92,26 @@ export default function CreateTemplateScreen() {
     cancelLabel: t('common:actions.keepEditing'),
   });
 
-  const handleCreate = async () => {
-    if (!title.trim()) {
-      toast.error(t('errors:title'), { description: t('createTemplate.titleRequired') });
-      return;
-    }
+  const onSubmit = handleSubmit(async (data) => {
+    const duration = parseFloat(data.suggestedDuration);
+    const points = parseFloat(data.suggestedPoints);
 
-    const duration = parseFloat(suggestedDuration);
-    const points = parseFloat(suggestedPoints);
-
-    if (isNaN(duration) || duration <= 0) {
-      toast.error(t('errors:title'), {
-        description: t('createTemplate.durationInvalid'),
-      });
-      return;
-    }
-
-    if (isNaN(points) || points < 0) {
-      toast.error(t('errors:title'), {
-        description: t('createTemplate.pointsInvalid'),
-      });
-      return;
-    }
-
-    setLoading(true);
     try {
       await permissionsService.createTemplate({
-        title: title.trim(),
-        description: description.trim() || undefined,
-        category,
+        title: data.title.trim(),
+        description: data.description?.trim() || undefined,
+        category: data.category,
         suggestedDurationHours: duration,
         suggestedPointsCost: points,
         metadata: {
-          icon: selectedIcon,
+          icon: data.icon,
         },
       });
 
-      logger.info('Permission template created', { title: title.trim(), category });
+      logger.info('Permission template created', {
+        title: data.title.trim(),
+        category: data.category,
+      });
 
       toast.success(t('createTemplate.createdTitle'), {
         description: t('createTemplate.createdMessage'),
@@ -128,16 +121,14 @@ export default function CreateTemplateScreen() {
       setTimeout(() => router.back(), 0);
     } catch (error) {
       logger.error('Failed to create permission template', error as Error, {
-        title: title.trim(),
-        category,
+        title: data.title.trim(),
+        category: data.category,
         suggestedDurationHours: duration,
         suggestedPointsCost: points,
       });
       toast.error(t('errors:title'), { description: t('createTemplate.createError') });
-    } finally {
-      setLoading(false);
     }
-  };
+  });
 
   return (
     <View
@@ -221,11 +212,17 @@ export default function CreateTemplateScreen() {
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
                 {t('createTemplate.titleLabel')}
               </Text>
-              <Input
-                placeholder={t('createTemplate.titlePlaceholder')}
-                value={title}
-                onChangeText={setTitle}
-                maxLength={100}
+              <Controller
+                control={control}
+                name="title"
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    placeholder={t('createTemplate.titlePlaceholder')}
+                    value={value}
+                    onChangeText={onChange}
+                    maxLength={100}
+                  />
+                )}
               />
             </View>
 
@@ -233,13 +230,19 @@ export default function CreateTemplateScreen() {
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
                 {t('createTemplate.descriptionLabel')}
               </Text>
-              <Input
-                placeholder={t('createTemplate.descriptionPlaceholder')}
-                value={description}
-                onChangeText={setDescription}
-                multiline
-                numberOfLines={3}
-                maxLength={500}
+              <Controller
+                control={control}
+                name="description"
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    placeholder={t('createTemplate.descriptionPlaceholder')}
+                    value={value ?? ''}
+                    onChangeText={onChange}
+                    multiline
+                    numberOfLines={3}
+                    maxLength={500}
+                  />
+                )}
               />
             </View>
 
@@ -247,11 +250,17 @@ export default function CreateTemplateScreen() {
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
                 {t('createTemplate.categoryLabel')}
               </Text>
-              <Select
-                options={CATEGORY_OPTIONS}
-                value={category}
-                onValueChange={(value) => setCategory(value as PermissionCategory)}
-                placeholder={t('createTemplate.categoryPlaceholder')}
+              <Controller
+                control={control}
+                name="category"
+                render={({ field: { onChange, value } }) => (
+                  <Select
+                    options={CATEGORY_OPTIONS}
+                    value={value}
+                    onValueChange={(next) => onChange(next as PermissionCategory)}
+                    placeholder={t('createTemplate.categoryPlaceholder')}
+                  />
+                )}
               />
             </View>
 
@@ -259,11 +268,17 @@ export default function CreateTemplateScreen() {
               <Text style={[styles.sectionTitle, { color: themeColors.text.primary }]}>
                 {t('createTemplate.durationLabel')}
               </Text>
-              <Input
-                placeholder={t('createTemplate.durationPlaceholder')}
-                value={suggestedDuration}
-                onChangeText={setSuggestedDuration}
-                keyboardType="numeric"
+              <Controller
+                control={control}
+                name="suggestedDuration"
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    placeholder={t('createTemplate.durationPlaceholder')}
+                    value={value}
+                    onChangeText={onChange}
+                    keyboardType="numeric"
+                  />
+                )}
               />
             </View>
 
@@ -277,7 +292,9 @@ export default function CreateTemplateScreen() {
                     key={value}
                     label={String(value)}
                     selected={suggestedPoints === String(value)}
-                    onPress={() => setSuggestedPoints(String(value))}
+                    onPress={() =>
+                      setValue('suggestedPoints', String(value), { shouldDirty: true })
+                    }
                     style={styles.pointsPresetChip}
                   />
                 ))}
@@ -328,9 +345,9 @@ export default function CreateTemplateScreen() {
       >
         <Button
           title={t('createTemplate.submit')}
-          onPress={handleCreate}
-          loading={loading}
-          disabled={!title.trim()}
+          onPress={onSubmit}
+          loading={isSubmitting}
+          disabled={!isValid}
           fullWidth
           icon="checkmark-circle"
         />
@@ -339,7 +356,7 @@ export default function CreateTemplateScreen() {
       <IconSelector
         visible={showIconSelector}
         selectedIcon={selectedIcon}
-        onSelect={setSelectedIcon}
+        onSelect={(icon) => setValue('icon', icon, { shouldDirty: true })}
         onClose={() => setShowIconSelector(false)}
       />
     </View>

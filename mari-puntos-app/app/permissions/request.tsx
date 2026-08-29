@@ -15,6 +15,8 @@ import { useFocusEffect, useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -39,6 +41,7 @@ import { PermissionTemplate } from '@/types';
 import { createUTC6DateTime } from '@/utils/dateUtils';
 import { getApiErrorMessage } from '@/utils/errorMessage';
 import logger from '@/utils/logger';
+import { RequestPermissionFormData, requestPermissionSchema } from '@/validators';
 
 export default function RequestPermissionScreen() {
   const { t } = useTranslation(['permissions', 'common', 'errors']);
@@ -51,18 +54,34 @@ export default function RequestPermissionScreen() {
 
   const [templates, setTemplates] = useState<PermissionTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
-  const [selectedTemplate, setSelectedTemplate] = useState<PermissionTemplate | null>(
-    null
-  );
-  const [duration, setDuration] = useState(2);
-  const [note, setNote] = useState('');
-  const [loading, setLoading] = useState(false);
   const [allowExit, setAllowExit] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState(new Date());
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    formState: { isDirty, isValid, isSubmitting },
+  } = useForm<RequestPermissionFormData>({
+    mode: 'onChange',
+    resolver: zodResolver(requestPermissionSchema),
+    defaultValues: {
+      templateId: '',
+      requestedDate: new Date(),
+      requestedTime: new Date(),
+      durationHours: 2,
+      note: '',
+    },
+  });
+
+  const templateId = useWatch({ control, name: 'templateId' });
+  const requestedDate = useWatch({ control, name: 'requestedDate' });
+  const requestedTime = useWatch({ control, name: 'requestedTime' });
+  const durationHours = useWatch({ control, name: 'durationHours' });
+
+  const selectedTemplate = templates.find((item) => item.id === templateId) ?? null;
 
   useDiscardConfirm({
-    enabled: Boolean(selectedTemplate || note.trim()) && !allowExit,
+    enabled: isDirty && !allowExit,
     title: t('request.discard.title'),
     message: t('request.discard.message'),
     confirmLabel: t('request.discard.confirm'),
@@ -96,35 +115,34 @@ export default function RequestPermissionScreen() {
   );
 
   const handleTemplateSelect = (template: PermissionTemplate) => {
-    setSelectedTemplate(template);
+    setValue('templateId', template.id, { shouldDirty: true, shouldValidate: true });
     const suggestedDuration = template.suggestedDurationHours;
-    setDuration(
+    setValue(
+      'durationHours',
       typeof suggestedDuration === 'number' && suggestedDuration > 0
         ? suggestedDuration
-        : 2
+        : 2,
+      { shouldDirty: true }
     );
   };
 
-  const handleRequest = async () => {
-    if (!selectedTemplate) {
-      toast.error(t('errors:title'), { description: t('request.selectActivityError') });
-      return;
-    }
-
-    setLoading(true);
+  const onSubmit = handleSubmit(async (data) => {
     try {
-      const requestedDateTime = createUTC6DateTime(selectedDate, selectedTime);
+      const requestedDateTime = createUTC6DateTime(
+        data.requestedDate,
+        data.requestedTime
+      );
 
       await requestPermission({
-        templateId: selectedTemplate.id,
+        templateId: data.templateId,
         requestedDate: requestedDateTime.toISOString(),
-        durationHours: duration,
-        metadata: note.trim() ? { note: note.trim() } : undefined,
+        durationHours: data.durationHours,
+        metadata: data.note?.trim() ? { note: data.note.trim() } : undefined,
       });
 
       logger.info('Permission request submitted', {
-        templateId: selectedTemplate.id,
-        durationHours: duration,
+        templateId: data.templateId,
+        durationHours: data.durationHours,
       });
 
       toast.success(t('request.sentTitle'), { description: t('request.sentMessage') });
@@ -135,10 +153,8 @@ export default function RequestPermissionScreen() {
       toast.error(t('errors:title'), {
         description: getApiErrorMessage(e) ?? t('request.sendError'),
       });
-    } finally {
-      setLoading(false);
     }
-  };
+  });
 
   return (
     <View
@@ -203,13 +219,22 @@ export default function RequestPermissionScreen() {
                 </View>
 
                 <DateTimeField
-                  date={selectedDate}
-                  time={selectedTime}
-                  onDateChange={setSelectedDate}
-                  onTimeChange={setSelectedTime}
+                  date={requestedDate}
+                  time={requestedTime}
+                  onDateChange={(date) =>
+                    setValue('requestedDate', date, { shouldDirty: true })
+                  }
+                  onTimeChange={(time) =>
+                    setValue('requestedTime', time, { shouldDirty: true })
+                  }
                 />
 
-                <DurationField value={duration} onChange={setDuration} />
+                <DurationField
+                  value={durationHours}
+                  onChange={(next) =>
+                    setValue('durationHours', next, { shouldDirty: true })
+                  }
+                />
 
                 <View style={styles.section}>
                   <Text
@@ -217,13 +242,19 @@ export default function RequestPermissionScreen() {
                   >
                     {t('request.noteLabel')}
                   </Text>
-                  <TextAreaWithCounter
-                    placeholder={t('request.messagePlaceholder')}
-                    value={note}
-                    onChangeText={setNote}
-                    numberOfLines={3}
-                    maxLength={500}
-                    containerStyle={styles.noteInput}
+                  <Controller
+                    control={control}
+                    name="note"
+                    render={({ field: { onChange, value } }) => (
+                      <TextAreaWithCounter
+                        placeholder={t('request.messagePlaceholder')}
+                        value={value ?? ''}
+                        onChangeText={onChange}
+                        numberOfLines={3}
+                        maxLength={500}
+                        containerStyle={styles.noteInput}
+                      />
+                    )}
                   />
                 </View>
               </>
@@ -247,9 +278,9 @@ export default function RequestPermissionScreen() {
       >
         <Button
           title={t('request.submit')}
-          onPress={handleRequest}
-          loading={loading}
-          disabled={!selectedTemplate || loadingTemplates}
+          onPress={onSubmit}
+          loading={isSubmitting}
+          disabled={!isValid || loadingTemplates}
           fullWidth
           icon="send"
         />
