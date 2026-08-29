@@ -2,7 +2,7 @@ import { AppDataSource } from '../config/db';
 import { Achievement } from '../entities/Achievement';
 import { PartnerLinkStatus } from '../entities/PartnerLink';
 import { User } from '../entities/User';
-import { AppError } from '../middlewares/errorMiddleware';
+import { AppError, createError } from '../middlewares/errorMiddleware';
 import { generatePartnerCode } from '../utils/helpers';
 import { logger } from '../utils/logger';
 import { CreateUserInput, UpdateUserInput } from '../validators/schemas';
@@ -17,7 +17,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
+      throw createError.userNotFound();
     }
 
     return user;
@@ -39,7 +39,7 @@ export class UsersService {
 
     if (existingUser) {
       logger.warn({ message: 'User already exists with clerkId', clerkId });
-      throw new AppError(409, 'El usuario ya existe', 'errors.user.alreadyExists');
+      throw createError.userAlreadyExists();
     }
 
     const emailInUse = await this.userRepository.findOne({
@@ -84,7 +84,7 @@ export class UsersService {
       savedUser = await this.userRepository.save(user);
     } catch (dbError) {
       if (dbError instanceof Error && 'code' in dbError && dbError.code === '23505') {
-        throw new AppError(409, 'El usuario ya existe', 'errors.user.alreadyExists');
+        throw createError.userAlreadyExists();
       }
       throw dbError;
     }

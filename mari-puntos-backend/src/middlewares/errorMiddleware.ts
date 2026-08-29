@@ -229,4 +229,31 @@ export const createError = {
       'errors.generic.roleRequired',
       { role }
     ),
+
+  userNotFound: () => new AppError(404, 'Usuario no encontrado', 'errors.user.notFound'),
+
+  userAlreadyExists: () =>
+    new AppError(409, 'El usuario ya existe', 'errors.user.alreadyExists'),
+
+  actionNotFound: () =>
+    new AppError(404, 'Acción no encontrada', 'errors.action.notFound'),
+
+  actionNotPending: () =>
+    new AppError(400, 'La acción no está pendiente', 'errors.action.notPending'),
+
+  partnerNotFound: () =>
+    new AppError(404, 'Pareja no encontrada', 'errors.partner.notFound'),
+
+  approverNotFound: () =>
+    new AppError(404, 'Aprobador no encontrado', 'errors.generic.approverNotFound'),
+
+  partnerUserAlreadyLinked: () =>
+    new AppError(
+      400,
+      'El usuario ya tiene un enlace de pareja activo',
+      'errors.partner.userAlreadyLinked'
+    ),
+
+  partnerLinkNotFound: () =>
+    new AppError(404, 'Enlace de pareja no encontrado', 'errors.partner.linkNotFound'),
 };

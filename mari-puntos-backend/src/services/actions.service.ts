@@ -3,7 +3,7 @@ import { Action, ActionCategory, ActionStatus } from '../entities/Action';
 import { LogType } from '../entities/Log';
 import { User } from '../entities/User';
 import { translate } from '../i18n';
-import { AppError } from '../middlewares/errorMiddleware';
+import { AppError, createError } from '../middlewares/errorMiddleware';
 import {
   calculateLevel,
   calculatePointsInCurrentLevel,
@@ -33,7 +33,7 @@ export class ActionsService {
 
     if (!user) {
       logger.warn({ message: 'User not found for action creation', userId });
-      throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
+      throw createError.userNotFound();
     }
 
     const action = this.actionRepository.create({
@@ -89,7 +89,7 @@ export class ActionsService {
     });
 
     if (!action) {
-      throw new AppError(404, 'Acción no encontrada', 'errors.action.notFound');
+      throw createError.actionNotFound();
     }
 
     if (requestingUserId) {
@@ -147,7 +147,7 @@ export class ActionsService {
     const partnerId = await this.partnerService.getPartnerId(userId);
 
     if (!partnerId) {
-      throw new AppError(404, 'Pareja no encontrada', 'errors.partner.notFound');
+      throw createError.partnerNotFound();
     }
 
     return this.getUserActions(partnerId, filters);
@@ -194,11 +194,7 @@ export class ActionsService {
   ): Promise<Action> {
     const approver = await this.userRepository.findOne({ where: { id: approverId } });
     if (!approver) {
-      throw new AppError(
-        404,
-        'Aprobador no encontrado',
-        'errors.generic.approverNotFound'
-      );
+      throw createError.approverNotFound();
     }
     const partnerId = await this.partnerService.getPartnerId(approverId);
     if (!partnerId) {
@@ -219,7 +215,7 @@ export class ActionsService {
       });
 
       if (!lockedAction) {
-        throw new AppError(404, 'Acción no encontrada', 'errors.action.notFound');
+        throw createError.actionNotFound();
       }
 
       if (partnerId !== lockedAction.userId) {
@@ -231,11 +227,7 @@ export class ActionsService {
       }
 
       if (lockedAction.status !== ActionStatus.PENDING) {
-        throw new AppError(
-          400,
-          'La acción no está pendiente',
-          'errors.action.notPending'
-        );
+        throw createError.actionNotPending();
       }
 
       lockedAction.status = ActionStatus.APPROVED;
@@ -249,8 +241,7 @@ export class ActionsService {
         where: { id: lockedAction.userId },
         lock: { mode: 'pessimistic_write' },
       });
-      if (!actionUser)
-        throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
+      if (!actionUser) throw createError.userNotFound();
 
       actionUser.totalPoints += pointsAwarded;
       actionUser.currentLevel = calculateLevel(actionUser.totalPoints);
@@ -334,11 +325,7 @@ export class ActionsService {
   ): Promise<Action> {
     const approver = await this.userRepository.findOne({ where: { id: approverId } });
     if (!approver) {
-      throw new AppError(
-        404,
-        'Aprobador no encontrado',
-        'errors.generic.approverNotFound'
-      );
+      throw createError.approverNotFound();
     }
     const partnerId = await this.partnerService.getPartnerId(approverId);
     if (!partnerId) {
@@ -359,7 +346,7 @@ export class ActionsService {
       });
 
       if (!lockedAction) {
-        throw new AppError(404, 'Acción no encontrada', 'errors.action.notFound');
+        throw createError.actionNotFound();
       }
 
       if (partnerId !== lockedAction.userId) {
@@ -371,11 +358,7 @@ export class ActionsService {
       }
 
       if (lockedAction.status !== ActionStatus.PENDING) {
-        throw new AppError(
-          400,
-          'La acción no está pendiente',
-          'errors.action.notPending'
-        );
+        throw createError.actionNotPending();
       }
 
       lockedAction.status = ActionStatus.REJECTED;

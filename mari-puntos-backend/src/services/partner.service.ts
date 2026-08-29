@@ -5,7 +5,7 @@ import { LogType } from '../entities/Log';
 import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
 import { User } from '../entities/User';
 import { translate } from '../i18n';
-import { AppError } from '../middlewares/errorMiddleware';
+import { AppError, createError } from '../middlewares/errorMiddleware';
 import { generatePartnerCode, getNowUTC6 } from '../utils/helpers';
 import { logger } from '../utils/logger';
 import { activePartnerLinkWhere } from '../utils/partnerLink';
@@ -32,7 +32,7 @@ export class PartnerService {
 
       if (!user) {
         logger.error({ message: 'User not found for partner link creation', userId });
-        throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
+        throw createError.userNotFound();
       }
 
       const existingActiveLink = await partnerLinkRepo.findOne({
@@ -41,11 +41,7 @@ export class PartnerService {
 
       if (existingActiveLink) {
         logger.warn({ message: 'User already has an active partner link', userId });
-        throw new AppError(
-          400,
-          'El usuario ya tiene un enlace de pareja activo',
-          'errors.partner.userAlreadyLinked'
-        );
+        throw createError.partnerUserAlreadyLinked();
       }
 
       const existingPendingLink = await partnerLinkRepo.findOne({
@@ -97,7 +93,7 @@ export class PartnerService {
         });
 
         if (!user) {
-          throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
+          throw createError.userNotFound();
         }
 
         const existingActiveLink = await partnerLinkRepo.findOne({
@@ -105,11 +101,7 @@ export class PartnerService {
         });
 
         if (existingActiveLink) {
-          throw new AppError(
-            400,
-            'El usuario ya tiene un enlace de pareja activo',
-            'errors.partner.userAlreadyLinked'
-          );
+          throw createError.partnerUserAlreadyLinked();
         }
 
         const partnerLink = await partnerLinkRepo.findOne({
@@ -118,11 +110,7 @@ export class PartnerService {
         });
 
         if (!partnerLink) {
-          throw new AppError(
-            404,
-            'Enlace de pareja no encontrado',
-            'errors.partner.linkNotFound'
-          );
+          throw createError.partnerLinkNotFound();
         }
 
         if (partnerLink.user1Id === userId) {
@@ -312,11 +300,7 @@ export class PartnerService {
 
     if (!partnerLink) {
       logger.error({ message: 'Partner link not found for unlinking', userId });
-      throw new AppError(
-        404,
-        'Enlace de pareja no encontrado',
-        'errors.partner.linkNotFound'
-      );
+      throw createError.partnerLinkNotFound();
     }
 
     if (partnerLink.status !== PartnerLinkStatus.ACTIVE) {

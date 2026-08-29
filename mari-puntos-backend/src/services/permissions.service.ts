@@ -4,7 +4,7 @@ import { Permission, PermissionStatus } from '../entities/Permission';
 import { PermissionTemplate } from '../entities/PermissionTemplate';
 import { User } from '../entities/User';
 import { translate } from '../i18n';
-import { AppError } from '../middlewares/errorMiddleware';
+import { AppError, createError } from '../middlewares/errorMiddleware';
 import {
   calculateLevel,
   calculatePointsInCurrentLevel,
@@ -48,7 +48,7 @@ export class PermissionsService {
 
     if (!user) {
       logger.warn({ message: 'User not found for permission creation', userId });
-      throw new AppError(404, 'Usuario no encontrado', 'errors.user.notFound');
+      throw createError.userNotFound();
     }
 
     const partnerId = await this.partnerService.getPartnerId(userId);
@@ -190,7 +190,7 @@ export class PermissionsService {
     const partnerId = await this.partnerService.getPartnerId(userId);
 
     if (!partnerId) {
-      throw new AppError(404, 'Pareja no encontrada', 'errors.partner.notFound');
+      throw createError.partnerNotFound();
     }
 
     return this.getUserPermissions(partnerId, filters);
@@ -207,11 +207,7 @@ export class PermissionsService {
     const approver = await this.userRepository.findOne({ where: { id: approverId } });
 
     if (!approver) {
-      throw new AppError(
-        404,
-        'Aprobador no encontrado',
-        'errors.generic.approverNotFound'
-      );
+      throw createError.approverNotFound();
     }
 
     const partnerId = await this.partnerService.getPartnerId(approverId);
