@@ -1,9 +1,7 @@
 import { Response } from 'express';
 
-import { PermissionCategory } from '../entities/PermissionTemplate';
 import { AuthRequest } from '../middlewares/authMiddleware';
 import { PermissionTemplatesService } from '../services/permission-templates.service';
-import { PAGINATION_DEFAULTS } from '../shared/constants';
 import { logger } from '../utils/logger';
 import { toPermissionTemplateDTO, toPermissionTemplateDTOList } from '../utils/mappers';
 import {
@@ -14,6 +12,7 @@ import {
 } from '../utils/response';
 import {
   createPermissionTemplateSchema,
+  permissionTemplatesQuerySchema,
   updatePermissionTemplateSchema,
 } from '../validators/schemas';
 
@@ -22,18 +21,8 @@ export class PermissionTemplatesController {
 
   getTemplates = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId!;
-    const page = parseInt(req.query.page as string) || PAGINATION_DEFAULTS.PAGE;
-    const limit = Math.min(
-      parseInt(req.query.limit as string) || PAGINATION_DEFAULTS.LIMIT,
-      PAGINATION_DEFAULTS.MAX_LIMIT
-    );
-    const category = req.query.category as PermissionCategory | undefined;
-    const isSystemTemplate =
-      req.query.isSystemTemplate === 'true'
-        ? true
-        : req.query.isSystemTemplate === 'false'
-          ? false
-          : undefined;
+    const { page, limit, category, isSystemTemplate } =
+      permissionTemplatesQuerySchema.parse(req.query);
 
     logger.debug({
       message: 'Getting permission templates',

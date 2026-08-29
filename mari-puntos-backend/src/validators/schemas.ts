@@ -1,12 +1,9 @@
 import { z } from 'zod';
 
+import { ActionStatus } from '../entities/Action';
+import { PermissionStatus } from '../entities/Permission';
 import { PermissionCategory } from '../entities/PermissionTemplate';
-import {
-  ActionCategory,
-  ActionStatus,
-  PAGINATION_DEFAULTS,
-  PermissionStatus,
-} from '../shared/constants';
+import { ActionCategory, PAGINATION_DEFAULTS } from '../shared/constants';
 
 export const localeSchema = z.enum(['es', 'en']);
 
@@ -118,25 +115,22 @@ export const paginationSchema = z.object({
     .default(PAGINATION_DEFAULTS.LIMIT),
 });
 
-export const actionsQuerySchema = z.object({
-  status: z
-    .enum([ActionStatus.PENDING, ActionStatus.APPROVED, ActionStatus.REJECTED])
-    .optional(),
-  page: z.coerce.number().int().min(1).optional(),
-  limit: z.coerce.number().int().min(1).max(PAGINATION_DEFAULTS.MAX_LIMIT).optional(),
+export const actionsQuerySchema = paginationSchema.extend({
+  status: z.enum(ActionStatus).optional(),
 });
 
-export const permissionsQuerySchema = z.object({
-  status: z
-    .enum([
-      PermissionStatus.PENDING,
-      PermissionStatus.APPROVED,
-      PermissionStatus.REJECTED,
-      PermissionStatus.EXPIRED,
-    ])
-    .optional(),
-  page: z.coerce.number().int().min(1).optional(),
-  limit: z.coerce.number().int().min(1).max(PAGINATION_DEFAULTS.MAX_LIMIT).optional(),
+export const permissionsQuerySchema = paginationSchema.extend({
+  status: z.enum(PermissionStatus).optional(),
+});
+
+export const permissionTemplatesQuerySchema = paginationSchema.extend({
+  category: z.enum(PermissionCategory).optional(),
+  isSystemTemplate: z
+    .string()
+    .optional()
+    .transform((value) =>
+      value === 'true' ? true : value === 'false' ? false : undefined
+    ),
 });
 
 export const leaderboardQuerySchema = z.object({

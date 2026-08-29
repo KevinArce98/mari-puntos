@@ -1,9 +1,7 @@
 import { Response } from 'express';
 
-import { ActionStatus } from '../entities/Action';
 import { AuthRequest } from '../middlewares/authMiddleware';
 import { ActionsService } from '../services/actions.service';
-import { PAGINATION_DEFAULTS } from '../shared/constants';
 import { logger } from '../utils/logger';
 import { toActionDTO, toActionDTOList } from '../utils/mappers';
 import {
@@ -13,6 +11,7 @@ import {
   sendSuccess,
 } from '../utils/response';
 import {
+  actionsQuerySchema,
   approveActionSchema,
   createActionSchema,
   rejectActionSchema,
@@ -41,17 +40,12 @@ export class ActionsController {
 
   getMyActions = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId!;
-    const page = parseInt(req.query.page as string) || PAGINATION_DEFAULTS.PAGE;
-    const limit = Math.min(
-      parseInt(req.query.limit as string) || PAGINATION_DEFAULTS.LIMIT,
-      PAGINATION_DEFAULTS.MAX_LIMIT
-    );
-    const status = req.query.status as string | undefined;
+    const { page, limit, status } = actionsQuerySchema.parse(req.query);
 
     logger.debug({ message: 'Getting user actions', userId, page, limit, status });
 
     const result = await this.actionsService.getUserActions(userId, {
-      status: status as ActionStatus | undefined,
+      status,
       page,
       limit,
     });
@@ -67,17 +61,12 @@ export class ActionsController {
 
   getPartnerActions = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId!;
-    const page = parseInt(req.query.page as string) || PAGINATION_DEFAULTS.PAGE;
-    const limit = Math.min(
-      parseInt(req.query.limit as string) || PAGINATION_DEFAULTS.LIMIT,
-      PAGINATION_DEFAULTS.MAX_LIMIT
-    );
-    const status = req.query.status as string | undefined;
+    const { page, limit, status } = actionsQuerySchema.parse(req.query);
 
     logger.debug({ message: 'Getting partner actions', userId, page, limit, status });
 
     const result = await this.actionsService.getPartnerActions(userId, {
-      status: status as ActionStatus | undefined,
+      status,
       page,
       limit,
     });

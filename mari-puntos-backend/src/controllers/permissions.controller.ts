@@ -1,9 +1,7 @@
 import { Response } from 'express';
 
-import { PermissionStatus } from '../entities/Permission';
 import { AuthRequest } from '../middlewares/authMiddleware';
 import { PermissionsService } from '../services/permissions.service';
-import { PAGINATION_DEFAULTS } from '../shared/constants';
 import { logger } from '../utils/logger';
 import { toPermissionDTO, toPermissionDTOList } from '../utils/mappers';
 import {
@@ -14,6 +12,7 @@ import {
 } from '../utils/response';
 import {
   createPermissionSchema,
+  permissionsQuerySchema,
   respondPermissionSchema,
   updatePermissionSchema,
 } from '../validators/schemas';
@@ -47,17 +46,12 @@ export class PermissionsController {
 
   getMyPermissions = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId!;
-    const page = parseInt(req.query.page as string) || PAGINATION_DEFAULTS.PAGE;
-    const limit = Math.min(
-      parseInt(req.query.limit as string) || PAGINATION_DEFAULTS.LIMIT,
-      PAGINATION_DEFAULTS.MAX_LIMIT
-    );
-    const status = req.query.status as string | undefined;
+    const { page, limit, status } = permissionsQuerySchema.parse(req.query);
 
     logger.debug({ message: 'Getting user permissions', userId, page, limit, status });
 
     const result = await this.permissionsService.getUserPermissions(userId, {
-      status: status as PermissionStatus | undefined,
+      status,
       page,
       limit,
     });
@@ -77,12 +71,7 @@ export class PermissionsController {
 
   getPartnerPermissions = async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.userId!;
-    const page = parseInt(req.query.page as string) || PAGINATION_DEFAULTS.PAGE;
-    const limit = Math.min(
-      parseInt(req.query.limit as string) || PAGINATION_DEFAULTS.LIMIT,
-      PAGINATION_DEFAULTS.MAX_LIMIT
-    );
-    const status = req.query.status as string | undefined;
+    const { page, limit, status } = permissionsQuerySchema.parse(req.query);
 
     logger.debug({
       message: 'Getting partner permissions',
@@ -93,7 +82,7 @@ export class PermissionsController {
     });
 
     const result = await this.permissionsService.getPartnerPermissions(userId, {
-      status: status as PermissionStatus | undefined,
+      status,
       page,
       limit,
     });
