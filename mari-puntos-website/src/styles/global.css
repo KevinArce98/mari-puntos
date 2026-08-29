@@ -10,6 +10,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
   --font-sans: 'Geist', sans-serif;
   --font-mono: 'Geist Mono', monospace;
 }
@@ -135,7 +137,7 @@ body {
 
 /* Gradient backgrounds */
 .bg-gradient-primary {
-  background: linear-gradient(135deg, #0F766E 0%, #115E59 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
 }
 
 /* Mobile-first responsive utilities */
@@ -206,13 +208,13 @@ a:active {
 }
 
 .prose a {
-  color: #0F766E;
+  color: var(--primary);
   text-decoration: underline;
   font-weight: 500;
 }
 
 .prose a:hover {
-  color: #115E59;
+  color: var(--primary-dark);
 }
 
 .prose-lg {
