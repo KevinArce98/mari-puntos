@@ -11,8 +11,8 @@ import {
   getNowUTC6,
 } from '../utils/helpers';
 import { logger } from '../utils/logger';
+import { AchievementsService } from './achievements.service';
 import { PartnerService } from './partner.service';
-import { PointsService } from './points.service';
 import { PushNotificationService } from './push-notification.service';
 
 interface UpdatePermissionData {
@@ -34,7 +34,7 @@ export class PermissionsService {
   private userRepository = AppDataSource.getRepository(User);
   private logRepository = AppDataSource.getRepository(Log);
   private partnerService = new PartnerService();
-  private pointsService = new PointsService();
+  private achievementsService = new AchievementsService();
   private pushNotificationService = new PushNotificationService();
 
   async createPermission(
@@ -349,7 +349,7 @@ export class PermissionsService {
 
     if (approved && permission.requesterId) {
       try {
-        await this.pointsService.checkAchievementsForUser(permission.requesterId);
+        await this.achievementsService.checkAchievementsForUser(permission.requesterId);
       } catch (err) {
         logger.error({ err }, 'Achievement check failed after respondToPermission');
       }

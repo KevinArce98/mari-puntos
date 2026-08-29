@@ -11,8 +11,8 @@ import {
 } from '../utils/helpers';
 import { logger } from '../utils/logger';
 import { CreateActionInput, UpdateActionInput } from '../validators/schemas';
+import { AchievementsService } from './achievements.service';
 import { PartnerService } from './partner.service';
-import { PointsService } from './points.service';
 import { PushNotificationService } from './push-notification.service';
 import { StreakService } from './streak.service';
 
@@ -21,7 +21,7 @@ export class ActionsService {
   private userRepository = AppDataSource.getRepository(User);
   private logRepository = AppDataSource.getRepository(Log);
   private partnerService = new PartnerService();
-  private pointsService = new PointsService();
+  private achievementsService = new AchievementsService();
   private pushNotificationService = new PushNotificationService();
   private streakService = new StreakService();
 
@@ -302,7 +302,7 @@ export class ActionsService {
     }
 
     try {
-      await this.pointsService.checkAchievementsForUser(action.userId);
+      await this.achievementsService.checkAchievementsForUser(action.userId);
     } catch (err) {
       logger.error({ err }, 'Achievement check failed after approveAction');
     }
