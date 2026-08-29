@@ -22,12 +22,13 @@ import {
   ProgressBar,
 } from '@/components/ui';
 import { usePoints, useThemedColors, useUser } from '@/hooks';
+import { queryClient } from '@/lib/queryClient';
+import { queryKeys } from '@/lib/queryKeys';
 import { userService } from '@/services/userService';
 import {
   LanguagePreference,
   useActionsStore,
   useLanguageStore,
-  usePermissionsStore,
   usePointsStore,
   useStreakStore,
 } from '@/stores';
@@ -78,7 +79,7 @@ export default function ProfileScreen() {
           try {
             await unlinkPartner();
             useActionsStore.getState().clearActions();
-            usePermissionsStore.getState().clearPermissions();
+            queryClient.removeQueries({ queryKey: queryKeys.permissions.all });
             usePointsStore.getState().clearPoints();
             useStreakStore.getState().clearStreak();
             toast.success(t('unlink.successTitle'), {

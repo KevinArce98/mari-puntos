@@ -7,8 +7,8 @@ import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import { useThemedColors } from '@/hooks';
-import { useActionsStore, usePermissionsStore } from '@/stores';
+import { usePendingPermissionsCount, useThemedColors } from '@/hooks';
+import { useActionsStore } from '@/stores';
 import { borderRadius, typography } from '@/theme';
 import logger from '@/utils/logger';
 
@@ -25,9 +25,7 @@ export function NotificationBell({ size = 26 }: NotificationBellProps) {
   const pendingActionsCount = useActionsStore(
     (s) => s.partnerActions.filter((a) => a.status === 'pending').length
   );
-  const pendingPermissionsCount = usePermissionsStore(
-    (s) => s.partnerPermissions.filter((p) => p.status === 'pending').length
-  );
+  const pendingPermissionsCount = usePendingPermissionsCount();
 
   const totalPending = pendingActionsCount + pendingPermissionsCount;
 

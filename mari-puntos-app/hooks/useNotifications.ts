@@ -10,8 +10,10 @@ import type { Href } from 'expo-router';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { useActionsStore, usePermissionsStore, useUserStore } from '@/stores';
-import { ActionStatus, PermissionStatus } from '@/types';
+import { queryClient } from '@/lib/queryClient';
+import { queryKeys } from '@/lib/queryKeys';
+import { useActionsStore, useUserStore } from '@/stores';
+import { ActionStatus } from '@/types';
 import logger from '@/utils/logger';
 import { type NotificationData, parseNotificationData } from '@/validators';
 
@@ -147,18 +149,8 @@ export function useNotifications() {
               .catch(() => {});
             break;
           case 'permission_requested':
-            if (hasPartner) {
-              usePermissionsStore
-                .getState()
-                .fetchPartnerPermissions({ status: PermissionStatus.PENDING })
-                .catch(() => {});
-            }
-            break;
           case 'permission_response':
-            usePermissionsStore
-              .getState()
-              .fetchMyPermissions({ status: PermissionStatus.PENDING })
-              .catch(() => {});
+            queryClient.invalidateQueries({ queryKey: queryKeys.permissions.all });
             break;
           case 'partner_linked':
             useUserStore

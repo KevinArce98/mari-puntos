@@ -1,85 +1,100 @@
-import { useEffect } from 'react';
+import { useCallback } from 'react';
 
-import { usePermissionsStore, useUserStore } from '@/stores';
+import { useFocusEffect } from 'expo-router';
+
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { queryKeys } from '@/lib/queryKeys';
+import { permissionsService } from '@/services';
+import { useUserStore } from '@/stores';
 import { CreatePermissionRequest, RespondPermissionRequest } from '@/types';
-import logger from '@/utils/logger';
+import { getErrorMessage } from '@/utils/errorMessage';
 
 export const usePermissions = () => {
-  const {
-    myPermissions,
-    partnerPermissions,
-    isLoading,
-    error,
-    fetchMyPermissions,
-    fetchPartnerPermissions,
-    createPermission,
-    updatePermission,
-    respondToPermission,
-  } = usePermissionsStore();
-  const { user } = useUserStore();
+  const user = useUserStore((s) => s.user);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!user) return;
+  const myQuery = useQuery({
+    queryKey: queryKeys.permissions.mine(),
+    queryFn: async () => (await permissionsService.getMyPermissions()).data,
+    enabled: !!user,
+  });
 
-    const store = usePermissionsStore.getState();
-    if (!store.isLoadingMyPermissions) {
-      fetchMyPermissions().catch((error) => {
-        logger.error('Failed to fetch my permissions in usePermissions hook', error);
-      });
-    }
-    if (user.hasPartner && !store.isLoadingPartnerPermissions) {
-      fetchPartnerPermissions().catch((error) => {
-        logger.error('Failed to fetch partner permissions in usePermissions hook', error);
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, user?.hasPartner]);
+  const partnerQuery = useQuery({
+    queryKey: queryKeys.permissions.partner(),
+    queryFn: async () => (await permissionsService.getPartnerPermissions()).data,
+    enabled: !!user?.hasPartner,
+  });
 
-  const handleRequestPermission = async (data: CreatePermissionRequest) => {
-    await createPermission(data);
+  useFocusEffect(
+    useCallback(() => {
+      if (user) myQuery.refetch();
+      if (user?.hasPartner) partnerQuery.refetch();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id, user?.hasPartner])
+  );
+
+  const invalidate = () =>
+    queryClient.invalidateQueries({ queryKey: queryKeys.permissions.all });
+
+  const requestPermission = async (data: CreatePermissionRequest) => {
+    await permissionsService.createPermission(data);
+    await invalidate();
   };
 
-  const handleUpdatePermission = async (
+  const updatePermission = async (
     permissionId: string,
     data: Partial<CreatePermissionRequest>
   ) => {
-    await updatePermission(permissionId, data);
+    await permissionsService.updatePermission(permissionId, data);
+    await invalidate();
   };
 
-  const handleRespondToPermission = async (
+  const respondToPermission = async (
     permissionId: string,
     data: RespondPermissionRequest
   ) => {
-    await respondToPermission(
-      permissionId,
-      data.approved,
-      data.responseMessage,
-      data.pointsCost
-    );
+    await permissionsService.respondToPermission(permissionId, data);
+    await invalidate();
+    useUserStore
+      .getState()
+      .fetchStats()
+      .catch(() => {});
+    useUserStore
+      .getState()
+      .fetchPartnerInfo()
+      .catch(() => {});
   };
 
-  const handleCancelPermission = async (permissionId: string) => {
-    await usePermissionsStore.getState().cancelPermission(permissionId);
+  const cancelPermission = async (permissionId: string) => {
+    await permissionsService.cancelPermission(permissionId);
+    await invalidate();
   };
 
-  const pendingPermissions =
-    partnerPermissions?.filter((p) => p.status === 'pending') ?? [];
+  const myPermissions = myQuery.data ?? [];
+  const partnerPermissions = partnerQuery.data ?? [];
+  const pendingPermissions = partnerPermissions.filter((p) => p.status === 'pending');
 
   return {
     myPermissions,
     partnerPermissions,
-    isLoading,
-    error,
+    isLoading: myQuery.isLoading || partnerQuery.isLoading,
+    error: myQuery.error
+      ? getErrorMessage(myQuery.error)
+      : partnerQuery.error
+        ? getErrorMessage(partnerQuery.error)
+        : null,
     pendingCount: pendingPermissions.length,
     pendingPermissions,
-    requestPermission: handleRequestPermission,
-    updatePermission: handleUpdatePermission,
-    respondToPermission: handleRespondToPermission,
-    cancelPermission: handleCancelPermission,
+    requestPermission,
+    updatePermission,
+    respondToPermission,
+    cancelPermission,
     refetch: async () => {
-      const ops: Promise<unknown>[] = [fetchMyPermissions()];
-      if (user?.hasPartner) ops.push(fetchPartnerPermissions());
-      await Promise.all(ops);
+      await Promise.all([
+        myQuery.refetch(),
+        ...(user?.hasPartner ? [partnerQuery.refetch()] : []),
+      ]);
     },
   };
 };

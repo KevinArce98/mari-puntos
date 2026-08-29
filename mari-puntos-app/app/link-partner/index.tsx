@@ -24,14 +24,10 @@ import { toast } from 'sonner-native';
 
 import { Button, Card, CodeInput, PressableScale } from '@/components/ui';
 import { useThemedColors, useUser } from '@/hooks';
+import { queryClient } from '@/lib/queryClient';
+import { queryKeys } from '@/lib/queryKeys';
 import { userService } from '@/services';
-import {
-  useActionsStore,
-  usePermissionsStore,
-  usePointsStore,
-  useStreakStore,
-  useUserStore,
-} from '@/stores';
+import { useActionsStore, usePointsStore, useStreakStore, useUserStore } from '@/stores';
 import { borderRadius, spacing, typography } from '@/theme';
 import { getApiErrorMessage } from '@/utils/errorMessage';
 import logger from '@/utils/logger';
@@ -129,14 +125,7 @@ export default function LinkPartnerScreen() {
     logger.info('Partner link join attempt', { partnerCode: data.partnerCode });
     try {
       await joinPartnerLink(data.partnerCode);
-      usePermissionsStore
-        .getState()
-        .fetchMyPermissions()
-        .catch(() => {});
-      usePermissionsStore
-        .getState()
-        .fetchPartnerPermissions()
-        .catch(() => {});
+      queryClient.invalidateQueries({ queryKey: queryKeys.permissions.all });
       useActionsStore
         .getState()
         .fetchMyActions()
@@ -183,14 +172,7 @@ export default function LinkPartnerScreen() {
             partnerName: partnerInfo.partner.firstName,
           });
           useUserStore.setState({ user, partnerInfo });
-          usePermissionsStore
-            .getState()
-            .fetchMyPermissions()
-            .catch(() => {});
-          usePermissionsStore
-            .getState()
-            .fetchPartnerPermissions()
-            .catch(() => {});
+          queryClient.invalidateQueries({ queryKey: queryKeys.permissions.all });
           useActionsStore
             .getState()
             .fetchMyActions()

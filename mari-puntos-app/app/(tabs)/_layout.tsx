@@ -11,8 +11,8 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/haptic-tab';
-import { useThemedColors, useUser } from '@/hooks';
-import { useActionsStore, usePermissionsStore, useUserStore } from '@/stores';
+import { usePendingPermissionsCount, useThemedColors, useUser } from '@/hooks';
+import { useActionsStore, useUserStore } from '@/stores';
 import logger from '@/utils/logger';
 
 export default function TabLayout() {
@@ -26,29 +26,20 @@ export default function TabLayout() {
   const pendingActionsCount = useActionsStore(
     (s) => s.partnerActions.filter((a) => a.status === 'pending').length
   );
-  const pendingPermissionsCount = usePermissionsStore(
-    (s) => s.partnerPermissions.filter((p) => p.status === 'pending').length
-  );
-  const fetchPartnerPermissions = usePermissionsStore((s) => s.fetchPartnerPermissions);
+  const pendingPermissionsCount = usePendingPermissionsCount();
   const fetchPartnerActions = useActionsStore((s) => s.fetchPartnerActions);
 
   useEffect(() => {
     if (!userId || !hasPartner) return;
 
-    const permStore = usePermissionsStore.getState();
     const actStore = useActionsStore.getState();
 
-    if (!permStore.isLoadingPartnerPermissions) {
-      fetchPartnerPermissions().catch((error) => {
-        logger.error('Failed to pre-fetch partner permissions in TabLayout', error);
-      });
-    }
     if (!actStore.isLoadingPartnerActions) {
       fetchPartnerActions().catch((error) => {
         logger.error('Failed to pre-fetch partner actions in TabLayout', error);
       });
     }
-  }, [userId, hasPartner, fetchPartnerPermissions, fetchPartnerActions]);
+  }, [userId, hasPartner, fetchPartnerActions]);
 
   const lockedTabButton = useCallback(
     (props: any) => (
