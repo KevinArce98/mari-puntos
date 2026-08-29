@@ -1,23 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import {
-  Alert,
-  Keyboard,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-
-import { Ionicons } from '@expo/vector-icons';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { POINT_VALUE_PRESETS } from '@/constants/points';
 import { useThemedColors } from '@/hooks';
@@ -27,10 +14,10 @@ import {
   responseMessageSchema,
 } from '@/validators/action.schema';
 
+import { BottomSheetModal } from './BottomSheetModal';
 import { Button } from './Button';
 import { Chip } from './Chip';
 import { ControlledInput } from './ControlledInput';
-import { PressableScale } from './PressableScale';
 
 interface ResponseModalProps {
   visible: boolean;
@@ -61,29 +48,13 @@ export function ResponseModal({
 }: ResponseModalProps) {
   const { t } = useTranslation(['modals', 'common']);
   const themeColors = useThemedColors();
-  const insets = useSafeAreaInsets();
   const [pendingAction, setPendingAction] = useState<'approve' | 'reject' | null>(null);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   const [prevLoading, setPrevLoading] = useState(loading);
   if (loading !== prevLoading) {
     setPrevLoading(loading);
     if (!loading) setPendingAction(null);
   }
-
-  useEffect(() => {
-    if (Platform.OS !== 'android') return;
-    const show = Keyboard.addListener('keyboardDidShow', (e) => {
-      setKeyboardOffset(e.endCoordinates.height);
-    });
-    const hide = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardOffset(0);
-    });
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
 
   const {
     control,
@@ -184,185 +155,111 @@ export function ResponseModal({
   };
 
   return (
-    <Modal
+    <BottomSheetModal
       visible={visible}
-      transparent
-      animationType="fade"
-      statusBarTranslucent
-      navigationBarTranslucent
       onRequestClose={handleClose}
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={[
-          styles.overlay,
-          Platform.OS === 'android' && {
-            paddingTop: insets.top,
-            paddingBottom: keyboardOffset > 0 ? keyboardOffset + 20 : insets.bottom,
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.modalContainer,
-            {
-              backgroundColor: themeColors.surface,
-              paddingBottom:
-                Platform.OS === 'ios' ? insets.bottom + spacing.md : spacing.md,
-            },
-          ]}
-          accessibilityViewIsModal
-        >
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: themeColors.text.primary }]}>
-              {t('response.title')}
-            </Text>
-            <PressableScale
-              onPress={handleClose}
-              style={styles.closeButton}
-              accessibilityRole="button"
-              accessibilityLabel={t('response.closeA11y')}
-            >
-              <Ionicons name="close" size={24} color={themeColors.text.secondary} />
-            </PressableScale>
-          </View>
-
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.content}
-          >
-            <View
-              style={[styles.permissionInfo, { backgroundColor: themeColors.background }]}
-            >
-              <Text
-                style={[styles.permissionLabel, { color: themeColors.text.secondary }]}
-              >
-                {t('response.requestLabel')}
-              </Text>
-              <Text style={[styles.permissionTitle, { color: themeColors.text.primary }]}>
-                {permissionTitle}
-              </Text>
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>
-                {t('response.pointsCostLabel')}
-              </Text>
-              <Controller
-                control={control}
-                name="pointsCost"
-                render={({ field: { onChange, value }, fieldState: { error } }) => (
-                  <>
-                    <View style={styles.pointsPresets}>
-                      {POINT_VALUE_PRESETS.map((preset) => {
-                        const overBudget =
-                          requesterPoints != null && preset > requesterPoints;
-                        return (
-                          <Chip
-                            key={preset}
-                            label={String(preset)}
-                            selected={value === preset}
-                            onPress={
-                              loading || overBudget ? undefined : () => onChange(preset)
-                            }
-                            style={StyleSheet.flatten([
-                              styles.pointsPresetChip,
-                              overBudget && styles.pointsPresetChipDisabled,
-                            ])}
-                          />
-                        );
-                      })}
-                    </View>
-                    {error?.message && (
-                      <Text style={[styles.errorText, { color: themeColors.error }]}>
-                        {error.message}
-                      </Text>
-                    )}
-                  </>
-                )}
-              />
-              {requesterPoints != null && (
-                <Text style={[styles.balanceHint, { color: themeColors.text.secondary }]}>
-                  {t('response.availableBalance', {
-                    points: requesterPoints.toLocaleString(),
-                  })}
-                </Text>
-              )}
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>
-                {t('response.messageLabel')}
-              </Text>
-              <ControlledInput
-                control={control}
-                name="message"
-                placeholder={t('response.messagePlaceholder')}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-                editable={!loading}
-              />
-            </View>
-          </ScrollView>
-
-          <View style={styles.actionButtons}>
-            <Button
-              title={t('response.reject')}
-              onPress={handleSubmit(onSubmitReject)}
-              variant="outline"
-              textStyle={{ color: themeColors.error }}
-              style={[styles.actionButton, { borderColor: themeColors.error }]}
-              loading={pendingAction === 'reject'}
-              disabled={loading}
-            />
-            <Button
-              title={t('response.approve')}
-              onPress={handleSubmit(onSubmitApprove)}
-              variant="primary"
-              style={styles.actionButton}
-              loading={pendingAction === 'approve'}
-              disabled={loading}
-            />
-          </View>
+      title={t('response.title')}
+      closeAccessibilityLabel={t('response.closeA11y')}
+      footer={
+        <View style={styles.actionButtons}>
+          <Button
+            title={t('response.reject')}
+            onPress={handleSubmit(onSubmitReject)}
+            variant="outline"
+            textStyle={{ color: themeColors.error }}
+            style={[styles.actionButton, { borderColor: themeColors.error }]}
+            loading={pendingAction === 'reject'}
+            disabled={loading}
+          />
+          <Button
+            title={t('response.approve')}
+            onPress={handleSubmit(onSubmitApprove)}
+            variant="primary"
+            style={styles.actionButton}
+            loading={pendingAction === 'approve'}
+            disabled={loading}
+          />
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+      }
+    >
+      <View style={styles.content}>
+        <View
+          style={[styles.permissionInfo, { backgroundColor: themeColors.background }]}
+        >
+          <Text style={[styles.permissionLabel, { color: themeColors.text.secondary }]}>
+            {t('response.requestLabel')}
+          </Text>
+          <Text style={[styles.permissionTitle, { color: themeColors.text.primary }]}>
+            {permissionTitle}
+          </Text>
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>
+            {t('response.pointsCostLabel')}
+          </Text>
+          <Controller
+            control={control}
+            name="pointsCost"
+            render={({ field: { onChange, value }, fieldState: { error } }) => (
+              <>
+                <View style={styles.pointsPresets}>
+                  {POINT_VALUE_PRESETS.map((preset) => {
+                    const overBudget =
+                      requesterPoints != null && preset > requesterPoints;
+                    return (
+                      <Chip
+                        key={preset}
+                        label={String(preset)}
+                        selected={value === preset}
+                        onPress={
+                          loading || overBudget ? undefined : () => onChange(preset)
+                        }
+                        style={StyleSheet.flatten([
+                          styles.pointsPresetChip,
+                          overBudget && styles.pointsPresetChipDisabled,
+                        ])}
+                      />
+                    );
+                  })}
+                </View>
+                {error?.message && (
+                  <Text style={[styles.errorText, { color: themeColors.error }]}>
+                    {error.message}
+                  </Text>
+                )}
+              </>
+            )}
+          />
+          {requesterPoints != null && (
+            <Text style={[styles.balanceHint, { color: themeColors.text.secondary }]}>
+              {t('response.availableBalance', {
+                points: requesterPoints.toLocaleString(),
+              })}
+            </Text>
+          )}
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>
+            {t('response.messageLabel')}
+          </Text>
+          <ControlledInput
+            control={control}
+            name="message"
+            placeholder={t('response.messagePlaceholder')}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            editable={!loading}
+          />
+        </View>
+      </View>
+    </BottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-    width: '100%',
-    height: '100%',
-  },
-  modalContainer: {
-    borderTopLeftRadius: borderRadius['2xl'],
-    borderTopRightRadius: borderRadius['2xl'],
-    width: '100%',
-    maxHeight: '92%',
-    elevation: 5,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  title: {
-    ...typography.styles.h3,
-  },
-  closeButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   content: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,

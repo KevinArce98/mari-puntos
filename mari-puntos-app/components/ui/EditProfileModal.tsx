@@ -1,16 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-import {
-  Alert,
-  Keyboard,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { Image } from 'expo-image';
 import { SaveFormat, manipulateAsync } from 'expo-image-manipulator';
@@ -33,6 +23,7 @@ import {
   updateProfileSchema,
 } from '@/validators/profile.schema';
 
+import { BottomSheetModal } from './BottomSheetModal';
 import { Button } from './Button';
 import { ControlledInput } from './ControlledInput';
 import { PressableScale } from './PressableScale';
@@ -58,21 +49,6 @@ export function EditProfileModal({
   const themeColors = useThemedColors();
   const [loading, setLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
-
-  useEffect(() => {
-    if (Platform.OS !== 'android') return;
-    const show = Keyboard.addListener('keyboardDidShow', (e) => {
-      setKeyboardOffset(e.endCoordinates.height);
-    });
-    const hide = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardOffset(0);
-    });
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
 
   const {
     control,
@@ -166,158 +142,101 @@ export function EditProfileModal({
   const displayImage = selectedImage || currentAvatarUrl;
 
   return (
-    <Modal
+    <BottomSheetModal
       visible={visible}
-      animationType="slide"
-      transparent
       onRequestClose={handleClose}
+      title={t('editProfile.title')}
+      closeAccessibilityLabel={t('editProfile.closeA11y')}
+      footer={
+        <View style={styles.actions}>
+          <Button
+            title={t('common:actions.cancel')}
+            variant="outline"
+            onPress={handleClose}
+            style={styles.actionButton}
+            disabled={loading}
+          />
+          <Button
+            title={t('editProfile.save')}
+            onPress={handleSubmit(onSubmitForm)}
+            style={styles.actionButton}
+            disabled={isSubmitting}
+            loading={loading}
+          />
+        </View>
+      }
     >
-      <View style={styles.overlay}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={[styles.keyboardAvoidingView, { paddingBottom: keyboardOffset }]}
+      <View style={styles.section}>
+        <Text style={[styles.label, { color: themeColors.text.primary }]}>
+          {t('editProfile.photoLabel')}
+        </Text>
+        <PressableScale
+          style={styles.avatarContainer}
+          onPress={pickImage}
+          accessibilityRole="button"
+          accessibilityLabel={t('editProfile.changePhotoA11y')}
         >
+          {displayImage ? (
+            <Image
+              source={displayImage}
+              style={[styles.avatar, { backgroundColor: themeColors.gray[200] }]}
+              contentFit="cover"
+            />
+          ) : (
+            <View
+              style={[
+                styles.avatarPlaceholder,
+                { backgroundColor: themeColors.gray[200] },
+              ]}
+            >
+              <Ionicons name="person" size={48} color={themeColors.gray[400]} />
+            </View>
+          )}
           <View
-            style={[styles.container, { backgroundColor: themeColors.gray[100] }]}
-            accessibilityViewIsModal
+            style={[
+              styles.avatarEditBadge,
+              {
+                backgroundColor: themeColors.primary,
+                borderColor: themeColors.white,
+              },
+            ]}
           >
-            <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
-              <Text style={[styles.title, { color: themeColors.text.primary }]}>
-                {t('editProfile.title')}
-              </Text>
-              <PressableScale
-                onPress={handleClose}
-                style={styles.closeButton}
-                accessibilityRole="button"
-                accessibilityLabel={t('editProfile.closeA11y')}
-              >
-                <Ionicons name="close" size={24} color={themeColors.text.primary} />
-              </PressableScale>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.section}>
-                <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                  {t('editProfile.photoLabel')}
-                </Text>
-                <PressableScale
-                  style={styles.avatarContainer}
-                  onPress={pickImage}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('editProfile.changePhotoA11y')}
-                >
-                  {displayImage ? (
-                    <Image
-                      source={displayImage}
-                      style={[styles.avatar, { backgroundColor: themeColors.gray[200] }]}
-                      contentFit="cover"
-                    />
-                  ) : (
-                    <View
-                      style={[
-                        styles.avatarPlaceholder,
-                        { backgroundColor: themeColors.gray[200] },
-                      ]}
-                    >
-                      <Ionicons name="person" size={48} color={themeColors.gray[400]} />
-                    </View>
-                  )}
-                  <View
-                    style={[
-                      styles.avatarEditBadge,
-                      {
-                        backgroundColor: themeColors.primary,
-                        borderColor: themeColors.white,
-                      },
-                    ]}
-                  >
-                    <Ionicons name="camera" size={16} color={themeColors.white} />
-                  </View>
-                </PressableScale>
-                <Text style={[styles.hint, { color: themeColors.text.secondary }]}>
-                  {t('editProfile.photoHint')}
-                </Text>
-              </View>
-
-              <View style={styles.section}>
-                <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                  {t('editProfile.firstNameLabel')}
-                </Text>
-                <ControlledInput
-                  control={control}
-                  name="firstName"
-                  placeholder={t('editProfile.firstNamePlaceholder')}
-                  maxLength={100}
-                />
-              </View>
-
-              <View style={styles.section}>
-                <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                  {t('editProfile.lastNameLabel')}
-                </Text>
-                <ControlledInput
-                  control={control}
-                  name="lastName"
-                  placeholder={t('editProfile.lastNamePlaceholder')}
-                  maxLength={100}
-                />
-              </View>
-            </ScrollView>
-
-            <View style={styles.actions}>
-              <Button
-                title={t('common:actions.cancel')}
-                variant="outline"
-                onPress={handleClose}
-                style={styles.actionButton}
-                disabled={loading}
-              />
-              <Button
-                title={t('editProfile.save')}
-                onPress={handleSubmit(onSubmitForm)}
-                style={styles.actionButton}
-                disabled={isSubmitting}
-                loading={loading}
-              />
-            </View>
+            <Ionicons name="camera" size={16} color={themeColors.white} />
           </View>
-        </KeyboardAvoidingView>
+        </PressableScale>
+        <Text style={[styles.hint, { color: themeColors.text.secondary }]}>
+          {t('editProfile.photoHint')}
+        </Text>
       </View>
-    </Modal>
+
+      <View style={styles.section}>
+        <Text style={[styles.label, { color: themeColors.text.primary }]}>
+          {t('editProfile.firstNameLabel')}
+        </Text>
+        <ControlledInput
+          control={control}
+          name="firstName"
+          placeholder={t('editProfile.firstNamePlaceholder')}
+          maxLength={100}
+        />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.label, { color: themeColors.text.primary }]}>
+          {t('editProfile.lastNameLabel')}
+        </Text>
+        <ControlledInput
+          control={control}
+          name="lastName"
+          placeholder={t('editProfile.lastNamePlaceholder')}
+          maxLength={100}
+        />
+      </View>
+    </BottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  container: {
-    borderTopLeftRadius: borderRadius['2xl'],
-    borderTopRightRadius: borderRadius['2xl'],
-    maxHeight: '90%',
-    paddingBottom: spacing.xl,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: spacing.lg,
-    borderBottomWidth: 1,
-  },
-  title: {
-    ...typography.styles.h3,
-  },
-  closeButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   section: {
     padding: spacing.lg,
     paddingTop: spacing.md,
