@@ -1,6 +1,6 @@
-# MariPuntos v2 — Design System (Master)
+# MariPuntos — Design System
 
-Fuente de verdad para el rediseño v2. Estilo: **minimalismo refinado** — superficies planas, un solo acento, jerarquía por espacio y peso tipográfico, motion sutil. El tono lúdico (pareja, gamificación) se expresa con color y micro-animaciones, no con gradientes ni emojis.
+Fuente de verdad de diseño para la app (Expo / React Native). Rediseño v2. Estilo: **minimalismo refinado** — superficies planas, un solo acento, jerarquía por espacio y peso tipográfico, motion sutil. El tono lúdico (pareja, gamificación) se expresa con color y micro-animaciones, no con gradientes ni emojis.
 
 ## 1. Color
 

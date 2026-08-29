@@ -8,7 +8,9 @@ Gamifica los permisos en tu relación de pareja. Gana puntos por acciones, solic
 mari-puntos/
 ├── mari-puntos-app/        # App móvil (Expo / React Native)
 ├── mari-puntos-backend/    # API REST (Express / TypeORM / PostgreSQL)
-└── mari-puntos-website/    # Landing page (Astro)
+├── mari-puntos-website/    # Landing page (Astro)
+├── CLAUDE.md               # Reglas de desarrollo para IA y colaboradores
+└── DESIGN.md               # Design system (UI de la app)
 ```
 
 ## Tech Stack
@@ -75,6 +77,12 @@ fix(backend): corregir cálculo de puntos
 ```
 
 **Scopes válidos:** `app`, `backend`, `website`, `repo`
+
+## Documentación
+
+- [CLAUDE.md](CLAUDE.md) — reglas de desarrollo (clean code, SOLID, sin código muerto ni comentarios) para IA y colaboradores.
+- [DESIGN.md](DESIGN.md) — design system de la app (color, tipografía, componentes, motion).
+- [SECURITY.md](SECURITY.md) — reporte de vulnerabilidades.
 
 ## Seguridad
 
