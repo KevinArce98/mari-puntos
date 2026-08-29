@@ -4,11 +4,12 @@ import { LRUCache } from 'lru-cache';
 
 import { AppDataSource } from '../config/db';
 import { config } from '../config/env';
-import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
+import { PartnerLink } from '../entities/PartnerLink';
 import { User } from '../entities/User';
 import { getRequestLocale, translate } from '../i18n';
 import { UsersService } from '../services/users.service';
 import { logger } from '../utils/logger';
+import { activePartnerLinkWhere } from '../utils/partnerLink';
 import { sendError } from '../utils/response';
 
 const userCache = new LRUCache<string, { userId: string; isActive: boolean }>({
@@ -169,10 +170,7 @@ export const requirePartner = async (
 
   const partnerLinkRepository = AppDataSource.getRepository(PartnerLink);
   const partnerLink = await partnerLinkRepository.findOne({
-    where: [
-      { user1Id: req.userId, status: PartnerLinkStatus.ACTIVE },
-      { user2Id: req.userId, status: PartnerLinkStatus.ACTIVE },
-    ],
+    where: activePartnerLinkWhere(req.userId),
   });
 
   if (!partnerLink) {

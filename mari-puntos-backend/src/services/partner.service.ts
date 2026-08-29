@@ -1,3 +1,5 @@
+import { FindOptionsRelations } from 'typeorm';
+
 import { AppDataSource } from '../config/db';
 import { Log, LogType } from '../entities/Log';
 import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
@@ -6,6 +8,7 @@ import { translate } from '../i18n';
 import { AppError } from '../middlewares/errorMiddleware';
 import { generatePartnerCode, getNowUTC6 } from '../utils/helpers';
 import { logger } from '../utils/logger';
+import { activePartnerLinkWhere } from '../utils/partnerLink';
 import { PushNotificationService } from './push-notification.service';
 
 export class PartnerService {
@@ -32,10 +35,7 @@ export class PartnerService {
       }
 
       const existingActiveLink = await partnerLinkRepo.findOne({
-        where: [
-          { user1Id: userId, status: PartnerLinkStatus.ACTIVE },
-          { user2Id: userId, status: PartnerLinkStatus.ACTIVE },
-        ],
+        where: activePartnerLinkWhere(userId),
       });
 
       if (existingActiveLink) {
@@ -100,10 +100,7 @@ export class PartnerService {
         }
 
         const existingActiveLink = await partnerLinkRepo.findOne({
-          where: [
-            { user1Id: userId, status: PartnerLinkStatus.ACTIVE },
-            { user2Id: userId, status: PartnerLinkStatus.ACTIVE },
-          ],
+          where: activePartnerLinkWhere(userId),
         });
 
         if (existingActiveLink) {
@@ -242,22 +239,13 @@ export class PartnerService {
     userId: string
   ): Promise<{ partnerLink: PartnerLink; partner: User } | null> {
     logger.debug({ message: 'Getting partner link with details', userId });
-    const partnerLink = await this.partnerLinkRepository.findOne({
-      where: [{ user1Id: userId }, { user2Id: userId }],
-      relations: { user1: true, user2: true },
+    const partnerLink = await this.findActiveLink(userId, {
+      user1: true,
+      user2: true,
     });
 
     if (!partnerLink) {
-      logger.info({ message: 'No partner link found', userId });
-      return null;
-    }
-
-    if (partnerLink.status !== PartnerLinkStatus.ACTIVE) {
-      logger.info({
-        message: 'Partner link not active',
-        userId,
-        status: partnerLink.status,
-      });
+      logger.info({ message: 'No active partner link found', userId });
       return null;
     }
 
@@ -283,11 +271,9 @@ export class PartnerService {
 
   async getPartnerId(userId: string): Promise<string | null> {
     logger.debug({ message: 'Getting partner ID', userId });
-    const partnerLink = await this.partnerLinkRepository.findOne({
-      where: [{ user1Id: userId }, { user2Id: userId }],
-    });
+    const partnerLink = await this.findActiveLink(userId);
 
-    if (!partnerLink || partnerLink.status !== PartnerLinkStatus.ACTIVE) {
+    if (!partnerLink) {
       logger.info({ message: 'No active partner link found', userId });
       return null;
     }
@@ -300,11 +286,9 @@ export class PartnerService {
 
   async getPartnerLink(userId: string): Promise<PartnerLink | null> {
     logger.debug({ message: 'Getting partner link', userId });
-    const partnerLink = await this.partnerLinkRepository.findOne({
-      where: [{ user1Id: userId }, { user2Id: userId }],
-    });
+    const partnerLink = await this.findActiveLink(userId);
 
-    if (!partnerLink || partnerLink.status !== PartnerLinkStatus.ACTIVE) {
+    if (!partnerLink) {
       logger.info({ message: 'No active partner link found', userId });
       return null;
     }
@@ -389,6 +373,16 @@ export class PartnerService {
         });
       }
     }
+  }
+
+  private findActiveLink(
+    userId: string,
+    relations?: FindOptionsRelations<PartnerLink>
+  ): Promise<PartnerLink | null> {
+    return this.partnerLinkRepository.findOne({
+      where: activePartnerLinkWhere(userId),
+      ...(relations ? { relations } : {}),
+    });
   }
 
   private async generateUniqueLinkCode(): Promise<string> {

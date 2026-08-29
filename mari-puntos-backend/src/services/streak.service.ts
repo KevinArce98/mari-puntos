@@ -1,8 +1,9 @@
 import { AppDataSource } from '../config/db';
-import { PartnerLink, PartnerLinkStatus } from '../entities/PartnerLink';
+import { PartnerLink } from '../entities/PartnerLink';
 import { createError } from '../middlewares/errorMiddleware';
 import { getISOWeekId, getPreviousWeekId } from '../utils/helpers';
 import { logger } from '../utils/logger';
+import { activePartnerLinkWhere } from '../utils/partnerLink';
 
 export interface StreakInfo {
   currentStreak: number;
@@ -87,10 +88,7 @@ export class StreakService {
 
   private async getActiveLink(userId: string): Promise<PartnerLink> {
     const link = await this.partnerLinkRepo.findOne({
-      where: [
-        { user1Id: userId, status: PartnerLinkStatus.ACTIVE },
-        { user2Id: userId, status: PartnerLinkStatus.ACTIVE },
-      ],
+      where: activePartnerLinkWhere(userId),
     });
 
     if (!link) throw createError.partnerNotLinked();
