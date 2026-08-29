@@ -324,11 +324,10 @@ export default function CreateTemplateScreen() {
               </View>
               <View style={styles.infoContent}>
                 <Text style={[styles.infoTitle, { color: themeColors.text.primary }]}>
-                  Actividad personalizada
+                  {t('createTemplate.customActivityInfo.title')}
                 </Text>
                 <Text style={[styles.infoText, { color: themeColors.text.secondary }]}>
-                  Esta actividad estará disponible solo para ti y tu pareja. Los valores
-                  sugeridos son una guía y pueden modificarse al solicitar el permiso.
+                  {t('createTemplate.customActivityInfo.body')}
                 </Text>
               </View>
             </Card>

@@ -120,6 +120,10 @@
     "descriptionPlaceholder": "Describe la actividad...",
     "categoryPlaceholder": "Selecciona una categoría",
     "submit": "Crear actividad",
+    "customActivityInfo": {
+      "title": "Actividad personalizada",
+      "body": "Esta actividad estará disponible solo para ti y tu pareja. Los valores sugeridos son una guía y pueden modificarse al solicitar el permiso."
+    },
     "discard": {
       "title": "Descartar actividad",
       "message": "Perderás los cambios que todavía no has guardado.",
