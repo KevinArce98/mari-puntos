@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react';
 
 import { Pressable, StyleSheet, Text, TextInput, View, ViewStyle } from 'react-native';
 
+import { useTranslation } from 'react-i18next';
+
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
 
@@ -22,6 +24,7 @@ export const CodeInput: React.FC<CodeInputProps> = ({
   type = 'alphanumeric',
   error = false,
 }) => {
+  const { t } = useTranslation('common');
   const inputRef = useRef<TextInput>(null);
   const [focused, setFocused] = useState(false);
   const themeColors = useThemedColors();
@@ -34,10 +37,8 @@ export const CodeInput: React.FC<CodeInputProps> = ({
     let filteredText = text.slice(0, length);
 
     if (type === 'numeric') {
-      // Solo permitir números
       filteredText = filteredText.replace(/[^0-9]/g, '');
     } else {
-      // Permitir letras y números, convertir a mayúsculas
       filteredText = filteredText.toUpperCase().replace(/[^A-Z0-9]/g, '');
     }
 
@@ -52,8 +53,8 @@ export const CodeInput: React.FC<CodeInputProps> = ({
         style={styles.boxesContainer}
         onPress={handlePress}
         accessibilityRole="button"
-        accessibilityLabel="Ingresar código de verificación"
-        accessibilityValue={{ text: value || 'Vacío' }}
+        accessibilityLabel={t('inputs.codeA11y')}
+        accessibilityValue={{ text: value || t('inputs.codeEmpty') }}
       >
         {codeArray.slice(0, length).map((char, index) => (
           <View

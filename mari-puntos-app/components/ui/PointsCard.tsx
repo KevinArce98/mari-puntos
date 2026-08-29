@@ -4,6 +4,8 @@ import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
+
 import { useThemedColors } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
 
@@ -19,12 +21,14 @@ interface PointsCardProps {
 
 export const PointsCard: React.FC<PointsCardProps> = ({
   points,
-  label = 'Total de puntos',
+  label,
   style,
   variant = 'default',
   onPress,
 }) => {
+  const { t } = useTranslation('common');
   const colors = useThemedColors();
+  const resolvedLabel = label ?? t('inputs.pointsCardLabel');
 
   if (variant === 'compact') {
     const content = (
@@ -48,7 +52,10 @@ export const PointsCard: React.FC<PointsCardProps> = ({
       <PressableScale
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`${label}: ${points.toLocaleString()} MariPuntos. Ver logros`}
+        accessibilityLabel={t('inputs.pointsCardA11y', {
+          label: resolvedLabel,
+          points: points.toLocaleString(),
+        })}
       >
         {content}
       </PressableScale>
@@ -64,7 +71,9 @@ export const PointsCard: React.FC<PointsCardProps> = ({
       ]}
     >
       <View style={styles.content}>
-        <Text style={[styles.label, { color: colors.text.secondary }]}>{label}</Text>
+        <Text style={[styles.label, { color: colors.text.secondary }]}>
+          {resolvedLabel}
+        </Text>
         <Text style={[styles.points, { color: colors.text.primary }]}>
           {points.toLocaleString()}
         </Text>
@@ -116,7 +125,6 @@ const styles = StyleSheet.create({
   unit: {
     ...typography.styles.caption,
   },
-  // Compact variant
   compactContainer: {
     flexDirection: 'row',
     alignItems: 'center',

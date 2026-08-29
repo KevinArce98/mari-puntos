@@ -1,7 +1,6 @@
 import { TextStyle } from 'react-native';
 
 export const typography = {
-  // Font families - Plus Jakarta Sans from Design System
   fontFamily: {
     regular: 'PlusJakartaSans-Regular',
     medium: 'PlusJakartaSans-Medium',
@@ -9,30 +8,26 @@ export const typography = {
     bold: 'PlusJakartaSans-Bold',
   },
 
-  // Font sizes v2 - body mínimo 16 en móvil
   fontSize: {
     xs: 12,
     sm: 14,
-    base: 16, // Body text
+    base: 16,
     lg: 18,
-    xl: 22, // Heading 2
+    xl: 22,
     '2xl': 24,
-    '3xl': 28, // Heading 1
-    '4xl': 34, // Display
+    '3xl': 28,
+    '4xl': 34,
     '5xl': 48,
-    '6xl': 64, // Large points display
+    '6xl': 64,
   },
 
-  // Line heights
   lineHeight: {
     tight: 1.2,
     normal: 1.5,
     relaxed: 1.75,
   },
 
-  // Text styles presets - Design System v2
   styles: {
-    // Display - números de puntos (tabular para evitar saltos de layout)
     display: {
       fontSize: 34,
       fontFamily: 'PlusJakartaSans-Bold',
@@ -40,21 +35,18 @@ export const typography = {
       fontVariant: ['tabular-nums'],
     } as TextStyle,
 
-    // Heading 1 - título de pantalla
     h1: {
       fontSize: 28,
       fontFamily: 'PlusJakartaSans-Bold',
       lineHeight: 34,
     } as TextStyle,
 
-    // Heading 2 - sección grande
     h2: {
       fontSize: 22,
       fontFamily: 'PlusJakartaSans-Bold',
       lineHeight: 28,
     } as TextStyle,
 
-    // Heading 3 - título de card
     h3: {
       fontSize: 17,
       fontFamily: 'PlusJakartaSans-SemiBold',
@@ -67,7 +59,6 @@ export const typography = {
       lineHeight: 22,
     } as TextStyle,
 
-    // Body - 16px mínimo móvil
     body: {
       fontSize: 16,
       fontFamily: 'PlusJakartaSans-Regular',
@@ -86,7 +77,6 @@ export const typography = {
       lineHeight: 24,
     } as TextStyle,
 
-    // Texto secundario compacto (listas densas, metadatos largos)
     bodySm: {
       fontSize: 14,
       fontFamily: 'PlusJakartaSans-Regular',
@@ -99,7 +89,6 @@ export const typography = {
       lineHeight: 16,
     } as TextStyle,
 
-    // 12px es el mínimo del sistema (antes 10px)
     small: {
       fontSize: 12,
       fontFamily: 'PlusJakartaSans-Regular',
@@ -118,7 +107,6 @@ export const typography = {
       lineHeight: 20,
     } as TextStyle,
 
-    // Large points display
     pointsLarge: {
       fontSize: 56,
       fontFamily: 'PlusJakartaSans-Bold',

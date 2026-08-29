@@ -1,0 +1,52 @@
+{
+  "email": {
+    "invalid": "El correo electrónico no es válido",
+    "required": "El correo electrónico es requerido"
+  },
+  "auth": {
+    "firstNameRequired": "El nombre es requerido",
+    "firstNameMax": "El nombre debe tener máximo 50 caracteres",
+    "firstNameLetters": "El nombre solo puede contener letras",
+    "lastNameMax": "El apellido debe tener máximo 50 caracteres",
+    "lastNameLetters": "El apellido solo puede contener letras",
+    "confirmPasswordRequired": "Debes confirmar tu contraseña",
+    "passwordsMismatch": "Las contraseñas no coinciden",
+    "passwordRequired": "La contraseña es requerida",
+    "codeLength": "El código debe tener 6 dígitos",
+    "codeDigits": "El código solo puede contener números"
+  },
+  "passwordRules": {
+    "min": "La contraseña debe tener al menos 8 caracteres",
+    "max": "La contraseña debe tener máximo 100 caracteres",
+    "lowercase": "La contraseña debe contener al menos una letra minúscula",
+    "uppercase": "La contraseña debe contener al menos una letra mayúscula",
+    "number": "La contraseña debe contener al menos un número",
+    "symbol": "La contraseña debe contener al menos un símbolo"
+  },
+  "action": {
+    "titleRequired": "El título es requerido",
+    "titleMax": "El título debe tener máximo 100 caracteres",
+    "descriptionMax": "La descripción debe tener máximo 500 caracteres",
+    "categoryRequired": "La categoría es requerida",
+    "messageMax": "El mensaje debe tener máximo 500 caracteres",
+    "pointsMin": "Los puntos deben ser 0 o más",
+    "pointsMax": "Máximo 1000 puntos",
+    "reasonRequired": "La razón es requerida",
+    "reasonMax": "La razón debe tener máximo 500 caracteres"
+  },
+  "profile": {
+    "firstNameRequired": "El nombre es requerido",
+    "firstNameMax": "El nombre es muy largo",
+    "lastNameRequired": "El apellido es requerido",
+    "lastNameMax": "El apellido es muy largo"
+  },
+  "linkPartner": {
+    "codeLength": "El código debe tener exactamente 6 caracteres",
+    "codeFormat": "El código solo puede contener letras mayúsculas y números"
+  },
+  "password": {
+    "currentRequired": "La contraseña actual es requerida",
+    "confirmNewRequired": "Debes confirmar tu nueva contraseña",
+    "mismatch": "Las contraseñas no coinciden"
+  }
+}

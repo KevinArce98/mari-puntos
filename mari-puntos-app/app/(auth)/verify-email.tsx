@@ -21,6 +21,7 @@ import { isClerkAPIResponseError, useAuth, useSignUp } from '@clerk/clerk-expo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as Sentry from '@sentry/react-native';
 import { useForm, useWatch } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -42,6 +43,7 @@ const RECOVERABLE_VERIFICATION_CODES = [
 const RESEND_COOLDOWN_SECONDS = 30;
 
 export default function VerifyEmailScreen() {
+  const { t } = useTranslation(['auth', 'errors']);
   const { signUp, setActive, isLoaded } = useSignUp();
   const { signOut, getToken } = useAuth();
   const router = useRouter();
@@ -74,17 +76,21 @@ export default function VerifyEmailScreen() {
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
       Alert.alert(
-        'Cancelar verificación',
-        '¿Seguro que deseas salir? Deberás verificar tu correo al iniciar sesión de nuevo.',
+        t('auth:verifyEmail.backPrompt.title'),
+        t('auth:verifyEmail.backPrompt.message'),
         [
-          { text: 'Continuar', style: 'cancel' },
-          { text: 'Salir', style: 'destructive', onPress: () => router.back() },
+          { text: t('auth:verifyEmail.backPrompt.stay'), style: 'cancel' },
+          {
+            text: t('auth:verifyEmail.backPrompt.leave'),
+            style: 'destructive',
+            onPress: () => router.back(),
+          },
         ]
       );
       return true;
     });
     return () => backHandler.remove();
-  }, [router]);
+  }, [router, t]);
 
   useEffect(() => {
     if (canResend) return;
@@ -141,14 +147,14 @@ export default function VerifyEmailScreen() {
           );
           return;
         } catch {
-          // Profile genuinely doesn't exist — fall through to error toast
+          void 0;
         }
       }
       logger.error('Failed to create profile after email verification', profileError, {
         email,
       });
-      toast.error('Error al crear perfil', {
-        description: profileError?.message || 'Intenta iniciar sesión nuevamente',
+      toast.error(t('auth:verifyEmail.profileErrorTitle'), {
+        description: profileError?.message || t('auth:verifyEmail.profileErrorMessage'),
       });
     }
   };
@@ -170,18 +176,17 @@ export default function VerifyEmailScreen() {
       });
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setCanResend(false);
-      toast.info('Te enviamos un código nuevo', {
-        description: 'El código anterior ya no era válido. Revisa tu correo electrónico.',
+      toast.info(t('auth:verifyEmail.newCodeTitle'), {
+        description: t('auth:verifyEmail.newCodeMessage'),
       });
     } catch (resendError: any) {
-      let resendMessage =
-        'No se pudo enviar un código nuevo. Intenta con "Reenviar código".';
+      let resendMessage = t('auth:verifyEmail.resendFailed');
       if (isClerkAPIResponseError(resendError)) {
         resendMessage = handleClerkErrors(resendError.errors);
       }
       logger.error('Auto-resend after recoverable error failed', resendError, { email });
       setCanResend(true);
-      toast.error('Error', { description: resendMessage });
+      toast.error(t('errors:title'), { description: resendMessage });
     }
   };
 
@@ -214,7 +219,7 @@ export default function VerifyEmailScreen() {
           const retryCode = isClerkAPIResponseError(retryError)
             ? retryError.errors[0]?.code
             : undefined;
-          let retryMessage = 'Código inválido';
+          let retryMessage = t('auth:verifyEmail.invalidCode');
           if (isClerkAPIResponseError(retryError)) {
             retryMessage = handleClerkErrors(retryError.errors);
           }
@@ -227,13 +232,13 @@ export default function VerifyEmailScreen() {
             await recoverWithNewCode(retryCode);
           } else {
             setCodeError(true);
-            toast.error('Error', { description: retryMessage });
+            toast.error(t('errors:title'), { description: retryMessage });
           }
         }
         return;
       }
 
-      let errorMessage = 'Código inválido';
+      let errorMessage = t('auth:verifyEmail.invalidCode');
 
       if (isClerkAPIResponseError(error)) {
         errorMessage = handleClerkErrors(error.errors);
@@ -249,7 +254,7 @@ export default function VerifyEmailScreen() {
         await recoverWithNewCode(clerkCode);
       } else {
         setCodeError(true);
-        toast.error('Error', { description: errorMessage });
+        toast.error(t('errors:title'), { description: errorMessage });
       }
     } finally {
       setAuthTransitioning(false);
@@ -264,12 +269,13 @@ export default function VerifyEmailScreen() {
       setValue('code', '');
       setCodeError(false);
       logger.info('Verification code resent', { email });
-      toast.success('Código enviado', { description: 'Revisa tu correo electrónico' });
-      // Reset cooldown
+      toast.success(t('auth:verifyEmail.sentTitle'), {
+        description: t('auth:verifyEmail.sentMessage'),
+      });
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setCanResend(false);
     } catch (error: any) {
-      let errorMessage = 'No se pudo enviar el código';
+      let errorMessage = t('auth:verifyEmail.resendFailedShort');
 
       if (isClerkAPIResponseError(error)) {
         errorMessage = handleClerkErrors(error.errors);
@@ -277,21 +283,25 @@ export default function VerifyEmailScreen() {
 
       logger.error('Failed to resend verification code', error, { email, errorMessage });
 
-      toast.error('Error', { description: errorMessage });
+      toast.error(t('errors:title'), { description: errorMessage });
     }
   };
 
   const leaveVerification = (destination: '/(auth)/register' | '/(auth)/login') => {
     const changingEmail = destination === '/(auth)/register';
     Alert.alert(
-      changingEmail ? 'Cambiar correo' : 'Cancelar registro',
       changingEmail
-        ? 'Volverás al registro para usar otra dirección de correo.'
-        : 'El registro actual quedará sin completar.',
+        ? t('auth:verifyEmail.leavePrompt.changeEmailTitle')
+        : t('auth:verifyEmail.leavePrompt.cancelTitle'),
+      changingEmail
+        ? t('auth:verifyEmail.leavePrompt.changeEmailMessage')
+        : t('auth:verifyEmail.leavePrompt.cancelMessage'),
       [
-        { text: 'Continuar verificando', style: 'cancel' },
+        { text: t('auth:verifyEmail.leavePrompt.stay'), style: 'cancel' },
         {
-          text: changingEmail ? 'Cambiar correo' : 'Salir',
+          text: changingEmail
+            ? t('auth:verifyEmail.leavePrompt.changeEmailTitle')
+            : t('auth:verifyEmail.leavePrompt.leave'),
           style: changingEmail ? 'default' : 'destructive',
           onPress: async () => {
             await signOut().catch(() => {});
@@ -324,10 +334,11 @@ export default function VerifyEmailScreen() {
               style={styles.icon}
             />
             <Text style={[styles.title, { color: themeColors.text.primary }]}>
-              Verifica tu correo
+              {t('auth:verifyEmail.title')}
             </Text>
             <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
-              Hemos enviado un código de verificación a{'\n'}
+              {t('auth:verifyEmail.subtitle')}
+              {'\n'}
               <Text style={[styles.email, { color: themeColors.primary }]}>{email}</Text>
             </Text>
 
@@ -341,7 +352,7 @@ export default function VerifyEmailScreen() {
             />
 
             <Button
-              title="Verificar"
+              title={t('auth:verifyEmail.submit')}
               onPress={handleSubmit(onSubmit)}
               loading={isSubmitting}
               fullWidth
@@ -351,7 +362,9 @@ export default function VerifyEmailScreen() {
 
             <Button
               title={
-                canResend ? 'Reenviar código' : `Reenviar código (${resendCooldown}s)`
+                canResend
+                  ? t('auth:verifyEmail.resend')
+                  : t('auth:verifyEmail.resendCountdown', { seconds: resendCooldown })
               }
               onPress={handleResend}
               variant="ghost"
@@ -361,13 +374,13 @@ export default function VerifyEmailScreen() {
 
             <View style={styles.exitActions}>
               <Button
-                title="Cambiar correo"
+                title={t('auth:verifyEmail.changeEmail')}
                 onPress={() => leaveVerification('/(auth)/register')}
                 variant="ghost"
                 fullWidth
               />
               <Button
-                title="Cancelar registro"
+                title={t('auth:verifyEmail.cancelRegistration')}
                 onPress={() => leaveVerification('/(auth)/login')}
                 variant="ghost"
                 fullWidth

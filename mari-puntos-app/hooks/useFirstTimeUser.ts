@@ -6,10 +6,6 @@ import logger from '@/utils/logger';
 
 const FIRST_TIME_KEY = '@mari_puntos_first_time_user';
 
-/**
- * Hook to manage first time user experience
- * Returns whether this is the first time the user opens the app
- */
 export function useFirstTimeUser() {
   const [isFirstTime, setIsFirstTime] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);

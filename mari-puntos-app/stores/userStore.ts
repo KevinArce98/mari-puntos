@@ -20,7 +20,6 @@ interface UserState {
   error: string | null;
   isAuthTransitioning: boolean;
 
-  // Actions
   setUser: (user: User | null) => void;
   fetchProfile: () => Promise<void>;
   fetchStats: () => Promise<void>;
@@ -86,7 +85,6 @@ export const useUserStore = create<UserState>((set, get) => ({
       logger.debug('Partner info fetched successfully', { hasPartner: !!partnerInfo });
       return partnerInfo;
     } catch (error: unknown) {
-      // 404 = no partner yet — expected state, not a real error
       logger.debug('No partner info available', error);
       set({ partnerInfo: null });
       return null;
@@ -136,7 +134,6 @@ export const useUserStore = create<UserState>((set, get) => ({
       logger.debug('Partner link code fetched successfully');
       return response;
     } catch (error: unknown) {
-      // 404 = no link code exists yet — expected state, not a real error
       logger.debug('No partner link code available', error);
       return null;
     }
@@ -147,7 +144,6 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       await userService.joinPartnerLink({ linkCode });
       logger.info('Successfully joined partner link', { linkCode });
-      // Fetch silently — don't set isLoading to avoid unmounting the navigator in AuthGuard
       const [user, partnerInfo] = await Promise.all([
         userService.getProfile(),
         userService.getPartnerInfo().catch(() => null),
@@ -165,7 +161,6 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       await userService.unlinkPartner();
       logger.info('Partner unlinked successfully');
-      // Refetch user profile and clear partner info
       await get().fetchProfile();
       set({ partnerInfo: null, isLoading: false });
     } catch (error: unknown) {

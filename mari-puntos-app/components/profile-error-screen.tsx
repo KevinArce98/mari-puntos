@@ -2,6 +2,7 @@ import React from 'react';
 
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui';
@@ -19,27 +20,27 @@ export function ProfileErrorScreen({
   onSignOut,
   retrying,
 }: ProfileErrorScreenProps) {
+  const { t } = useTranslation('profile');
   const themeColors = useThemedColors();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <View style={styles.content}>
         <Text style={[styles.title, { color: themeColors.text.primary }]}>
-          No pudimos cargar tu perfil
+          {t('errorScreen.title')}
         </Text>
         <Text style={[styles.message, { color: themeColors.text.secondary }]}>
-          Revisa tu conexión e intenta de nuevo. Si el problema continúa, cierra sesión y
-          vuelve a iniciar sesión.
+          {t('errorScreen.message')}
         </Text>
         <Button
-          title="Reintentar"
+          title={t('errorScreen.retry')}
           onPress={onRetry}
           variant="primary"
           loading={retrying}
           style={styles.button}
         />
         <Button
-          title="Cerrar sesión"
+          title={t('errorScreen.signOut')}
           onPress={onSignOut}
           variant="ghost"
           style={styles.button}

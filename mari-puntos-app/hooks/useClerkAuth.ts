@@ -54,7 +54,7 @@ export function useClerkAuth() {
           hasFetchedProfile.current = true;
           logger.info('User authenticated — loading profile');
           fetchProfile().catch((error) => {
-            hasFetchedProfile.current = false; // Reset on error so we can retry
+            hasFetchedProfile.current = false;
             logger.error('Error fetching user profile:', error);
           });
         }
@@ -68,7 +68,7 @@ export function useClerkAuth() {
         clearPoints();
         clearStreak();
         clearNotifications();
-        hasFetchedProfile.current = false; // Reset when user signs out
+        hasFetchedProfile.current = false;
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

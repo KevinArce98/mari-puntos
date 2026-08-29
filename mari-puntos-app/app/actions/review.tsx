@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { LegendList } from '@legendapp/list/react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -23,17 +24,18 @@ import { borderRadius, shadows, spacing, typography } from '@/theme';
 import { Action, ActionStatus } from '@/types';
 import logger from '@/utils/logger';
 
-const STATUS_FILTERS = [
-  { label: 'Pendientes', value: ActionStatus.PENDING },
-  { label: 'Todas', value: null },
-  { label: 'Aprobadas', value: ActionStatus.APPROVED },
-  { label: 'Rechazadas', value: ActionStatus.REJECTED },
-];
-
 export default function ReviewActionsScreen() {
+  const { t } = useTranslation(['actions', 'common', 'errors']);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colors = useThemedColors();
+
+  const STATUS_FILTERS = [
+    { label: t('common:filters.pending'), value: ActionStatus.PENDING },
+    { label: t('common:filters.all'), value: null },
+    { label: t('common:filters.approved'), value: ActionStatus.APPROVED },
+    { label: t('common:filters.rejected'), value: ActionStatus.REJECTED },
+  ];
   const {
     partnerActions,
     approveAction,
@@ -99,14 +101,13 @@ export default function ReviewActionsScreen() {
     try {
       await approveAction(actionId, points);
       await Promise.all([refetchPartnerActions(), refetchStreak().catch(() => {})]);
-      toast.success('Acción aprobada', { description: 'Los puntos han sido otorgados' });
+      toast.success(t('review.approved'), { description: t('review.approvedMessage') });
 
-      // Close modal and clear selection
       setShowReviewModal(false);
       setSelectedAction(null);
     } catch (error) {
       logger.error('Failed to approve action', error as Error, { actionId, points });
-      toast.error('Error', { description: 'No se pudo aprobar la acción' });
+      toast.error(t('errors:title'), { description: t('review.approveError') });
       throw error;
     }
   };
@@ -115,14 +116,13 @@ export default function ReviewActionsScreen() {
     try {
       await rejectAction(actionId, reason);
       await refetchPartnerActions();
-      toast.success('Acción rechazada', { description: 'Se ha notificado a tu pareja' });
+      toast.success(t('review.rejected'), { description: t('review.rejectedMessage') });
 
-      // Close modal and clear selection
       setShowReviewModal(false);
       setSelectedAction(null);
     } catch (error) {
       logger.error('Failed to reject action', error as Error, { actionId, reason });
-      toast.error('Error', { description: 'No se pudo rechazar la acción' });
+      toast.error(t('errors:title'), { description: t('review.rejectError') });
       throw error;
     }
   };
@@ -134,17 +134,15 @@ export default function ReviewActionsScreen() {
         { paddingTop: insets.top, backgroundColor: colors.background },
       ]}
     >
-      {/* Header */}
       <View style={styles.header}>
         <PressableScale onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
         </PressableScale>
         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
-          Revisar acciones
+          {t('review.title')}
         </Text>
       </View>
 
-      {/* Stats Card */}
       <View style={[styles.statsCard, { backgroundColor: colors.gray[100] }]}>
         <View style={styles.statItem}>
           <Ionicons name="time-outline" size={24} color={colors.warning} />
@@ -153,7 +151,7 @@ export default function ReviewActionsScreen() {
               {pendingCount}
             </Text>
             <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-              Pendientes
+              {t('review.stats.pending')}
             </Text>
           </View>
         </View>
@@ -165,7 +163,7 @@ export default function ReviewActionsScreen() {
               {partnerActionsPagination?.total ?? partnerActions.length}
             </Text>
             <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-              Total
+              {t('review.stats.total')}
             </Text>
           </View>
         </View>
@@ -218,14 +216,14 @@ export default function ReviewActionsScreen() {
             />
             <Text style={[styles.emptyText, { color: colors.text.primary }]}>
               {selectedStatus === ActionStatus.PENDING
-                ? 'No hay acciones pendientes'
+                ? t('review.empty.noPending')
                 : selectedStatus
-                  ? 'No hay acciones con este estado'
-                  : 'No hay acciones para revisar'}
+                  ? t('review.empty.filtered')
+                  : t('review.empty.none')}
             </Text>
             {selectedStatus === ActionStatus.PENDING && (
               <Text style={[styles.emptySubtext, { color: colors.text.secondary }]}>
-                Las acciones de tu pareja aparecerán aquí
+                {t('review.empty.pendingHint')}
               </Text>
             )}
           </View>
@@ -241,7 +239,6 @@ export default function ReviewActionsScreen() {
         estimatedItemSize={80}
       />
 
-      {/* Review Action Modal */}
       <ReviewActionModal
         visible={showReviewModal}
         action={selectedAction}

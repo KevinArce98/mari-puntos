@@ -1,0 +1,94 @@
+{
+  "createAction": {
+    "title": "Create action",
+    "closeA11y": "Close action creation",
+    "titleLabel": "Title *",
+    "titlePlaceholder": "e.g. I made dinner",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "Add details about what you did...",
+    "categoryLabel": "Category *",
+    "submit": "Create",
+    "discard": {
+      "title": "Discard action",
+      "message": "You'll lose the changes you haven't saved yet.",
+      "stay": "Keep editing",
+      "confirm": "Discard"
+    }
+  },
+  "reviewAction": {
+    "reviewTitle": "Review action",
+    "rejectTitle": "Reject action",
+    "closeA11y": "Close action review",
+    "pointsLabel": "Points to award",
+    "pointsHint": "Fixed values — keeps points consistent across actions",
+    "rejectReasonLabel": "Reason for rejection *",
+    "rejectReasonPlaceholder": "Explain why you're rejecting this action...",
+    "reject": "Reject",
+    "approve": "Approve",
+    "back": "Back",
+    "confirmReject": "Confirm rejection",
+    "approvePrompt": {
+      "title": "Confirm approval",
+      "message": "{{points}} MariPuntos will be awarded to your partner. This action can't be undone.",
+      "cancel": "Cancel",
+      "confirm": "Approve"
+    },
+    "discard": {
+      "title": "Discard rejection",
+      "message": "You'll lose the reason you haven't submitted yet.",
+      "stay": "Keep editing",
+      "confirm": "Discard"
+    }
+  },
+  "response": {
+    "title": "Respond to permission",
+    "closeA11y": "Close response",
+    "requestLabel": "Request:",
+    "pointsCostLabel": "Points cost *",
+    "selectCost": "Select a points cost",
+    "partnerBudget": "Your partner has {{points}} points available",
+    "availableBalance": "Available balance: {{points}} MariPuntos",
+    "messageLabel": "Response message (optional)",
+    "messagePlaceholder": "Write a message for your partner...",
+    "reject": "Reject",
+    "approve": "Approve",
+    "approvePrompt": {
+      "title": "Confirm approval",
+      "message": "{{points}} MariPuntos will be deducted from your partner's balance. This action can't be undone.",
+      "cancel": "Cancel",
+      "confirm": "Approve"
+    },
+    "discard": {
+      "title": "Discard response",
+      "message": "You'll lose the changes you haven't submitted yet.",
+      "stay": "Keep editing",
+      "confirm": "Discard"
+    }
+  },
+  "editProfile": {
+    "title": "Edit profile",
+    "closeA11y": "Close profile editing",
+    "photoLabel": "Profile photo",
+    "changePhotoA11y": "Change profile photo",
+    "photoHint": "Tap to change your photo",
+    "firstNameLabel": "First name *",
+    "firstNamePlaceholder": "e.g. John",
+    "lastNameLabel": "Last name *",
+    "lastNamePlaceholder": "e.g. Doe",
+    "save": "Save",
+    "permissionTitle": "Permissions required",
+    "permissionMessage": "We need permission to access your photo library.",
+    "imageError": "Couldn't select the image",
+    "discard": {
+      "title": "Discard changes",
+      "message": "You'll lose the changes you haven't saved yet.",
+      "stay": "Keep editing",
+      "confirm": "Discard"
+    }
+  },
+  "iconSelector": {
+    "title": "Select icon",
+    "closeA11y": "Close icon selector",
+    "searchPlaceholder": "Search icon..."
+  }
+}

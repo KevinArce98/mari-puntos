@@ -1,0 +1,17 @@
+{
+  "title": "Duel",
+  "empty": {
+    "title": "The duel starts with the first action",
+    "text": "Here you'll compare your total MariPuntos balance once you start earning points.",
+    "cta": "Log action"
+  },
+  "result": {
+    "tie": "You're tied",
+    "winning": "You're winning",
+    "losing": "Your partner is ahead"
+  },
+  "subtitle": "Total accumulated balance",
+  "you": "You",
+  "partner": "Partner",
+  "level": "Level {{level}}"
+}

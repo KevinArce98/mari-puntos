@@ -16,6 +16,7 @@
       "appStoreUrl": "https://apps.apple.com/app/id6758923865",
       "infoPlist": {
         "CFBundleDevelopmentRegion": "es_CR",
+        "CFBundleLocalizations": ["es", "en"],
         "ITSAppUsesNonExemptEncryption": false,
         "UIStatusBarStyle": "UIStatusBarStyleDefault",
         "UIViewControllerBasedStatusBarAppearance": false
@@ -89,7 +90,8 @@
       "expo-font",
       "expo-secure-store",
       "expo-web-browser",
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true,

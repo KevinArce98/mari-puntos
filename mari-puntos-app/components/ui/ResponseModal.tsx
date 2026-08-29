@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { POINT_VALUE_PRESETS } from '@/constants/points';
@@ -58,6 +59,7 @@ export function ResponseModal({
   requesterPoints,
   loading = false,
 }: ResponseModalProps) {
+  const { t } = useTranslation(['modals', 'common']);
   const themeColors = useThemedColors();
   const insets = useSafeAreaInsets();
   const [pendingAction, setPendingAction] = useState<'approve' | 'reject' | null>(null);
@@ -115,14 +117,16 @@ export function ResponseModal({
     if (cost < 1) {
       setError('pointsCost', {
         type: 'manual',
-        message: 'Selecciona un costo en puntos',
+        message: t('response.selectCost'),
       });
       return;
     }
     if (requesterPoints != null && cost > requesterPoints) {
       setError('pointsCost', {
         type: 'manual',
-        message: `Tu pareja tiene ${requesterPoints.toLocaleString()} puntos disponibles`,
+        message: t('response.partnerBudget', {
+          points: requesterPoints.toLocaleString(),
+        }),
       });
       return;
     }
@@ -138,11 +142,11 @@ export function ResponseModal({
     };
 
     Alert.alert(
-      'Confirmar aprobación',
-      `Se descontarán ${cost} MariPuntos del saldo de tu pareja. Esta acción no se puede deshacer.`,
+      t('response.approvePrompt.title'),
+      t('response.approvePrompt.message', { points: cost }),
       [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Aprobar', onPress: submit },
+        { text: t('response.approvePrompt.cancel'), style: 'cancel' },
+        { text: t('response.approvePrompt.confirm'), onPress: submit },
       ]
     );
   };
@@ -164,14 +168,14 @@ export function ResponseModal({
     };
 
     if (isDirty) {
-      Alert.alert(
-        'Descartar respuesta',
-        'Perderás los cambios que todavía no has enviado.',
-        [
-          { text: 'Seguir editando', style: 'cancel' },
-          { text: 'Descartar', style: 'destructive', onPress: close },
-        ]
-      );
+      Alert.alert(t('response.discard.title'), t('response.discard.message'), [
+        { text: t('response.discard.stay'), style: 'cancel' },
+        {
+          text: t('response.discard.confirm'),
+          style: 'destructive',
+          onPress: close,
+        },
+      ]);
       return;
     }
     close();
@@ -209,13 +213,13 @@ export function ResponseModal({
         >
           <View style={styles.header}>
             <Text style={[styles.title, { color: themeColors.text.primary }]}>
-              Responder permiso
+              {t('response.title')}
             </Text>
             <PressableScale
               onPress={handleClose}
               style={styles.closeButton}
               accessibilityRole="button"
-              accessibilityLabel="Cerrar respuesta"
+              accessibilityLabel={t('response.closeA11y')}
             >
               <Ionicons name="close" size={24} color={themeColors.text.secondary} />
             </PressableScale>
@@ -226,24 +230,22 @@ export function ResponseModal({
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={styles.content}
           >
-            {/* Permission Title */}
             <View
               style={[styles.permissionInfo, { backgroundColor: themeColors.background }]}
             >
               <Text
                 style={[styles.permissionLabel, { color: themeColors.text.secondary }]}
               >
-                Solicitud:
+                {t('response.requestLabel')}
               </Text>
               <Text style={[styles.permissionTitle, { color: themeColors.text.primary }]}>
                 {permissionTitle}
               </Text>
             </View>
 
-            {/* Points Cost Picker */}
             <View style={styles.inputContainer}>
               <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>
-                Costo en puntos *
+                {t('response.pointsCostLabel')}
               </Text>
               <Controller
                 control={control}
@@ -280,20 +282,21 @@ export function ResponseModal({
               />
               {requesterPoints != null && (
                 <Text style={[styles.balanceHint, { color: themeColors.text.secondary }]}>
-                  Saldo disponible: {requesterPoints.toLocaleString()} MariPuntos
+                  {t('response.availableBalance', {
+                    points: requesterPoints.toLocaleString(),
+                  })}
                 </Text>
               )}
             </View>
 
-            {/* Message Input */}
             <View style={styles.inputContainer}>
               <Text style={[styles.inputLabel, { color: themeColors.text.primary }]}>
-                Mensaje de respuesta (opcional)
+                {t('response.messageLabel')}
               </Text>
               <ControlledInput
                 control={control}
                 name="message"
-                placeholder="Escribe un mensaje para tu pareja..."
+                placeholder={t('response.messagePlaceholder')}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
@@ -304,7 +307,7 @@ export function ResponseModal({
 
           <View style={styles.actionButtons}>
             <Button
-              title="Rechazar"
+              title={t('response.reject')}
               onPress={handleSubmit(onSubmitReject)}
               variant="outline"
               textStyle={{ color: themeColors.error }}
@@ -313,7 +316,7 @@ export function ResponseModal({
               disabled={loading}
             />
             <Button
-              title="Aprobar"
+              title={t('response.approve')}
               onPress={handleSubmit(onSubmitApprove)}
               variant="primary"
               style={styles.actionButton}

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 
 import { DimensionValue, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
+import { useTranslation } from 'react-i18next';
 import Animated, {
   Easing,
   cancelAnimation,
@@ -28,6 +29,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   radius = borderRadius.md,
   style,
 }) => {
+  const { t } = useTranslation('common');
   const colors = useThemedColors();
   const reducedMotion = useReducedMotion();
   const opacity = useSharedValue(0.55);
@@ -46,7 +48,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
 
   return (
     <Animated.View
-      accessibilityLabel="Cargando"
+      accessibilityLabel={t('actions.loading')}
       style={[
         { width, height, borderRadius: radius, backgroundColor: colors.gray[200] },
         animatedStyle,

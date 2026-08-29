@@ -1,0 +1,16 @@
+{
+  "generic": "Ocurrió un error inesperado",
+  "title": "Error",
+  "network": "No se pudo conectar. Revisa tu conexión e intenta de nuevo.",
+  "timeout": "La solicitud tardó demasiado. Intenta de nuevo.",
+  "server": "Tuvimos un problema en el servidor. Intenta más tarde.",
+  "unauthorized": "Tu sesión expiró. Vuelve a iniciar sesión.",
+  "notFound": "No encontramos lo que buscabas.",
+  "session": "Algo salió mal con tu sesión",
+  "render": "Algo salió mal",
+  "accessDenied": {
+    "title": "Acceso denegado",
+    "message": "Necesitas iniciar sesión para acceder a esta página.",
+    "cta": "Ir al inicio de sesión"
+  }
+}

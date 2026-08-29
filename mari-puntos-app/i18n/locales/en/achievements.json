@@ -1,0 +1,33 @@
+{
+  "title": "Achievements",
+  "backA11y": "Go back",
+  "progressTitle": "Your progress",
+  "progressSubtitle": "{{unlocked}} of {{total}} achievements",
+  "stats": {
+    "earned": "Earned",
+    "pending": "Pending",
+    "total": "Total"
+  },
+  "filters": {
+    "all": "All",
+    "unlocked": "Unlocked",
+    "locked": "Locked"
+  },
+  "sections": {
+    "unlocked": "Unlocked",
+    "locked": "To unlock"
+  },
+  "unlockedOn": "Unlocked on {{date}}",
+  "empty": {
+    "title": "No achievements yet",
+    "subtitle": "Start completing actions to unlock achievements!"
+  },
+  "types": {
+    "points_milestone": "Points",
+    "level_milestone": "Level",
+    "actions_completed": "Actions",
+    "permissions_granted": "Permissions",
+    "streak": "Streak",
+    "special": "Special"
+  }
+}

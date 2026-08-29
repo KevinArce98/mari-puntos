@@ -5,7 +5,6 @@ import { GetPointsHistoryParams, PointsLog } from '@/types';
 import { getErrorMessage } from '@/utils/errorMessage';
 import logger from '@/utils/logger';
 
-/** Deduplicate an array of objects by `id`, keeping the first occurrence. */
 function dedupeById<T extends { id: string }>(items: T[]): T[] {
   const seen = new Set<string>();
   return items.filter((item) => {
@@ -26,7 +25,6 @@ interface PointsState {
     totalPages: number;
   } | null;
 
-  // Actions
   fetchPointsHistory: (
     params?: GetPointsHistoryParams,
     append?: boolean

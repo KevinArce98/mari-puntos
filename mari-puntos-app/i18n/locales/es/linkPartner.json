@@ -1,0 +1,40 @@
+{
+  "title": "Vincula a tu pareja",
+  "subtitle": "Conéctate con tu pareja para comenzar tu viaje en MariPuntos juntos",
+  "hint": "Solo uno de los dos genera el código. El otro elige “Ingresar código” y lo escribe para vincular las cuentas.",
+  "mode": {
+    "share": "Compartir código",
+    "join": "Ingresar código"
+  },
+  "share": {
+    "label": "Tu código de vinculación",
+    "verifying": "Verificando código...",
+    "shareCode": "Compartir código",
+    "copyCode": "Copiar código",
+    "waiting": "Esperando que tu pareja ingrese el código…",
+    "checkNow": "Comprobar ahora",
+    "generate": "Generar código",
+    "shareMessage": "Vinculemos nuestras cuentas en MariPuntos. Mi código es {{code}}."
+  },
+  "join": {
+    "label": "Ingresa el código de tu pareja",
+    "submit": "Vincular cuentas"
+  },
+  "back": "Regresar",
+  "backA11y": "Regresar a inicio",
+  "toast": {
+    "generatedTitle": "¡Código generado!",
+    "generatedMessage": "Comparte este código con tu pareja",
+    "generateError": "No se pudo generar el código",
+    "copiedTitle": "¡Copiado!",
+    "copiedMessage": "Código copiado al portapapeles",
+    "ownCodeError": "No puedes unirte a tu propio código",
+    "linkedTitle": "¡Vinculado!",
+    "linkedMessage": "Ahora estás conectado con tu pareja",
+    "joinError": "Código inválido o expirado",
+    "linkedSuccessTitle": "¡Vinculado exitosamente!",
+    "linkedSuccessMessage": "Tu pareja {{name}} se ha conectado",
+    "waitingTitle": "Esperando conexión",
+    "waitingMessage": "Tu pareja aún no ha ingresado el código"
+  }
+}

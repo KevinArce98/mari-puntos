@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 import { POINT_VALUE_PRESETS } from '@/constants/points';
 import { useThemedColors } from '@/hooks';
@@ -31,14 +32,14 @@ interface ReviewActionModalProps {
   onReject: (actionId: string, reason: string) => Promise<void>;
 }
 
-const CATEGORY_LABELS: Record<ActionCategory, string> = {
-  [ActionCategory.HOUSEHOLD]: 'Hogar',
-  [ActionCategory.CHILDCARE]: 'Cuidado de niños',
-  [ActionCategory.ERRANDS]: 'Mandados',
-  [ActionCategory.ROMANTIC]: 'Romántico',
-  [ActionCategory.PERSONAL_GROWTH]: 'Crecimiento personal',
-  [ActionCategory.OTHER]: 'Otro',
-};
+const CATEGORY_LABEL_KEYS = {
+  [ActionCategory.HOUSEHOLD]: 'common:actionCategories.household',
+  [ActionCategory.CHILDCARE]: 'common:actionCategories.childcare',
+  [ActionCategory.ERRANDS]: 'common:actionCategories.errands',
+  [ActionCategory.ROMANTIC]: 'common:actionCategories.romantic',
+  [ActionCategory.PERSONAL_GROWTH]: 'common:actionCategories.personal_growth_long',
+  [ActionCategory.OTHER]: 'common:actionCategories.other',
+} as const satisfies Record<ActionCategory, string>;
 
 export function ReviewActionModal({
   visible,
@@ -47,6 +48,7 @@ export function ReviewActionModal({
   onApprove,
   onReject,
 }: ReviewActionModalProps) {
+  const { t } = useTranslation(['modals', 'common']);
   const themeColors = useThemedColors();
   const [points, setPoints] = useState(100);
   const [loading, setLoading] = useState(false);
@@ -70,12 +72,12 @@ export function ReviewActionModal({
     if (!action) return;
 
     Alert.alert(
-      'Confirmar aprobación',
-      `Se otorgarán ${points} MariPuntos a tu pareja. Esta acción no se puede deshacer.`,
+      t('reviewAction.approvePrompt.title'),
+      t('reviewAction.approvePrompt.message', { points }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('reviewAction.approvePrompt.cancel'), style: 'cancel' },
         {
-          text: 'Aprobar',
+          text: t('reviewAction.approvePrompt.confirm'),
           onPress: async () => {
             setLoading(true);
             try {
@@ -117,9 +119,13 @@ export function ReviewActionModal({
 
   const handleClose = () => {
     if (mode === 'reject' && isDirty) {
-      Alert.alert('Descartar rechazo', 'Perderás el motivo que todavía no has enviado.', [
-        { text: 'Seguir editando', style: 'cancel' },
-        { text: 'Descartar', style: 'destructive', onPress: resetAndClose },
+      Alert.alert(t('reviewAction.discard.title'), t('reviewAction.discard.message'), [
+        { text: t('reviewAction.discard.stay'), style: 'cancel' },
+        {
+          text: t('reviewAction.discard.confirm'),
+          style: 'destructive',
+          onPress: resetAndClose,
+        },
       ]);
       return;
     }
@@ -144,23 +150,23 @@ export function ReviewActionModal({
           style={[styles.container, { backgroundColor: themeColors.gray[100] }]}
           accessibilityViewIsModal
         >
-          {/* Header */}
           <View style={[styles.header, { borderBottomColor: themeColors.gray[200] }]}>
             <Text style={[styles.title, { color: themeColors.text.primary }]}>
-              {mode === 'review' ? 'Revisar acción' : 'Rechazar acción'}
+              {mode === 'review'
+                ? t('reviewAction.reviewTitle')
+                : t('reviewAction.rejectTitle')}
             </Text>
             <PressableScale
               onPress={handleClose}
               style={styles.closeButton}
               accessibilityRole="button"
-              accessibilityLabel="Cerrar revisión de acción"
+              accessibilityLabel={t('reviewAction.closeA11y')}
             >
               <Ionicons name="close" size={24} color={themeColors.text.primary} />
             </PressableScale>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
-            {/* Action Details */}
             <View
               style={[styles.actionDetails, { backgroundColor: themeColors.gray[50] }]}
             >
@@ -168,7 +174,7 @@ export function ReviewActionModal({
                 {action.title}
               </Text>
               <Text style={[styles.actionCategory, { color: themeColors.primary }]}>
-                {CATEGORY_LABELS[action.category]}
+                {t(CATEGORY_LABEL_KEYS[action.category])}
               </Text>
               {action.description && (
                 <Text
@@ -186,11 +192,10 @@ export function ReviewActionModal({
             </View>
 
             {mode === 'review' ? (
-              /* Points Slider */
               <View style={styles.section}>
                 <View style={styles.pointsHeader}>
                   <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                    Puntos a otorgar
+                    {t('reviewAction.pointsLabel')}
                   </Text>
                   <View
                     style={[
@@ -207,7 +212,7 @@ export function ReviewActionModal({
                 <Text
                   style={[styles.suggestedLabel, { color: themeColors.text.secondary }]}
                 >
-                  Valores fijos — mantiene los puntos consistentes entre acciones
+                  {t('reviewAction.pointsHint')}
                 </Text>
                 <View style={styles.pointsPresets}>
                   {POINT_VALUE_PRESETS.map((value) => (
@@ -222,17 +227,16 @@ export function ReviewActionModal({
                 </View>
               </View>
             ) : (
-              /* Rejection Reason */
               <View style={styles.section}>
                 <Text style={[styles.label, { color: themeColors.text.primary }]}>
-                  Motivo del rechazo *
+                  {t('reviewAction.rejectReasonLabel')}
                 </Text>
                 <Controller
                   control={control}
                   name="rejectionReason"
                   render={({ field: { onChange, value } }) => (
                     <TextAreaWithCounter
-                      placeholder="Explica por qué estás rechazando esta acción..."
+                      placeholder={t('reviewAction.rejectReasonPlaceholder')}
                       value={value ?? ''}
                       onChangeText={onChange}
                       numberOfLines={4}
@@ -245,12 +249,11 @@ export function ReviewActionModal({
             )}
           </ScrollView>
 
-          {/* Actions */}
           <View style={styles.actions}>
             {mode === 'review' ? (
               <>
                 <Button
-                  title="Rechazar"
+                  title={t('reviewAction.reject')}
                   variant="outline"
                   onPress={() => setMode('reject')}
                   textStyle={{ color: themeColors.error }}
@@ -259,7 +262,7 @@ export function ReviewActionModal({
                   icon="close-circle"
                 />
                 <Button
-                  title="Aprobar"
+                  title={t('reviewAction.approve')}
                   onPress={handleApprove}
                   style={styles.actionButton}
                   disabled={loading}
@@ -270,14 +273,14 @@ export function ReviewActionModal({
             ) : (
               <>
                 <Button
-                  title="Volver"
+                  title={t('reviewAction.back')}
                   variant="outline"
                   onPress={() => setMode('review')}
                   style={styles.actionButton}
                   disabled={loading}
                 />
                 <Button
-                  title="Confirmar rechazo"
+                  title={t('reviewAction.confirmReject')}
                   onPress={handleSubmit(onSubmitReject)}
                   style={[styles.actionButton, { backgroundColor: themeColors.error }]}
                   disabled={loading}

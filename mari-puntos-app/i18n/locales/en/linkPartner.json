@@ -1,0 +1,40 @@
+{
+  "title": "Link your partner",
+  "subtitle": "Connect with your partner to start your MariPuntos journey together",
+  "hint": "Only one of you generates the code. The other picks “Enter code” and types it in to link the accounts.",
+  "mode": {
+    "share": "Share code",
+    "join": "Enter code"
+  },
+  "share": {
+    "label": "Your linking code",
+    "verifying": "Checking code...",
+    "shareCode": "Share code",
+    "copyCode": "Copy code",
+    "waiting": "Waiting for your partner to enter the code…",
+    "checkNow": "Check now",
+    "generate": "Generate code",
+    "shareMessage": "Let's link our MariPuntos accounts. My code is {{code}}."
+  },
+  "join": {
+    "label": "Enter your partner's code",
+    "submit": "Link accounts"
+  },
+  "back": "Go back",
+  "backA11y": "Return to home",
+  "toast": {
+    "generatedTitle": "Code generated!",
+    "generatedMessage": "Share this code with your partner",
+    "generateError": "Couldn't generate the code",
+    "copiedTitle": "Copied!",
+    "copiedMessage": "Code copied to clipboard",
+    "ownCodeError": "You can't join your own code",
+    "linkedTitle": "Linked!",
+    "linkedMessage": "You're now connected with your partner",
+    "joinError": "Invalid or expired code",
+    "linkedSuccessTitle": "Linked successfully!",
+    "linkedSuccessMessage": "Your partner {{name}} has connected",
+    "waitingTitle": "Waiting for connection",
+    "waitingMessage": "Your partner hasn't entered the code yet"
+  }
+}

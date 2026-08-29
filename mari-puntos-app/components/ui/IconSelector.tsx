@@ -12,6 +12,7 @@ import {
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useThemedColors } from '@/hooks';
@@ -19,56 +20,56 @@ import { borderRadius, shadows, spacing, typography } from '@/theme';
 
 import { PressableScale } from './PressableScale';
 
-const ICON_OPTIONS = [
-  { name: 'game-controller-outline', label: 'Gaming' },
-  { name: 'people-outline', label: 'Amigos' },
-  { name: 'football-outline', label: 'Deportes' },
-  { name: 'basketball-outline', label: 'Basketball' },
-  { name: 'beer-outline', label: 'Cerveza' },
-  { name: 'wine-outline', label: 'Vino' },
-  { name: 'fast-food-outline', label: 'Comida' },
-  { name: 'restaurant-outline', label: 'Restaurante' },
-  { name: 'cafe-outline', label: 'Café' },
-  { name: 'musical-notes-outline', label: 'Música' },
-  { name: 'headset-outline', label: 'Audífonos' },
-  { name: 'film-outline', label: 'Película' },
-  { name: 'tv-outline', label: 'TV' },
-  { name: 'book-outline', label: 'Libro' },
-  { name: 'bicycle-outline', label: 'Bicicleta' },
-  { name: 'car-sport-outline', label: 'Auto' },
-  { name: 'airplane-outline', label: 'Avión' },
-  { name: 'beach-outline', label: 'Playa' },
-  { name: 'fitness-outline', label: 'Gimnasio' },
-  { name: 'barbell-outline', label: 'Pesas' },
-  { name: 'tennisball-outline', label: 'Tenis' },
-  { name: 'golf-outline', label: 'Golf' },
-  { name: 'baseball-outline', label: 'Baseball' },
-  { name: 'american-football-outline', label: 'Fútbol Americano' },
-  { name: 'camera-outline', label: 'Fotografía' },
-  { name: 'color-palette-outline', label: 'Arte' },
-  { name: 'brush-outline', label: 'Pintura' },
-  { name: 'build-outline', label: 'Herramientas' },
-  { name: 'hammer-outline', label: 'Construcción' },
-  { name: 'hardware-chip-outline', label: 'Tecnología' },
-  { name: 'game-controller', label: 'Videojuegos' },
-  { name: 'trophy-outline', label: 'Trofeo' },
-  { name: 'medal-outline', label: 'Medalla' },
-  { name: 'star-outline', label: 'Estrella' },
-  { name: 'heart-outline', label: 'Corazón' },
-  { name: 'chatbubbles-outline', label: 'Chat' },
-  { name: 'pizza-outline', label: 'Pizza' },
-  { name: 'ice-cream-outline', label: 'Helado' },
-  { name: 'leaf-outline', label: 'Naturaleza' },
-  { name: 'bed-outline', label: 'Descanso' },
-  { name: 'moon-outline', label: 'Noche' },
-  { name: 'sunny-outline', label: 'Día' },
-  { name: 'thunderstorm-outline', label: 'Tormenta' },
-  { name: 'umbrella-outline', label: 'Lluvia' },
-  { name: 'gift-outline', label: 'Regalo' },
-  { name: 'balloon-outline', label: 'Fiesta' },
-  { name: 'sparkles-outline', label: 'Especial' },
-  { name: 'flame-outline', label: 'Pasión' },
-];
+const ICON_NAMES = [
+  'game-controller-outline',
+  'people-outline',
+  'football-outline',
+  'basketball-outline',
+  'beer-outline',
+  'wine-outline',
+  'fast-food-outline',
+  'restaurant-outline',
+  'cafe-outline',
+  'musical-notes-outline',
+  'headset-outline',
+  'film-outline',
+  'tv-outline',
+  'book-outline',
+  'bicycle-outline',
+  'car-sport-outline',
+  'airplane-outline',
+  'beach-outline',
+  'fitness-outline',
+  'barbell-outline',
+  'tennisball-outline',
+  'golf-outline',
+  'baseball-outline',
+  'american-football-outline',
+  'camera-outline',
+  'color-palette-outline',
+  'brush-outline',
+  'build-outline',
+  'hammer-outline',
+  'hardware-chip-outline',
+  'game-controller',
+  'trophy-outline',
+  'medal-outline',
+  'star-outline',
+  'heart-outline',
+  'chatbubbles-outline',
+  'pizza-outline',
+  'ice-cream-outline',
+  'leaf-outline',
+  'bed-outline',
+  'moon-outline',
+  'sunny-outline',
+  'thunderstorm-outline',
+  'umbrella-outline',
+  'gift-outline',
+  'balloon-outline',
+  'sparkles-outline',
+  'flame-outline',
+] as const;
 
 interface IconSelectorProps {
   visible: boolean;
@@ -83,11 +84,17 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
   onSelect,
   onClose,
 }) => {
+  const { t } = useTranslation(['modals', 'icons']);
   const [searchQuery, setSearchQuery] = useState('');
   const insets = useSafeAreaInsets();
   const themeColors = useThemedColors();
 
-  const filteredIcons = ICON_OPTIONS.filter(
+  const iconOptions = ICON_NAMES.map((name) => ({
+    name,
+    label: t(`icons:${name}`),
+  }));
+
+  const filteredIcons = iconOptions.filter(
     (icon) =>
       icon.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
       icon.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -115,7 +122,6 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
         ]}
         accessibilityViewIsModal
       >
-        {/* Header */}
         <View
           style={[
             styles.header,
@@ -126,19 +132,18 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
           ]}
         >
           <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
-            Seleccionar icono
+            {t('iconSelector.title')}
           </Text>
           <PressableScale
             onPress={onClose}
             style={styles.closeButton}
             accessibilityRole="button"
-            accessibilityLabel="Cerrar selector de iconos"
+            accessibilityLabel={t('iconSelector.closeA11y')}
           >
             <Ionicons name="close" size={28} color={themeColors.text.primary} />
           </PressableScale>
         </View>
 
-        {/* Search */}
         <View
           style={[styles.searchContainer, { backgroundColor: themeColors.gray[100] }]}
         >
@@ -150,14 +155,13 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
           />
           <TextInput
             style={[styles.searchInput, { color: themeColors.text.primary }]}
-            placeholder="Buscar icono..."
+            placeholder={t('iconSelector.searchPlaceholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor={themeColors.gray[400]}
           />
         </View>
 
-        {/* Icons Grid */}
         <ScrollView contentContainerStyle={styles.gridContainer}>
           {filteredIcons.map((icon) => (
             <PressableScale

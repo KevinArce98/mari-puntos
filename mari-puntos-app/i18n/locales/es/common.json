@@ -1,0 +1,103 @@
+{
+  "appName": "MariPuntos",
+  "actions": {
+    "accept": "Aceptar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "keepEditing": "Seguir editando",
+    "discard": "Descartar",
+    "save": "Guardar",
+    "saveChanges": "Guardar cambios",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "goBack": "Volver",
+    "retry": "Reintentar",
+    "continue": "Continuar",
+    "next": "Siguiente",
+    "skip": "Omitir",
+    "send": "Enviar",
+    "search": "Buscar",
+    "loading": "Cargando...",
+    "loadingMore": "Cargando más...",
+    "seeAll": "Ver todo",
+    "understood": "Entendido"
+  },
+  "units": {
+    "points": "pts",
+    "pointsLong_one": "{{count}} punto",
+    "pointsLong_other": "{{count}} puntos",
+    "level": "Nivel {{level}}"
+  },
+  "time": {
+    "now": "Ahora mismo",
+    "minutesAgo_one": "Hace {{count}} minuto",
+    "minutesAgo_other": "Hace {{count}} minutos",
+    "hoursAgo_one": "Hace {{count}} hora",
+    "hoursAgo_other": "Hace {{count}} horas",
+    "daysAgo_one": "Hace {{count}} día",
+    "daysAgo_other": "Hace {{count}} días"
+  },
+  "status": {
+    "approved": "Aprobado",
+    "rejected": "Rechazado",
+    "expired": "Expirado",
+    "pending": "Pendiente"
+  },
+  "filters": {
+    "all": "Todas",
+    "pending": "Pendientes",
+    "approved": "Aprobadas",
+    "rejected": "Rechazadas"
+  },
+  "actionCategories": {
+    "household": "Hogar",
+    "childcare": "Cuidado de niños",
+    "errands": "Mandados",
+    "romantic": "Romántico",
+    "personal_growth": "Crecimiento",
+    "personal_growth_long": "Crecimiento personal",
+    "other": "Otro"
+  },
+  "states": {
+    "empty": "No hay nada por aquí todavía",
+    "error": "Algo salió mal",
+    "offline": "Sin conexión"
+  },
+  "errorBoundary": {
+    "title": "Algo salió mal",
+    "retry": "Reintentar"
+  },
+  "inputs": {
+    "action": "Acción",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
+    "codeA11y": "Ingresar código de verificación",
+    "codeEmpty": "Vacío",
+    "selectPlaceholder": "Selecciona una opción",
+    "closeOptions": "Cerrar opciones",
+    "pointsCardLabel": "Total de puntos",
+    "pointsCardA11y": "{{label}}: {{points}} MariPuntos. Ver logros"
+  },
+  "streak": {
+    "weeklyTitle": "Racha semanal",
+    "weekA11y_one": "Racha semanal: {{count}} semana",
+    "weekA11y_other": "Racha semanal: {{count}} semanas",
+    "weekShort": "sem.",
+    "record": "Récord: {{count}} sem.",
+    "week_one": "semana",
+    "week_other": "semanas",
+    "you": "Vos",
+    "partner": "Pareja",
+    "waitingPartner": "Esperando que tu pareja registre una acción esta semana",
+    "logToKeep": "Registrá una acción esta semana para mantener la racha",
+    "completed": "¡Racha completada esta semana!"
+  },
+  "update": {
+    "title": "Actualización disponible",
+    "message": "Hay una nueva versión de MariPuntos. ¿Deseas reiniciar la app para aplicarla?",
+    "later": "Ahora no",
+    "restart": "Reiniciar"
+  }
+}

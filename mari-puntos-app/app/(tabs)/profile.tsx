@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '@clerk/clerk-expo';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -23,7 +24,9 @@ import {
 import { usePoints, useThemedColors, useUser } from '@/hooks';
 import { userService } from '@/services/userService';
 import {
+  LanguagePreference,
   useActionsStore,
+  useLanguageStore,
   usePermissionsStore,
   usePointsStore,
   useStreakStore,
@@ -33,45 +36,64 @@ import { borderRadius, shadows, spacing, typography } from '@/theme';
 const SUPPORT_EMAIL = 'arias9068@gmail.com';
 
 export default function ProfileScreen() {
+  const { t } = useTranslation(['profile', 'common', 'errors']);
   const colors = useThemedColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signOut } = useAuth();
   const { user, partnerInfo, hasPartner, unlinkPartner, updateProfile } = useUser();
   const { myPoints, myLevel, progressToNextLevel, pointsToNextLevel } = usePoints();
+  const languagePreference = useLanguageStore((s) => s.preference);
+  const setLanguagePreference = useLanguageStore((s) => s.setPreference);
   const [loading, setLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const handleUnlinkPartner = () => {
-    Alert.alert(
-      'Desvincular pareja',
-      '¿Estás seguro de que deseas desvincular a tu pareja? Esta acción no se puede deshacer.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Desvincular',
-          style: 'destructive',
-          onPress: async () => {
-            setLoading(true);
-            try {
-              await unlinkPartner();
-              // Clear partner-specific data from all dependent stores
-              useActionsStore.getState().clearActions();
-              usePermissionsStore.getState().clearPermissions();
-              usePointsStore.getState().clearPoints();
-              useStreakStore.getState().clearStreak();
-              toast.success('Desvinculado', {
-                description: 'Tu pareja ha sido desvinculada',
-              });
-            } catch {
-              toast.error('Error', { description: 'No se pudo desvincular a la pareja' });
-            } finally {
-              setLoading(false);
-            }
-          },
+  const handleChangeLanguage = () => {
+    const options: { label: string; value: LanguagePreference }[] = [
+      { label: t('language.system'), value: 'system' },
+      { label: t('language.es'), value: 'es' },
+      { label: t('language.en'), value: 'en' },
+    ];
+    Alert.alert(t('language.title'), undefined, [
+      ...options.map((option) => ({
+        text: option.value === languagePreference ? `${option.label}  ✓` : option.label,
+        onPress: () => {
+          if (option.value !== languagePreference) {
+            setLanguagePreference(option.value);
+          }
         },
-      ]
-    );
+      })),
+      { text: t('common:actions.cancel'), style: 'cancel' as const },
+    ]);
+  };
+
+  const handleUnlinkPartner = () => {
+    Alert.alert(t('unlink.title'), t('unlink.message'), [
+      { text: t('common:actions.cancel'), style: 'cancel' },
+      {
+        text: t('unlink.confirm'),
+        style: 'destructive',
+        onPress: async () => {
+          setLoading(true);
+          try {
+            await unlinkPartner();
+            useActionsStore.getState().clearActions();
+            usePermissionsStore.getState().clearPermissions();
+            usePointsStore.getState().clearPoints();
+            useStreakStore.getState().clearStreak();
+            toast.success(t('unlink.successTitle'), {
+              description: t('unlink.successMessage'),
+            });
+          } catch {
+            toast.error(t('errors:title'), {
+              description: t('unlink.errorMessage'),
+            });
+          } finally {
+            setLoading(false);
+          }
+        },
+      },
+    ]);
   };
 
   const handleEditProfile = async (data: {
@@ -83,11 +105,11 @@ export default function ProfileScreen() {
     try {
       await updateProfile(data);
 
-      toast.success('Perfil actualizado', {
-        description: 'Tu perfil se ha actualizado correctamente',
+      toast.success(t('edit.successTitle'), {
+        description: t('edit.successMessage'),
       });
     } catch (error) {
-      toast.error('Error', { description: 'No se pudo actualizar el perfil' });
+      toast.error(t('errors:title'), { description: t('edit.errorMessage') });
       throw error;
     } finally {
       setLoading(false);
@@ -95,49 +117,41 @@ export default function ProfileScreen() {
   };
 
   const handleDeleteAccount = () => {
-    Alert.alert(
-      'Eliminar cuenta',
-      '¿Estás seguro de que deseas eliminar tu cuenta? Todos tus datos, puntos y progreso se perderán permanentemente. Esta acción no se puede deshacer.',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: () => {
-            Alert.alert(
-              'Confirmar eliminación',
-              'Esta es tu última oportunidad. ¿Deseas eliminar tu cuenta definitivamente?',
-              [
-                { text: 'Cancelar', style: 'cancel' },
-                {
-                  text: 'Sí, eliminar',
-                  style: 'destructive',
-                  onPress: async () => {
-                    setLoading(true);
-                    try {
-                      await userService.deleteAccount();
-                      await signOut();
-                    } catch {
-                      setLoading(false);
-                      toast.error('Error', {
-                        description: 'No se pudo eliminar la cuenta. Intenta de nuevo.',
-                      });
-                    }
-                  },
-                },
-              ]
-            );
-          },
+    Alert.alert(t('delete.title'), t('delete.message'), [
+      { text: t('common:actions.cancel'), style: 'cancel' },
+      {
+        text: t('delete.confirm'),
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(t('delete.confirmTitle'), t('delete.confirmMessage'), [
+            { text: t('common:actions.cancel'), style: 'cancel' },
+            {
+              text: t('delete.confirmCta'),
+              style: 'destructive',
+              onPress: async () => {
+                setLoading(true);
+                try {
+                  await userService.deleteAccount();
+                  await signOut();
+                } catch {
+                  setLoading(false);
+                  toast.error(t('errors:title'), {
+                    description: t('delete.errorMessage'),
+                  });
+                }
+              },
+            },
+          ]);
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleSignOut = () => {
-    Alert.alert('Cerrar sesión', '¿Estás seguro de que deseas cerrar sesión?', [
-      { text: 'Cancelar', style: 'cancel' },
+    Alert.alert(t('signOutPrompt.title'), t('signOutPrompt.message'), [
+      { text: t('common:actions.cancel'), style: 'cancel' },
       {
-        text: 'Cerrar sesión',
+        text: t('signOut'),
         style: 'destructive',
         onPress: async () => {
           await signOut();
@@ -153,21 +167,16 @@ export default function ProfileScreen() {
         { paddingTop: insets.top, backgroundColor: colors.background },
       ]}
     >
-      {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Perfil</Text>
-
-        {/* TODO: Configuración funcitonality */}
-        {/* <PressableScale style={styles.settingsButton}>
-          <Ionicons name="settings-outline" size={24} color={colors.text.primary} />
-        </PressableScale> */}
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
+          {t('title')}
+        </Text>
       </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Profile Card */}
         <Card style={styles.profileCard}>
           <View style={styles.profileHeader}>
             <Avatar
@@ -189,27 +198,26 @@ export default function ProfileScreen() {
               style={[styles.editButton, { backgroundColor: `${colors.primary}15` }]}
               onPress={() => setShowEditModal(true)}
               accessibilityRole="button"
-              accessibilityLabel="Editar perfil"
+              accessibilityLabel={t('editA11y')}
             >
               <Ionicons name="pencil" size={16} color={colors.primary} />
             </PressableScale>
           </View>
 
-          {/* Stats Row */}
           <View style={[styles.statsRow, { borderColor: colors.gray[100] }]}>
             <View style={styles.stat}>
               <Text style={[styles.statValue, { color: colors.primary }]}>
                 {myPoints.toLocaleString()}
               </Text>
               <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-                Puntos
+                {t('stats.points')}
               </Text>
             </View>
             <View style={[styles.statDivider, { backgroundColor: colors.gray[200] }]} />
             <View style={styles.stat}>
               <Text style={[styles.statValue, { color: colors.primary }]}>{myLevel}</Text>
               <Text style={[styles.statLabel, { color: colors.text.secondary }]}>
-                Nivel
+                {t('stats.level')}
               </Text>
             </View>
           </View>
@@ -217,10 +225,10 @@ export default function ProfileScreen() {
           <View style={styles.levelProgress}>
             <View style={styles.levelProgressHeader}>
               <Text style={[styles.levelLabel, { color: colors.text.secondary }]}>
-                Nivel {myLevel}
+                {t('level.current', { level: myLevel })}
               </Text>
               <Text style={[styles.levelLabel, { color: colors.text.secondary }]}>
-                {pointsToNextLevel} pts para nivel {myLevel + 1}
+                {t('level.toNext', { points: pointsToNextLevel, level: myLevel + 1 })}
               </Text>
             </View>
             <ProgressBar
@@ -231,19 +239,18 @@ export default function ProfileScreen() {
           </View>
         </Card>
 
-        {/* Partner Section */}
         {hasPartner && partnerInfo ? (
           <Card style={styles.partnerCard}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-                Tu pareja
+                {t('partner.title')}
               </Text>
               <PressableScale
                 onPress={handleUnlinkPartner}
                 disabled={loading}
                 style={styles.unlinkButton}
                 accessibilityRole="button"
-                accessibilityLabel="Desvincular pareja"
+                accessibilityLabel={t('partner.unlinkA11y')}
               >
                 <Ionicons name="unlink" size={18} color={colors.error} />
               </PressableScale>
@@ -259,7 +266,9 @@ export default function ProfileScreen() {
                   {partnerInfo.partner.firstName}
                 </Text>
                 <Text style={[styles.partnerPoints, { color: colors.primary }]}>
-                  {partnerInfo.partner.totalPoints?.toLocaleString() || 0} MariPuntos
+                  {t('partner.points', {
+                    points: partnerInfo.partner.totalPoints?.toLocaleString() || 0,
+                  })}
                 </Text>
               </View>
               <View
@@ -267,7 +276,7 @@ export default function ProfileScreen() {
               >
                 <View style={[styles.statusDot, { backgroundColor: colors.success }]} />
                 <Text style={[styles.statusText, { color: colors.success }]}>
-                  Vinculado
+                  {t('partner.linked')}
                 </Text>
               </View>
             </View>
@@ -280,13 +289,13 @@ export default function ProfileScreen() {
               <Ionicons name="people-outline" size={32} color={colors.primary} />
             </View>
             <Text style={[styles.noPartnerTitle, { color: colors.text.primary }]}>
-              No hay pareja vinculada
+              {t('partner.noneTitle')}
             </Text>
             <Text style={[styles.noPartnerText, { color: colors.text.secondary }]}>
-              Conéctate con tu pareja para comenzar a ganar puntos juntos
+              {t('partner.noneText')}
             </Text>
             <Button
-              title="Vincular pareja"
+              title={t('partner.linkCta')}
               onPress={() => router.push('/link-partner')}
               size="sm"
               icon="link"
@@ -296,20 +305,20 @@ export default function ProfileScreen() {
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-            Progreso
+            {t('sections.progress')}
           </Text>
           <Card padding="none" style={styles.menuCard}>
             <ListItem
-              title="Logros"
-              subtitle="Revisa lo que has desbloqueado"
+              title={t('menu.achievements')}
+              subtitle={t('menu.achievementsSubtitle')}
               leftIcon="trophy-outline"
               rightIcon="chevron-forward"
               onPress={() => router.push('/achievements')}
               showBorder
             />
             <ListItem
-              title="Historial"
-              subtitle="Consulta todos tus movimientos"
+              title={t('menu.history')}
+              subtitle={t('menu.historySubtitle')}
               leftIcon="time-outline"
               rightIcon="chevron-forward"
               onPress={() => router.push('/history')}
@@ -319,32 +328,40 @@ export default function ProfileScreen() {
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-            Configuración
+            {t('sections.settings')}
           </Text>
           <Card padding="none" style={styles.menuCard}>
             <ListItem
-              title="Notificaciones"
+              title={t('menu.language')}
+              subtitle={t(`language.${languagePreference}`)}
+              leftIcon="language-outline"
+              rightIcon="chevron-forward"
+              onPress={handleChangeLanguage}
+              showBorder
+            />
+            <ListItem
+              title={t('menu.notifications')}
               leftIcon="notifications-outline"
               rightIcon="chevron-forward"
               onPress={() => Linking.openSettings()}
               showBorder
             />
             <ListItem
-              title="Cambiar contraseña"
+              title={t('menu.changePassword')}
               leftIcon="lock-closed-outline"
               rightIcon="chevron-forward"
               onPress={() => router.push('/profile/change-password')}
               showBorder
             />
             <ListItem
-              title="Privacidad"
+              title={t('menu.privacy')}
               leftIcon="shield-outline"
               rightIcon="chevron-forward"
               onPress={() => Linking.openURL('https://maripuntos.com/privacidad')}
               showBorder
             />
             <ListItem
-              title="Ayuda y soporte"
+              title={t('menu.support')}
               leftIcon="help-circle-outline"
               rightIcon="chevron-forward"
               onPress={() =>
@@ -356,14 +373,13 @@ export default function ProfileScreen() {
           </Card>
         </View>
 
-        {/* Danger Zone */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-            Zona de peligro
+            {t('sections.dangerZone')}
           </Text>
           <Card padding="none" style={styles.menuCard}>
             <ListItem
-              title="Eliminar cuenta"
+              title={t('menu.deleteAccount')}
               leftIcon="trash-outline"
               rightIcon="chevron-forward"
               titleStyle={{ color: colors.error }}
@@ -373,9 +389,8 @@ export default function ProfileScreen() {
           </Card>
         </View>
 
-        {/* Sign Out Button */}
         <Button
-          title="Cerrar sesión"
+          title={t('signOut')}
           onPress={handleSignOut}
           variant="outline"
           fullWidth
@@ -384,7 +399,7 @@ export default function ProfileScreen() {
         />
 
         <Text style={[styles.footer, { color: colors.text.light }]}>
-          MariPuntos v{Constants.expoConfig?.version || '1.0.0'}
+          {t('version', { version: Constants.expoConfig?.version || '1.0.0' })}
         </Text>
       </ScrollView>
 

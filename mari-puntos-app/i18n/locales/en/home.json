@@ -1,0 +1,39 @@
+{
+  "greeting": "Hi, {{name}}",
+  "greetingFallback": "Hi",
+  "subtitle": "Let's earn some points today",
+  "noPartner": {
+    "title": "Link your partner",
+    "text": "Connect with your partner to start earning and spending MariPuntos together",
+    "cta": "Link now"
+  },
+  "guide": {
+    "howItWorksTitle": "How does MariPuntos work?",
+    "firstStepsTitle": "First steps",
+    "noPartner1": "Link your account with your partner's (you both need the app)",
+    "noPartner2": "Earn points by logging actions your partner approves",
+    "noPartner3": "Use your points to request permissions",
+    "first1": "Log an action when you do something for your partner or the home",
+    "first2": "Your partner reviews it, approves it and you earn points",
+    "first3": "Spend your points by requesting permissions"
+  },
+  "pending_one": "{{count}} pending to review",
+  "pending_other": "{{count}} pending to review",
+  "pendingSubtitle": "Respond to your partner's actions and permissions",
+  "quickActionsTitle": "Quick actions",
+  "quickActionsFirstTitle": "Start here",
+  "requestPermission": "Request permission",
+  "requestPermissionSubtitle": "Request permission for an activity",
+  "logAction": "Log action",
+  "logActionSubtitle": "Log an activity to earn points",
+  "progressTitle": "Your progress",
+  "seeAchievements": "See achievements",
+  "seeAchievementsA11y": "See all achievements",
+  "balanceLabel": "Current balance",
+  "recentHistoryTitle": "Recent history",
+  "noRecentActivity": "No recent activity",
+  "logFirstAction": "Log your first action",
+  "actionCreated": "Action created",
+  "actionCreatedMessage": "Your action has been sent for review",
+  "actionCreateError": "Couldn't create the action"
+}

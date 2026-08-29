@@ -1,15 +1,17 @@
 import { z } from 'zod';
 
+import i18n from '@/i18n';
+
 export const updateProfileSchema = z.object({
   firstName: z
     .string()
-    .min(1, 'El nombre es requerido')
-    .max(100, 'El nombre es muy largo')
+    .min(1, { error: () => i18n.t('validation:profile.firstNameRequired') })
+    .max(100, { error: () => i18n.t('validation:profile.firstNameMax') })
     .optional(),
   lastName: z
     .string()
-    .min(1, 'El apellido es requerido')
-    .max(100, 'El apellido es muy largo')
+    .min(1, { error: () => i18n.t('validation:profile.lastNameRequired') })
+    .max(100, { error: () => i18n.t('validation:profile.lastNameMax') })
     .optional(),
   profileImage: z.string().optional(),
 });

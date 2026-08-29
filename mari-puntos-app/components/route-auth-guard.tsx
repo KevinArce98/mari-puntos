@@ -4,17 +4,15 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { useRouter } from 'expo-router';
 
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui';
 import { useThemedColors } from '@/hooks';
 import { spacing } from '@/theme';
 
-/**
- * Example of a route-specific auth guard component
- * This can be used to protect specific routes with custom behavior
- */
 export function RouteAuthGuard({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation('errors');
   const router = useRouter();
   const themeColors = useThemedColors();
 
@@ -26,13 +24,13 @@ export function RouteAuthGuard({ children }: { children: React.ReactNode }) {
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <View style={styles.content}>
         <Text style={[styles.title, { color: themeColors.text.primary }]}>
-          Acceso Denegado
+          {t('accessDenied.title')}
         </Text>
         <Text style={[styles.message, { color: themeColors.text.secondary }]}>
-          Necesitas iniciar sesión para acceder a esta página.
+          {t('accessDenied.message')}
         </Text>
         <Button
-          title="Ir al Login"
+          title={t('accessDenied.cta')}
           onPress={handleGoToLogin}
           variant="primary"
           style={styles.button}

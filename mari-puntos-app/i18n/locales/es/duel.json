@@ -1,0 +1,17 @@
+{
+  "title": "Duelo",
+  "empty": {
+    "title": "El duelo comienza con la primera acción",
+    "text": "Aquí compararán el saldo total de MariPuntos cuando empiecen a ganar puntos.",
+    "cta": "Registrar acción"
+  },
+  "result": {
+    "tie": "Van empatados",
+    "winning": "Vas ganando",
+    "losing": "Tu pareja va adelante"
+  },
+  "subtitle": "Saldo total acumulado",
+  "you": "Tú",
+  "partner": "Pareja",
+  "level": "Nivel {{level}}"
+}

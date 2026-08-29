@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 import { StyleSheet, Text, View, useColorScheme } from 'react-native';
 
+import { useTranslation } from 'react-i18next';
+
 import { useThemedColors } from '@/hooks';
 import { spacing, typography } from '@/theme';
 import { Permission } from '@/types';
@@ -22,6 +24,7 @@ interface Props {
 }
 
 export function PermissionCard({ permission, handleRespond, loading }: Props) {
+  const { t } = useTranslation(['permissions', 'common']);
   const colors = useThemedColors();
   const colorScheme = useColorScheme();
   const [modalVisible, setModalVisible] = useState(false);
@@ -44,19 +47,21 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
       <Card key={permission.id} style={styles.permissionCard}>
         <View style={styles.permissionHeader}>
           <Text style={[styles.permissionName, { color: colors.text.primary }]}>
-            {permission.template?.title || 'Solicitud sin título'}
+            {permission.template?.title || t('cardFull.untitled')}
           </Text>
           {displayPointsCost > 0 && (
             <Text style={[styles.permissionPoints, { color: colors.primary }]}>
-              {displayPointsCost} pts
+              {displayPointsCost} {t('common:units.points')}
             </Text>
           )}
         </View>
         <Text style={[styles.permissionDate, { color: colors.text.secondary }]}>
-          Fecha solicitada: {formatDateWithTime(permission.requestedDate)}
+          {t('cardFull.requestedDate', {
+            date: formatDateWithTime(permission.requestedDate),
+          })}
         </Text>
         <Text style={[styles.permissionDate, { color: colors.text.secondary }]}>
-          Duración: {permission.durationHours} horas
+          {t('cardFull.duration', { hours: permission.durationHours })}
         </Text>
         {permission.template?.description && (
           <Text
@@ -69,12 +74,12 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
           </Text>
         )}
         <Text style={[styles.permissionDate, { color: colors.text.secondary }]}>
-          Fecha creación: {formatDateOnly(permission.createdAt)}
+          {t('cardFull.createdDate', { date: formatDateOnly(permission.createdAt) })}
         </Text>
         {permission.status === 'pending' ? (
           <View style={styles.permissionActions}>
             <Button
-              title="Responder"
+              title={t('cardFull.respond')}
               onPress={() => setModalVisible(true)}
               size="sm"
               style={styles.actionButton}
@@ -97,7 +102,7 @@ export function PermissionCard({ permission, handleRespond, loading }: Props) {
         onClose={() => setModalVisible(false)}
         onApprove={handleApprove}
         onReject={handleReject}
-        permissionTitle={permission.template?.title || 'Permiso'}
+        permissionTitle={permission.template?.title || t('cardFull.fallbackTitle')}
         suggestedPointsCost={permission.template?.suggestedPointsCost}
         requesterPoints={requesterPoints}
         loading={loading === permission.id}

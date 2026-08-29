@@ -1,7 +1,3 @@
-/**
- * Type-safe error message extractor.
- * Handles API error responses ({ error: string }), native Errors, and unknowns.
- */
 export function getErrorMessage(error: unknown): string {
   if (typeof error === 'object' && error !== null) {
     const e = error as Record<string, unknown>;

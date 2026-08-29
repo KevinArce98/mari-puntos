@@ -1,0 +1,103 @@
+{
+  "appName": "MariPuntos",
+  "actions": {
+    "accept": "Accept",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "keepEditing": "Keep editing",
+    "discard": "Discard",
+    "save": "Save",
+    "saveChanges": "Save changes",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "goBack": "Go back",
+    "retry": "Retry",
+    "continue": "Continue",
+    "next": "Next",
+    "skip": "Skip",
+    "send": "Send",
+    "search": "Search",
+    "loading": "Loading...",
+    "loadingMore": "Loading more...",
+    "seeAll": "See all",
+    "understood": "Got it"
+  },
+  "units": {
+    "points": "pts",
+    "pointsLong_one": "{{count}} point",
+    "pointsLong_other": "{{count}} points",
+    "level": "Level {{level}}"
+  },
+  "time": {
+    "now": "Just now",
+    "minutesAgo_one": "{{count}} minute ago",
+    "minutesAgo_other": "{{count}} minutes ago",
+    "hoursAgo_one": "{{count}} hour ago",
+    "hoursAgo_other": "{{count}} hours ago",
+    "daysAgo_one": "{{count}} day ago",
+    "daysAgo_other": "{{count}} days ago"
+  },
+  "status": {
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "expired": "Expired",
+    "pending": "Pending"
+  },
+  "filters": {
+    "all": "All",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "actionCategories": {
+    "household": "Home",
+    "childcare": "Childcare",
+    "errands": "Errands",
+    "romantic": "Romantic",
+    "personal_growth": "Growth",
+    "personal_growth_long": "Personal growth",
+    "other": "Other"
+  },
+  "states": {
+    "empty": "Nothing here yet",
+    "error": "Something went wrong",
+    "offline": "No connection"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "retry": "Retry"
+  },
+  "inputs": {
+    "action": "Action",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "codeA11y": "Enter verification code",
+    "codeEmpty": "Empty",
+    "selectPlaceholder": "Select an option",
+    "closeOptions": "Close options",
+    "pointsCardLabel": "Total points",
+    "pointsCardA11y": "{{label}}: {{points}} MariPuntos. See achievements"
+  },
+  "streak": {
+    "weeklyTitle": "Weekly streak",
+    "weekA11y_one": "Weekly streak: {{count}} week",
+    "weekA11y_other": "Weekly streak: {{count}} weeks",
+    "weekShort": "wk",
+    "record": "Best: {{count}} wk",
+    "week_one": "week",
+    "week_other": "weeks",
+    "you": "You",
+    "partner": "Partner",
+    "waitingPartner": "Waiting for your partner to log an action this week",
+    "logToKeep": "Log an action this week to keep the streak",
+    "completed": "Streak completed this week!"
+  },
+  "update": {
+    "title": "Update available",
+    "message": "There's a new version of MariPuntos. Do you want to restart the app to apply it?",
+    "later": "Not now",
+    "restart": "Restart"
+  }
+}

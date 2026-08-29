@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 
 import {
   Dimensions,
@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui';
@@ -37,62 +38,86 @@ interface OnboardingStep {
   numbered?: boolean;
 }
 
-const ONBOARDING_STEPS: OnboardingStep[] = [
-  {
-    icon: 'people',
-    title: 'Bienvenido a MariPuntos',
-    description:
-      'El juego de puntos para parejas: gana puntos con lo que haces por tu pareja y úsalos para pedir lo que quieres.',
-    details: [
-      { icon: 'add-circle-outline', text: 'Gana puntos completando acciones' },
-      { icon: 'hand-right-outline', text: 'Gástalos solicitando permisos' },
-      { icon: 'flame-outline', text: 'Mantengan su racha y compitan en el duelo' },
-    ],
-  },
-  {
-    icon: 'checkmark-circle',
-    title: 'Gana puntos con acciones',
-    description:
-      'Una acción es algo que haces por tu pareja o el hogar: lavar los platos, un detalle romántico, un mandado.',
-    numbered: true,
-    details: [
-      { icon: 'create-outline', text: 'Registra la acción que hiciste' },
-      { icon: 'eye-outline', text: 'Tu pareja la revisa y la aprueba' },
-      { icon: 'trending-up-outline', text: 'Los puntos se suman a tu saldo' },
-    ],
-  },
-  {
-    icon: 'hand-right',
-    title: 'Usa tus puntos en permisos',
-    description:
-      '¿Salida con amigos? ¿Tarde de videojuegos? Pídelo como permiso y págalo con los puntos que ganaste.',
-    numbered: true,
-    details: [
-      { icon: 'list-outline', text: 'Elige o crea el permiso que quieres' },
-      { icon: 'paper-plane-outline', text: 'Envía la solicitud a tu pareja' },
-      { icon: 'remove-circle-outline', text: 'Si acepta, se descuentan los puntos' },
-    ],
-  },
-  {
-    icon: 'flame',
-    title: 'Crezcan juntos',
-    description:
-      'Para jugar, vincula tu cuenta con la de tu pareja. Te guiamos paso a paso al entrar.',
-    details: [
-      { icon: 'flame-outline', text: 'Racha: completen acciones cada semana' },
-      { icon: 'stats-chart-outline', text: 'Duelo: compite por sumar más puntos' },
-      { icon: 'trophy-outline', text: 'Logros y niveles por su progreso' },
-    ],
-  },
-];
-
 export default function WelcomeScreen() {
+  const { t } = useTranslation('auth');
   const themeColors = useThemedColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { markAsNotFirstTime } = useFirstTimeUser();
   const [currentStep, setCurrentStep] = useState(0);
   const flatListRef = useRef<FlatList<OnboardingStep>>(null);
+
+  const ONBOARDING_STEPS: OnboardingStep[] = useMemo(
+    () => [
+      {
+        icon: 'people',
+        title: t('welcome.onboarding.welcome.title'),
+        description: t('welcome.onboarding.welcome.description'),
+        details: [
+          {
+            icon: 'add-circle-outline',
+            text: t('welcome.onboarding.welcome.detail1'),
+          },
+          {
+            icon: 'hand-right-outline',
+            text: t('welcome.onboarding.welcome.detail2'),
+          },
+          { icon: 'flame-outline', text: t('welcome.onboarding.welcome.detail3') },
+        ],
+      },
+      {
+        icon: 'checkmark-circle',
+        title: t('welcome.onboarding.actions.title'),
+        description: t('welcome.onboarding.actions.description'),
+        numbered: true,
+        details: [
+          { icon: 'create-outline', text: t('welcome.onboarding.actions.detail1') },
+          { icon: 'eye-outline', text: t('welcome.onboarding.actions.detail2') },
+          {
+            icon: 'trending-up-outline',
+            text: t('welcome.onboarding.actions.detail3'),
+          },
+        ],
+      },
+      {
+        icon: 'hand-right',
+        title: t('welcome.onboarding.permissions.title'),
+        description: t('welcome.onboarding.permissions.description'),
+        numbered: true,
+        details: [
+          { icon: 'list-outline', text: t('welcome.onboarding.permissions.detail1') },
+          {
+            icon: 'paper-plane-outline',
+            text: t('welcome.onboarding.permissions.detail2'),
+          },
+          {
+            icon: 'remove-circle-outline',
+            text: t('welcome.onboarding.permissions.detail3'),
+          },
+        ],
+      },
+      {
+        icon: 'flame',
+        title: t('welcome.onboarding.growTogether.title'),
+        description: t('welcome.onboarding.growTogether.description'),
+        details: [
+          {
+            icon: 'flame-outline',
+            text: t('welcome.onboarding.growTogether.detail1'),
+          },
+          {
+            icon: 'stats-chart-outline',
+            text: t('welcome.onboarding.growTogether.detail2'),
+          },
+          {
+            icon: 'trophy-outline',
+            text: t('welcome.onboarding.growTogether.detail3'),
+          },
+        ],
+      },
+    ],
+    [t]
+  );
 
   const isLastStep = currentStep === ONBOARDING_STEPS.length - 1;
 
@@ -181,7 +206,6 @@ export default function WelcomeScreen() {
         },
       ]}
     >
-      {/* Logo */}
       <View style={styles.logoContainer}>
         <Image
           source={require('@/assets/images/icon.png')}
@@ -191,19 +215,19 @@ export default function WelcomeScreen() {
         <Text style={[styles.logoText, { color: themeColors.primary }]}>MariPuntos</Text>
       </View>
 
-      {/* Skip button */}
       {!isLastStep && (
         <Pressable
           onPress={handleSkip}
           style={styles.skipButton}
           accessibilityRole="button"
-          accessibilityLabel="Saltar introducción"
+          accessibilityLabel={t('welcome.skipA11y')}
         >
-          <Text style={[styles.skipText, { color: themeColors.primary }]}>Saltar</Text>
+          <Text style={[styles.skipText, { color: themeColors.primary }]}>
+            {t('welcome.skip')}
+          </Text>
         </Pressable>
       )}
 
-      {/* Swipeable slides */}
       <FlatList
         ref={flatListRef}
         data={ONBOARDING_STEPS}
@@ -222,10 +246,12 @@ export default function WelcomeScreen() {
         })}
       />
 
-      {/* Progress Indicators */}
       <View
         style={styles.progressContainer}
-        accessibilityLabel={`Paso ${currentStep + 1} de ${ONBOARDING_STEPS.length}`}
+        accessibilityLabel={t('welcome.progressA11y', {
+          current: currentStep + 1,
+          total: ONBOARDING_STEPS.length,
+        })}
       >
         {ONBOARDING_STEPS.map((_, index) => (
           <View
@@ -242,14 +268,13 @@ export default function WelcomeScreen() {
         ))}
       </View>
 
-      {/* Actions */}
       <View style={styles.actions}>
         {!isLastStep ? (
-          <Button title="Siguiente" onPress={handleNext} fullWidth size="lg" />
+          <Button title={t('welcome.next')} onPress={handleNext} fullWidth size="lg" />
         ) : (
           <>
             <Button
-              title="Crear cuenta"
+              title={t('welcome.createAccount')}
               onPress={() => {
                 markAsNotFirstTime();
                 router.push('/(auth)/register');
@@ -258,7 +283,7 @@ export default function WelcomeScreen() {
               size="lg"
             />
             <Button
-              title="¿Ya tienes una cuenta? Inicia sesión"
+              title={t('welcome.haveAccount')}
               onPress={() => {
                 markAsNotFirstTime();
                 router.push('/(auth)/login');

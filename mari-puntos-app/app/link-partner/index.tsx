@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -36,6 +37,7 @@ import logger from '@/utils/logger';
 import { LinkPartnerFormData, linkPartnerSchema } from '@/validators';
 
 export default function LinkPartnerScreen() {
+  const { t } = useTranslation(['linkPartner', 'errors']);
   const themeColors = useThemedColors();
   const router = useRouter();
   const { joinPartnerLink, createPartnerLink, getPartnerLinkCode } = useUser();
@@ -63,7 +65,6 @@ export default function LinkPartnerScreen() {
   } = form;
   const partnerCode = watch('partnerCode');
 
-  // Load existing partner link code on mount
   useEffect(() => {
     const loadExistingCode = async () => {
       const existingLink = await getPartnerLinkCode();
@@ -87,13 +88,13 @@ export default function LinkPartnerScreen() {
       const code = await createPartnerLink();
       setGeneratedCode(code);
       logger.info('Partner link code generated successfully', { code });
-      toast.success('¡Código generado!', {
-        description: 'Comparte este código con tu pareja',
+      toast.success(t('toast.generatedTitle'), {
+        description: t('toast.generatedMessage'),
       });
     } catch (error) {
       logger.error('Failed to generate partner link code', error as Error);
-      toast.error('Error', {
-        description: (error as any)?.error ?? 'No se pudo generar el código',
+      toast.error(t('errors:title'), {
+        description: (error as any)?.error ?? t('toast.generateError'),
       });
     } finally {
       setGenerating(false);
@@ -104,33 +105,30 @@ export default function LinkPartnerScreen() {
     if (generatedCode) {
       await Clipboard.setStringAsync(generatedCode);
       logger.info('Partner link code copied to clipboard');
-      toast.success('¡Copiado!', { description: 'Código copiado al portapapeles' });
+      toast.success(t('toast.copiedTitle'), { description: t('toast.copiedMessage') });
     }
   };
 
   const handleShareCode = async () => {
     if (!generatedCode) return;
     await Share.share({
-      message: `Vinculemos nuestras cuentas en MariPuntos. Mi código es ${generatedCode}.`,
+      message: t('share.shareMessage', { code: generatedCode }),
     });
   };
 
   const onSubmit = async (data: LinkPartnerFormData) => {
-    // Validar que no intente unirse a su propio código
     if (
       generatedCode &&
       data.partnerCode.trim().toUpperCase() === generatedCode.toUpperCase()
     ) {
       logger.warn('User attempted to join their own partner code');
-      toast.error('Error', { description: 'No puedes unirte a tu propio código' });
+      toast.error(t('errors:title'), { description: t('toast.ownCodeError') });
       return;
     }
 
     logger.info('Partner link join attempt', { partnerCode: data.partnerCode });
     try {
       await joinPartnerLink(data.partnerCode);
-      // Refresh partner-dependent stores (permissions excluded from userStore.joinPartnerLink
-      // due to circular-dependency constraints — handled here instead)
       usePermissionsStore
         .getState()
         .fetchMyPermissions()
@@ -155,16 +153,16 @@ export default function LinkPartnerScreen() {
         .getState()
         .fetchStreak()
         .catch(() => {});
-      toast.success('¡Vinculado!', {
-        description: 'Ahora estás conectado con tu pareja',
+      toast.success(t('toast.linkedTitle'), {
+        description: t('toast.linkedMessage'),
       });
       router.replace('/(tabs)');
     } catch (error) {
       logger.error('Failed to join partner link', error as Error, {
         partnerCode: data.partnerCode,
       });
-      toast.error('Error', {
-        description: (error as any)?.error ?? 'Código inválido o expirado',
+      toast.error(t('errors:title'), {
+        description: (error as any)?.error ?? t('toast.joinError'),
       });
     }
   };
@@ -175,7 +173,6 @@ export default function LinkPartnerScreen() {
       checkingLinkRef.current = true;
       if (showWaitingMessage) setRefreshing(true);
       try {
-        // Fetch silently — avoid setting isLoading in store to prevent AuthGuard navigator unmount
         const [user, partnerInfo] = await Promise.all([
           userService.getProfile(),
           userService.getPartnerInfo().catch(() => null),
@@ -185,9 +182,7 @@ export default function LinkPartnerScreen() {
           logger.info('Partner link confirmed via refresh', {
             partnerName: partnerInfo.partner.firstName,
           });
-          // Update store silently
           useUserStore.setState({ user, partnerInfo });
-          // Refresh partner-dependent stores
           usePermissionsStore
             .getState()
             .fetchMyPermissions()
@@ -213,20 +208,22 @@ export default function LinkPartnerScreen() {
             .fetchStreak()
             .catch(() => {});
 
-          toast.success('¡Vinculado exitosamente!', {
-            description: `Tu pareja ${partnerInfo.partner.firstName} se ha conectado`,
+          toast.success(t('toast.linkedSuccessTitle'), {
+            description: t('toast.linkedSuccessMessage', {
+              name: partnerInfo.partner.firstName,
+            }),
           });
 
           router.replace('/(tabs)');
         } else if (showWaitingMessage) {
-          toast.info('Esperando conexión', {
-            description: 'Tu pareja aún no ha ingresado el código',
+          toast.info(t('toast.waitingTitle'), {
+            description: t('toast.waitingMessage'),
           });
         }
       } catch {
         if (showWaitingMessage) {
-          toast.info('Esperando conexión', {
-            description: 'Tu pareja aún no ha ingresado el código',
+          toast.info(t('toast.waitingTitle'), {
+            description: t('toast.waitingMessage'),
           });
         }
       } finally {
@@ -234,7 +231,7 @@ export default function LinkPartnerScreen() {
         if (showWaitingMessage) setRefreshing(false);
       }
     },
-    [router]
+    [router, t]
   );
 
   useEffect(() => {
@@ -257,7 +254,6 @@ export default function LinkPartnerScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Puzzle Illustration */}
           <View style={styles.illustrationContainer}>
             <Ionicons
               name="extension-puzzle-outline"
@@ -266,12 +262,11 @@ export default function LinkPartnerScreen() {
             />
           </View>
 
-          {/* Title */}
           <Text style={[styles.title, { color: themeColors.text.primary }]}>
-            Vincula a tu pareja
+            {t('title')}
           </Text>
           <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
-            Conéctate con tu pareja para comenzar tu viaje en MariPuntos juntos
+            {t('subtitle')}
           </Text>
 
           <View style={[styles.hintBox, { backgroundColor: themeColors.primaryTint }]}>
@@ -281,8 +276,7 @@ export default function LinkPartnerScreen() {
               color={themeColors.primary}
             />
             <Text style={[styles.hintText, { color: themeColors.text.primary }]}>
-              Solo uno de los dos genera el código. El otro elige “Ingresar código” y lo
-              escribe para vincular las cuentas.
+              {t('hint')}
             </Text>
           </View>
 
@@ -313,7 +307,7 @@ export default function LinkPartnerScreen() {
                   },
                 ]}
               >
-                Compartir código
+                {t('mode.share')}
               </Text>
             </PressableScale>
             <PressableScale
@@ -339,7 +333,7 @@ export default function LinkPartnerScreen() {
                   },
                 ]}
               >
-                Ingresar código
+                {t('mode.join')}
               </Text>
             </PressableScale>
           </View>
@@ -347,7 +341,7 @@ export default function LinkPartnerScreen() {
           {linkMode === 'share' ? (
             <Card style={styles.codeSection}>
               <Text style={[styles.sectionLabel, { color: themeColors.text.secondary }]}>
-                Tu código de vinculación
+                {t('share.label')}
               </Text>
 
               {loadingExistingCode ? (
@@ -356,7 +350,7 @@ export default function LinkPartnerScreen() {
                   <Text
                     style={[styles.loadingText, { color: themeColors.text.secondary }]}
                   >
-                    Verificando código...
+                    {t('share.verifying')}
                   </Text>
                 </View>
               ) : generatedCode ? (
@@ -365,13 +359,13 @@ export default function LinkPartnerScreen() {
                     {generatedCode}
                   </Text>
                   <Button
-                    title="Compartir código"
+                    title={t('share.shareCode')}
                     onPress={handleShareCode}
                     fullWidth
                     icon="share-outline"
                   />
                   <Button
-                    title="Copiar código"
+                    title={t('share.copyCode')}
                     onPress={handleCopyCode}
                     variant="outline"
                     fullWidth
@@ -383,11 +377,11 @@ export default function LinkPartnerScreen() {
                     <Text
                       style={[styles.refreshHint, { color: themeColors.text.secondary }]}
                     >
-                      Esperando que tu pareja ingrese el código…
+                      {t('share.waiting')}
                     </Text>
                   </View>
                   <Button
-                    title="Comprobar ahora"
+                    title={t('share.checkNow')}
                     onPress={() => checkPartnerLink(true)}
                     loading={refreshing}
                     variant="ghost"
@@ -397,7 +391,7 @@ export default function LinkPartnerScreen() {
                 </View>
               ) : (
                 <Button
-                  title="Generar código"
+                  title={t('share.generate')}
                   onPress={handleGenerateCode}
                   loading={generating}
                   variant="outline"
@@ -412,7 +406,7 @@ export default function LinkPartnerScreen() {
                 <Text
                   style={[styles.sectionLabel, { color: themeColors.text.secondary }]}
                 >
-                  Ingresa el código de tu pareja
+                  {t('join.label')}
                 </Text>
                 <Controller
                   control={control}
@@ -434,7 +428,7 @@ export default function LinkPartnerScreen() {
               </Card>
 
               <Button
-                title="Vincular cuentas"
+                title={t('join.submit')}
                 onPress={handleSubmit(onSubmit)}
                 loading={isSubmitting}
                 disabled={partnerCode.length !== 6}
@@ -445,15 +439,14 @@ export default function LinkPartnerScreen() {
             </>
           )}
 
-          {/* Skip Link */}
           <PressableScale
             style={styles.skipButton}
             onPress={() => router.replace('/(tabs)')}
             accessibilityRole="button"
-            accessibilityLabel="Regresar a inicio"
+            accessibilityLabel={t('backA11y')}
           >
             <Text style={[styles.skipText, { color: themeColors.text.secondary }]}>
-              Regresar
+              {t('back')}
             </Text>
           </PressableScale>
         </ScrollView>

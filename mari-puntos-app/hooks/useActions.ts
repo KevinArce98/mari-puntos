@@ -23,8 +23,6 @@ export const useActions = () => {
   useEffect(() => {
     if (!user) return;
 
-    // Guard: skip if a fetch is already in flight (prevents double-fetch from
-    // multiple consumers of this hook mounting simultaneously)
     const store = useActionsStore.getState();
     if (!store.isLoadingMyActions) {
       fetchMyActions().catch((error) => {

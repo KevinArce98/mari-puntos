@@ -21,8 +21,6 @@ export const usePermissions = () => {
   useEffect(() => {
     if (!user) return;
 
-    // Guard with specific flags (not combined isLoading) to avoid skipping a fetch
-    // when only one of the two is already in flight (e.g. the TabLayout pre-fetch).
     const store = usePermissionsStore.getState();
     if (!store.isLoadingMyPermissions) {
       fetchMyPermissions().catch((error) => {

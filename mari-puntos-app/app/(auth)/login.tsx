@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import { isClerkAPIResponseError, useAuth, useSignIn } from '@clerk/clerk-expo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -28,6 +29,7 @@ import logger from '@/utils/logger';
 import { type LoginFormData, loginSchema } from '@/validators/auth.schema';
 
 export default function LoginScreen() {
+  const { t } = useTranslation('auth');
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const themeColors = useThemedColors();
@@ -77,7 +79,7 @@ export default function LoginScreen() {
           await signOut();
           await attemptSignIn(data);
         } catch (retryError: any) {
-          let retryMessage = 'Correo o contraseña inválidos';
+          let retryMessage = t('login.invalidCredentials');
           if (isClerkAPIResponseError(retryError)) {
             retryMessage = handleClerkErrors(retryError.errors);
           }
@@ -85,12 +87,12 @@ export default function LoginScreen() {
             email: data.email,
             error: retryMessage,
           });
-          toast.error('Inicio de sesión fallido', { description: retryMessage });
+          toast.error(t('login.failedTitle'), { description: retryMessage });
         }
         return;
       }
 
-      let errorMessage = 'Correo o contraseña inválidos';
+      let errorMessage = t('login.invalidCredentials');
 
       if (isClerkAPIResponseError(error)) {
         errorMessage = handleClerkErrors(error.errors);
@@ -98,7 +100,7 @@ export default function LoginScreen() {
 
       logger.warn('Login failed', { email: data.email, error: errorMessage });
 
-      toast.error('Inicio de sesión fallido', { description: errorMessage });
+      toast.error(t('login.failedTitle'), { description: errorMessage });
     }
   };
 
@@ -119,7 +121,6 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Logo */}
           <View style={styles.logoContainer}>
             <Image
               source={require('@/assets/images/icon.png')}
@@ -128,23 +129,21 @@ export default function LoginScreen() {
             />
           </View>
 
-          {/* Header */}
           <View style={styles.header}>
             <Text style={[styles.title, { color: themeColors.text.primary }]}>
-              ¡Bienvenido de nuevo!
+              {t('login.title')}
             </Text>
             <Text style={[styles.subtitle, { color: themeColors.text.secondary }]}>
-              Inicia sesión para continuar ganando puntos con tu pareja
+              {t('login.subtitle')}
             </Text>
           </View>
 
-          {/* Form */}
           <View style={styles.form}>
             <ControlledInput
               control={control}
               name="email"
-              label="Correo electrónico"
-              placeholder="tucorreo@ejemplo.com"
+              label={t('fields.email')}
+              placeholder={t('fields.emailPlaceholder')}
               keyboardType="email-address"
               autoCapitalize="none"
               leftIcon="mail-outline"
@@ -153,8 +152,8 @@ export default function LoginScreen() {
             <ControlledInput
               control={control}
               name="password"
-              label="Contraseña"
-              placeholder="Ingresa tu contraseña"
+              label={t('fields.password')}
+              placeholder={t('fields.passwordPlaceholder')}
               secureTextEntry={!showPassword}
               leftIcon="lock-closed-outline"
               rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
@@ -166,12 +165,12 @@ export default function LoginScreen() {
               onPress={() => router.push('/(auth)/forgot-password')}
             >
               <Text style={[styles.forgotPasswordText, { color: themeColors.primary }]}>
-                ¿Olvidaste tu contraseña?
+                {t('login.forgotPassword')}
               </Text>
             </PressableScale>
 
             <Button
-              title="Iniciar sesión"
+              title={t('login.submit')}
               onPress={handleSubmit(onSubmit)}
               loading={isSubmitting}
               fullWidth
@@ -179,14 +178,13 @@ export default function LoginScreen() {
             />
           </View>
 
-          {/* Register Link */}
           <View style={styles.registerContainer}>
             <Text style={[styles.registerText, { color: themeColors.text.secondary }]}>
-              {'¿No tienes una cuenta? '}
+              {t('login.noAccount')}
             </Text>
             <PressableScale onPress={() => router.push('/(auth)/register')}>
               <Text style={[styles.registerLink, { color: themeColors.primary }]}>
-                Regístrate
+                {t('login.registerLink')}
               </Text>
             </PressableScale>
           </View>

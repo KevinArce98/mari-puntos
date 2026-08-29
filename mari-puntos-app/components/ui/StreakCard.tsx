@@ -4,6 +4,8 @@ import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
+
 import { useThemedColors } from '@/hooks';
 import { StreakInfo } from '@/services/streakService';
 import { borderRadius, spacing, typography } from '@/theme';
@@ -17,6 +19,7 @@ interface StreakCardProps {
 }
 
 export function StreakCard({ streak, style, variant = 'default' }: StreakCardProps) {
+  const { t } = useTranslation('common');
   const colors = useThemedColors();
   const { currentStreak, longestStreak, myWeekDone, partnerWeekDone, bothDoneThisWeek } =
     streak;
@@ -35,15 +38,15 @@ export function StreakCard({ streak, style, variant = 'default' }: StreakCardPro
           { backgroundColor: colors.surface, borderColor: colors.border },
           style,
         ]}
-        accessibilityLabel={`Racha semanal: ${currentStreak} ${
-          currentStreak === 1 ? 'semana' : 'semanas'
-        }`}
+        accessibilityLabel={t('streak.weekA11y', { count: currentStreak })}
       >
         <Ionicons name="flame" size={20} color={flameColor} />
         <Text style={[styles.compactValue, { color: colors.text.primary }]}>
           {currentStreak}
         </Text>
-        <Text style={[styles.compactLabel, { color: colors.text.secondary }]}>sem.</Text>
+        <Text style={[styles.compactLabel, { color: colors.text.secondary }]}>
+          {t('streak.weekShort')}
+        </Text>
       </View>
     );
   }
@@ -54,12 +57,12 @@ export function StreakCard({ streak, style, variant = 'default' }: StreakCardPro
         <View style={styles.titleRow}>
           <Ionicons name="flame" size={22} color={flameColor} />
           <Text style={[styles.title, { color: colors.text.primary }]}>
-            Racha semanal
+            {t('streak.weeklyTitle')}
           </Text>
         </View>
         {longestStreak > 0 && (
           <Text style={[styles.best, { color: colors.text.secondary }]}>
-            Récord: {longestStreak} sem.
+            {t('streak.record', { count: longestStreak })}
           </Text>
         )}
       </View>
@@ -67,28 +70,26 @@ export function StreakCard({ streak, style, variant = 'default' }: StreakCardPro
       <View style={styles.streakRow}>
         <Text style={[styles.streakNumber, { color: flameColor }]}>{currentStreak}</Text>
         <Text style={[styles.streakLabel, { color: colors.text.secondary }]}>
-          {currentStreak === 1 ? 'semana' : 'semanas'}
+          {t('streak.week', { count: currentStreak })}
         </Text>
       </View>
 
       <View style={styles.progressRow}>
-        <UserStatus done={myWeekDone} label="Vos" colors={colors} />
+        <UserStatus done={myWeekDone} label={t('streak.you')} colors={colors} />
         <View style={[styles.divider, { backgroundColor: colors.gray[200] }]} />
-        <UserStatus done={partnerWeekDone} label="Pareja" colors={colors} />
+        <UserStatus done={partnerWeekDone} label={t('streak.partner')} colors={colors} />
       </View>
 
       {!bothDoneThisWeek && (
         <Text style={[styles.hint, { color: colors.text.secondary }]}>
-          {myWeekDone
-            ? 'Esperando que tu pareja registre una acción esta semana'
-            : 'Registrá una acción esta semana para mantener la racha'}
+          {myWeekDone ? t('streak.waitingPartner') : t('streak.logToKeep')}
         </Text>
       )}
       {bothDoneThisWeek && (
         <View style={styles.completedRow}>
           <Ionicons name="flame" size={14} color={colors.streak.active} />
           <Text style={[styles.hint, { color: colors.success }]}>
-            ¡Racha completada esta semana!
+            {t('streak.completed')}
           </Text>
         </View>
       )}

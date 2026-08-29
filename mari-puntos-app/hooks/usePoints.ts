@@ -7,13 +7,8 @@ import { useUser } from './useUser';
 
 export const usePoints = () => {
   const { user, partnerInfo } = useUser();
-  const {
-    pointsHistory,
-    isLoading,
-    error,
-    paginationMeta,
-    fetchPointsHistory,
-  } = usePointsStore();
+  const { pointsHistory, isLoading, error, paginationMeta, fetchPointsHistory } =
+    usePointsStore();
 
   const myPoints = user?.totalPoints || 0;
   const myLevel = user?.currentLevel || 1;

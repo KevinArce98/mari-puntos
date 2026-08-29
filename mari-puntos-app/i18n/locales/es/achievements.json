@@ -1,0 +1,33 @@
+{
+  "title": "Logros",
+  "backA11y": "Volver",
+  "progressTitle": "Tu progreso",
+  "progressSubtitle": "{{unlocked}} de {{total}} logros",
+  "stats": {
+    "earned": "Ganados",
+    "pending": "Pendientes",
+    "total": "Total"
+  },
+  "filters": {
+    "all": "Todos",
+    "unlocked": "Desbloqueados",
+    "locked": "Bloqueados"
+  },
+  "sections": {
+    "unlocked": "Desbloqueados",
+    "locked": "Por desbloquear"
+  },
+  "unlockedOn": "Desbloqueado el {{date}}",
+  "empty": {
+    "title": "Sin logros aún",
+    "subtitle": "¡Empieza a completar acciones para desbloquear logros!"
+  },
+  "types": {
+    "points_milestone": "Puntos",
+    "level_milestone": "Nivel",
+    "actions_completed": "Acciones",
+    "permissions_granted": "Permisos",
+    "streak": "Racha",
+    "special": "Especial"
+  }
+}

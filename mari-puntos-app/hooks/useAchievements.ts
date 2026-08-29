@@ -9,14 +9,6 @@ import { userService } from '@/services';
 import { useUserStore } from '@/stores';
 import { getErrorMessage } from '@/utils/errorMessage';
 
-/**
- * Achievements data, backed by React Query.
- *
- * Reference implementation for the React Query migration: the public API is
- * unchanged (achievements / unlocked / locked / isLoading / error / refetch),
- * so consuming screens need no changes. Caching + dedup + focus refetch are now
- * handled by React Query instead of ad-hoc component state.
- */
 export const useAchievements = () => {
   const user = useUserStore((state) => state.user);
 
@@ -26,7 +18,6 @@ export const useAchievements = () => {
     enabled: !!user,
   });
 
-  // Preserve previous behavior: refresh when the screen regains focus.
   useFocusEffect(
     useCallback(() => {
       if (user) query.refetch();

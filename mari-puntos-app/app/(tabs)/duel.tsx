@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Avatar, Button, Card } from '@/components/ui';
@@ -13,6 +14,7 @@ import { useThemedColors, useUser } from '@/hooks';
 import { borderRadius, spacing, typography } from '@/theme';
 
 export default function CompetitionScreen() {
+  const { t } = useTranslation('duel');
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const themeColors = useThemedColors();
@@ -28,10 +30,10 @@ export default function CompetitionScreen() {
   const myPercentage = totalPoints > 0 ? (myPoints / totalPoints) * 100 : 50;
   const isTie = myPoints === partnerPoints;
   const resultTitle = isTie
-    ? 'Van empatados'
+    ? t('result.tie')
     : myPoints > partnerPoints
-      ? 'Vas ganando'
-      : 'Tu pareja va adelante';
+      ? t('result.winning')
+      : t('result.losing');
 
   return (
     <View
@@ -42,7 +44,7 @@ export default function CompetitionScreen() {
     >
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: themeColors.text.primary }]}>
-          Duelo
+          {t('title')}
         </Text>
       </View>
 
@@ -55,13 +57,13 @@ export default function CompetitionScreen() {
               <Ionicons name="stats-chart" size={36} color={themeColors.primary} />
             </View>
             <Text style={[styles.emptyTitle, { color: themeColors.text.primary }]}>
-              El duelo comienza con la primera acción
+              {t('empty.title')}
             </Text>
             <Text style={[styles.emptyText, { color: themeColors.text.secondary }]}>
-              Aquí compararán el saldo total de MariPuntos cuando empiecen a ganar puntos.
+              {t('empty.text')}
             </Text>
             <Button
-              title="Registrar acción"
+              title={t('empty.cta')}
               onPress={() =>
                 router.push({ pathname: '/(tabs)', params: { createAction: '1' } })
               }
@@ -74,20 +76,20 @@ export default function CompetitionScreen() {
               {resultTitle}
             </Text>
             <Text style={[styles.timeframe, { color: themeColors.text.secondary }]}>
-              Saldo total acumulado
+              {t('subtitle')}
             </Text>
 
             <View style={styles.vsContainer}>
               <View style={styles.playerColumn}>
                 <Avatar imageUri={user?.avatarUrl} name={user?.firstName} size="lg" />
                 <Text style={[styles.playerName, { color: themeColors.text.primary }]}>
-                  {user?.firstName || 'Tú'}
+                  {user?.firstName || t('you')}
                 </Text>
                 <Text style={[styles.playerPoints, { color: themeColors.primary }]}>
                   {myPoints.toLocaleString()}
                 </Text>
                 <Text style={[styles.playerLevel, { color: themeColors.text.secondary }]}>
-                  Nivel {myLevel}
+                  {t('level', { level: myLevel })}
                 </Text>
               </View>
 
@@ -106,13 +108,13 @@ export default function CompetitionScreen() {
                   size="lg"
                 />
                 <Text style={[styles.playerName, { color: themeColors.text.primary }]}>
-                  {partnerInfo?.partner?.firstName || 'Pareja'}
+                  {partnerInfo?.partner?.firstName || t('partner')}
                 </Text>
                 <Text style={[styles.playerPoints, { color: themeColors.love }]}>
                   {partnerPoints.toLocaleString()}
                 </Text>
                 <Text style={[styles.playerLevel, { color: themeColors.text.secondary }]}>
-                  Nivel {partnerLevel}
+                  {t('level', { level: partnerLevel })}
                 </Text>
               </View>
             </View>

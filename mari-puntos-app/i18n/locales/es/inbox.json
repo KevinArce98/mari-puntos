@@ -1,0 +1,20 @@
+{
+  "title": "Pendientes",
+  "backA11y": "Volver",
+  "allClear": {
+    "title": "Todo al día",
+    "text": "No tienes acciones ni permisos por revisar."
+  },
+  "sections": {
+    "actions": "Acciones por revisar",
+    "permissions": "Permisos por responder"
+  },
+  "permissionApproved": "Solicitud aprobada",
+  "permissionRejected": "Solicitud rechazada",
+  "permissionError": "No se pudo procesar la solicitud",
+  "actionApproved": "Acción aprobada",
+  "actionApprovedMessage": "Los puntos fueron otorgados",
+  "actionApproveError": "No se pudo aprobar la acción",
+  "actionRejected": "Acción rechazada",
+  "actionRejectError": "No se pudo rechazar la acción"
+}

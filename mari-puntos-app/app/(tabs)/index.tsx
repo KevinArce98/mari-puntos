@@ -6,6 +6,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -27,18 +28,6 @@ import { ActionStatus } from '@/types';
 import logger from '@/utils/logger';
 import { CreateActionFormData } from '@/validators/action.schema';
 
-const NO_PARTNER_STEPS = [
-  'Vincula tu cuenta con la de tu pareja (ambos necesitan la app)',
-  'Gana puntos registrando acciones que tu pareja aprueba',
-  'Usa tus puntos para solicitar permisos',
-];
-
-const FIRST_STEPS = [
-  'Registra una acción cuando hagas algo por tu pareja o el hogar',
-  'Tu pareja la revisa, la aprueba y ganas puntos',
-  'Gasta tus puntos solicitando permisos',
-];
-
 function GuideSteps({ title, steps }: { title: string; steps: string[] }) {
   const colors = useThemedColors();
   return (
@@ -59,6 +48,7 @@ function GuideSteps({ title, steps }: { title: string; steps: string[] }) {
 }
 
 export default function HomeScreen() {
+  const { t } = useTranslation(['home', 'common', 'errors']);
   const colors = useThemedColors();
   const router = useRouter();
   const { createAction: createActionParam } = useLocalSearchParams<{
@@ -98,7 +88,6 @@ export default function HomeScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      // Reload user data (including points) and history in parallel
       await Promise.all([
         refetchUser(),
         hasPartner ? fetchHistory({ limit: 3 }) : Promise.resolve(),
@@ -118,12 +107,12 @@ export default function HomeScreen() {
     try {
       await createAction(data);
       setShowCreateActionModal(false);
-      toast.success('Acción creada', {
-        description: 'Tu acción ha sido enviada para revisión',
+      toast.success(t('actionCreated'), {
+        description: t('actionCreatedMessage'),
       });
       await fetchHistory({ limit: 3 });
     } catch (error) {
-      toast.error('Error', { description: 'No se pudo crear la acción' });
+      toast.error(t('errors:title'), { description: t('actionCreateError') });
       throw error;
     }
   };
@@ -147,10 +136,10 @@ export default function HomeScreen() {
               <Ionicons name="people-outline" size={64} color={colors.primary} />
             </View>
             <Text style={[styles.noPartnerTitle, { color: colors.text.primary }]}>
-              Vincula a tu pareja
+              {t('noPartner.title')}
             </Text>
             <Text style={[styles.noPartnerText, { color: colors.text.secondary }]}>
-              Conéctate con tu pareja para empezar a ganar y gastar MariPuntos juntos
+              {t('noPartner.text')}
             </Text>
             <PressableScale
               style={[styles.linkButton, { backgroundColor: colors.primary }]}
@@ -158,12 +147,15 @@ export default function HomeScreen() {
             >
               <Ionicons name="link" size={20} color={colors.text.white} />
               <Text style={[styles.linkButtonText, { color: colors.text.white }]}>
-                Vincular ahora
+                {t('noPartner.cta')}
               </Text>
             </PressableScale>
           </Card>
 
-          <GuideSteps title="¿Cómo funciona MariPuntos?" steps={NO_PARTNER_STEPS} />
+          <GuideSteps
+            title={t('guide.howItWorksTitle')}
+            steps={[t('guide.noPartner1'), t('guide.noPartner2'), t('guide.noPartner3')]}
+          />
         </ScrollView>
       </View>
     );
@@ -181,7 +173,6 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header with Avatar and Greeting */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Avatar
@@ -193,10 +184,12 @@ export default function HomeScreen() {
             />
             <View style={styles.greetingContainer}>
               <Text style={[styles.greeting, { color: colors.text.primary }]}>
-                {user?.firstName ? `Hola, ${user.firstName.split(' ')[0]}` : 'Hola'}
+                {user?.firstName
+                  ? t('greeting', { name: user.firstName.split(' ')[0] })
+                  : t('greetingFallback')}
               </Text>
               <Text style={[styles.subtitle, { color: colors.text.secondary }]}>
-                Vamos a ganar puntos hoy
+                {t('subtitle')}
               </Text>
             </View>
           </View>
@@ -205,10 +198,8 @@ export default function HomeScreen() {
 
         {totalPending > 0 && (
           <ActionCard
-            title={`${totalPending} ${
-              totalPending === 1 ? 'pendiente' : 'pendientes'
-            } por revisar`}
-            subtitle="Responde acciones y permisos de tu pareja"
+            title={t('pending', { count: totalPending })}
+            subtitle={t('pendingSubtitle')}
             icon="notifications"
             iconBackgroundColor={colors.warning}
             onPress={() => router.push('/inbox')}
@@ -217,25 +208,30 @@ export default function HomeScreen() {
         )}
 
         {pointsHistory.length === 0 && (
-          <GuideSteps title="Primeros pasos" steps={FIRST_STEPS} />
+          <GuideSteps
+            title={t('guide.firstStepsTitle')}
+            steps={[t('guide.first1'), t('guide.first2'), t('guide.first3')]}
+          />
         )}
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-            {pointsHistory.length === 0 ? 'Empieza por aquí' : 'Acciones rápidas'}
+            {pointsHistory.length === 0
+              ? t('quickActionsFirstTitle')
+              : t('quickActionsTitle')}
           </Text>
           <View style={styles.actionsContainer}>
             <ActionCard
-              title="Solicitar permiso"
-              subtitle="Solicitar permiso para una actividad"
+              title={t('requestPermission')}
+              subtitle={t('requestPermissionSubtitle')}
               icon="hand-right-outline"
               iconBackgroundColor={colors.accent}
               onPress={() => router.push('/permissions/request')}
               style={styles.actionCard}
             />
             <ActionCard
-              title="Registrar acción"
-              subtitle="Registrar una actividad para ganar puntos"
+              title={t('logAction')}
+              subtitle={t('logActionSubtitle')}
               icon="add-circle-outline"
               iconBackgroundColor={colors.primary}
               onPress={() => setShowCreateActionModal(true)}
@@ -247,22 +243,22 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-              Tu progreso
+              {t('progressTitle')}
             </Text>
             <PressableScale
               onPress={() => router.push('/achievements')}
               accessibilityRole="button"
-              accessibilityLabel="Ver todos los logros"
+              accessibilityLabel={t('seeAchievementsA11y')}
             >
               <Text style={[styles.seeAllText, { color: colors.primary }]}>
-                Ver logros
+                {t('seeAchievements')}
               </Text>
             </PressableScale>
           </View>
           <View style={styles.progressRow}>
             <PointsCard
               points={myPoints}
-              label="Saldo actual"
+              label={t('balanceLabel')}
               variant="compact"
               onPress={() => router.push('/achievements')}
             />
@@ -273,10 +269,12 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>
-              Historial reciente
+              {t('recentHistoryTitle')}
             </Text>
             <PressableScale onPress={() => router.push('/history')}>
-              <Text style={[styles.seeAllText, { color: colors.primary }]}>Ver todo</Text>
+              <Text style={[styles.seeAllText, { color: colors.primary }]}>
+                {t('common:actions.seeAll')}
+              </Text>
             </PressableScale>
           </View>
 
@@ -285,11 +283,11 @@ export default function HomeScreen() {
               <View style={styles.emptyHistoryContainer}>
                 <Ionicons name="time-outline" size={48} color={colors.text.secondary} />
                 <Text style={[styles.emptyHistoryText, { color: colors.text.primary }]}>
-                  No hay actividad reciente
+                  {t('noRecentActivity')}
                 </Text>
                 <PressableScale onPress={() => setShowCreateActionModal(true)}>
                   <Text style={[{ color: colors.primary }, styles.emptyHistoryCta]}>
-                    Registra tu primera acción
+                    {t('logFirstAction')}
                   </Text>
                 </PressableScale>
               </View>
@@ -309,7 +307,6 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      {/* Create Action Modal */}
       <CreateActionModal
         visible={showCreateActionModal}
         onClose={() => setShowCreateActionModal(false)}
@@ -403,7 +400,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     fontFamily: 'PlusJakartaSans-SemiBold',
   },
-  // No partner state
   noPartnerCard: {
     alignItems: 'center',
     marginTop: spacing['3xl'],
@@ -437,7 +433,6 @@ const styles = StyleSheet.create({
   linkButtonText: {
     ...typography.styles.button,
   },
-  // Onboarding guide
   guideCard: {
     marginTop: spacing.lg,
     marginBottom: spacing.lg,

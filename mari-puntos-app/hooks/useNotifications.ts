@@ -30,10 +30,6 @@ Notifications.setNotificationHandler({
       shouldShowBanner: true,
       shouldShowList: true,
       shouldPlaySound: true,
-      // Badge count is managed manually via Notifications.setBadgeCountAsync in
-      // NotificationBell — setting this to true would let Expo auto-increment the
-      // OS badge from the notification payload (which has no badge field), causing
-      // it to diverge from the actual pending count.
       shouldSetBadge: false,
     }) as Notifications.NotificationBehavior,
 });
@@ -98,7 +94,6 @@ export function useNotifications() {
 
     try {
       tokenSentRef.current = true;
-      // Use getState() to avoid subscribing to store changes
       await useUserStore.getState().updatePushToken(token);
     } catch (error) {
       tokenSentRef.current = false;
@@ -106,12 +101,8 @@ export function useNotifications() {
     }
   }, []);
 
-  // Only request notification permissions once the user is authenticated.
-  // Running this during the welcome/onboarding flow (user === null) triggers
-  // the OS permission dialog at an unexpected moment and can crash the app.
   useEffect(() => {
     if (!user) {
-      // Reset on logout so the next sign-in triggers re-registration.
       hasRegisteredRef.current = false;
       return;
     }
@@ -127,17 +118,14 @@ export function useNotifications() {
         }
       })
       .catch((error) => {
-        hasRegisteredRef.current = false; // Allow retry on next render
+        hasRegisteredRef.current = false;
         logger.error('Error registering for push notifications:', error as Error);
       });
   }, [user]);
 
   useEffect(() => {
-    // Listener para notificaciones recibidas mientras la app está abierta
     notificationListener.current = Notifications.addNotificationReceivedListener(
       (notification) => {
-        // Silently refresh the relevant store so in-app badges and lists stay
-        // current while the app is in the foreground.
         const data = parseNotificationData(notification.request.content.data);
         if (!data) return;
         logger.info('Foreground notification received', { type: data.type });
@@ -182,16 +170,12 @@ export function useNotifications() {
       }
     );
 
-    // Listener para cuando el usuario toca una notificación (app en segundo plano o abierta)
     responseListener.current = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         const data = parseNotificationData(response.notification.request.content.data);
 
         if (data) {
           logger.info('Notification tapped by user', { type: data.type });
-          // Persist the handled marker BEFORE triggering navigation. If the app is
-          // killed immediately after a tap, the cold-start effect reads this marker
-          // and won't re-navigate the same notification on the next launch.
           (async () => {
             try {
               await AsyncStorage.setItem(
@@ -217,9 +201,6 @@ export function useNotifications() {
     };
   }, []);
 
-  // Handle notification tap from killed state (cold start).
-  // addNotificationResponseReceivedListener only fires for background/foreground taps.
-  // For killed-state taps, iOS/Android delivers via getLastNotificationResponseAsync on boot.
   useEffect(() => {
     if (!rootNavigationState?.key) return;
 
@@ -231,8 +212,6 @@ export function useNotifications() {
         const identifier = response.notification.request.identifier;
         const lastHandledId = await AsyncStorage.getItem(HANDLED_NOTIFICATION_KEY);
         if (lastHandledId === identifier) {
-          // Already handled on a previous launch — getLastNotificationResponseAsync
-          // keeps returning it until the OS clears it, so guard with our own marker.
           return;
         }
 
@@ -246,12 +225,9 @@ export function useNotifications() {
         logger.error('Error reading last notification response:', err as Error);
       }
     })();
-    // Run once after navigation is ready (rootNavigationState.key is stable after init)
   }, [rootNavigationState?.key]);
 
-  // Navegar cuando la navegación esté lista y haya una notificación pendiente
   useEffect(() => {
-    // Esperar a que la navegación esté completamente inicializada
     if (!rootNavigationState?.key) {
       return;
     }
@@ -260,13 +236,10 @@ export function useNotifications() {
       return;
     }
 
-    // Wait for auth to resolve — partnerInfo isn't available until user is loaded,
-    // so navigating before that causes "no partner" fallback to home.
     if (!user) {
       return;
     }
 
-    // Pequeño delay para asegurar que la navegación esté completamente lista
     const timeoutId = setTimeout(() => {
       logger.info('Processing pending notification', {
         type: pendingNotificationData.type,
@@ -283,7 +256,6 @@ export function useNotifications() {
     handleNotificationResponse,
   ]);
 
-  // Reset token refs and state on logout so the next user gets a fresh registration
   useEffect(() => {
     if (!user) {
       tokenSentRef.current = false;
@@ -291,7 +263,6 @@ export function useNotifications() {
     }
   }, [user]);
 
-  // Enviar el token cuando el usuario esté autenticado
   useEffect(() => {
     if (user && expoPushToken) {
       sendPushTokenToBackend(expoPushToken);
@@ -324,7 +295,6 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
   const canRegister = Device.isDevice || Platform.OS === 'android';
 
   if (canRegister) {
-    // Type varies across Expo SDK versions — cast to avoid version-specific TS errors
     type PermsResult = { granted?: boolean; status?: string };
     const existingPerms =
       (await Notifications.getPermissionsAsync()) as unknown as PermsResult;
@@ -338,9 +308,6 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
     }
 
     if (!finalGranted) {
-      // Permission denied by user — return null without throwing so hasRegisteredRef
-      // stays true and we don't re-prompt on every render. iOS won't show the dialog
-      // again anyway; Android users can re-enable from Settings.
       logger.info('Push notification permissions not granted — skipping registration');
       return null;
     }
