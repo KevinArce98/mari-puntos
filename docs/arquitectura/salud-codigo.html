@@ -1,0 +1,590 @@
+<title>Salud del código MariPuntos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+  :root {
+    --bg: #f4f7f6;
+    --surface: #ffffff;
+    --surface-2: #eaefed;
+    --text: #14211d;
+    --text-muted: #566962;
+    --text-faint: #7e8f89;
+    --border: #dbe3e0;
+    --border-strong: #c4cfcb;
+    --accent: #0f766e;
+    --accent-ink: #0b544e;
+    --accent-soft: #dcefec;
+
+    --alto-fg: #a8322a;   --alto-bg: #f6e2df;   --alto-line: #c2493f;
+    --medio-fg: #8a5206;  --medio-bg: #f4ebd6;  --medio-line: #c07d1f;
+    --bajo-fg: #4c6771;   --bajo-bg: #e5edef;   --bajo-line: #7d99a1;
+    --good-fg: #0f766e;   --good-bg: #dbefeb;
+
+    --shadow: 0 1px 2px rgba(20,33,29,.04), 0 8px 24px -12px rgba(20,33,29,.14);
+    --radius: 14px;
+    --maxw: 1080px;
+  }
+
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --bg: #0d1412;
+      --surface: #141e1b;
+      --surface-2: #1b2825;
+      --text: #e7efec;
+      --text-muted: #97a8a2;
+      --text-faint: #6f827c;
+      --border: #253430;
+      --border-strong: #34463f;
+      --accent: #2dd4bf;
+      --accent-ink: #7be8db;
+      --accent-soft: #14332f;
+
+      --alto-fg: #f39289;   --alto-bg: #341d1a;   --alto-line: #a8443b;
+      --medio-fg: #e6b45f;  --medio-bg: #2f2614;  --medio-line: #9c7326;
+      --bajo-fg: #a0b7bf;   --bajo-bg: #1a2a2e;   --bajo-line: #486069;
+      --good-fg: #4ecdbf;   --good-bg: #10312d;
+
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -14px rgba(0,0,0,.6);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0d1412;
+    --surface: #141e1b;
+    --surface-2: #1b2825;
+    --text: #e7efec;
+    --text-muted: #97a8a2;
+    --text-faint: #6f827c;
+    --border: #253430;
+    --border-strong: #34463f;
+    --accent: #2dd4bf;
+    --accent-ink: #7be8db;
+    --accent-soft: #14332f;
+
+    --alto-fg: #f39289;   --alto-bg: #341d1a;   --alto-line: #a8443b;
+    --medio-fg: #e6b45f;  --medio-bg: #2f2614;  --medio-line: #9c7326;
+    --bajo-fg: #a0b7bf;   --bajo-bg: #1a2a2e;   --bajo-line: #486069;
+    --good-fg: #4ecdbf;   --good-bg: #10312d;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -14px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+
+  h1, h2, h3 { font-family: "Archivo", "IBM Plex Sans", sans-serif; text-wrap: balance; }
+
+  a { color: var(--accent); text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent); text-underline-offset: 3px; }
+
+  /* ---------- header ---------- */
+  header {
+    border-bottom: 1px solid var(--border);
+    background:
+      radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--accent) 9%, transparent) 0%, transparent 55%),
+      var(--surface);
+  }
+  .head-grid { padding: 40px 24px 34px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent-ink);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1.5px; background: var(--accent); display: inline-block; }
+  h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); font-weight: 800; letter-spacing: -.025em; margin: 14px 0 0; line-height: 1.02; }
+  .verdict { font-size: clamp(1.02rem, 2.2vw, 1.22rem); color: var(--text-muted); max-width: 60ch; margin: 16px 0 0; line-height: 1.5; }
+  .verdict b { color: var(--text); font-weight: 600; }
+
+  .statbar { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .stat {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 16px; min-width: 118px; flex: 1 1 118px;
+  }
+  .stat .n { font-family: "Archivo", sans-serif; font-size: 1.7rem; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1; }
+  .stat .l { font-size: 12.5px; color: var(--text-muted); margin-top: 6px; }
+  .stat .n.sev-a { color: var(--alto-fg); }
+  .stat .n.sev-m { color: var(--medio-fg); }
+  .stat .n.ok { color: var(--good-fg); }
+
+  /* ---------- sections ---------- */
+  section { padding: 46px 0; border-bottom: 1px solid var(--border); }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+  .sec-num { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--text-faint); font-weight: 500; }
+  h2 { font-size: clamp(1.35rem, 3vw, 1.75rem); font-weight: 700; letter-spacing: -.02em; margin: 0; }
+  .sec-intro { color: var(--text-muted); max-width: 66ch; margin: 6px 0 26px; }
+
+  /* ---------- lead callout ---------- */
+  .lead {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 22px 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 26px;
+  }
+  .lead .tag { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-ink); }
+  .lead p { margin: 8px 0 0; font-size: 1.08rem; line-height: 1.55; }
+  .lead p b { color: var(--accent-ink); }
+
+  /* ---------- matrix ---------- */
+  .matrix-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  table.matrix { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 14px; }
+  table.matrix th, table.matrix td { text-align: left; padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.matrix thead th {
+    font-family: "IBM Plex Mono", monospace; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text-faint); background: var(--surface-2); border-bottom: 1px solid var(--border-strong);
+    position: sticky; top: 0;
+  }
+  table.matrix tbody tr:last-child td { border-bottom: none; }
+  table.matrix .theme-cell { font-weight: 600; color: var(--text); width: 24%; min-width: 190px; }
+  table.matrix .theme-cell.pos { color: var(--good-fg); }
+  table.matrix td .m { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--accent-ink); }
+  table.matrix td small { color: var(--text-faint); }
+
+  /* ---------- project cards ---------- */
+  .projects { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column;
+  }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .card h3 { font-size: 1.2rem; font-weight: 700; letter-spacing: -.01em; margin: 0; }
+  .card .stack { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--text-faint); margin-top: 3px; }
+  .impact { font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+  .impact.med { color: var(--medio-fg); background: var(--medio-bg); }
+  .impact.low { color: var(--bajo-fg); background: var(--bajo-bg); }
+  .impact.mix { color: var(--accent-ink); background: var(--accent-soft); }
+
+  .metrics { display: flex; gap: 18px; margin: 16px 0 4px; padding: 14px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .metrics div { display: flex; flex-direction: column; }
+  .metrics .mv { font-family: "Archivo", sans-serif; font-weight: 700; font-size: 1.15rem; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+  .metrics .ml { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+
+  .strength { font-size: 13.5px; color: var(--text-muted); margin: 14px 0 6px; line-height: 1.5; }
+  .strength b { color: var(--good-fg); font-weight: 600; }
+
+  ul.findings { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 0; }
+  ul.findings li { padding: 12px 0; border-top: 1px solid var(--border); display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+  ul.findings li:first-child { border-top: none; }
+  .fmeta { display: flex; flex-direction: column; align-items: center; gap: 5px; padding-top: 2px; }
+  .chip { font-family: "IBM Plex Mono", monospace; font-size: 10px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; white-space: nowrap; }
+  .chip.a { color: var(--alto-fg); background: var(--alto-bg); }
+  .chip.m { color: var(--medio-fg); background: var(--medio-bg); }
+  .chip.b { color: var(--bajo-fg); background: var(--bajo-bg); }
+  .eff { font-family: "IBM Plex Mono", monospace; font-size: 10px; font-weight: 600; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 5px; border: 1px solid var(--border-strong); color: var(--text-muted); }
+  .ftext { font-size: 13.7px; line-height: 1.48; }
+  .ftext .t { font-weight: 600; color: var(--text); }
+  .ftext .d { color: var(--text-muted); }
+  .ftext code { font-size: 11.8px; color: var(--accent-ink); background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+
+  /* ---------- start here ---------- */
+  .start-grid { display: flex; flex-direction: column; gap: 14px; }
+  .move {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: center;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;
+  }
+  .move .idx { font-family: "Archivo", sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1; }
+  .move .body h4 { margin: 0 0 4px; font-size: 1.02rem; font-weight: 700; font-family: "IBM Plex Sans", sans-serif; }
+  .move .body p { margin: 0; font-size: 13.5px; color: var(--text-muted); line-height: 1.45; }
+  .move .body code { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--accent-ink); }
+  .payoff { text-align: right; }
+  .payoff .risk { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; background: var(--good-bg); color: var(--good-fg); font-weight: 600; white-space: nowrap; }
+  .payoff .risk.med { background: var(--medio-bg); color: var(--medio-fg); }
+
+  /* ---------- roadmap ---------- */
+  .phases { display: flex; flex-direction: column; gap: 0; margin-top: 4px; }
+  .phase { display: grid; grid-template-columns: 130px 1fr; gap: 20px; padding: 20px 0; border-top: 1px solid var(--border); }
+  .phase:first-child { border-top: none; }
+  .phase .ph-label { }
+  .phase .ph-num { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--accent-ink); font-weight: 600; letter-spacing: .06em; }
+  .phase .ph-name { font-family: "Archivo", sans-serif; font-weight: 700; font-size: 1.05rem; margin-top: 3px; letter-spacing: -.01em; }
+  .phase .ph-goal { font-size: 12px; color: var(--text-faint); margin-top: 6px; line-height: 1.4; }
+  .phase ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+  .phase ul li { font-size: 13.8px; line-height: 1.45; padding-left: 18px; position: relative; color: var(--text-muted); }
+  .phase ul li::before { content: ""; position: absolute; left: 0; top: 9px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .phase ul li b { color: var(--text); font-weight: 600; }
+  .phase ul li .who { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-faint); margin-right: 8px; }
+  .phase ul li code { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--accent-ink); }
+
+  /* ---------- footer ---------- */
+  footer { padding: 34px 0 60px; color: var(--text-faint); font-size: 12.5px; }
+  footer .fnote { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 12px; }
+  footer .fnote span { font-family: "IBM Plex Mono", monospace; }
+  footer code { font-family: "IBM Plex Mono", monospace; color: var(--text-muted); }
+
+  /* ---------- theme toggle ---------- */
+  .toggle {
+    position: fixed; top: 16px; right: 16px; z-index: 10;
+    background: var(--surface); border: 1px solid var(--border); color: var(--text-muted);
+    width: 38px; height: 38px; border-radius: 10px; cursor: pointer; font-size: 16px;
+    display: grid; place-items: center; box-shadow: var(--shadow);
+  }
+  .toggle:hover { color: var(--text); border-color: var(--border-strong); }
+  .toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (max-width: 620px) {
+    .phase { grid-template-columns: 1fr; gap: 10px; }
+    .move { grid-template-columns: auto 1fr; }
+    .payoff { grid-column: 2; text-align: left; }
+    ul.findings li { grid-template-columns: auto 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<button class="toggle" id="tg" aria-label="Cambiar tema" title="Cambiar tema">◐</button>
+
+<header>
+  <div class="wrap head-grid">
+    <div class="eyebrow">Revisión de arquitectura · Monorepo</div>
+    <h1>Salud del código MariPuntos</h1>
+    <p class="verdict">Los cimientos están sanos en los tres proyectos y <b>no hay incendios de corrección</b>. Lo que hay es <b>deuda de consistencia y de altitud</b>: herramientas correctas ya elegidas pero sin terminar de adoptar, y unos pocos archivos que concentran demasiada responsabilidad.</p>
+
+    <div class="statbar">
+      <div class="stat"><div class="n">3</div><div class="l">proyectos revisados</div></div>
+      <div class="stat"><div class="n">~27k</div><div class="l">LOC analizadas</div></div>
+      <div class="stat"><div class="n">22</div><div class="l">hallazgos</div></div>
+      <div class="stat"><div class="n sev-a">8</div><div class="l">impacto alto</div></div>
+      <div class="stat"><div class="n sev-m">12</div><div class="l">impacto medio</div></div>
+      <div class="stat"><div class="n ok">0</div><div class="l">bugs críticos</div></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>El patrón que se repite</h2></div>
+    <p class="sec-intro">Antes de mirar proyecto por proyecto, esto es lo que aparece en los tres a la vez — y por qué el refactor es menos arriesgado de lo que parece.</p>
+
+    <div class="lead">
+      <div class="tag">Hallazgo transversal</div>
+      <p>El problema dominante no es que falten herramientas, sino que <b>la herramienta correcta ya está instalada y casi no se usa</b>. React Query, la fábrica de errores tipada y los tokens de diseño están montados pero adoptados una sola vez. Gran parte del trabajo es <b>terminar de adoptar decisiones que el equipo ya tomó</b>, no introducir nada nuevo.</p>
+    </div>
+
+    <div class="matrix-scroll">
+      <table class="matrix">
+        <thead>
+          <tr><th>Patrón</th><th>App · RN/Expo</th><th>Backend · Express</th><th>Website · Astro</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="theme-cell">Herramienta correcta, sin adoptar</td>
+            <td><span class="m">react-query</span> montado, solo 1 hook lo usa</td>
+            <td><span class="m">createError</span> tipado usado 1 vez frente a ~70 <span class="m">new AppError</span></td>
+            <td>token <span class="m">--primary</span> definido, sin conectar a Tailwind</td>
+          </tr>
+          <tr>
+            <td class="theme-cell">Archivos que hacen demasiado</td>
+            <td>pantallas de permisos <span class="m">500–834</span> LOC</td>
+            <td>servicios de <span class="m">400+</span> LOC, 5 responsabilidades c/u</td>
+            <td><span class="m">LandingPage.astro</span> 588 LOC, 10 secciones</td>
+          </tr>
+          <tr>
+            <td class="theme-cell">Duplicación de dominio</td>
+            <td>refrescar stores ×2, shell de modal ×4</td>
+            <td>consulta de pareja ×8 <small>(bug latente)</small></td>
+            <td>contenido legal ES/EN ×2 <small>(~400 LOC)</small></td>
+          </tr>
+          <tr>
+            <td class="theme-cell">Errores sin tipar</td>
+            <td><span class="m">(error as any)</span> ×5 pese a <span class="m">ApiError</span></td>
+            <td>status + mensaje hardcodeado + clave i18n mezclados</td>
+            <td><small>—</small></td>
+          </tr>
+          <tr>
+            <td class="theme-cell">Código muerto de plantilla</td>
+            <td>cluster Expo (theme/collapsible/parallax)</td>
+            <td>helpers y query-schemas sin uso</td>
+            <td><small>—</small></td>
+          </tr>
+          <tr>
+            <td class="theme-cell pos">Fortaleza — no romper</td>
+            <td>capa de servicios + tokens de tema</td>
+            <td>capas limpias + transacciones con lock + mapeo DTO</td>
+            <td>islas disciplinadas + i18n tipado</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>Los tres proyectos</h2></div>
+    <p class="sec-intro">Cada tarjeta: estado general, lo que ya está bien (no tocar) y los hallazgos ordenados por impacto. <b>A</b>lto / <b>M</b>edio / <b>B</b>ajo a la izquierda; esfuerzo estimado (S/M/L) a la derecha.</p>
+
+    <div class="projects">
+
+      <!-- APP -->
+      <div class="card">
+        <div class="card-top">
+          <div>
+            <h3>App</h3>
+            <div class="stack">React Native · Expo Router · TS</div>
+          </div>
+          <span class="impact mix">Sano · eje datos alto</span>
+        </div>
+        <div class="metrics">
+          <div><span class="mv">122</span><span class="ml">archivos</span></div>
+          <div><span class="mv">17.4k</span><span class="ml">LOC</span></div>
+          <div><span class="mv">8</span><span class="ml">hallazgos</span></div>
+        </div>
+        <p class="strength"><b>Ya bien:</b> capa de servicios sólida, 0 colores hardcodeados, rhf+zod en auth y modales, <code>design-system/MASTER.md</code> maduro.</p>
+        <ul class="findings">
+          <li>
+            <div class="fmeta"><span class="chip a">Alto</span><span class="eff">L</span></div>
+            <div class="ftext"><span class="t">Doble capa de datos.</span> <span class="d">react-query montado (<code>_layout.tsx:232</code>) pero solo <code>useAchievements</code> lo usa; el resto son stores zustand que reimplementan cache/loading a mano.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip a">Alto</span><span class="eff">M</span></div>
+            <div class="ftext"><span class="t">Invalidación manual acoplada a la UI.</span> <span class="d">Bloque "refrescar 6 stores" duplicado en <code>link-partner:131,185</code>; stores que llaman a otros stores. Viola SRP/DIP.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip a">Alto</span><span class="eff">M</span></div>
+            <div class="ftext"><span class="t">Boilerplate idéntico entre stores.</span> <span class="d"><code>permissionsStore</code> y <code>actionsStore</code> comparten ~70% de forma. Factory <code>runAsync</code> — o se elimina al adoptar react-query.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip m">Medio</span><span class="eff">M</span></div>
+            <div class="ftext"><span class="t">Formularios inconsistentes.</span> <span class="d">Las 3 pantallas más grandes (<code>request.tsx</code> 834 LOC, 13 useState) usan estado crudo; auth y modales sí usan rhf+zod.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip m">Medio</span><span class="eff">L</span></div>
+            <div class="ftext"><span class="t">God-screens + bypass de hooks.</span> <span class="d"><code>request.tsx</code> reinventa un <code>Select</code> (~150 LOC) y llama <code>permissionsService</code> directo, saltándose la capa de hooks.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip m">Medio</span><span class="eff">M</span></div>
+            <div class="ftext"><span class="t">Modal y teclado repetidos.</span> <span class="d">4 modales reimplementan el bottom-sheet; <code>useEffect</code> de offset de teclado duplicado en 5 archivos. → <code>BottomSheetModal</code> + <code>useKeyboardOffset</code>.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip m">Medio</span><span class="eff">S</span></div>
+            <div class="ftext"><span class="t">Errores sin tipar.</span> <span class="d"><code>(error as any)?.error</code> ×5 pese a existir <code>ApiError</code> (<code>api.ts:95</code>) y <code>getErrorMessage</code>.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip b">Bajo</span><span class="eff">S</span></div>
+            <div class="ftext"><span class="t">Código muerto de plantilla Expo.</span> <span class="d"><code>constants/theme.ts</code> (paleta que contradice <code>theme/</code>), collapsible, parallax-scroll — sin consumir. Borrar el cluster.</span></div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- BACKEND -->
+      <div class="card">
+        <div class="card-top">
+          <div>
+            <h3>Backend</h3>
+            <div class="stack">Express 5 · TypeORM · Postgres</div>
+          </div>
+          <span class="impact med">Impacto medio</span>
+        </div>
+        <div class="metrics">
+          <div><span class="mv">54</span><span class="ml">archivos</span></div>
+          <div><span class="mv">7.4k</span><span class="ml">LOC</span></div>
+          <div><span class="mv">8</span><span class="ml">hallazgos</span></div>
+        </div>
+        <p class="strength"><b>Ya bien:</b> separación real de capas, mapeo entidad→DTO, <b>transacciones con lock pesimista</b> en puntos, servicios sin <code>req/res</code>, <code>StreakService</code> cohesivo.</p>
+        <ul class="findings">
+          <li>
+            <div class="fmeta"><span class="chip a">Alto</span><span class="eff">L</span></div>
+            <div class="ftext"><span class="t">Servicios gordos / SRP.</span> <span class="d"><code>approveAction</code> (<code>actions.service:191</code>, ~136 líneas) y <code>checkAchievements</code> (<code>points.service:192</code>) mezclan datos + reglas + logs + push + logros.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip a">Alto</span><span class="eff">M</span></div>
+            <div class="ftext"><span class="t">PointsService son dos servicios.</span> <span class="d">~250 de sus 435 líneas son el motor de logros. Separar <code>AchievementsService</code>.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip a">Alto</span><span class="eff">L</span></div>
+            <div class="ftext"><span class="t">Sin repositorio; pareja reimplementada ×8.</span> <span class="d"><code>where:[{user1Id},{user2Id}]</code> con filtros de estado divergentes — <b>bug latente</b>. Centralizar <code>findActiveLink</code>.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip a">Alto</span><span class="eff">M</span></div>
+            <div class="ftext"><span class="t"><code>new</code> en vez de DI.</span> <span class="d">19 <code>new XxxService()</code>; instancias duplicadas y código no mockeable. Inyección por constructor con defaults.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip m">Medio</span><span class="eff">M</span></div>
+            <div class="ftext"><span class="t">Dos sistemas de errores.</span> <span class="d"><code>createError</code> usado 1 vez vs ~70 <code>new AppError</code> con status + texto español + clave i18n mezclados; el <code>ErrorCode</code> casi nunca llega al cliente.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip m">Medio</span><span class="eff">M</span></div>
+            <div class="ftext"><span class="t">Validación en controladores.</span> <span class="d">No hay middleware <code>validate</code>; <code>parseInt+Math.min</code> duplicado 4× y varios schemas Zod definidos y sin usar.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip m">Medio</span><span class="eff">S</span></div>
+            <div class="ftext"><span class="t">~36 try/catch de log-and-rethrow.</span> <span class="d">Redundantes con <code>asyncHandler</code> + <code>errorMiddleware</code> (que ya loguea): ~200 líneas de ruido y doble logging.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip m">Medio</span><span class="eff">M</span></div>
+            <div class="ftext"><span class="t">Inconsistencia transaccional.</span> <span class="d"><code>addPoints</code> (<code>points.service:23</code>) muta usuario+log+nivel+logros sin transacción, a diferencia de los otros caminos críticos.</span></div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- WEBSITE -->
+      <div class="card">
+        <div class="card-top">
+          <div>
+            <h3>Website</h3>
+            <div class="stack">Astro 7 · React islands · Tailwind 4</div>
+          </div>
+          <span class="impact low">Impacto bajo-medio</span>
+        </div>
+        <div class="metrics">
+          <div><span class="mv">~20</span><span class="ml">archivos</span></div>
+          <div><span class="mv">2.5k</span><span class="ml">LOC</span></div>
+          <div><span class="mv">6</span><span class="ml">hallazgos</span></div>
+        </div>
+        <p class="strength"><b>Ya bien:</b> islas usadas con disciplina (solo 2 React), i18n tipado, endpoint de beta con validación + honeypot + escape HTML, SEO/hreflang correcto.</p>
+        <ul class="findings">
+          <li>
+            <div class="fmeta"><span class="chip a">Alto</span><span class="eff">M</span></div>
+            <div class="ftext"><span class="t">Contenido legal duplicado ES/EN.</span> <span class="d">~400 LOC de markup escrito dos veces en <code>privacidad</code>/<code>terminos</code>; hay que sincronizar a mano el activo más sensible. → Content Collections + <code>LegalLayout</code>.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip m">Medio</span><span class="eff">M</span></div>
+            <div class="ftext"><span class="t"><code>LandingPage.astro</code> monolítico.</span> <span class="d">588 LOC con 10 secciones + arrays de datos con SVG hardcodeados. Trocear en <code>components/sections/</code>.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip m">Medio</span><span class="eff">S</span></div>
+            <div class="ftext"><span class="t">Color de marca como valor mágico.</span> <span class="d"><code>#0F766E</code> repetido ×23 + ×9 en 8 archivos; <code>--primary</code> no conecta con <code>@theme</code>, así que no existe <code>text-primary</code>.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip m">Medio</span><span class="eff">S</span></div>
+            <div class="ftext"><span class="t">Accesibilidad.</span> <span class="d"><code>FaqAccordion</code> sin <code>aria-expanded/controls</code>; <code>BetaSignupForm</code> con solo placeholder y sin <code>aria-live</code>.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip m">Medio</span><span class="eff">M</span></div>
+            <div class="ftext"><span class="t">Markup repetido.</span> <span class="d">Botones de tienda copiados ×7; el marco de teléfono reimplementado inline pese a existir <code>PhoneMockup.astro</code>.</span></div>
+          </li>
+          <li>
+            <div class="fmeta"><span class="chip b">Bajo</span><span class="eff">S</span></div>
+            <div class="ftext"><span class="t">Rate limiting no fiable en serverless.</span> <span class="d"><code>Map</code> en memoria (<code>beta-signup:14</code>); en Vercel cada lambda tiene el suyo. Aceptable para beta — documentarlo.</span></div>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>Por dónde empezar</h2></div>
+    <p class="sec-intro">Los tres proyectos son independientes, así que se puede paralelizar. Pero si hay que elegir un orden por relación valor/riesgo, este es el recomendado.</p>
+
+    <div class="start-grid">
+      <div class="move">
+        <div class="idx">1</div>
+        <div class="body">
+          <h4>Higiene transversal — quita ruido en un día</h4>
+          <p>Borrar código muerto (cluster Expo en app, helpers/schemas en backend), tipar errores y adoptar <code>getErrorMessage</code>, conectar <code>--color-primary</code> a <code>@theme</code> en la web. Cambios pequeños, sin lógica.</p>
+        </div>
+        <div class="payoff"><span class="risk">Riesgo bajo</span></div>
+      </div>
+      <div class="move">
+        <div class="idx">2</div>
+        <div class="body">
+          <h4>Cerrar el bug latente del backend</h4>
+          <p>Unificar la consulta de pareja en un solo <code>findActiveLink</code> (hoy ×8 con filtros divergentes) y envolver <code>addPoints</code> en transacción. Es lo único que roza corrección — alto valor, esfuerzo contenido.</p>
+        </div>
+        <div class="payoff"><span class="risk med">Roza corrección</span></div>
+      </div>
+      <div class="move">
+        <div class="idx">3</div>
+        <div class="body">
+          <h4>La apuesta estructural: datos en la app</h4>
+          <p>Adoptar react-query como única fuente de estado de servidor. <b>Pilotar en permisos</b>, retirar <code>permissionsStore</code>, y propagar. Disuelve de raíz 3 hallazgos altos (doble capa, invalidación manual, boilerplate).</p>
+        </div>
+        <div class="payoff"><span class="risk med">Mayor impacto</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>Hoja de ruta por fases</h2></div>
+    <p class="sec-intro">Etiquetas: <span class="mono" style="color:var(--text-faint)">app</span> · <span class="mono" style="color:var(--text-faint)">back</span> · <span class="mono" style="color:var(--text-faint)">web</span> indican a qué proyecto pertenece cada acción.</p>
+
+    <div class="phases">
+      <div class="phase">
+        <div class="ph-label"><div class="ph-num">FASE 0</div><div class="ph-name">Higiene</div><div class="ph-goal">Bajar ruido antes de refactorizar</div></div>
+        <ul>
+          <li><span class="who">app</span> Borrar cluster muerto de plantilla Expo y tipar errores con <code>ApiError</code>.</li>
+          <li><span class="who">back</span> Eliminar los ~36 try/catch de rethrow y helpers/schemas sin uso; arreglar el bug de <code>req.user</code> en cache miss (<code>authMiddleware:118</code>).</li>
+          <li><span class="who">web</span> Conectar <code>--color-primary</code> a <code>@theme</code> y reemplazar el hex mágico; añadir atributos ARIA.</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="ph-label"><div class="ph-num">FASE 1</div><div class="ph-name">Riesgos latentes</div><div class="ph-goal">Lo que roza corrección</div></div>
+        <ul>
+          <li><span class="who">back</span> Centralizar <code>findActiveLink</code> / <code>getPartnerId</code> (elimina la divergencia de filtros).</li>
+          <li><span class="who">back</span> Envolver <code>addPoints</code> en transacción, alineándolo con los otros caminos de puntos.</li>
+          <li><span class="who">web</span> De-duplicar contenido legal con Content Collections + <code>LegalLayout</code> único.</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="ph-label"><div class="ph-num">FASE 2</div><div class="ph-name">Decisión de datos</div><div class="ph-goal">La apuesta estructural de la app</div></div>
+        <ul>
+          <li><span class="who">app</span> Adoptar react-query como única fuente de estado de servidor; <b>piloto en permisos</b>.</li>
+          <li><span class="who">app</span> Propagar a acciones, puntos, streak y usuario; retirar los stores de servidor y las llamadas cruzadas entre stores.</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="ph-label"><div class="ph-num">FASE 3</div><div class="ph-name">Descomponer god-files</div><div class="ph-goal">Bajar la altitud de los archivos grandes</div></div>
+        <ul>
+          <li><span class="who">back</span> Extraer <code>AuditLogService</code> y <code>AchievementsService</code>; orquestadores delgados usando <code>StreakService</code> como plantilla.</li>
+          <li><span class="who">app</span> Trocear las pantallas de permisos: subcomponentes + <code>BottomSheetModal</code> + <code>useKeyboardOffset</code>.</li>
+          <li><span class="who">web</span> Partir <code>LandingPage.astro</code> en componentes de sección; reusar <code>PhoneMockup</code>.</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="ph-label"><div class="ph-num">FASE 4</div><div class="ph-name">Consistencia</div><div class="ph-goal">Un solo patrón por cosa</div></div>
+        <ul>
+          <li><span class="who">back</span> Middleware <code>validate</code> por ruta + un único sistema de errores (<code>createError</code>) + patrón repository / DI por constructor.</li>
+          <li><span class="who">app</span> Migrar las 3 pantallas de permisos a rhf+zod reutilizando <code>validators/</code>; retomar el Design System v2 según <code>MASTER.md</code>.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>Consolidado a partir de tres revisiones independientes del agente <span class="mono">architect-reviewer</span> (solo análisis, sin cambios en el código). Los hallazgos citan <span class="mono">archivo:línea</span> reales del repositorio.</div>
+    <div class="fnote">
+      <span>Informes completos:</span>
+      <span><code>scratchpad/arquitectura-review-app.md</code></span>
+      <span><code>scratchpad/arquitectura-review-backend.md</code></span>
+      <span><code>scratchpad/arquitectura-review-website.md</code></span>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+  (function () {
+    var root = document.documentElement, btn = document.getElementById('tg');
+    var saved;
+    try { saved = localStorage.getItem('mp-theme'); } catch (e) {}
+    if (saved === 'dark' || saved === 'light') root.setAttribute('data-theme', saved);
+    function current() {
+      var t = root.getAttribute('data-theme');
+      if (t) return t;
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    btn.addEventListener('click', function () {
+      var next = current() === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('mp-theme', next); } catch (e) {}
+    });
+  })();
+</script>
