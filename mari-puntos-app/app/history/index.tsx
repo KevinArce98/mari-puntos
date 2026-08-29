@@ -2,7 +2,7 @@ import React from 'react';
 
 import { ActivityIndicator, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HistoryItem } from '@/components';
-import { Card, SkeletonList } from '@/components/ui';
+import { Card, PressableScale, SkeletonList } from '@/components/ui';
 import { usePoints, useThemedColors } from '@/hooks';
 import { spacing, typography } from '@/theme';
 import { PointsLog } from '@/types';
@@ -21,6 +21,7 @@ export default function HistoryScreen() {
   const { t } = useTranslation('history');
   const insets = useSafeAreaInsets();
   const colors = useThemedColors();
+  const router = useRouter();
   const { pointsHistory, fetchHistory, isLoading, paginationMeta } = usePoints();
   const [refreshing, setRefreshing] = React.useState(false);
   const [page, setPage] = React.useState(1);
@@ -102,18 +103,23 @@ export default function HistoryScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Stack.Screen
-        options={{
-          title: t('title'),
-          headerBackTitle: t('back'),
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-          headerTintColor: colors.text.primary,
-          headerShadowVisible: false,
-        }}
-      />
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, backgroundColor: colors.background },
+      ]}
+    >
+      <Stack.Screen options={{ headerShown: false }} />
+
+      <View style={styles.header}>
+        <PressableScale onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
+        </PressableScale>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>
+          {t('title')}
+        </Text>
+        <View style={{ width: 40 }} />
+      </View>
 
       <LegendList
         data={pointsHistory}
@@ -151,6 +157,23 @@ export default function HistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: -spacing.sm,
+  },
+  headerTitle: {
+    ...typography.styles.h3,
   },
   listContent: {
     padding: spacing.lg,
