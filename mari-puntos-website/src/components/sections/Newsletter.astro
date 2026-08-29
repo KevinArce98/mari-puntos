@@ -1,0 +1,26 @@
+---
+import { BetaSignupForm } from '@/components/BetaSignupForm';
+import { useTranslations, type Lang } from '@/i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section
+  class="py-16 md:py-20 bg-linear-to-br from-primary to-primary-dark text-white relative overflow-hidden"
+>
+  <div class="absolute inset-0 opacity-10">
+    <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+  </div>
+  <div class="relative max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <h2 class="text-3xl md:text-4xl font-bold mb-4">{t('newsletter.title')}</h2>
+    <p class="text-white/80 text-lg mb-8">{t('newsletter.subtitle')}</p>
+    <BetaSignupForm client:load lang={lang} />
+    <p class="text-white/60 text-sm mt-4">{t('newsletter.disclaimer')}</p>
+  </div>
+</section>

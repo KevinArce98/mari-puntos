@@ -1,0 +1,104 @@
+---
+import { APP_STORE_URL, PLAY_STORE_URL, screenshotPath } from '@/constants/site';
+import { useTranslations, type Lang } from '@/i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const shot = (name: string) => screenshotPath(name, lang);
+---
+
+<header
+  class="relative overflow-hidden pt-24 md:pt-28 pb-20 md:pb-32 bg-linear-to-br from-[#E6F9F7] via-[#c8f4ef] to-[#a8ede6]"
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-2 gap-12 items-end">
+      <div class="pb-12 md:pb-16">
+        <div
+          class="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white rounded-full shadow-sm border border-primary/20"
+        >
+          <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+          <span class="text-sm font-semibold text-primary">{t('hero.badge')}</span>
+        </div>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+          {t('hero.titleLine1')}
+          <br />
+          <span
+            class="text-transparent bg-clip-text bg-linear-to-r from-primary to-primary-dark"
+          >
+            {t('hero.titleHighlight')}
+          </span>
+          <br />
+          {t('hero.titleLine2')}
+        </h1>
+        <p class="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">
+          {t('hero.subtitle')}
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <a
+            href={APP_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-3 px-6 py-3.5 bg-gray-900 text-white rounded-2xl hover:bg-gray-800 transition-all duration-300 hover:scale-105 shadow-lg"
+          >
+            <img src="/apple.svg" alt="Apple" class="w-7 h-7 shrink-0" />
+            <div>
+              <div class="text-xs opacity-75">{t('store.appStoreTop')}</div>
+              <div class="font-bold text-base leading-tight">{t('store.appStore')}</div>
+            </div>
+          </a>
+          <a
+            href={PLAY_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-3 px-6 py-3.5 bg-gray-900 text-white rounded-2xl hover:bg-gray-800 transition-all duration-300 hover:scale-105 shadow-lg"
+          >
+            <img src="/googleplay.svg" alt="Google Play" class="w-7 h-7 shrink-0" />
+            <div>
+              <div class="text-xs opacity-75">{t('store.googlePlayTop')}</div>
+              <div class="font-bold text-base leading-tight">{t('store.googlePlay')}</div>
+            </div>
+          </a>
+        </div>
+      </div>
+      <div class="flex justify-center pb-0">
+        <div class="relative animate-float">
+          <div
+            class="absolute -inset-8 bg-linear-to-r from-primary/15 to-primary-dark/15 rounded-full blur-3xl"
+          >
+          </div>
+          <div
+            class="relative bg-gray-900 rounded-[3rem] p-0.75 shadow-2xl"
+            style="max-width: 260px"
+          >
+            <div class="bg-gray-800 rounded-[2.9rem] p-1">
+              <div class="bg-white rounded-[2.5rem] overflow-hidden">
+                <img
+                  src={shot('actions')}
+                  alt={t('hero.phoneAlt')}
+                  class="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="absolute -bottom-14 left-0 right-0 leading-none">
+    <svg
+      class="w-full h-24 md:h-60"
+      viewBox="0 0 1440 120"
+      preserveAspectRatio="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M0,70 C200,10 440,110 720,70 C1000,30 1260,100 1440,60 L1440,120 L0,120 Z"
+        fill="white"></path>
+    </svg>
+  </div>
+</header>

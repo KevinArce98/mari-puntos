@@ -1,0 +1,105 @@
+---
+import LanguageSwitcher from '@/components/LanguageSwitcher.astro';
+import { APP_STORE_URL, PLAY_STORE_URL } from '@/constants/site';
+import { localizePath, useTranslations, type Lang } from '@/i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const footerAppLinks = [
+  { label: t('footer.link.features'), href: '#diferente' },
+  { label: t('footer.link.howItWorks'), href: '#como-funciona' },
+  { label: t('footer.link.faq'), href: '#faq' },
+];
+
+const footerLegalLinks = [
+  { label: t('footer.link.privacy'), href: localizePath('/privacidad', lang) },
+  { label: t('footer.link.terms'), href: localizePath('/terminos', lang) },
+  { label: t('footer.link.contact'), href: 'mailto:arias9068@gmail.com' },
+];
+---
+
+<footer class="py-12 bg-gray-900 text-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-4 gap-8 mb-10">
+      <div class="md:col-span-2">
+        <div class="flex items-center gap-2 mb-4">
+          <img src="/icon.png" alt="MariPuntos" class="w-9 h-9" />
+          <span class="text-2xl font-bold">
+            <span class="text-primary">Mari</span>Puntos
+          </span>
+        </div>
+        <p class="text-gray-400 leading-relaxed max-w-sm">{t('footer.tagline')}</p>
+        <div class="flex gap-3 mt-5">
+          <a
+            href={APP_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-sm"
+          >
+            <img src="/apple.svg" alt="Apple" class="w-4 h-4" />
+            {t('store.appStore')}
+          </a>
+          <a
+            href={PLAY_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-sm"
+          >
+            <img src="/googleplay.svg" alt="Google Play" class="w-4 h-4" />
+            {t('store.googlePlay')}
+          </a>
+        </div>
+        <div class="mt-5">
+          <LanguageSwitcher lang={lang} path="/" variant="dark" />
+        </div>
+      </div>
+
+      <div>
+        <h4 class="font-bold text-lg mb-4">{t('footer.appHeading')}</h4>
+        <ul class="space-y-2">
+          {
+            footerAppLinks.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  class="text-gray-400 hover:text-primary transition-colors"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-bold text-lg mb-4">{t('footer.legalHeading')}</h4>
+        <ul class="space-y-2">
+          {
+            footerLegalLinks.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  class="text-gray-400 hover:text-primary transition-colors"
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+
+    <div
+      class="border-t border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4"
+    >
+      <p class="text-gray-400 text-sm">{t('footer.rights')}</p>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,45 @@
+---
+import LanguageSwitcher from '@/components/LanguageSwitcher.astro';
+import { APP_STORE_URL } from '@/constants/site';
+import { useTranslations, type Lang } from '@/i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<nav class="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm shadow-sm z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16 md:h-20">
+      <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
+        <img src="/icon.png" alt="MariPuntos" class="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 shrink-0" />
+        <div class="min-w-0 truncate text-base sm:text-xl md:text-2xl font-bold">
+          <span class="text-primary">Mari</span>Puntos
+        </div>
+      </div>
+      <div class="hidden md:flex items-center gap-8 text-gray-600 font-medium">
+        <a href="#diferente" class="hover:text-primary transition-colors">
+          {t('nav.features')}
+        </a>
+        <a href="#como-funciona" class="hover:text-primary transition-colors">
+          {t('nav.howItWorks')}
+        </a>
+        <a href="#faq" class="hover:text-primary transition-colors">{t('nav.faq')}</a>
+      </div>
+      <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <LanguageSwitcher lang={lang} path="/" />
+        <a
+          href={APP_STORE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="px-2.5 sm:px-5 py-2 sm:py-2.5 bg-primary text-white rounded-full font-semibold text-[11px] sm:text-sm hover:bg-primary-dark transition-all duration-300 hover:shadow-lg whitespace-nowrap"
+        >
+          {t('nav.download')}
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>

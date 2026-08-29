@@ -1,0 +1,77 @@
+---
+import PhoneMockup from '@/components/PhoneMockup.astro';
+import { screenshotPath } from '@/constants/site';
+import { useTranslations, type Lang } from '@/i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const shot = (name: string) => screenshotPath(name, lang);
+
+const actionFeatures = [
+  {
+    path: 'M13 10V3L4 14h7v7l9-11h-7z',
+    label: t('actions.feat1.label'),
+    desc: t('actions.feat1.desc'),
+  },
+  {
+    path: 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4',
+    label: t('actions.feat2.label'),
+    desc: t('actions.feat2.desc'),
+  },
+  {
+    path: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
+    label: t('actions.feat3.label'),
+    desc: t('actions.feat3.desc'),
+  },
+  {
+    path: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+    label: t('actions.feat4.label'),
+    desc: t('actions.feat4.desc'),
+  },
+];
+---
+
+<section class="py-16 md:py-24 bg-[#F5FFFE]">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-2 gap-16 items-center">
+      <div>
+        <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
+          {t('actions.title1')}
+          <br />
+          {t('actions.title2')}
+        </h3>
+        <p class="text-lg text-gray-500 mb-10 leading-relaxed">{t('actions.desc')}</p>
+        <ul class="space-y-6 mb-10">
+          {
+            actionFeatures.map((item) => (
+              <li class="flex items-start gap-4">
+                <div class="w-11 h-11 bg-white rounded-xl border border-gray-100 shadow-sm flex items-center justify-center shrink-0">
+                  <svg
+                    class="w-5 h-5 text-primary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    stroke-width={1.8}
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" d={item.path} />
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-semibold text-gray-900 leading-snug">{item.label}</p>
+                  <p class="text-gray-500 text-sm mt-0.5 leading-relaxed">{item.desc}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div class="flex justify-center">
+        <PhoneMockup src={shot('actions')} alt={t('actions.phoneAlt')} />
+      </div>
+    </div>
+  </div>
+</section>

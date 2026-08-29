@@ -1,0 +1,77 @@
+---
+import PhoneMockup from '@/components/PhoneMockup.astro';
+import { screenshotPath } from '@/constants/site';
+import { useTranslations, type Lang } from '@/i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const shot = (name: string) => screenshotPath(name, lang);
+
+const permissionFeatures = [
+  {
+    path: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
+    label: t('permissions.feat1.label'),
+    desc: t('permissions.feat1.desc'),
+  },
+  {
+    path: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+    label: t('permissions.feat2.label'),
+    desc: t('permissions.feat2.desc'),
+  },
+  {
+    path: 'M4 6h16M4 10h16M4 14h16M4 18h16',
+    label: t('permissions.feat3.label'),
+    desc: t('permissions.feat3.desc'),
+  },
+  {
+    path: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+    label: t('permissions.feat4.label'),
+    desc: t('permissions.feat4.desc'),
+  },
+];
+---
+
+<section class="py-16 md:py-24 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-2 gap-16 items-center">
+      <div class="flex justify-center order-2 md:order-1">
+        <PhoneMockup src={shot('permisos')} alt={t('permissions.phoneAlt')} />
+      </div>
+      <div class="order-1 md:order-2">
+        <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
+          {t('permissions.title1')}
+          <br />
+          {t('permissions.title2')}
+        </h3>
+        <p class="text-lg text-gray-500 mb-10 leading-relaxed">{t('permissions.desc')}</p>
+        <ul class="space-y-6 mb-10">
+          {
+            permissionFeatures.map((item) => (
+              <li class="flex items-start gap-4">
+                <div class="w-11 h-11 bg-purple-50 rounded-xl border border-purple-100 shadow-sm flex items-center justify-center shrink-0">
+                  <svg
+                    class="w-5 h-5 text-purple-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    stroke-width={1.8}
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" d={item.path} />
+                  </svg>
+                </div>
+                <div>
+                  <p class="font-semibold text-gray-900 leading-snug">{item.label}</p>
+                  <p class="text-gray-500 text-sm mt-0.5 leading-relaxed">{item.desc}</p>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
