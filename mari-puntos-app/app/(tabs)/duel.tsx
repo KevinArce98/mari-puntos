@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 
 import { StyleSheet, Text, View } from 'react-native';
 
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -18,7 +18,15 @@ export default function CompetitionScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const themeColors = useThemedColors();
-  const { user, partnerInfo } = useUser();
+  const { user, partnerInfo, hasPartner, fetchPartnerInfo } = useUser();
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasPartner) return;
+      fetchPartnerInfo().catch(() => {});
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [hasPartner])
+  );
 
   const myPoints = user?.totalPoints || 0;
   const myLevel = user?.currentLevel || 1;
