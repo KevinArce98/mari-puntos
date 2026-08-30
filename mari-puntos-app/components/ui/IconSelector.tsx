@@ -38,7 +38,7 @@ const ICON_NAMES = [
   'bicycle-outline',
   'car-sport-outline',
   'airplane-outline',
-  'beach-outline',
+  'water-outline',
   'fitness-outline',
   'barbell-outline',
   'tennisball-outline',
