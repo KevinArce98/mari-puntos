@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: app
+            checks: |
+              pnpm -C mari-puntos-app exec tsc --noEmit
+              pnpm -C mari-puntos-app lint
+          - name: backend
+            checks: |
+              pnpm -C mari-puntos-backend typecheck
+              pnpm -C mari-puntos-backend lint
+              pnpm -C mari-puntos-backend build
+          - name: website
+            checks: |
+              pnpm -C mari-puntos-website lint
+              pnpm -C mari-puntos-website build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: ${{ matrix.name }} checks
+        run: |
+          ${{ matrix.checks }}
