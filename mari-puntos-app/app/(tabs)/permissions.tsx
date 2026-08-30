@@ -186,6 +186,7 @@ export default function PermissionsScreen() {
       <LegendList
         data={visiblePermissions}
         keyExtractor={(item) => item.id}
+        recycleItems={false}
         renderItem={({ item }) =>
           scope === 'received' ? (
             <PermissionCard

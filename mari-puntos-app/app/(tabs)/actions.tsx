@@ -144,6 +144,7 @@ export default function ActionsScreen() {
         data={myActions}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <ActionItemCard action={item} showStatus />}
+        recycleItems
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={

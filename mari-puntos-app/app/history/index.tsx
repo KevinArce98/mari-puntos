@@ -88,6 +88,7 @@ export default function HistoryScreen() {
         data={pointsHistory}
         renderItem={renderHistoryItem}
         keyExtractor={(item) => item.id}
+        recycleItems
         contentContainerStyle={[
           styles.listContent,
           { paddingBottom: insets.bottom + spacing.xl },

@@ -166,6 +166,7 @@ export default function ReviewActionsScreen() {
             <ActionItemCard action={item} showStatus />
           </PressableScale>
         )}
+        recycleItems
         contentContainerStyle={[
           styles.scrollContent,
           { paddingBottom: insets.bottom + spacing.xl },
