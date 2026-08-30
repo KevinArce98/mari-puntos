@@ -7,9 +7,12 @@ Guía para cualquier IA (y colaborador) que trabaje en este repositorio. Estas r
 - **Sin código muerto.** Nunca dejar variables, imports, funciones, tipos, textos ni traducciones sin usar. Si algo deja de usarse, se borra en el mismo cambio.
 - **Sin comentarios.** No agregar comentarios; el código se explica con nombres claros y funciones pequeñas. Solo se permiten los comentarios que una herramienta exige (p. ej. directivas de lint o `@ts-expect-error` con motivo).
 - **Clean code + SOLID.** Aplica a app, backend y website: responsabilidad única, funciones cortas, dependencias hacia abstracciones, sin duplicación, sin abstracción prematura.
-- **Buenas prácticas siempre.** Tipado estricto (nada de `any` implícito), manejo explícito de errores, nombres descriptivos, y consistencia con el estilo del archivo que se edita.
+- **Buenas prácticas siempre.** Tipado estricto (todo corre en TS `strict`), manejo explícito de errores, nombres descriptivos, y consistencia con el estilo del archivo que se edita.
+- **Sin `any`.** Preferir tipos concretos o `unknown` + narrowing. Validar datos externos con Zod, no castear.
+- **i18n, nunca strings hardcodeados.** Los tres proyectos usan i18n; todo texto visible al usuario va como clave en `es` **y** `en`.
 - **Editar sobre reescribir.** Leer el archivo antes de modificarlo y hacer cambios acotados; no reescribir archivos completos sin necesidad.
-- **Nada de secretos en el código.** Credenciales y llaves van en `.env` por proyecto, nunca hardcodeadas ni commiteadas.
+- **Seguir la convención de la carpeta.** Nombres de archivo, estilo de import y patrones se copian del código vecino, no se inventan.
+- **Nada de secretos en el código.** Credenciales y llaves van en `.env` por proyecto, nunca hardcodeadas ni commiteadas. Ojo: las variables `EXPO_PUBLIC_*` de la app se empaquetan en el cliente y son **públicas** — jamás poner secretos ahí.
 - **Sin commits automáticos.** No crear commits salvo pedido explícito.
 
 ## Estructura
@@ -27,20 +30,30 @@ Monorepo pnpm: `pnpm install` una sola vez desde la raíz.
 
 ## Por proyecto
 
+No hay runner de tests configurado: la verificación de un cambio es **typecheck + lint + build** según el proyecto.
+
 ### App — `mari-puntos-app/`
 
-Expo SDK 57, React Native, TypeScript, TanStack Query, Zustand, Clerk, Sentry.
+Expo SDK 57, React Native, TypeScript (`strict`), Expo Router, TanStack Query, Zustand, Clerk, Sentry.
 
-- **UI:** seguir [DESIGN.md](DESIGN.md). Cero hex hardcodeados, colores/espaciado/tipografía vía tokens del theme. Sin gradientes, sin emojis como iconos estructurales, Ionicons outline por defecto.
-- **i18n:** todo texto visible pasa por i18n (`i18n/locales/es` y `en`). Nunca strings hardcodeados en pantallas; agregar la clave en **ambos** idiomas.
+- **Imports:** usar el alias `@/…` (definido en `tsconfig`), no rutas relativas profundas (`../../…`).
+- **Datos (server state):** TanStack Query. Flujo: `services/*Service.ts` (llamadas HTTP vía el cliente axios de `services/api.ts`) → hook en `hooks/useX.ts` (`useQuery`/`useMutation`) → componente. Nunca `fetch`/axios directo en un componente. Query keys centralizadas en `lib/queryKeys.ts`.
+- **Estado cliente:** Zustand (`stores/`) solo para estado local/UI; no duplicar ahí datos de servidor.
+- **UI:** seguir [DESIGN.md](DESIGN.md). Cero hex hardcodeados; color/espaciado/tipografía desde `theme/`. Sin gradientes, sin emojis como iconos estructurales, Ionicons outline por defecto.
+- **i18n:** claves en `i18n/locales/es` y `en`.
+- **Logs y errores:** usar `utils/logger`, nunca `console.log`; mensajes de error vía `utils/errorMessage`.
 - **Verificar:** `pnpm lint` · `pnpm format`.
 
 ### Backend — `mari-puntos-backend/`
 
-Express 5, TypeORM, PostgreSQL, Clerk, Zod, Pino.
+Express 5, TypeORM, PostgreSQL, Clerk, Zod, Pino. TS `strict` + `noUnusedLocals/Parameters`.
 
-- Validar entrada con Zod en el borde; capas separadas (routes → services → data). Logs con Pino, nunca `console.log`.
-- Cambios de esquema vía migraciones TypeORM (`pnpm migration:generate` / `migration:run`), nunca a mano en la DB.
+- **Capas:** `routes → controllers → services → entities`. La lógica de negocio vive en `services/`; los controllers son delgados (parsean, delegan, responden).
+- **Validación:** Zod en `validators/` sobre la entrada, en el borde.
+- **Errores:** centralizados en `middlewares/errorMiddleware.ts`; lanzar errores tipados, no responder ad-hoc en cada handler.
+- **Logs:** Pino, nunca `console.log`.
+- **Esquema:** solo vía migraciones TypeORM (`pnpm migration:generate` / `migration:run`), nunca editar la DB a mano.
+- **i18n:** mensajes al cliente vía `src/i18n`.
 - **Verificar:** `pnpm typecheck` · `pnpm lint`.
 
 ### Website — `mari-puntos-website/`
@@ -48,7 +61,7 @@ Express 5, TypeORM, PostgreSQL, Clerk, Zod, Pino.
 Astro 7, React 19 (islands), Tailwind CSS 4.
 
 - Islands solo donde haga falta interactividad; el resto estático. Estilos con utilidades Tailwind.
-- Contenido legal bilingüe en `src/content/legal/{es,en}`.
+- **i18n:** ES/EN vía `src/i18n` y `src/pages/en`; contenido legal en `src/content/legal/{es,en}`.
 - **Verificar:** `pnpm lint` (Prettier) · `pnpm build`.
 
 ## Commits
