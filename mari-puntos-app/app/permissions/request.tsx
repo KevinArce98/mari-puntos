@@ -93,12 +93,8 @@ export default function RequestPermissionScreen() {
     if (loadingTemplates) return;
     if (templatesError) {
       toast.error(t('errors:title'), { description: t('request.loadTemplatesError') });
-    } else if (templates.length === 0) {
-      toast.info(t('request.noTemplatesTitle'), {
-        description: t('request.noTemplatesMessage'),
-      });
     }
-  }, [loadingTemplates, templatesError, templates.length, t]);
+  }, [loadingTemplates, templatesError, t]);
 
   const handleTemplateSelect = (template: PermissionTemplate) => {
     setValue('templateId', template.id, { shouldDirty: true, shouldValidate: true });

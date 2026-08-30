@@ -54,8 +54,6 @@
     "newActivity": "Nueva actividad",
     "selectActivity": "Selecciona una actividad",
     "noTemplatesAvailable": "No hay actividades disponibles",
-    "noTemplatesTitle": "No hay actividades",
-    "noTemplatesMessage": "Contacta al administrador para agregar plantillas",
     "loadTemplatesError": "No se pudieron cargar las plantillas",
     "selectActivityError": "Por favor selecciona un tipo de actividad",
     "sentTitle": "Solicitud enviada",

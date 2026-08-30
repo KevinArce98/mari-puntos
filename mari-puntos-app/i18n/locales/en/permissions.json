@@ -54,8 +54,6 @@
     "newActivity": "New activity",
     "selectActivity": "Select an activity",
     "noTemplatesAvailable": "No activities available",
-    "noTemplatesTitle": "No activities",
-    "noTemplatesMessage": "Contact the administrator to add templates",
     "loadTemplatesError": "Couldn't load the templates",
     "selectActivityError": "Please select an activity type",
     "sentTitle": "Request sent",
